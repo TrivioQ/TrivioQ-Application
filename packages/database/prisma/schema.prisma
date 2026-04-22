@@ -1,0 +1,76 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                String       @id @default(uuid())
+  firebaseUid       String       @unique
+  email             String       @unique
+  username          String       @unique
+  displayName       String?
+  profilePicture    String?
+  activeWindowStart DateTime
+  activeWindowEnd   DateTime
+  lastLogin         DateTime     @default(now())
+  currentStreak     Int        @default(0)
+  cumulativeScore   Int        @default(0)
+  dropsReceivedToday Int       @default(0)
+  lastDropDate      DateTime   @default(now())
+  subscriptionTier  SubscriptionTier @default(FREE)
+  preferences       Json?
+  devicePushToken   String?
+  drops             UserDrop[]
+  friendshipsInitiated Friendship[] @relation("UserFriendshipsInitiated")
+  friendshipsAccepted  Friendship[] @relation("UserFriendshipsAccepted")
+}
+
+model Friendship {
+  id          String   @id @default(uuid())
+  requester   User     @relation("UserFriendshipsInitiated", fields: [requesterId], references: [id])
+  requesterId String
+  addressee   User     @relation("UserFriendshipsAccepted", fields: [addresseeId], references: [id])
+  addresseeId String
+  status      String   @default("PENDING") // e.g. PENDING, ACCEPTED
+  createdAt   DateTime @default(now())
+
+  @@unique([requesterId, addresseeId])
+}
+
+enum DifficultyLevel {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum SubscriptionTier {
+  FREE
+  PREMIUM
+}
+
+model Question {
+  id              String          @id @default(uuid())
+  categoryId      String
+  difficultyLevel DifficultyLevel
+  questionText    String
+  choices         Json
+  correctAnswerId String
+  explanationText String?
+  drops           UserDrop[]
+}
+
+model UserDrop {
+  id                String   @id @default(uuid())
+  user              User     @relation(fields: [userId], references: [id])
+  userId            String
+  question          Question @relation(fields: [questionId], references: [id])
+  questionId        String
+  scheduledDropTime DateTime
+  expirationTime    DateTime
+  isAnswered        Boolean  @default(false)
+  wasCorrect        Boolean?
+}
