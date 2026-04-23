@@ -10,6 +10,7 @@ coverage
 .next/
 out/
 build
+dist
 
 # expo / react-native
 .expo/
