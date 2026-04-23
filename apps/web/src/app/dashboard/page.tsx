@@ -1,25 +1,24 @@
 'use client';
 
-import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { makeAPICallV1, APIError } from '../../lib/api';
+import { useNotification } from '../../context/NotificationContext';
 
 export default function WebDashboard() {
-  const [isPaywallVisible, setIsPaywallVisible] = useState(false);
+  const { error: notifyError, warning: notifyWarning, success: notifySuccess } = useNotification();
 
   // No token needed — the tq_auth cookie is injected by the proxy automatically
   const onDemandMutation = useMutation({
     mutationFn: () => makeAPICallV1('drops/on-demand', { method: 'POST' }),
-    onSuccess: (data) => {
-      // In a real flow, this would redirect to the active drop page (/drop/[id])
-      console.log('Drop granted!', data);
-      alert('Drop Granted! Check your mobile app to play.');
+    onSuccess: () => {
+      notifySuccess('Check your mobile app to play!', 'Drop granted 🎉');
     },
     onError: (err: unknown) => {
       if (err instanceof APIError && err.code === 'UPGRADE_REQUIRED') {
-        setIsPaywallVisible(true);
+        notifyWarning('Want more trivia right now? Upgrade to Premium for up to 100 questions a day.', 'Upgrade Required');
       } else {
-        console.error(err);
+        const msg = err instanceof Error ? err.message : 'Failed to request a drop.';
+        notifyError(msg, 'Request failed');
       }
     },
   });
@@ -38,18 +37,6 @@ export default function WebDashboard() {
           </button>
         </div>
       </div>
-
-      {isPaywallVisible && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'>
-          <div className='w-full max-w-sm bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all'>
-            <h3 className='text-2xl font-bold text-purple-600 mb-4'>Premium Paywall</h3>
-            <p className='text-gray-700 mb-8 leading-relaxed'>Want more trivia right now? Premium allows up to 100 questions a day and instant drops.</p>
-            <button onClick={() => setIsPaywallVisible(false)} className='w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-purple-700 transition-colors'>
-              Coming Soon!
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

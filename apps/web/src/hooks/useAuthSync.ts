@@ -3,6 +3,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/FirebaseProvider';
+import { useNotification } from '../context/NotificationContext';
 import { makeAPICall } from '../lib/api';
 
 // ---------------------------------------------------------------------------
@@ -16,18 +17,18 @@ import { makeAPICall } from '../lib/api';
 //   Step 2 — Next.js /api/auth/sync route syncs the user record in Postgres
 //             and sets the tq_auth httpOnly session cookie
 //
-// @param getCredential — a function that performs the Firebase auth step and
-//   returns a UserCredential. Accepts either loginWithEmail,
-//   registerWithEmail, or signInWithGoogle results.
+// Errors are automatically surfaced as toast notifications via useNotification.
 // ---------------------------------------------------------------------------
 
 type AuthSyncOptions = {
   onSuccess?: () => void;
+  /** Optional override — fires alongside the automatic error toast. */
   onError?: (message: string) => void;
 };
 
 export function useAuthSync({ onSuccess, onError }: AuthSyncOptions = {}) {
   const { loginWithEmail, registerWithEmail, signInWithGoogle } = useAuth();
+  const { error: notifyError } = useNotification();
   const router = useRouter();
 
   const syncMutation = useMutation({
@@ -37,16 +38,25 @@ export function useAuthSync({ onSuccess, onError }: AuthSyncOptions = {}) {
       router.push('/dashboard');
     },
     onError: (err: any) => {
-      onError?.(err.message || 'An error occurred during backend synchronization.');
+      const msg = err.message || 'An error occurred during backend synchronization.';
+      notifyError(msg, 'Authentication failed');
+      onError?.(msg);
     },
   });
 
   // Shared internal helper: gets the idToken from any Firebase credential
   // and hands it to the sync mutation.
   const syncCredential = async (getCredential: () => Promise<{ user: { getIdToken: (force: boolean) => Promise<string> } }>) => {
-    const credential = await getCredential();
-    const idToken = await credential.user.getIdToken(false);
-    await syncMutation.mutateAsync(idToken);
+    try {
+      const credential = await getCredential();
+      const idToken = await credential.user.getIdToken(false);
+      await syncMutation.mutateAsync(idToken);
+    } catch (err: any) {
+      // Firebase-level errors (wrong password, user not found, etc.)
+      const msg = err.message || 'Authentication failed.';
+      notifyError(msg, 'Authentication failed');
+      onError?.(msg);
+    }
   };
 
   return {

@@ -9,6 +9,26 @@ const requireAuth = (req: Request, res: Response, next: express.NextFunction) =>
   next();
 };
 
+// Public — no auth required. Returns the top 100 players by cumulative score.
+router.get('/global', async (_req: Request, res: Response) => {
+  try {
+    const topUsers = await prisma.user.findMany({
+      take: 100,
+      orderBy: { cumulativeScore: 'desc' },
+      select: {
+        id: true,
+        username: true,
+        cumulativeScore: true,
+        currentStreak: true,
+      },
+    });
+    res.json({ leaderboard: topUsers });
+  } catch (error) {
+    console.error('Failed to fetch global leaderboard:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.get('/friends', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;

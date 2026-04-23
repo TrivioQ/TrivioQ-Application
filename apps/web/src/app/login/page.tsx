@@ -7,29 +7,17 @@ import { useAuthSync } from '../../hooks/useAuthSync';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
 
-  const { isPending, loginWithEmailSync, signInWithGoogleSync } = useAuthSync({
-    onError: (message) => setError(message),
-  });
+  // Errors are shown as toast notifications via useAuthSync → useNotification
+  const { isPending, loginWithEmailSync, signInWithGoogleSync } = useAuthSync();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    try {
-      await loginWithEmailSync(email, password);
-    } catch (err: any) {
-      setError(err.message || 'Failed to login with Email');
-    }
+    await loginWithEmailSync(email, password);
   };
 
   const handleGoogleLogin = async () => {
-    setError('');
-    try {
-      await signInWithGoogleSync();
-    } catch (err: any) {
-      setError(err.message || 'Failed to login with Google');
-    }
+    await signInWithGoogleSync();
   };
 
   return (
@@ -47,8 +35,6 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-
-        {error && <div className='bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg text-sm text-center'>{error}</div>}
 
         <form className='mt-8 space-y-6' onSubmit={handleEmailLogin}>
           <div className='space-y-4 rounded-md shadow-sm'>
