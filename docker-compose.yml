@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: trivioq-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: trivioq
+    ports:
+      - "5432:5432"
+    volumes:
+      - trivioq_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: trivioq-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+volumes:
+  trivioq_postgres_data:
