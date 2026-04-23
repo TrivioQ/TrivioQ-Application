@@ -1,0 +1,163 @@
+'use client';
+
+import { useState, useTransition } from 'react';
+import { createQuestion } from '@/app/actions/question.actions';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DifficultyLevel } from '@trivioq/database';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+export function CreateQuestionModal({ categories }: { categories: { id: string; name: string }[] }) {
+  const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const [questionText, setQuestionText] = useState('');
+  const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel>('EASY');
+  const [choices, setChoices] = useState(['', '', '', '']);
+  const [correctIndex, setCorrectIndex] = useState('0');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  
+  const [comboboxOpen, setComboboxOpen] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedCategories.length === 0) return alert('Select at least one category');
+
+    const formattedChoices = choices.map((text, idx) => ({ id: idx.toString(), text }));
+
+    startTransition(async () => {
+      const res = await createQuestion({
+        questionText,
+        difficultyLevel,
+        choices: formattedChoices,
+        correctAnswerId: correctIndex,
+        categoryIds: selectedCategories,
+      });
+
+      if (res.success) {
+        setOpen(false);
+        setQuestionText('');
+        setChoices(['', '', '', '']);
+        setSelectedCategories([]);
+      } else {
+        alert(res.error);
+      }
+    });
+  };
+
+  const toggleCategory = (id: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger className={buttonVariants()}>
+        Create Question
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Add New Question</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+          
+          <div className="space-y-2">
+            <Label htmlFor="question">Question Text</Label>
+            <Input id="question" required value={questionText} onChange={e => setQuestionText(e.target.value)} />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Difficulty</Label>
+            <Select value={difficultyLevel} onValueChange={(val) => setDifficultyLevel(val as DifficultyLevel)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="EASY">Easy</SelectItem>
+                <SelectItem value="MEDIUM">Medium</SelectItem>
+                <SelectItem value="HARD">Hard</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Choices & Correct Answer</Label>
+            {choices.map((choice, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input 
+                  type="radio" 
+                  name="correctAnswer" 
+                  checked={correctIndex === idx.toString()} 
+                  onChange={() => setCorrectIndex(idx.toString())}
+                  className="h-4 w-4 shrink-0"
+                />
+                <Input 
+                  required 
+                  placeholder={`Choice ${idx + 1}`} 
+                  value={choice}
+                  onChange={e => {
+                    const newChoices = [...choices];
+                    newChoices[idx] = e.target.value;
+                    setChoices(newChoices);
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Categories</Label>
+            <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+              <PopoverTrigger className={buttonVariants({ variant: "outline", className: "w-full justify-between" })} role="combobox" aria-expanded={comboboxOpen}>
+                  {selectedCategories.length > 0 
+                    ? `${selectedCategories.length} categories selected` 
+                    : "Select categories..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Search category..." />
+                  <CommandList>
+                    <CommandEmpty>No category found.</CommandEmpty>
+                    <CommandGroup>
+                      {categories.map((category) => (
+                        <CommandItem
+                          key={category.id}
+                          value={category.id}
+                          onSelect={() => toggleCategory(category.id)}
+                        >
+                          <Check className={cn("mr-2 h-4 w-4", selectedCategories.includes(category.id) ? "opacity-100" : "opacity-0")} />
+                          {category.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <div className="flex flex-wrap gap-1 mt-2">
+              {selectedCategories.map(id => {
+                const cat = categories.find(c => c.id === id);
+                return cat ? <Badge key={id} variant="secondary">{cat.name}</Badge> : null;
+              })}
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button type="submit" disabled={isPending}>
+              {isPending ? 'Saving...' : 'Save Question'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

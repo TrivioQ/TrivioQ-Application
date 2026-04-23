@@ -6,6 +6,7 @@ import userRoutes from './routes/user';
 import dropRoutes from './routes/drop';
 import leaderboardRoutes from './routes/leaderboard';
 import authRoutes from './routes/auth';
+import adminRoutes from './routes/admin';
 
 import { env } from './config/env';
 
@@ -18,6 +19,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/drops', dropRoutes);
 app.use('/api/v1/leaderboards', leaderboardRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 app.get('/health', async (req: Request, res: Response) => {
   try {

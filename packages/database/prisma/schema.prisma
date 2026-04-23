@@ -24,9 +24,15 @@ model User {
   subscriptionTier  SubscriptionTier @default(FREE)
   preferences       Json?
   devicePushToken   String?
+  role              Role         @default(USER)
   drops             UserDrop[]
   friendshipsInitiated Friendship[] @relation("UserFriendshipsInitiated")
   friendshipsAccepted  Friendship[] @relation("UserFriendshipsAccepted")
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 model Friendship {
@@ -52,9 +58,17 @@ enum SubscriptionTier {
   PREMIUM
 }
 
+model Category {
+  id          String     @id @default(uuid())
+  name        String
+  slug        String     @unique
+  description String?
+  questions   Question[]
+}
+
 model Question {
   id              String          @id @default(uuid())
-  categoryId      String
+  categories      Category[]
   difficultyLevel DifficultyLevel
   questionText    String
   choices         Json

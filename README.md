@@ -11,6 +11,7 @@ This project is structured as a **Turborepo** (Monorepo), allowing seamless code
 ### Apps (`/apps`)
 
 - **`api`** (Node.js/Express): The robust backend service that powers the entire platform. Handles Firebase JWT authentication, Prisma database interactions, cron scheduling for automated trivia drops, and BullMQ worker execution for push notifications.
+- **`admin`** (Next.js): The internal admin portal for managing users, content, and platform configuration. Restricted to users with the `ADMIN` role.
 - **`mobile`** (React Native/Expo): The cross-platform mobile application where users receive daily trivia drops, view streaks, and upgrade their subscription tiers. Fully integrates with Firebase Auth and TanStack Query.
 - **`web`** (Next.js 14): The web platform serving as a landing page, leaderboard, and browser-accessible dashboard.
 
@@ -42,6 +43,14 @@ DATABASE_URL="postgresql://user:password@localhost:5432/trivioq?schema=public"
 REDIS_URL="redis://127.0.0.1:6379"
 FIREBASE_SERVICE_ACCOUNT="..."
 ```
+
+**Admin Portal (`apps/admin/.env.local`)**:
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/trivioq"
+```
+
+> The admin portal uses Prisma directly to verify session cookies and look up user roles. No Firebase client credentials are required — authentication relies on `firebaseUid` values already stored in the database.
 
 **Database (`packages/database/.env`)**:
 
