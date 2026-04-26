@@ -7,6 +7,7 @@ export interface UserPreferences {
   activeWindowEnd: string; // 'HH:MM'
   targetDropsPerWeek: number;
   difficultyPercentages: Record<string, number>;
+  displayName?: string;
 }
 
 export interface QuestionDropPayload {

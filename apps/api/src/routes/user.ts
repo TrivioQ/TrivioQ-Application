@@ -9,6 +9,7 @@ const router = express.Router();
 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 const UserPreferencesSchema = z.object({
+  displayName: z.string().min(2).max(50).optional(),
   theme: z.enum(['light', 'dark', 'system']),
   notificationsEnabled: z.boolean(),
   language: z.string(),
@@ -50,6 +51,7 @@ router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
       update: {
         activeWindowStart,
         activeWindowEnd,
+        displayName: payload.displayName,
         preferences: payload as any,
       },
       create: {
@@ -57,6 +59,7 @@ router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
         firebaseUid: `mock_${userId}`, // Dummy value for mock
         email: `mock_${userId}@example.com`, // Dummy value for mock
         username: `user_${userId}`, // Dummy username for the mock
+        displayName: payload.displayName || `user_${userId}`,
         activeWindowStart,
         activeWindowEnd,
         preferences: payload as any,

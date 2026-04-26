@@ -1,15 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuthSync } from '../../hooks/useAuthSync';
+import { useAuth } from '../../context/AuthProvider';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   // Errors are shown as toast notifications via useAuthSync → useNotification
   const { isPending, loginWithEmailSync, signInWithGoogleSync } = useAuthSync();
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace('/dashboard');
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading || user) {
+    return (
+      <div className='min-h-screen bg-gray-950 flex items-center justify-center'>
+        <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500'></div>
+      </div>
+    );
+  }
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
