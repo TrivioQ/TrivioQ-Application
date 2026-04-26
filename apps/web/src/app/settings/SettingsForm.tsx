@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useNotification } from '../../context/NotificationContext';
 import { makeAPICallV1 } from '../../lib/api';
 import { useAuth } from '../../context/AuthProvider';
+import { ConfirmModal } from '../../components/ConfirmModal';
 
 interface Preferences {
   difficultyPercentages: Record<string, number>;
@@ -17,6 +18,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
   const { user } = useAuth();
   const { success: notifySuccess, error: notifyError, info: notifyInfo } = useNotification();
   const [isPending, setIsPending] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const initialPrefs: Preferences = initialUser.preferences || {
     difficultyPercentages: { EASY: 40, MEDIUM: 40, HARD: 20 },
@@ -97,8 +99,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirm('Are you absolutely sure? This will permanently delete your account, score history, and streak. This cannot be undone.')) return;
-
+    setShowDeleteConfirm(false);
     setIsPending(true);
     try {
       // 1. Delete from backend
@@ -198,10 +199,12 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
           <p className='text-sm text-gray-500 text-red-400/60'>Once you delete your account, there is no going back. Please be certain.</p>
         </div>
 
-        <button onClick={handleDeleteAccount} disabled={isPending} className='bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-6 py-2.5 rounded-xl text-sm font-bold transition-all'>
+        <button onClick={() => setShowDeleteConfirm(true)} disabled={isPending} className='bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-6 py-2.5 rounded-xl text-sm font-bold transition-all'>
           Delete My Account
         </button>
       </section>
+
+      <ConfirmModal isOpen={showDeleteConfirm} title='Delete Account?' message='Are you absolutely sure? This will permanently delete your account, score history, and streak. This action cannot be undone.' confirmLabel='Delete Permanently' cancelLabel='Keep Account' onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteConfirm(false)} isDestructive />
     </div>
   );
 }
