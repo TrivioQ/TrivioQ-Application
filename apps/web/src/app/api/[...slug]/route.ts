@@ -62,6 +62,21 @@ async function handleRequest(req: NextRequest): Promise<NextResponse> {
       return new NextResponse(null, { status: 204 });
     }
 
+    if (!upstream.ok) {
+      const errorText = await upstream.text();
+      // Forward safe upstream response headers to the client
+      const responseHeaders = new Headers();
+      upstream.headers.forEach((value, key) => {
+        if (!HOP_BY_HOP.has(key.toLowerCase())) {
+          responseHeaders.set(key, value);
+        }
+      });
+      return new NextResponse(errorText, {
+        status: upstream.status,
+        headers: responseHeaders,
+      });
+    }
+
     const data = await upstream.json();
 
     // Forward safe upstream response headers to the client

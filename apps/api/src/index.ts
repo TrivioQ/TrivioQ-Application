@@ -15,11 +15,11 @@ const port = env.PORT;
 
 app.use(express.json());
 
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/drops', dropRoutes);
-app.use('/api/v1/leaderboards', leaderboardRoutes);
-app.use('/api/v1/admin', adminRoutes);
+app.use('/v1/auth', authRoutes);
+app.use('/v1/users', userRoutes);
+app.use('/v1/drops', dropRoutes);
+app.use('/v1/leaderboards', leaderboardRoutes);
+app.use('/v1/admin', adminRoutes);
 
 app.get('/health', async (req: Request, res: Response) => {
   try {

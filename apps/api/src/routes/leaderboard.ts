@@ -1,13 +1,8 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '@trivioq/database';
+import { requireAuth } from '../middleware/firebaseAuth';
 
 const router = express.Router();
-
-// Mock auth middleware (for demonstration)
-const requireAuth = (req: Request, res: Response, next: express.NextFunction) => {
-  (req as any).userId = req.headers['x-user-id'] || 'default-user-id';
-  next();
-};
 
 // Public — no auth required. Returns the top 100 players by cumulative score.
 router.get('/global', async (_req: Request, res: Response) => {

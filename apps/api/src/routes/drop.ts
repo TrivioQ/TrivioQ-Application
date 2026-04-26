@@ -1,15 +1,9 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '@trivioq/database';
 import { QuestionDropPayload } from '@trivioq/shared-types';
-import { verifyFirebaseToken } from '../middleware/firebaseAuth';
+import { requireAuth } from '../middleware/firebaseAuth';
 
 const router = express.Router();
-
-// Mock auth middleware (for demonstration)
-const requireAuth = (req: Request, res: Response, next: express.NextFunction) => {
-  (req as any).userId = req.headers['x-user-id'] || 'default-user-id';
-  next();
-};
 
 router.get('/active', requireAuth, async (req: Request, res: Response) => {
   try {
@@ -28,7 +22,7 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
         question: {
           select: {
             id: true,
-            categoryId: true,
+            categories: { select: { name: true } },
             difficultyLevel: true,
             questionText: true,
             choices: true,
@@ -45,7 +39,7 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
     const payload: QuestionDropPayload = {
       dropId: activeDrop.id,
       questionId: activeDrop.question.id,
-      category: activeDrop.question.categoryId,
+      category: activeDrop.question.categories[0]?.name ?? 'General',
       difficulty: activeDrop.question.difficultyLevel.toLowerCase() as 'easy' | 'medium' | 'hard',
       questionText: activeDrop.question.questionText,
       options: activeDrop.question.choices as string[],
@@ -136,12 +130,12 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
   }
 });
 
-router.post('/on-demand', verifyFirebaseToken, async (req: Request, res: Response) => {
+router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
   try {
-    const firebaseUid = (req as any).firebaseUid;
+    const userId = (req as any).userId;
 
     const user = await prisma.user.findUnique({
-      where: { firebaseUid },
+      where: { id: userId },
     });
 
     if (!user) {
@@ -171,7 +165,7 @@ router.post('/on-demand', verifyFirebaseToken, async (req: Request, res: Respons
     const questions = await prisma.question.findMany({
       select: {
         id: true,
-        categoryId: true,
+        categories: { select: { name: true } },
         difficultyLevel: true,
         questionText: true,
         choices: true,
@@ -206,7 +200,7 @@ router.post('/on-demand', verifyFirebaseToken, async (req: Request, res: Respons
     const payload: QuestionDropPayload = {
       dropId: userDrop.id,
       questionId: randomQ.id,
-      category: randomQ.categoryId,
+      category: randomQ.categories[0]?.name ?? 'General',
       difficulty: randomQ.difficultyLevel.toLowerCase() as 'easy' | 'medium' | 'hard',
       questionText: randomQ.questionText,
       options: randomQ.choices as string[],

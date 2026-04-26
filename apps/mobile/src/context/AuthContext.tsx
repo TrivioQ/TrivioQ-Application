@@ -6,6 +6,7 @@ import { onAuthStateChanged, User, signInWithCredential, GoogleAuthProvider, cre
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { auth } from '../config/firebase';
 import apiClient from '../api/client';
+import { env } from '../config/env';
 
 // Configure Google Sign-In
 GoogleSignin.configure({
@@ -30,6 +31,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -39,8 +42,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [pushToken, setPushToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Use local dev machine IP for Android emulator, or localhost for iOS simulator
-  const API_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
+  // On Android emulator, localhost refers to the emulator itself, not the host machine.
+  // We swap the host to 10.0.2.2 (the Android emulator's alias for the host machine).
+  const API_URL = Platform.OS === 'android' ? env.API_URL.replace('127.0.0.1', '10.0.2.2').replace('localhost', '10.0.2.2') : env.API_URL;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -126,7 +130,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     try {
       await GoogleSignin.hasPlayServices();
-      const { idToken } = await GoogleSignin.signIn();
+      const { data } = await GoogleSignin.signIn();
+      const idToken = data?.idToken;
+      if (!idToken) throw new Error('Google Sign-In: No ID token returned');
       const credential = GoogleAuthProvider.credential(idToken);
       await signInWithCredential(auth, credential);
     } catch (error) {

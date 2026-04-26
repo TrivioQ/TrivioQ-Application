@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '@trivioq/database';
 import { UserPreferences } from '@trivioq/shared-types';
+import { requireAuth } from '../middleware/firebaseAuth';
 
 const router = express.Router();
 
@@ -21,13 +22,6 @@ const UserPreferencesSchema = z.object({
   activeWindowStart: z.string().regex(timeRegex, 'Invalid 24h time format'),
   activeWindowEnd: z.string().regex(timeRegex, 'Invalid 24h time format'),
 });
-
-// Middleware to mock authentication (extract user ID)
-const requireAuth = (req: Request, res: Response, next: express.NextFunction) => {
-  // In a real application, this would verify a JWT and set req.userId
-  (req as any).userId = req.headers['x-user-id'] || 'default-user-id';
-  next();
-};
 
 router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
   try {
@@ -79,7 +73,16 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
     const userId = (req as any).userId;
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { currentStreak: true, cumulativeScore: true, preferences: true },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        displayName: true,
+        currentStreak: true,
+        cumulativeScore: true,
+        subscriptionTier: true,
+        preferences: true,
+      },
     });
 
     if (!user) {

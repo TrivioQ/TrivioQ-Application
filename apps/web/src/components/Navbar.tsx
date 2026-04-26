@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { useAuth } from '../context/FirebaseProvider';
+import { useAuth } from '../context/AuthProvider';
 import { useUserProfile } from '../hooks/useUserProfile';
 
 // ─── Nav links ────────────────────────────────────────────────────────────────

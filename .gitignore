@@ -38,6 +38,7 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 .env*.local
+firebase-service-account.json
 
 # yarn v2/v3/v4 (Berry)
 .yarn/*

@@ -1,0 +1,72 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug API",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/api",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["run", "dev"],
+      "env": {
+        "NODE_OPTIONS": "--inspect"
+      },
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug Web (Server)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/web",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["run", "dev"],
+      "env": {
+        "NODE_OPTIONS": "--inspect"
+      },
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug Web (Client)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3011",
+      "webRoot": "${workspaceFolder}/apps/web"
+    },
+    {
+      "name": "Debug Admin (Server)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/admin",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["run", "dev"],
+      "env": {
+        "NODE_OPTIONS": "--inspect"
+      },
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug Admin (Client)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3012",
+      "webRoot": "${workspaceFolder}/apps/admin"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug Web (Full)",
+      "configurations": ["Debug Web (Server)", "Debug Web (Client)"]
+    },
+    {
+      "name": "Debug Admin (Full)",
+      "configurations": ["Debug Admin (Server)", "Debug Admin (Client)"]
+    },
+    {
+      "name": "Debug All (Backend + Web)",
+      "configurations": ["Debug API", "Debug Web (Server)"]
+    }
+  ]
+}

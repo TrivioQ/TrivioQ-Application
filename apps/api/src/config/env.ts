@@ -6,11 +6,12 @@ dotenv.config();
 
 // Define the schema for environment variables
 const envSchema = z.object({
-  PORT: z.string().default('8080'),
+  PORT: z.string().default('3013'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   REDIS_HOST: z.string().default('127.0.0.1'),
   REDIS_PORT: z.coerce.number().default(6379),
   FIREBASE_SERVICE_ACCOUNT: z.string().optional(),
+  FIREBASE_SERVICE_ACCOUNT_PATH: z.string().optional(),
 });
 
 // Parse and validate process.env

@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { env } from '../../../env.mjs';
 import { ErrorNotification } from '../../components/ErrorNotification';
+import { makeServerAPICallV1 } from '../../lib/apiServer';
 
 export const revalidate = 60; // Revalidate the leaderboard every 60 seconds
 
@@ -12,21 +12,16 @@ interface LeaderboardUser {
 }
 
 export default async function LeaderboardPage() {
-  // Fetch from the backend via the server-only API_URL.
-  // This runs server-side at request time so DATABASE_URL is never needed in the web app.
   let topUsers: LeaderboardUser[] = [];
   let fetchFailed = false;
+
   try {
-    const res = await fetch(new URL('v1/leaderboard/global', env.API_URL).toString(), {
+    const data = await makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/global', {
       next: { revalidate: 60 },
     });
-    if (res.ok) {
-      const data = await res.json();
-      topUsers = data.leaderboard ?? [];
-    } else {
-      fetchFailed = true;
-    }
-  } catch {
+    topUsers = data.leaderboard ?? [];
+  } catch (error) {
+    console.error('[LeaderboardPage] Error fetching leaderboard:', error);
     fetchFailed = true;
   }
 

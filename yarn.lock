@@ -17716,7 +17716,6 @@ __metadata:
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
     autoprefixer: "npm:^10.4.19"
-    firebase: "npm:^12.12.1"
     framer-motion: "npm:^12.38.0"
     next: "npm:14.2.3"
     postcss: "npm:^8.4.38"
