@@ -1,24 +1,27 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { toggleUserTier } from '@/app/actions/user.actions';
+import { deleteUser, toggleUserTier } from '@/app/actions/user.actions';
 import { SubscriptionTier } from '@trivioq/database';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
+import { UserModal } from './user-modal';
 
 // Using a partial User type since we don't need everything
 export type UserRow = {
   id: string;
   username: string;
+  displayName?: string | null;
   email: string;
   subscriptionTier: SubscriptionTier;
   currentStreak: number;
@@ -60,6 +63,7 @@ export const columns: ColumnDef<UserRow>[] = [
 
 function UserActions({ user }: { user: UserRow }) {
   const [isPending, startTransition] = useTransition();
+  const [editOpen, setEditOpen] = useState(false);
 
   const handleToggleTier = () => {
     startTransition(async () => {
@@ -67,19 +71,40 @@ function UserActions({ user }: { user: UserRow }) {
     });
   };
 
+  const handleDelete = () => {
+    if (confirm(`Are you sure you want to delete "${user.username}"? This action cannot be undone.`)) {
+      startTransition(async () => {
+        const res = await deleteUser(user.id);
+        if (!res.success) alert(res.error);
+      });
+    }
+  };
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>
-        <span className="sr-only">Open menu</span>
-        <MoreHorizontal className="h-4 w-4" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleToggleTier} disabled={isPending}>
-          {user.subscriptionTier === 'FREE' ? 'Upgrade to Premium' : 'Downgrade to Free'}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <UserModal user={user} open={editOpen} onOpenChange={setEditOpen} />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>
+          <span className="sr-only">Open menu</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setEditOpen(true)} className="cursor-pointer">
+              <Pencil className="mr-2 h-4 w-4" /> Edit User
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleToggleTier} disabled={isPending}>
+              {user.subscriptionTier === 'FREE' ? 'Upgrade to Premium' : 'Downgrade to Free'}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-red-600 focus:text-red-600">
+              <Trash className="mr-2 h-4 w-4" /> Delete User
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 }

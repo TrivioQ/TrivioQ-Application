@@ -21,6 +21,8 @@ export type PaginatedQuestionsResult = {
     questionText: string;
     difficultyLevel: DifficultyLevel;
     categories: { id: string; name: string }[];
+    choices: unknown;
+    correctAnswerId: string;
   }[];
   total: number;
   page: number;
@@ -110,5 +112,56 @@ export async function createQuestion(data: {
   } catch (error) {
     console.error('Failed to create question:', error);
     return { success: false, error: 'Failed to create question' };
+  }
+}
+
+export async function updateQuestion(id: string, data: {
+  questionText: string;
+  difficultyLevel: DifficultyLevel;
+  choices: { id: string; text: string }[];
+  correctAnswerId: string;
+  categoryIds: string[];
+}) {
+  try {
+    const existing = await prisma.question.findUnique({
+      where: { id },
+      include: { categories: { select: { id: true } } },
+    });
+    if (!existing) return { success: false, error: 'Question not found.' };
+
+    const existingIds = existing.categories.map(c => c.id);
+    const toConnect = data.categoryIds.filter(cid => !existingIds.includes(cid));
+    const toDisconnect = existingIds.filter(cid => !data.categoryIds.includes(cid));
+
+    await prisma.question.update({
+      where: { id },
+      data: {
+        questionText: data.questionText,
+        difficultyLevel: data.difficultyLevel,
+        choices: data.choices,
+        correctAnswerId: data.correctAnswerId,
+        categories: {
+          connect: toConnect.map(cid => ({ id: cid })),
+          disconnect: toDisconnect.map(cid => ({ id: cid })),
+        },
+      },
+    });
+
+    revalidatePath('/questions');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update question:', error);
+    return { success: false, error: 'Failed to update question.' };
+  }
+}
+
+export async function deleteQuestion(id: string) {
+  try {
+    await prisma.question.delete({ where: { id } });
+    revalidatePath('/questions');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to delete question:', error);
+    return { success: false, error: 'Failed to delete question.' };
   }
 }

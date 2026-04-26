@@ -6,6 +6,7 @@ import { buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -72,14 +73,16 @@ function CategoryActions({ category }: { category: CategoryRow }) {
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setEditOpen(true)} className="cursor-pointer">
-            <Pencil className="mr-2 h-4 w-4" /> Edit Category
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-red-600 focus:text-red-600">
-            <Trash className="mr-2 h-4 w-4" /> Delete Category
-          </DropdownMenuItem>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setEditOpen(true)} className="cursor-pointer">
+              <Pencil className="mr-2 h-4 w-4" /> Edit Category
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-red-600 focus:text-red-600">
+              <Trash className="mr-2 h-4 w-4" /> Delete Category
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
     </>

@@ -24,6 +24,7 @@ import type { PaginatedQuestionsResult } from '@/app/actions/question.actions';
 interface Props<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   result: PaginatedQuestionsResult;
+  categories?: { id: string; name: string }[];
 }
 
 export function QuestionsDataTable<TData, TValue>({

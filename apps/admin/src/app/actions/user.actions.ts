@@ -33,3 +33,28 @@ export async function toggleUserTier(userId: string, currentTier: SubscriptionTi
     return { success: false, error: 'Failed to update user tier' };
   }
 }
+
+export async function updateUser(userId: string, data: { username: string; displayName?: string; subscriptionTier: SubscriptionTier }) {
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+    revalidatePath('/users');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update user:', error);
+    return { success: false, error: 'Failed to update user. Username must be unique.' };
+  }
+}
+
+export async function deleteUser(userId: string) {
+  try {
+    await prisma.user.delete({ where: { id: userId } });
+    revalidatePath('/users');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to delete user:', error);
+    return { success: false, error: 'Failed to delete user.' };
+  }
+}
