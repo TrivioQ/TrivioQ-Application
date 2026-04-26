@@ -93,6 +93,7 @@ export async function createQuestion(data: {
   choices: { id: string; text: string }[];
   correctAnswerId: string;
   categoryIds: string[];
+  explanationText?: string;
 }) {
   try {
     const question = await prisma.question.create({
@@ -101,6 +102,7 @@ export async function createQuestion(data: {
         difficultyLevel: data.difficultyLevel,
         choices: data.choices,
         correctAnswerId: data.correctAnswerId,
+        explanationText: data.explanationText,
         categories: {
           connect: data.categoryIds.map(id => ({ id })),
         },
@@ -121,6 +123,7 @@ export async function updateQuestion(id: string, data: {
   choices: { id: string; text: string }[];
   correctAnswerId: string;
   categoryIds: string[];
+  explanationText?: string;
 }) {
   try {
     const existing = await prisma.question.findUnique({
@@ -140,6 +143,7 @@ export async function updateQuestion(id: string, data: {
         difficultyLevel: data.difficultyLevel,
         choices: data.choices,
         correctAnswerId: data.correctAnswerId,
+        explanationText: data.explanationText,
         categories: {
           connect: toConnect.map(cid => ({ id: cid })),
           disconnect: toDisconnect.map(cid => ({ id: cid })),

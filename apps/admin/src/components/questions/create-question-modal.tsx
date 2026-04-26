@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Textarea } from '@/components/ui/textarea';
 
 export function CreateQuestionModal({ categories }: { categories: { id: string; name: string }[] }) {
   const [open, setOpen] = useState(false);
@@ -22,6 +23,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
   const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel>('EASY');
   const [choices, setChoices] = useState(['', '', '', '']);
   const [correctIndex, setCorrectIndex] = useState('0');
+  const [explanationText, setExplanationText] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   
   const [comboboxOpen, setComboboxOpen] = useState(false);
@@ -38,6 +40,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
         difficultyLevel,
         choices: formattedChoices,
         correctAnswerId: correctIndex,
+        explanationText: explanationText || undefined,
         categoryIds: selectedCategories,
       });
 
@@ -45,7 +48,9 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
         setOpen(false);
         setQuestionText('');
         setChoices(['', '', '', '']);
+        setExplanationText('');
         setSelectedCategories([]);
+        setCorrectIndex('0');
       } else {
         alert(res.error);
       }
@@ -63,7 +68,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
       <DialogTrigger className={buttonVariants()}>
         Create Question
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Question</DialogTitle>
         </DialogHeader>
@@ -111,6 +116,17 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
                 />
               </div>
             ))}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="explanation">Explanation Text (Optional)</Label>
+            <Textarea 
+              id="explanation" 
+              value={explanationText} 
+              onChange={e => setExplanationText(e.target.value)} 
+              placeholder="Explain why the answer is correct..."
+              className="resize-none"
+            />
           </div>
 
           <div className="space-y-2">

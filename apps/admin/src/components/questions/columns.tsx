@@ -14,8 +14,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { DifficultyLevel } from '@trivioq/database';
-import { useState, useTransition } from 'react';
-import { deleteQuestion } from '@/app/actions/question.actions';
+import { deleteQuestion, getCategories } from '@/app/actions/question.actions';
+import { useState, useTransition, useEffect } from 'react';
 import { QuestionModal } from './question-modal';
 
 export type QuestionRow = {
@@ -23,60 +23,68 @@ export type QuestionRow = {
   questionText: string;
   difficultyLevel: DifficultyLevel;
   categories: { id: string; name: string }[];
-  choices: unknown;
+  choices: { id: string; text: string }[];
   correctAnswerId: string;
+  explanationText: string | null;
 };
 
-export function createColumns(categories: { id: string; name: string }[]): ColumnDef<QuestionRow>[] {
-  return [
-    {
-      accessorKey: 'questionText',
-      header: 'Question',
-      cell: ({ row }) => {
-        const text = row.getValue('questionText') as string;
-        return <div className="max-w-[400px] truncate" title={text}>{text}</div>;
-      },
+export const columns: ColumnDef<QuestionRow>[] = [
+  {
+    accessorKey: 'questionText',
+    header: 'Question',
+    cell: ({ row }) => {
+      const text = row.getValue('questionText') as string;
+      return <div className="max-w-[400px] truncate" title={text}>{text}</div>;
     },
-    {
-      accessorKey: 'difficultyLevel',
-      header: 'Difficulty',
-      cell: ({ row }) => {
-        const diff = row.getValue('difficultyLevel') as string;
-        const colors: Record<string, string> = {
-          EASY: 'bg-green-100 text-green-800 hover:bg-green-100',
-          MEDIUM: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
-          HARD: 'bg-red-100 text-red-800 hover:bg-red-100',
-        };
-        return <Badge className={colors[diff] || 'bg-gray-100 text-gray-800'}>{diff}</Badge>;
-      },
+  },
+  {
+    accessorKey: 'difficultyLevel',
+    header: 'Difficulty',
+    cell: ({ row }) => {
+      const diff = row.getValue('difficultyLevel') as string;
+      const colors: Record<string, string> = {
+        EASY: 'bg-green-100 text-green-800 hover:bg-green-100',
+        MEDIUM: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+        HARD: 'bg-red-100 text-red-800 hover:bg-red-100',
+      };
+      return <Badge className={colors[diff] || 'bg-gray-100 text-gray-800'}>{diff}</Badge>;
     },
-    {
-      accessorKey: 'categories',
-      header: 'Categories',
-      cell: ({ row }) => {
-        const cats = row.original.categories;
-        if (!cats || cats.length === 0) return <span className="text-gray-400">None</span>;
-        return (
-          <div className="flex flex-wrap gap-1">
-            {cats.map((c) => (
-              <Badge key={c.id} variant="outline" className="text-xs">
-                {c.name}
-              </Badge>
-            ))}
-          </div>
-        );
-      },
+  },
+  {
+    accessorKey: 'categories',
+    header: 'Categories',
+    cell: ({ row }) => {
+      const categories = row.original.categories;
+      if (!categories || categories.length === 0) return <span className="text-gray-400">None</span>;
+      return (
+        <div className="flex flex-wrap gap-1">
+          {categories.map((c) => (
+            <Badge key={c.id} variant="outline" className="text-xs">
+              {c.name}
+            </Badge>
+          ))}
+        </div>
+      );
     },
-    {
-      id: 'actions',
-      cell: ({ row }) => <QuestionActions question={row.original} categories={categories} />,
-    },
-  ];
-}
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => <QuestionActions question={row.original} />,
+  },
+];
 
-function QuestionActions({ question, categories }: { question: QuestionRow; categories: { id: string; name: string }[] }) {
+function QuestionActions({ question }: { question: QuestionRow }) {
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    if (editOpen && categories.length === 0) {
+      getCategories().then(res => {
+        if (res.success && res.data) setCategories(res.data);
+      });
+    }
+  }, [editOpen, categories.length]);
 
   const handleDelete = () => {
     if (confirm(`Are you sure you want to delete this question? This action cannot be undone.`)) {
@@ -89,7 +97,12 @@ function QuestionActions({ question, categories }: { question: QuestionRow; cate
 
   return (
     <>
-      <QuestionModal question={question} categories={categories} open={editOpen} onOpenChange={setEditOpen} />
+      <QuestionModal 
+        question={question} 
+        categories={categories} 
+        open={editOpen} 
+        onOpenChange={setEditOpen} 
+      />
 
       <DropdownMenu>
         <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>

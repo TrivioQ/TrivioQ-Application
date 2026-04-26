@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { getQuestions, getCategories } from '@/app/actions/question.actions';
-import { createColumns } from '@/components/questions/columns';
+import { columns } from '@/components/questions/columns';
 import { CreateQuestionModal } from '@/components/questions/create-question-modal';
 import { QuestionFilterBar } from '@/components/questions/question-filter-bar';
 import { QuestionsDataTable } from '@/components/questions/questions-data-table';
@@ -59,7 +59,7 @@ export default async function QuestionsPage({
 
       {/* Table + Pagination — also needs Suspense */}
       <Suspense>
-        <QuestionsDataTable columns={createColumns(categories)} result={result} />
+        <QuestionsDataTable columns={columns} result={result} />
       </Suspense>
     </div>
   );
