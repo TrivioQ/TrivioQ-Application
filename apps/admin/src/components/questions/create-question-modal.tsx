@@ -23,6 +23,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
   const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel>('EASY');
   const [choices, setChoices] = useState(['', '', '', '']);
   const [correctIndex, setCorrectIndex] = useState('0');
+  const [hintText, setHintText] = useState('');
   const [explanationText, setExplanationText] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   
@@ -40,6 +41,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
         difficultyLevel,
         choices: formattedChoices,
         correctAnswerId: correctIndex,
+        hintText: hintText || undefined,
         explanationText: explanationText || undefined,
         categoryIds: selectedCategories,
       });
@@ -48,6 +50,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
         setOpen(false);
         setQuestionText('');
         setChoices(['', '', '', '']);
+        setHintText('');
         setExplanationText('');
         setSelectedCategories([]);
         setCorrectIndex('0');
@@ -68,7 +71,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
       <DialogTrigger className={buttonVariants()}>
         Create Question
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Question</DialogTitle>
         </DialogHeader>
@@ -119,11 +122,22 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="explanation">Explanation Text (Optional)</Label>
-            <Textarea 
-              id="explanation" 
-              value={explanationText} 
-              onChange={e => setExplanationText(e.target.value)} 
+            <Label htmlFor="hint">Hint (Optional — costs 30% of points to reveal)</Label>
+            <Textarea
+              id="hint"
+              value={hintText}
+              onChange={e => setHintText(e.target.value)}
+              placeholder="A clue to help users narrow down the answer..."
+              className="resize-none"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="explanation">Explanation (Optional — shown after answer)</Label>
+            <Textarea
+              id="explanation"
+              value={explanationText}
+              onChange={e => setExplanationText(e.target.value)}
               placeholder="Explain why the answer is correct..."
               className="resize-none"
             />

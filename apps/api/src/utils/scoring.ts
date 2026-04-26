@@ -55,6 +55,57 @@ export const OVERALL_PERIOD_START = new Date(0);
 // ── Score upsert ─────────────────────────────────────────────────────────────
 
 /**
+ * Deducts points from OVERALL, MONTHLY, and WEEKLY UserScore rows.
+ * Used for hint cost deductions. Scores are clamped to 0 (never go negative).
+ */
+export async function deductUserScores(userId: string, points: number): Promise<void> {
+  const now = new Date();
+  const weekStart = getWeekStart(now);
+  const monthStart = getMonthStart(now);
+
+  // Load current scores first so we can clamp
+  const [overall, monthly, weekly] = await Promise.all([
+    prisma.userScore.findUnique({ where: { userId_periodType_periodStart: { userId, periodType: 'OVERALL', periodStart: OVERALL_PERIOD_START } } }),
+    prisma.userScore.findUnique({ where: { userId_periodType_periodStart: { userId, periodType: 'MONTHLY', periodStart: monthStart } } }),
+    prisma.userScore.findUnique({ where: { userId_periodType_periodStart: { userId, periodType: 'WEEKLY', periodStart: weekStart } } }),
+  ]);
+
+  const clamp = (current: number) => Math.max(0, current - points);
+
+  await prisma.$transaction([
+    ...(overall
+      ? [
+          prisma.userScore.update({
+            where: { id: overall.id },
+            data: { baseScore: clamp(overall.baseScore), totalScore: clamp(overall.totalScore) },
+          }),
+        ]
+      : []),
+    ...(monthly
+      ? [
+          prisma.userScore.update({
+            where: { id: monthly.id },
+            data: { baseScore: clamp(monthly.baseScore), totalScore: clamp(monthly.totalScore) },
+          }),
+        ]
+      : []),
+    ...(weekly
+      ? [
+          prisma.userScore.update({
+            where: { id: weekly.id },
+            data: { baseScore: clamp(weekly.baseScore), totalScore: clamp(weekly.totalScore) },
+          }),
+        ]
+      : []),
+    // Also deduct from user's cumulativeScore
+    prisma.user.update({
+      where: { id: userId },
+      data: { cumulativeScore: { decrement: points } },
+    }),
+  ]);
+}
+
+/**
  * Upserts UserScore rows for OVERALL, MONTHLY, and WEEKLY periods.
  * Called from the drop submit handler after awarding correct-answer points.
  */

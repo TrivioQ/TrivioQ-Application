@@ -16,6 +16,10 @@ export interface QuestionDropPayload {
   questionText: string;
   options: string[];
   expiresAt: number;
+  pointsValue: number;
+  hintCost: number;
+  usedHint: boolean;
+  revealedAnswer: boolean;
 }
 
 export interface AnswerSubmission {

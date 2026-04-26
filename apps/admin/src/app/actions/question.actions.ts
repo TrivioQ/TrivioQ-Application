@@ -23,6 +23,7 @@ export type PaginatedQuestionsResult = {
     categories: { id: string; name: string }[];
     choices: unknown;
     correctAnswerId: string;
+    hintText: string | null;
   }[];
   total: number;
   page: number;
@@ -94,6 +95,7 @@ export async function createQuestion(data: {
   correctAnswerId: string;
   categoryIds: string[];
   explanationText?: string;
+  hintText?: string;
 }) {
   try {
     const question = await prisma.question.create({
@@ -103,6 +105,7 @@ export async function createQuestion(data: {
         choices: data.choices,
         correctAnswerId: data.correctAnswerId,
         explanationText: data.explanationText,
+        hintText: data.hintText,
         categories: {
           connect: data.categoryIds.map(id => ({ id })),
         },
@@ -124,6 +127,7 @@ export async function updateQuestion(id: string, data: {
   correctAnswerId: string;
   categoryIds: string[];
   explanationText?: string;
+  hintText?: string;
 }) {
   try {
     const existing = await prisma.question.findUnique({
@@ -144,6 +148,7 @@ export async function updateQuestion(id: string, data: {
         choices: data.choices,
         correctAnswerId: data.correctAnswerId,
         explanationText: data.explanationText,
+        hintText: data.hintText,
         categories: {
           connect: toConnect.map(cid => ({ id: cid })),
           disconnect: toDisconnect.map(cid => ({ id: cid })),

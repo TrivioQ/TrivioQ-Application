@@ -26,6 +26,7 @@ export type QuestionRow = {
   choices: { id: string; text: string }[];
   correctAnswerId: string;
   explanationText: string | null;
+  hintText: string | null;
 };
 
 export const columns: ColumnDef<QuestionRow>[] = [

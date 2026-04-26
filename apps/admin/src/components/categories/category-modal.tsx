@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 export type Category = {
   id: string;
@@ -75,7 +76,7 @@ export function CategoryModal({ category, onOpenChange, open }: { category?: Cat
           Create Category
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>{category ? 'Edit Category' : 'Add New Category'}</DialogTitle>
         </DialogHeader>
@@ -92,7 +93,7 @@ export function CategoryModal({ category, onOpenChange, open }: { category?: Cat
 
           <div className="space-y-2">
             <Label htmlFor="description">Description (Optional)</Label>
-            <Input id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Brief explanation..." />
+            <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Brief explanation..." />
           </div>
 
           <div className="flex justify-end pt-4">

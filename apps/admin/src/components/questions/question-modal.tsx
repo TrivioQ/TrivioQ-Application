@@ -33,6 +33,7 @@ export function QuestionModal({
   const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel>(question.difficultyLevel);
   const [choices, setChoices] = useState<{ id: string; text: string }[]>(question.choices);
   const [correctAnswerId, setCorrectAnswerId] = useState(question.correctAnswerId);
+  const [hintText, setHintText] = useState(question.hintText || '');
   const [explanationText, setExplanationText] = useState(question.explanationText || '');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(question.categories.map(c => c.id));
   
@@ -47,6 +48,7 @@ export function QuestionModal({
       setDifficultyLevel(question.difficultyLevel);
       setChoices(question.choices);
       setCorrectAnswerId(question.correctAnswerId);
+      setHintText(question.hintText || '');
       setExplanationText(question.explanationText || '');
       setSelectedCategories(question.categories.map(c => c.id));
     }
@@ -62,6 +64,7 @@ export function QuestionModal({
         difficultyLevel,
         choices,
         correctAnswerId,
+        hintText: hintText || undefined,
         explanationText: explanationText || undefined,
         categoryIds: selectedCategories,
       });
@@ -82,7 +85,7 @@ export function QuestionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Question</DialogTitle>
         </DialogHeader>
@@ -133,11 +136,22 @@ export function QuestionModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="explanation">Explanation Text (Optional)</Label>
-            <Textarea 
-              id="explanation" 
-              value={explanationText} 
-              onChange={e => setExplanationText(e.target.value)} 
+            <Label htmlFor="hint">Hint (Optional — costs 30% of points to reveal)</Label>
+            <Textarea
+              id="hint"
+              value={hintText}
+              onChange={e => setHintText(e.target.value)}
+              placeholder="A clue to help users narrow down the answer..."
+              className="resize-none"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="explanation">Explanation (Optional — shown after answer)</Label>
+            <Textarea
+              id="explanation"
+              value={explanationText}
+              onChange={e => setExplanationText(e.target.value)}
               placeholder="Explain why the answer is correct..."
               className="resize-none"
             />

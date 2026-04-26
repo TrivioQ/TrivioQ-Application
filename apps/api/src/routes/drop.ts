@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { prisma } from '@trivioq/database';
 import { QuestionDropPayload } from '@trivioq/shared-types';
 import { requireAuth } from '../middleware/firebaseAuth';
-import { DIFFICULTY_POINTS, upsertUserScores } from '../utils/scoring';
+import { DIFFICULTY_POINTS, deductUserScores, upsertUserScores } from '../utils/scoring';
 
 const router = express.Router();
 
@@ -12,13 +12,7 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
     const now = new Date();
 
     const activeDrop = await prisma.userDrop.findFirst({
-      where: {
-        userId: userId,
-        isAnswered: false,
-        expirationTime: {
-          gt: now,
-        },
-      },
+      where: { userId, isAnswered: false, expirationTime: { gt: now } },
       include: {
         question: {
           select: {
@@ -27,7 +21,7 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
             difficultyLevel: true,
             questionText: true,
             choices: true,
-            // Explicitly omitted: correctAnswerId, explanationText
+            // Explicitly omitted: correctAnswerId, hintText, explanationText
           },
         },
       },
@@ -37,6 +31,8 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'No active drop found' });
     }
 
+    const pointsValue = DIFFICULTY_POINTS[activeDrop.question.difficultyLevel] ?? 10;
+
     const payload: QuestionDropPayload = {
       dropId: activeDrop.id,
       questionId: activeDrop.question.id,
@@ -45,6 +41,10 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
       questionText: activeDrop.question.questionText,
       options: activeDrop.question.choices as string[],
       expiresAt: activeDrop.expirationTime.getTime(),
+      pointsValue,
+      hintCost: Math.floor(pointsValue * 0.3),
+      usedHint: activeDrop.usedHint,
+      revealedAnswer: activeDrop.revealedAnswer,
     };
 
     res.json(payload);
@@ -54,12 +54,95 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+router.post('/:dropId/hint', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const { dropId } = req.params;
+
+    const userDrop = await prisma.userDrop.findUnique({
+      where: { id: dropId },
+      include: { question: true },
+    });
+
+    if (!userDrop || userDrop.userId !== userId) {
+      return res.status(404).json({ error: 'Drop not found' });
+    }
+    if (userDrop.isAnswered) {
+      return res.status(400).json({ error: 'Drop already answered' });
+    }
+    if (new Date() > userDrop.expirationTime) {
+      return res.status(410).json({ error: 'Drop has expired' });
+    }
+    if (userDrop.usedHint) {
+      return res.status(400).json({ error: 'Hint already used for this drop' });
+    }
+    if (!userDrop.question.hintText) {
+      return res.status(404).json({ error: 'No hint available for this question' });
+    }
+
+    const pointsValue = DIFFICULTY_POINTS[userDrop.question.difficultyLevel] ?? 10;
+    const hintCost = Math.floor(pointsValue * 0.3);
+
+    await prisma.userDrop.update({
+      where: { id: dropId },
+      data: { usedHint: true, hintCostDeducted: hintCost },
+    });
+
+    deductUserScores(userId, hintCost).catch((err) => console.error('[drop/hint] Failed to deduct scores:', err));
+
+    res.json({ hintText: userDrop.question.hintText, hintCost });
+  } catch (error) {
+    console.error('Failed to process hint request:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/:dropId/reveal-answer', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const { dropId } = req.params;
+
+    const userDrop = await prisma.userDrop.findUnique({
+      where: { id: dropId },
+      include: { question: true },
+    });
+
+    if (!userDrop || userDrop.userId !== userId) {
+      return res.status(404).json({ error: 'Drop not found' });
+    }
+    if (userDrop.isAnswered) {
+      return res.status(400).json({ error: 'Drop already answered' });
+    }
+    if (new Date() > userDrop.expirationTime) {
+      return res.status(410).json({ error: 'Drop has expired' });
+    }
+
+    await prisma.userDrop.update({
+      where: { id: dropId },
+      data: { revealedAnswer: true },
+    });
+
+    const question = userDrop.question;
+    const choices = question.choices as { id: string; text: string }[];
+    let correctOptionIndex = -1;
+    if (!isNaN(Number(question.correctAnswerId))) {
+      correctOptionIndex = Number(question.correctAnswerId);
+    } else {
+      correctOptionIndex = choices.findIndex((c) => c.id === question.correctAnswerId);
+    }
+
+    res.json({ correctOptionIndex, message: 'Answer revealed. No points will be awarded.' });
+  } catch (error) {
+    console.error('Failed to reveal answer:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const { dropId } = req.params;
 
-    // Fallback to checking either selectedChoiceId from prompt or selectedOptionIndex from shared-types
     const selectedOptionIndex = req.body.selectedOptionIndex ?? req.body.selectedChoiceId;
 
     if (selectedOptionIndex === undefined) {
@@ -74,7 +157,6 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
     if (!userDrop || userDrop.userId !== userId) {
       return res.status(404).json({ error: 'Drop not found' });
     }
-
     if (userDrop.isAnswered) {
       return res.status(400).json({ error: 'Drop already answered' });
     }
@@ -87,7 +169,6 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
     const question = userDrop.question;
     const choices = question.choices as string[];
 
-    // Deduce correctOptionIndex (handle if DB stores stringified index or exact choice text)
     let correctOptionIndex = -1;
     if (!isNaN(Number(question.correctAnswerId))) {
       correctOptionIndex = Number(question.correctAnswerId);
@@ -95,7 +176,8 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
       correctOptionIndex = choices.indexOf(question.correctAnswerId);
     }
 
-    const isCorrect = selectedOptionIndex === correctOptionIndex;
+    // No points if the answer was already revealed
+    const isCorrect = !userDrop.revealedAnswer && selectedOptionIndex === correctOptionIndex;
     const pointsAwarded = isCorrect ? (DIFFICULTY_POINTS[question.difficultyLevel] ?? 10) : 0;
 
     const [, updatedUser] = await prisma.$transaction([
@@ -104,6 +186,9 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
         data: {
           isAnswered: true,
           wasCorrect: isCorrect,
+          selectedChoiceId: String(selectedOptionIndex),
+          pointsAwarded,
+          answeredAt: now,
         },
       }),
       prisma.user.update({
@@ -119,12 +204,12 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
       isCorrect,
       correctOptionIndex,
       pointsAwarded,
+      revealedAnswer: userDrop.revealedAnswer,
       explanation: question.explanationText || undefined,
       newStreak: updatedUser.currentStreak,
       newTotalScore: updatedUser.cumulativeScore,
     };
 
-    // Upsert UserScore ledger rows (fire-and-forget, non-blocking)
     if (isCorrect) {
       upsertUserScores(userId, pointsAwarded).catch((err) => console.error('[drop/submit] Failed to upsert UserScore:', err));
     }
@@ -140,9 +225,7 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -160,9 +243,7 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
 
     const isSameDay = user.lastDropDate.getUTCFullYear() === now.getUTCFullYear() && user.lastDropDate.getUTCMonth() === now.getUTCMonth() && user.lastDropDate.getUTCDate() === now.getUTCDate();
 
-    if (!isSameDay) {
-      dropsReceivedToday = 0;
-    }
+    if (!isSameDay) dropsReceivedToday = 0;
 
     if (dropsReceivedToday >= 100) {
       return res.status(429).json({ error: 'Too Many Requests' });
@@ -190,18 +271,17 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
         userId: user.id,
         questionId: randomQ.id,
         scheduledDropTime: now,
-        expirationTime: expirationTime,
+        expirationTime,
         isAnswered: false,
       },
     });
 
     await prisma.user.update({
       where: { id: user.id },
-      data: {
-        dropsReceivedToday: dropsReceivedToday + 1,
-        lastDropDate: now,
-      },
+      data: { dropsReceivedToday: dropsReceivedToday + 1, lastDropDate: now },
     });
+
+    const pointsValue = DIFFICULTY_POINTS[randomQ.difficultyLevel] ?? 10;
 
     const payload: QuestionDropPayload = {
       dropId: userDrop.id,
@@ -211,6 +291,10 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
       questionText: randomQ.questionText,
       options: randomQ.choices as string[],
       expiresAt: expirationTime.getTime(),
+      pointsValue,
+      hintCost: Math.floor(pointsValue * 0.3),
+      usedHint: false,
+      revealedAnswer: false,
     };
 
     return res.json(payload);

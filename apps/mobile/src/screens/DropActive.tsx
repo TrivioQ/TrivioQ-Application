@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, ScrollView, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, ScrollView, Modal, Alert } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
+import { QuestionDropPayload } from '@trivioq/shared-types';
 
 export default function DropActive() {
   const { userId } = useAuth();
@@ -16,18 +17,27 @@ export default function DropActive() {
   const [answerResult, setAnswerResult] = useState<any>(null);
   const [isPaywallVisible, setIsPaywallVisible] = useState(false);
 
+  // Hint state
+  const [hintText, setHintText] = useState<string | null>(null);
+  const [hintCostDeducted, setHintCostDeducted] = useState<number | null>(null);
+
+  // Reveal answer state
+  const [revealedCorrectIndex, setRevealedCorrectIndex] = useState<number | null>(null);
+
   const onDemandMutation = useMutation({
     mutationFn: async () => {
       const response = await apiClient.post('/api/v1/drops/on-demand');
       return response.data;
     },
     onSuccess: () => {
-      // Reset the component state for the new drop
       setIsRevealed(false);
       setTimeLeft(null);
       setIsExpired(false);
       setSelectedOption(null);
       setAnswerResult(null);
+      setHintText(null);
+      setHintCostDeducted(null);
+      setRevealedCorrectIndex(null);
       queryClient.invalidateQueries({ queryKey: ['activeDrop'] });
     },
     onError: (err: any) => {
@@ -39,12 +49,12 @@ export default function DropActive() {
     },
   });
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery<QuestionDropPayload | null>({
     queryKey: ['activeDrop', userId],
     queryFn: async () => {
       try {
         const response = await apiClient.get('/api/v1/drops/active');
-        return response.data;
+        return response.data as QuestionDropPayload;
       } catch (error: any) {
         if (error.response?.status === 404) return null;
         throw new Error('Network response was not ok');
@@ -52,28 +62,63 @@ export default function DropActive() {
     },
   });
 
+  // Restore hint placeholder if hint was already used in a prior session
+  useEffect(() => {
+    if (data?.usedHint && !hintText) {
+      setHintText('(Hint already used)');
+    }
+  }, [data?.usedHint]);
+
+  const hintMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post(`/api/v1/drops/${data!.dropId}/hint`);
+      return response.data;
+    },
+    onSuccess: (result) => {
+      setHintText(result.hintText);
+      setHintCostDeducted(result.hintCost);
+      queryClient.invalidateQueries({ queryKey: ['userMe'] });
+    },
+    onError: (err: any) => {
+      const message = err.response?.data?.error || 'Failed to get hint';
+      Alert.alert('Hint', message);
+    },
+  });
+
+  const revealMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post(`/api/v1/drops/${data!.dropId}/reveal-answer`);
+      return response.data;
+    },
+    onSuccess: (result) => {
+      setRevealedCorrectIndex(result.correctOptionIndex);
+    },
+    onError: (err: any) => {
+      const message = err.response?.data?.error || 'Failed to reveal answer';
+      Alert.alert('Error', message);
+    },
+  });
+
   const submitMutation = useMutation({
     mutationFn: async (optionIndex: number) => {
-      const response = await apiClient.post(`/api/v1/drops/${data.dropId}/submit`, {
+      const response = await apiClient.post(`/api/v1/drops/${data!.dropId}/submit`, {
         selectedOptionIndex: optionIndex,
       });
       return response.data;
     },
     onSuccess: (result) => {
       setAnswerResult(result);
-      queryClient.invalidateQueries({ queryKey: ['userMe'] }); // Update dashboard metrics in the background
+      queryClient.invalidateQueries({ queryKey: ['userMe'] });
     },
   });
 
   useEffect(() => {
-    // Stop the timer from ticking once it's answered or if there is no data
     if (!data?.expiresAt || answerResult) return;
 
     const interval = setInterval(() => {
       const now = Date.now();
       const diff = Math.max(0, Math.floor((data.expiresAt - now) / 1000));
       setTimeLeft(diff);
-
       if (diff === 0) {
         setIsExpired(true);
         clearInterval(interval);
@@ -118,6 +163,22 @@ export default function DropActive() {
     submitMutation.mutate(index);
   };
 
+  const handleHint = () => {
+    if (data.usedHint || hintText) return;
+    Alert.alert('Use Hint?', `Getting a hint costs ${data.hintCost} points (30% of this question's value) deducted from your score. Continue?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Get Hint', onPress: () => hintMutation.mutate() },
+    ]);
+  };
+
+  const handleRevealAnswer = () => {
+    if (revealedCorrectIndex !== null || answerResult) return;
+    Alert.alert('Reveal Answer?', 'If you reveal the answer you will receive 0 points for this question. This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Reveal', style: 'destructive', onPress: () => revealMutation.mutate() },
+    ]);
+  };
+
   const handleShare = async () => {
     if (!answerResult) return;
     try {
@@ -128,6 +189,8 @@ export default function DropActive() {
       console.error(error.message);
     }
   };
+
+  const isAnswerKnown = revealedCorrectIndex !== null;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -141,6 +204,7 @@ export default function DropActive() {
           <Text style={styles.badgeTitle}>Mystery Drop</Text>
           <Text style={styles.badgeDetail}>Difficulty: {data.difficulty.toUpperCase()}</Text>
           <Text style={styles.badgeDetail}>Category: {data.category}</Text>
+          <Text style={styles.badgeDetail}>Worth: {data.pointsValue} pts</Text>
 
           <TouchableOpacity style={[styles.revealButton, isExpired && styles.disabledButton]} onPress={() => setIsRevealed(true)} disabled={isExpired}>
             <Text style={styles.revealButtonText}>Reveal Question</Text>
@@ -149,6 +213,33 @@ export default function DropActive() {
       ) : (
         <View style={styles.questionContainer}>
           <Text style={styles.questionText}>{data.questionText}</Text>
+
+          {/* Hint section */}
+          {!answerResult && !isAnswerKnown && (
+            <View style={styles.assistRow}>
+              {hintText ? (
+                <View style={styles.hintBox}>
+                  <Text style={styles.hintLabel}>💡 Hint {hintCostDeducted != null ? `(−${hintCostDeducted} pts)` : ''}</Text>
+                  <Text style={styles.hintText}>{hintText}</Text>
+                </View>
+              ) : (
+                <TouchableOpacity style={[styles.assistButton, (hintMutation.isPending || isExpired || data.usedHint) && styles.disabledButton]} onPress={handleHint} disabled={hintMutation.isPending || isExpired || data.usedHint}>
+                  <Text style={styles.assistButtonText}>{data.usedHint ? 'Hint Used' : `💡 Hint (−${data.hintCost} pts)`}</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity style={[styles.assistButton, styles.revealAnswerButton, (revealMutation.isPending || isExpired || data.revealedAnswer) && styles.disabledButton]} onPress={handleRevealAnswer} disabled={revealMutation.isPending || isExpired || data.revealedAnswer || isAnswerKnown}>
+                <Text style={styles.assistButtonText}>{data.revealedAnswer || isAnswerKnown ? 'Answer Revealed' : '👁 Show Answer (0 pts)'}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Answer revealed banner */}
+          {isAnswerKnown && !answerResult && (
+            <View style={styles.revealedBanner}>
+              <Text style={styles.revealedBannerText}>Answer revealed — tap the correct option to close this drop (0 points)</Text>
+            </View>
+          )}
 
           {data.options.map((option: string, index: number) => {
             let buttonStyle: any = styles.optionButton;
@@ -161,6 +252,8 @@ export default function DropActive() {
               } else {
                 buttonStyle = [styles.optionButton, styles.disabledButton];
               }
+            } else if (isAnswerKnown) {
+              buttonStyle = index === revealedCorrectIndex ? [styles.optionButton, styles.correctButton] : [styles.optionButton, styles.disabledButton];
             } else if (submitMutation.isPending || isExpired) {
               buttonStyle = [styles.optionButton, styles.disabledButton];
             }
@@ -176,8 +269,8 @@ export default function DropActive() {
 
           {answerResult && (
             <View style={styles.resultContainer}>
-              <Text style={styles.resultTitle}>{answerResult.isCorrect ? 'Correct! 🎉' : 'Incorrect ❌'}</Text>
-              <Text style={styles.pointsText}>{answerResult.isCorrect ? `+${answerResult.pointsAwarded} points` : '0 points'}</Text>
+              <Text style={styles.resultTitle}>{answerResult.revealedAnswer ? 'Answer was revealed' : answerResult.isCorrect ? 'Correct! 🎉' : 'Incorrect ❌'}</Text>
+              <Text style={styles.pointsText}>{answerResult.pointsAwarded > 0 ? `+${answerResult.pointsAwarded} points` : '0 points'}</Text>
               {answerResult.explanation && <Text style={styles.explanationText}>{answerResult.explanation}</Text>}
 
               <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
@@ -283,9 +376,62 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 30,
+    marginBottom: 20,
     textAlign: 'center',
     color: '#2c3e50',
+  },
+  assistRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 20,
+  },
+  assistButton: {
+    flex: 1,
+    backgroundColor: '#f39c12',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  revealAnswerButton: {
+    backgroundColor: '#8e44ad',
+  },
+  assistButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  hintBox: {
+    flex: 1,
+    backgroundColor: '#fef9e7',
+    borderWidth: 1,
+    borderColor: '#f39c12',
+    borderRadius: 10,
+    padding: 10,
+  },
+  hintLabel: {
+    fontWeight: 'bold',
+    color: '#e67e22',
+    marginBottom: 4,
+    fontSize: 13,
+  },
+  hintText: {
+    color: '#7d6608',
+    fontSize: 13,
+  },
+  revealedBanner: {
+    backgroundColor: '#fdecea',
+    borderWidth: 1,
+    borderColor: '#e74c3c',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 16,
+  },
+  revealedBannerText: {
+    color: '#c0392b',
+    textAlign: 'center',
+    fontSize: 13,
   },
   optionButton: {
     backgroundColor: '#4c669f',
