@@ -5224,6 +5224,7 @@ __metadata:
   dependencies:
     "@faker-js/faker": "npm:^8.4.1"
     "@prisma/client": "npm:^5.14.0"
+    dotenv: "npm:^16.4.5"
     prisma: "npm:^5.14.0"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.4.5"

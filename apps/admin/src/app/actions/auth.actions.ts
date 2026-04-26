@@ -31,7 +31,8 @@ export async function loginAction(prevState: unknown, formData: FormData) {
       maxAge: 60 * 60 * 24 * 7, // 1 week
       path: '/',
     });
-  } catch {
+  } catch (error) {
+    console.error('[loginAction] Login failed:', error);
     return { error: 'An unexpected error occurred' };
   }
 
