@@ -8,11 +8,15 @@ import { useAuth } from '../context/AuthProvider';
 import { useUserProfile } from '../hooks/useUserProfile';
 
 // ─── Nav links ────────────────────────────────────────────────────────────────
-
 const NAV_LINKS = [
-  { label: 'How it Works', href: '/#how-it-works' },
+  { label: 'Home', href: '/' },
   { label: 'Leaderboard', href: '/leaderboard' },
-  { label: 'Premium', href: '/premium' },
+];
+
+const LOGGED_IN_NAV_LINKS = [
+  { label: 'Home', href: '/' },
+  { label: 'Dashboard', href: '/dashboard' },
+  { label: 'Leaderboard', href: '/leaderboard' },
 ];
 
 // ─── Framer variants ──────────────────────────────────────────────────────────
@@ -144,7 +148,7 @@ export function Navbar() {
 
           {/* ── Center links (desktop) ── */}
           <div className='hidden md:flex items-center gap-8'>
-            {NAV_LINKS.map((link) => (
+            {(isLoggedIn ? LOGGED_IN_NAV_LINKS : NAV_LINKS).map((link) => (
               <NavLink key={link.href} href={link.href} label={link.label} active={pathname === link.href} />
             ))}
           </div>
@@ -193,10 +197,7 @@ export function Navbar() {
                         </div>
 
                         {/* Menu items */}
-                        {[
-                          { label: 'Profile', href: '/dashboard', icon: '👤' },
-                          { label: 'Settings', href: '/dashboard/settings', icon: '⚙️' },
-                        ].map((item) => (
+                        {[{ label: 'Settings', href: '/settings', icon: '⚙️' }].map((item) => (
                           <Link key={item.href} href={item.href} onClick={() => setDropdownOpen(false)} className='flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors'>
                             <span>{item.icon}</span>
                             {item.label}
@@ -258,7 +259,7 @@ export function Navbar() {
 
               {/* Nav links */}
               <div className='flex-1 overflow-y-auto py-6 px-6 space-y-1'>
-                {NAV_LINKS.map((link) => (
+                {(isLoggedIn ? LOGGED_IN_NAV_LINKS : NAV_LINKS).map((link) => (
                   <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${pathname === link.href ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                     {link.label}
                   </Link>
@@ -282,10 +283,7 @@ export function Navbar() {
                     </div>
 
                     {/* Profile items */}
-                    {[
-                      { label: 'Profile', href: '/dashboard', icon: '👤' },
-                      { label: 'Settings', href: '/dashboard/settings', icon: '⚙️' },
-                    ].map((item) => (
+                    {[{ label: 'Settings', href: '/settings', icon: '⚙️' }].map((item) => (
                       <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className='flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors'>
                         <span>{item.icon}</span>
                         {item.label}

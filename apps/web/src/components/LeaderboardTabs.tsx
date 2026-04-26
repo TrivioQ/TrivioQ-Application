@@ -12,14 +12,23 @@ interface LeaderboardUser {
 
 interface LeaderboardTabsProps {
   initialData: {
-    weekly: LeaderboardUser[];
-    monthly: LeaderboardUser[];
-    alltime: LeaderboardUser[];
+    global: {
+      weekly: LeaderboardUser[];
+      monthly: LeaderboardUser[];
+      alltime: LeaderboardUser[];
+    };
+    friends: {
+      weekly: LeaderboardUser[];
+      monthly: LeaderboardUser[];
+      alltime: LeaderboardUser[];
+    };
   };
+  isLoggedIn: boolean;
 }
 
-export function LeaderboardTabs({ initialData }: LeaderboardTabsProps) {
+export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProps) {
   const [activeTab, setActiveTab] = useState<'weekly' | 'monthly' | 'alltime'>('alltime');
+  const [activeMode, setActiveMode] = useState<'global' | 'friends'>('global');
 
   const tabs = [
     { id: 'weekly', label: 'Weekly' },
@@ -27,7 +36,7 @@ export function LeaderboardTabs({ initialData }: LeaderboardTabsProps) {
     { id: 'alltime', label: 'All Time' },
   ] as const;
 
-  const currentData = initialData[activeTab];
+  const currentData = initialData[activeMode][activeTab];
 
   const getNextWeekReset = () => {
     const d = new Date();
@@ -58,7 +67,19 @@ export function LeaderboardTabs({ initialData }: LeaderboardTabsProps) {
 
   return (
     <div className='space-y-8'>
-      <div className='flex flex-col items-center gap-4'>
+      <div className='flex flex-col items-center gap-6'>
+        {/* Global / Friends Toggle */}
+        {isLoggedIn && (
+          <div className='flex items-center p-1 bg-white/5 rounded-full border border-white/10'>
+            <button onClick={() => setActiveMode('global')} className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'global' ? 'bg-indigo-500 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}>
+              Global
+            </button>
+            <button onClick={() => setActiveMode('friends')} className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'friends' ? 'bg-indigo-500 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}>
+              Friends
+            </button>
+          </div>
+        )}
+
         <div className='flex justify-center p-1 bg-gray-900/50 rounded-xl border border-white/5 backdrop-blur-sm w-fit mx-auto'>
           {tabs.map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === tab.id ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
@@ -108,7 +129,7 @@ export function LeaderboardTabs({ initialData }: LeaderboardTabsProps) {
                       </div>
                     </div>
                   </td>
-                  <td className='px-8 py-6 text-right font-bold text-orange-400'>🔥 {user.currentStreak}</td>
+                  <td className='px-8 py-6 text-right font-bold text-orange-400 whitespace-nowrap'>🔥 {user.currentStreak}</td>
                   <td className='px-8 py-6 text-right'>
                     <span className='text-2xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-500'>{user.cumulativeScore.toLocaleString()}</span>
                   </td>

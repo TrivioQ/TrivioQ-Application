@@ -96,4 +96,28 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
   }
 });
 
+router.delete('/', verifyFirebaseToken, async (req: Request, res: Response) => {
+  try {
+    const firebaseUid = (req as any).firebaseUid;
+    const email = (req as any).firebaseEmail;
+
+    if (!firebaseUid) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    console.log(`Deleting account for user: ${email} (${firebaseUid})`);
+
+    // 1. Delete from database
+    await prisma.user.delete({ where: { firebaseUid } });
+
+    // 2. Delete from Firebase
+    await admin.auth().deleteUser(firebaseUid);
+
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Failed to delete user account:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

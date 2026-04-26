@@ -17722,6 +17722,7 @@ __metadata:
     postcss: "npm:^8.4.38"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
+    recharts: "npm:^3.8.1"
     tailwindcss: "npm:^3.4.3"
     typescript: "npm:^5.4.5"
     zod: "npm:^4.3.6"

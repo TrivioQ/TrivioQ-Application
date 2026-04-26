@@ -58,8 +58,25 @@ router.get('/global', async (req: Request, res: Response) => {
 router.get('/friends', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
+    const period = (req.query.period as string) || 'alltime';
 
-    // Find all accepted friendships where the user is either the requester or the addressee
+    let periodType: 'OVERALL' | 'WEEKLY' | 'MONTHLY';
+    let periodStart: Date;
+
+    if (period === 'alltime') {
+      periodType = 'OVERALL';
+      periodStart = OVERALL_PERIOD_START;
+    } else if (period === 'weekly') {
+      periodType = 'WEEKLY';
+      periodStart = getWeekStart();
+    } else if (period === 'monthly') {
+      periodType = 'MONTHLY';
+      periodStart = getMonthStart();
+    } else {
+      return res.status(400).json({ error: 'Invalid period.' });
+    }
+
+    // Find all accepted friendships
     const friendships = await prisma.friendship.findMany({
       where: {
         status: 'ACCEPTED',
@@ -67,27 +84,33 @@ router.get('/friends', requireAuth, async (req: Request, res: Response) => {
       },
     });
 
-    // Extract the IDs of the friends
     const friendIds = friendships.map((f) => (f.requesterId === userId ? f.addresseeId : f.requesterId));
-
-    // Combine user's own ID with friend IDs
     const leaderboardIds = [userId, ...friendIds];
 
-    // Fetch the users and sort them
-    const leaderboard = await prisma.user.findMany({
+    // Fetch scores for these users for the specific period
+    const rows = await prisma.userScore.findMany({
       where: {
-        id: { in: leaderboardIds },
+        userId: { in: leaderboardIds },
+        periodType,
+        periodStart,
       },
-      select: {
-        id: true,
-        username: true,
-        currentStreak: true,
-        cumulativeScore: true,
-      },
-      orderBy: {
-        cumulativeScore: 'desc',
+      orderBy: { totalScore: 'desc' },
+      include: {
+        user: {
+          select: { id: true, username: true, displayName: true, currentStreak: true },
+        },
       },
     });
+
+    const leaderboard = rows.map((r) => ({
+      id: r.user.id,
+      username: r.user.username,
+      displayName: r.user.displayName,
+      currentStreak: r.user.currentStreak,
+      cumulativeScore: r.totalScore,
+      baseScore: r.baseScore,
+      bonusScore: r.bonusScore,
+    }));
 
     res.json({ leaderboard });
   } catch (error) {

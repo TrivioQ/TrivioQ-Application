@@ -37,6 +37,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       email: firebaseUser.email ?? null,
       displayName: firebaseUser.displayName ?? null,
       photoUrl: firebaseUser.photoUrl ?? null,
+      providers: (firebaseUser.providerUserInfo ?? []).map((p: any) => p.providerId),
     });
   } catch (err) {
     console.error('[/api/auth/me] Firebase lookup failed:', err);

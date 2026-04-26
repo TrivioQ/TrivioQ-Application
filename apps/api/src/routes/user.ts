@@ -17,10 +17,18 @@ const UserPreferencesSchema = z.object({
       const sum = Object.values(data).reduce((acc: number, val: number) => acc + val, 0);
       return Math.abs(sum - 1.0) < 0.001; // Handle floating point precision
     },
-    { message: 'Percentages must add up to 1.0' },
+    { message: 'Category percentages must add up to 1.0' },
+  ),
+  difficultyPercentages: z.record(z.string(), z.number()).refine(
+    (data) => {
+      const sum = Object.values(data).reduce((acc: number, val: number) => acc + val, 0);
+      return Math.abs(sum - 100) < 0.1; // Using percentages 0-100 here for UI ease
+    },
+    { message: 'Difficulty percentages must add up to 100' },
   ),
   activeWindowStart: z.string().regex(timeRegex, 'Invalid 24h time format'),
   activeWindowEnd: z.string().regex(timeRegex, 'Invalid 24h time format'),
+  targetDropsPerWeek: z.number().min(1).max(100).default(35),
 });
 
 router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
@@ -133,6 +141,41 @@ router.get('/me/score-history', requireAuth, async (req: Request, res: Response)
     res.json({ history: scores });
   } catch (error) {
     console.error('Failed to fetch score history:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /v1/users/me/recent-drops
+// Returns the last 10 answered drops for the authenticated user.
+router.get('/me/recent-drops', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+
+    const drops = await prisma.userDrop.findMany({
+      where: { userId, isAnswered: true },
+      orderBy: { answeredAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        wasCorrect: true,
+        pointsAwarded: true,
+        usedHint: true,
+        hintCostDeducted: true,
+        revealedAnswer: true,
+        answeredAt: true,
+        question: {
+          select: {
+            questionText: true,
+            difficultyLevel: true,
+            categories: { select: { name: true } },
+          },
+        },
+      },
+    });
+
+    res.json({ drops });
+  } catch (error) {
+    console.error('Failed to fetch recent drops:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

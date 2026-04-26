@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { ErrorNotification } from '../../components/ErrorNotification';
 import { makeServerAPICallV1 } from '../../lib/apiServer';
 import { LeaderboardTabs } from '../../components/LeaderboardTabs';
@@ -11,24 +11,47 @@ interface LeaderboardUser {
   displayName: string | null;
   cumulativeScore: number;
   currentStreak: number;
+  baseScore: number;
+  bonusScore: number;
 }
 
 export default async function LeaderboardPage() {
+  const isLoggedIn = !!cookies().get('tq_auth');
+
   let leaderboardData = {
-    weekly: [] as LeaderboardUser[],
-    monthly: [] as LeaderboardUser[],
-    alltime: [] as LeaderboardUser[],
+    global: {
+      weekly: [] as LeaderboardUser[],
+      monthly: [] as LeaderboardUser[],
+      alltime: [] as LeaderboardUser[],
+    },
+    friends: {
+      weekly: [] as LeaderboardUser[],
+      monthly: [] as LeaderboardUser[],
+      alltime: [] as LeaderboardUser[],
+    },
   };
   let fetchFailed = false;
 
   try {
-    const [weekly, monthly, alltime] = await Promise.all([makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/global?period=weekly'), makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/global?period=monthly'), makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/global?period=alltime')]);
+    const fetchGlobal = Promise.all([makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/global?period=weekly'), makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/global?period=monthly'), makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/global?period=alltime')]);
 
-    leaderboardData = {
-      weekly: weekly.leaderboard ?? [],
-      monthly: monthly.leaderboard ?? [],
-      alltime: alltime.leaderboard ?? [],
+    const fetchFriends = isLoggedIn ? Promise.all([makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/friends?period=weekly'), makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/friends?period=monthly'), makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/friends?period=alltime')]) : Promise.resolve([null, null, null]);
+
+    const [[gw, gm, ga], [fw, fm, fa]] = await Promise.all([fetchGlobal, fetchFriends]);
+
+    leaderboardData.global = {
+      weekly: gw.leaderboard ?? [],
+      monthly: gm.leaderboard ?? [],
+      alltime: ga.leaderboard ?? [],
     };
+
+    if (isLoggedIn && fw && fm && fa) {
+      leaderboardData.friends = {
+        weekly: fw.leaderboard ?? [],
+        monthly: fm.leaderboard ?? [],
+        alltime: fa.leaderboard ?? [],
+      };
+    }
   } catch (error) {
     console.error('[LeaderboardPage] Error fetching leaderboard:', error);
     fetchFailed = true;
@@ -41,15 +64,12 @@ export default async function LeaderboardPage() {
         <div className='max-w-5xl mx-auto'>
           <div className='mb-12 flex flex-col md:flex-row justify-between items-end gap-6'>
             <div className='space-y-4'>
-              <Link href='/' className='group text-indigo-400 hover:text-indigo-300 mb-6 inline-flex items-center gap-2 font-semibold transition-colors'>
-                <span className='group-hover:-translate-x-1 transition-transform'>←</span> Back to Home
-              </Link>
-              <h1 className='text-4xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400'>Global Leaderboard</h1>
-              <p className='text-lg text-gray-400'>The smartest minds on TrivioQ. Are you on the list?</p>
+              <h1 className='text-4xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400'>Leaderboard</h1>
+              <p className='text-gray-400 mt-2'>See how you stack up against the best in the world and your friends.</p>
             </div>
           </div>
 
-          <LeaderboardTabs initialData={leaderboardData} />
+          {fetchFailed ? <ErrorNotification message='Failed to load leaderboard. Please try again later.' /> : <LeaderboardTabs initialData={leaderboardData} isLoggedIn={isLoggedIn} />}
         </div>
       </div>
     </>
