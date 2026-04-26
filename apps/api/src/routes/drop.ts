@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { prisma } from '@trivioq/database';
 import { QuestionDropPayload } from '@trivioq/shared-types';
 import { requireAuth } from '../middleware/firebaseAuth';
+import { DIFFICULTY_POINTS, upsertUserScores } from '../utils/scoring';
 
 const router = express.Router();
 
@@ -95,9 +96,9 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
     }
 
     const isCorrect = selectedOptionIndex === correctOptionIndex;
-    const pointsAwarded = isCorrect ? 10 : 0; // Configurable scoring logic
+    const pointsAwarded = isCorrect ? (DIFFICULTY_POINTS[question.difficultyLevel] ?? 10) : 0;
 
-    const [updatedUserDrop, updatedUser] = await prisma.$transaction([
+    const [, updatedUser] = await prisma.$transaction([
       prisma.userDrop.update({
         where: { id: dropId },
         data: {
@@ -122,6 +123,11 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
       newStreak: updatedUser.currentStreak,
       newTotalScore: updatedUser.cumulativeScore,
     };
+
+    // Upsert UserScore ledger rows (fire-and-forget, non-blocking)
+    if (isCorrect) {
+      upsertUserScores(userId, pointsAwarded).catch((err) => console.error('[drop/submit] Failed to upsert UserScore:', err));
+    }
 
     res.json(response);
   } catch (error) {

@@ -23,6 +23,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
+    // Optimization: Only call the backend if we see the non-httpOnly companion cookie.
+    // This avoids 401 noise in the console for unauthenticated users.
+    if (!document.cookie.split('; ').find((row) => row.startsWith('tq_session_active='))) {
+      setUser(null);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/auth/me');
       if (res.ok) {
@@ -46,11 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
-  return (
-    <AuthContext.Provider value={{ user, isLoading, refreshUser: fetchUser, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, isLoading, refreshUser: fetchUser, logout }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

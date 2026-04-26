@@ -26,6 +26,7 @@ model User {
   devicePushToken   String?
   role              Role         @default(USER)
   drops             UserDrop[]
+  scores            UserScore[]
   friendshipsInitiated Friendship[] @relation("UserFriendshipsInitiated")
   friendshipsAccepted  Friendship[] @relation("UserFriendshipsAccepted")
 }
@@ -33,6 +34,32 @@ model User {
 enum Role {
   USER
   ADMIN
+}
+
+enum PeriodType {
+  WEEKLY
+  MONTHLY
+  OVERALL
+}
+
+// Persistent score ledger — one row per user per period.
+// Updated on every correct drop answer; bonus filled by cron at period end.
+model UserScore {
+  id          String     @id @default(uuid())
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String
+  periodType  PeriodType
+  periodStart DateTime   // Monday 00:00 for WEEKLY; 1st 00:00 for MONTHLY; fixed epoch for OVERALL
+  periodEnd   DateTime?  // Sunday 23:59 for WEEKLY; last day for MONTHLY; null for OVERALL
+  baseScore   Int        @default(0)
+  bonusScore  Int        @default(0)
+  totalScore  Int        @default(0) // baseScore + bonusScore, updated in sync
+  rank        Int?       // populated by the bonus cron at period end
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([userId, periodType, periodStart])
+  @@index([periodType, periodStart])
 }
 
 model Friendship {

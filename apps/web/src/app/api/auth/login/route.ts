@@ -103,6 +103,15 @@ export async function syncAndRespond(idToken: string, extraData: Record<string, 
       path: '/',
     });
 
+    // Companion non-httpOnly cookie for client-side detection
+    response.cookies.set('tq_session_active', 'true', {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: COOKIE_MAX_AGE_SECONDS,
+      path: '/',
+    });
+
     return response;
   } catch (err) {
     console.error('[auth] Backend sync failed:', err);

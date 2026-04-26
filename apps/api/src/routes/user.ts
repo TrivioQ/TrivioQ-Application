@@ -96,4 +96,45 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+// GET /v1/users/me/score-history?period=weekly|monthly
+// Returns the last 12 months of score periods for the authenticated user.
+router.get('/me/score-history', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const period = (req.query.period as string) || 'weekly';
+
+    if (period !== 'weekly' && period !== 'monthly') {
+      return res.status(400).json({ error: 'Invalid period. Use weekly or monthly.' });
+    }
+
+    const periodType = period === 'weekly' ? 'WEEKLY' : 'MONTHLY';
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+
+    const scores = await prisma.userScore.findMany({
+      where: {
+        userId,
+        periodType,
+        periodStart: { gte: twelveMonthsAgo },
+      },
+      orderBy: { periodStart: 'desc' },
+      select: {
+        id: true,
+        periodType: true,
+        periodStart: true,
+        periodEnd: true,
+        baseScore: true,
+        bonusScore: true,
+        totalScore: true,
+        rank: true,
+      },
+    });
+
+    res.json({ history: scores });
+  } catch (error) {
+    console.error('Failed to fetch score history:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

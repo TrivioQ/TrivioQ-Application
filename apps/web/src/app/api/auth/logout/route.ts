@@ -16,7 +16,15 @@ export async function POST(): Promise<NextResponse> {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 0, // Immediately expire
+    maxAge: 0,
+    path: '/',
+  });
+
+  response.cookies.set('tq_session_active', '', {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 0,
     path: '/',
   });
 
