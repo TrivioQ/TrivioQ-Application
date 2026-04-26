@@ -85,12 +85,12 @@ cron.schedule('* * * * *', async () => {
 
         const questionQuery: any = {};
         if (selectedCategory) {
-          questionQuery.categoryId = selectedCategory;
+          questionQuery.categories = { some: { name: selectedCategory } };
         }
 
         const questions = await prisma.question.findMany({
           where: questionQuery,
-          select: { id: true, categoryId: true, difficultyLevel: true },
+          select: { id: true, difficultyLevel: true, categories: { select: { name: true } } },
         });
 
         if (questions.length === 0) continue; // No questions match preference
@@ -124,7 +124,7 @@ cron.schedule('* * * * *', async () => {
         await dispatchNotificationsQueue.add('send-drop-notification', {
           userId: user.id,
           dropId: userDrop.id,
-          category: randomQ.categoryId,
+          category: selectedCategory || 'Mixed',
           difficulty: randomQ.difficultyLevel,
           expirationTimestamp: expirationTime.getTime(),
         });

@@ -27,7 +27,7 @@ interface LeaderboardTabsProps {
 }
 
 export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProps) {
-  const [activeTab, setActiveTab] = useState<'weekly' | 'monthly' | 'alltime'>('alltime');
+  const [activeTab, setActiveTab] = useState<'weekly' | 'monthly' | 'alltime'>('weekly');
   const [activeMode, setActiveMode] = useState<'global' | 'friends'>('global');
 
   const tabs = [

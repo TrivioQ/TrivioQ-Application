@@ -48,6 +48,7 @@ async function main() {
         await tx.question.deleteMany();
         await tx.category.deleteMany();
         await tx.user.deleteMany();
+        await tx.fAQ.deleteMany();
         console.log('✅ Database cleared.');
 
         // 1. Categories
@@ -307,6 +308,39 @@ async function main() {
           }
         }
         console.log('✅ Generated score ledger for all users.');
+
+        // 7. FAQs
+        console.log('❓ Stage 7: Creating 15 FAQs...');
+        const faqs = [
+          { question: 'What is TrivioQ?', answer: 'TrivioQ is a premium trivia platform where you get scheduled "drops" of questions throughout the day based on your preferences.' },
+          { question: 'How do I earn points?', answer: 'You earn points by answering questions correctly. Faster answers and harder questions give more points!' },
+          { question: 'What are "Drops"?', answer: 'Drops are timed trivia questions sent to your device during your specified active window. You have a limited time to answer them.' },
+          { question: 'Can I play offline?', answer: 'No, TrivioQ requires an internet connection to receive drops and sync your scores with the global leaderboard.' },
+          { question: 'How does the streak work?', answer: 'Your streak increases every day you answer at least one question correctly. Missing a day resets it to zero!' },
+          { question: 'What is a "Premium" account?', answer: 'Premium members get more frequent drops, exclusive categories, advanced statistics, and ad-free experience.' },
+          { question: 'How do I change my active time?', answer: 'Go to Settings > Active Time. You can specify a start and end time that fits your daily schedule.' },
+          { question: 'What are difficulty levels?', answer: 'Questions are categorized as Easy, Medium, or Hard. Harder questions reward significantly more points.' },
+          { question: 'Can I invite friends?', answer: 'Yes! You can search for friends by username and add them to see their progress on your private leaderboard.' },
+          { question: 'How are leaderboard bonuses calculated?', answer: 'Top performers in the weekly and monthly leaderboards receive bonus points at the end of each period.' },
+          { question: 'What happens if I miss a drop?', answer: 'Missing a drop doesn\'t reset your streak, but you miss out on the potential points for that question.' },
+          { question: 'Can I use hints?', answer: 'Yes, most questions offer a hint for a small point deduction. Use them wisely!' },
+          { question: 'How do I reset my password?', answer: 'In Settings > Security, you can update your password if you signed up with an email address.' },
+          { question: 'Is my data secure?', answer: 'We use industry-standard encryption and Firebase Auth to keep your account and personal information safe.' },
+          { question: 'How do I contact support?', answer: 'You can reach out to our support team via email at support@trivioq.com for any assistance.' },
+        ];
+
+        await Promise.all(
+          faqs.map((faq, index) =>
+            tx.fAQ.create({
+              data: {
+                ...faq,
+                order: index,
+                active: true,
+              },
+            }),
+          ),
+        );
+        console.log('✅ Created 15 mock FAQs.');
       },
       {
         timeout: 60000, // Increase timeout for large transaction
