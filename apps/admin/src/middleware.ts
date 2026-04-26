@@ -24,7 +24,6 @@ export async function middleware(req: NextRequest) {
   if (!sessionCookie) {
     const loginUrl = req.nextUrl.clone();
     loginUrl.pathname = '/login';
-    loginUrl.searchParams.set('error', 'Unauthorized Access');
     return NextResponse.redirect(loginUrl);
   }
 

@@ -38,3 +38,8 @@ export async function loginAction(prevState: unknown, formData: FormData) {
 
   redirect('/');
 }
+export async function logoutAction() {
+  const cookieStore = await cookies();
+  cookieStore.delete('firebase-token');
+  redirect('/login');
+}

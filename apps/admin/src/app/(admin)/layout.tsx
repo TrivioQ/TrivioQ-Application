@@ -1,7 +1,8 @@
 import { AdminGuard } from '@/components/AdminGuard';
 import Link from 'next/link';
-import { LayoutDashboard, Users, HelpCircle, Tags } from 'lucide-react';
-
+import { LayoutDashboard, Users, HelpCircle, Tags, LogOut } from 'lucide-react';
+import { logoutAction } from '@/app/actions/auth.actions';
+ 
 export default function AdminLayout({
   children,
 }: {
@@ -33,6 +34,19 @@ export default function AdminLayout({
               <span>Categories</span>
             </Link>
           </nav>
+ 
+          {/* Logout Section */}
+          <div className="p-4 border-t border-gray-800">
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="flex w-full items-center gap-3 p-3 rounded-lg hover:bg-red-900/30 text-gray-400 hover:text-red-400 transition-all font-medium group"
+              >
+                <LogOut size={20} className="group-hover:translate-x-0.5 transition-transform" />
+                <span>Logout</span>
+              </button>
+            </form>
+          </div>
         </aside>
 
         {/* Main Content */}
