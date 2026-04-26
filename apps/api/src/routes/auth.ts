@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import * as admin from 'firebase-admin';
 import { prisma } from '@trivioq/database';
 import { verifyFirebaseToken } from '../middleware/firebaseAuth';
 
@@ -61,19 +62,32 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
     const activeWindowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0);
     const activeWindowEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 0);
 
-    const user = await prisma.user.create({
-      data: {
-        firebaseUid,
-        email,
-        username,
-        displayName: requestedDisplayName?.trim() || username,
-        currentStreak: 0,
-        cumulativeScore: 0,
-        activeWindowStart,
-        activeWindowEnd,
-        lastLogin: now,
-      },
-    });
+    let user;
+    try {
+      user = await prisma.user.create({
+        data: {
+          firebaseUid,
+          email,
+          username,
+          displayName: requestedDisplayName?.trim() || username,
+          currentStreak: 0,
+          cumulativeScore: 0,
+          activeWindowStart,
+          activeWindowEnd,
+          lastLogin: now,
+        },
+      });
+    } catch (dbError) {
+      // Roll back the Firebase account so the user can retry sign-up cleanly
+      console.error('Failed to create user in database — rolling back Firebase account:', dbError);
+      try {
+        await admin.auth().deleteUser(firebaseUid);
+        console.log(`Rolled back Firebase user ${firebaseUid}`);
+      } catch (rollbackError) {
+        console.error(`Failed to roll back Firebase user ${firebaseUid}:`, rollbackError);
+      }
+      return res.status(500).json({ error: 'Account creation failed. Please try signing up again.' });
+    }
 
     res.json(user);
   } catch (error) {

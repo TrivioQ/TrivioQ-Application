@@ -93,6 +93,7 @@ async function main() {
             choices: choices,
             correctAnswerId,
             explanationText: faker.lorem.paragraph(),
+            hintText: faker.lorem.sentence(),
             categories: {
               connect: selectedCats.map((c) => ({ id: c.id })),
             },
@@ -144,23 +145,46 @@ async function main() {
           for (let j = 0; j < numDrops; j++) {
             const isAnswered = faker.datatype.boolean();
             let wasCorrect = null;
-
             const scheduledDropTime = faker.date.recent({ days: 90 });
             const expirationTime = new Date(scheduledDropTime.getTime() + 15 * 60000);
             const randomQ = createdQuestions[faker.number.int({ min: 0, max: createdQuestions.length - 1 })];
 
+            let answeredAt = null;
+            let pointsAwarded = 0;
+            let usedHint = false;
+            let revealedAnswer = false;
+            let selectedChoiceId = null;
+
             if (isAnswered) {
+              answeredAt = new Date(scheduledDropTime.getTime() + faker.number.int({ min: 1, max: 10 }) * 60000);
               const successProb = user.subscriptionTier === SubscriptionTier.PREMIUM ? 0.8 : 0.6;
-              wasCorrect = Math.random() < successProb;
 
-              if (wasCorrect) {
-                const pts = DIFFICULTY_POINTS[randomQ.difficultyLevel];
-                const wKey = getWeekStart(scheduledDropTime).toISOString();
-                const mKey = getMonthStart(scheduledDropTime).toISOString();
+              // 30% chance they used a hint
+              usedHint = Math.random() < 0.3;
+              // 5% chance they gave up and revealed answer
+              revealedAnswer = Math.random() < 0.05;
 
-                userPointsMap[user.id].overall += pts;
-                userPointsMap[user.id].weekly[wKey] = (userPointsMap[user.id].weekly[wKey] || 0) + pts;
-                userPointsMap[user.id].monthly[mKey] = (userPointsMap[user.id].monthly[mKey] || 0) + pts;
+              if (revealedAnswer) {
+                wasCorrect = false;
+                selectedChoiceId = null;
+              } else {
+                wasCorrect = Math.random() < successProb;
+                const correctIdx = (randomQ?.choices as any[]).findIndex((c: any) => c.id === randomQ.correctAnswerId);
+                const randomIdx = faker.number.int({ min: 0, max: 3 });
+                selectedChoiceId = String(wasCorrect ? correctIdx : randomIdx);
+
+                if (wasCorrect) {
+                  const basePts = DIFFICULTY_POINTS[randomQ.difficultyLevel];
+                  const hintCost = usedHint ? Math.floor(basePts * 0.3) : 0;
+                  pointsAwarded = basePts - hintCost;
+
+                  const wKey = getWeekStart(scheduledDropTime).toISOString();
+                  const mKey = getMonthStart(scheduledDropTime).toISOString();
+
+                  userPointsMap[user.id].overall += pointsAwarded;
+                  userPointsMap[user.id].weekly[wKey] = (userPointsMap[user.id].weekly[wKey] || 0) + pointsAwarded;
+                  userPointsMap[user.id].monthly[mKey] = (userPointsMap[user.id].monthly[mKey] || 0) + pointsAwarded;
+                }
               }
             }
 
@@ -172,6 +196,11 @@ async function main() {
                 expirationTime,
                 isAnswered,
                 wasCorrect,
+                usedHint,
+                revealedAnswer,
+                answeredAt,
+                pointsAwarded,
+                selectedChoiceId,
               },
             });
           }
