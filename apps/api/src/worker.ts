@@ -1,4 +1,5 @@
 import { Worker } from 'bullmq';
+process.env.TZ = 'UTC';
 import Redis from 'ioredis';
 import { prisma } from '@trivioq/database';
 

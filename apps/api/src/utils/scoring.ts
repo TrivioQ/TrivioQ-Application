@@ -13,27 +13,40 @@ export const MONTHLY_BONUSES = [10000, 6000, 4000, 3000, 2500, 2000, 1500, 1000,
 
 // ── Period helpers ───────────────────────────────────────────────────────────
 
-/** Returns the Monday 00:00:00 of the week containing `date`. */
+/** Returns the Monday 00:00:00 UTC of the week containing `date`. */
 export function getWeekStart(date: Date = new Date()): Date {
-  const day = date.getDay(); // 0 = Sunday
+  const d = new Date(date);
+  const day = d.getUTCDay(); // 0 = Sunday
   const diff = day === 0 ? -6 : 1 - day; // shift to Monday
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + diff, 0, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() + diff);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
 }
 
-/** Returns the Sunday 23:59:59.999 of the week containing `date`. */
+/** Returns the Sunday 23:59:59.999 UTC of the week containing `date`. */
 export function getWeekEnd(date: Date = new Date()): Date {
   const start = getWeekStart(date);
-  return new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 23, 59, 59, 999);
+  const d = new Date(start);
+  d.setUTCDate(d.getUTCDate() + 6);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
 }
 
-/** Returns the 1st of the current month at 00:00:00. */
+/** Returns the 1st of the current month at 00:00:00 UTC. */
 export function getMonthStart(date: Date = new Date()): Date {
-  return new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
+  const d = new Date(date);
+  d.setUTCDate(1);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
 }
 
-/** Returns the last millisecond of the current month. */
+/** Returns the last millisecond of the current month in UTC. */
 export function getMonthEnd(date: Date = new Date()): Date {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+  const d = new Date(date);
+  d.setUTCMonth(d.getUTCMonth() + 1);
+  d.setUTCDate(0);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
 }
 
 /** A fixed epoch used as the periodStart key for the OVERALL record. */

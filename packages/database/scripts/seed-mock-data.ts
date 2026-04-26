@@ -1,4 +1,5 @@
 import { PrismaClient, DifficultyLevel, SubscriptionTier, Role, PeriodType } from '@prisma/client';
+process.env.TZ = 'UTC';
 import { faker } from '@faker-js/faker';
 
 const prisma = new PrismaClient();

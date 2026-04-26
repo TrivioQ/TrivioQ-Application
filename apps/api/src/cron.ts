@@ -1,4 +1,5 @@
 import cron from 'node-cron';
+process.env.TZ = 'UTC';
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
 import { prisma } from '@trivioq/database';
@@ -56,7 +57,7 @@ cron.schedule('10 0 1 * *', async () => {
   try {
     // Previous month's start: go back one month from the 1st of this month
     const now = new Date();
-    const prevMonthStart = getMonthStart(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+    const prevMonthStart = getMonthStart(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)));
     await distributeBonuses('MONTHLY', prevMonthStart);
   } catch (error) {
     console.error('[bonus-cron] Error distributing monthly bonuses:', error);

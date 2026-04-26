@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+process.env.TZ = 'UTC';
 import { prisma } from '@trivioq/database';
 import { UserPreferences } from '@trivioq/shared-types';
 

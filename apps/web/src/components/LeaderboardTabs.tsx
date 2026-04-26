@@ -29,15 +29,50 @@ export function LeaderboardTabs({ initialData }: LeaderboardTabsProps) {
 
   const currentData = initialData[activeTab];
 
+  const getNextWeekReset = () => {
+    const d = new Date();
+    const day = d.getUTCDay();
+    const diff = day === 0 ? 1 : 8 - day;
+    d.setUTCDate(d.getUTCDate() + diff);
+    d.setUTCHours(0, 0, 0, 0);
+    return d;
+  };
+
+  const getNextMonthReset = () => {
+    const d = new Date();
+    d.setUTCMonth(d.getUTCMonth() + 1);
+    d.setUTCDate(1);
+    d.setUTCHours(0, 0, 0, 0);
+    return d;
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
+
   return (
     <div className='space-y-8'>
-      {/* ── Tab Switcher ── */}
-      <div className='flex justify-center p-1 bg-gray-900/50 rounded-xl border border-white/5 backdrop-blur-sm w-fit mx-auto'>
-        {tabs.map((tab) => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === tab.id ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-            {tab.label}
-          </button>
-        ))}
+      <div className='flex flex-col items-center gap-4'>
+        <div className='flex justify-center p-1 bg-gray-900/50 rounded-xl border border-white/5 backdrop-blur-sm w-fit mx-auto'>
+          {tabs.map((tab) => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === tab.id ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab !== 'alltime' && (
+          <div className='flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-indigo-400/80 bg-indigo-500/5 px-4 py-1.5 rounded-full border border-indigo-500/10'>
+            <span className='animate-pulse'>●</span>
+            Period Ends: {activeTab === 'weekly' ? formatDate(getNextWeekReset()) : formatDate(getNextMonthReset())}
+          </div>
+        )}
       </div>
 
       {/* ── Leaderboard Table ── */}
