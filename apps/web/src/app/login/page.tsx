@@ -25,7 +25,7 @@ export default function LoginPage() {
       <div className='w-full max-w-md space-y-8 bg-gray-900 p-10 rounded-2xl border border-white/5 shadow-2xl'>
         <div className='text-center'>
           <Link href='/' className='text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400'>
-            Trivioq
+            TrivioQ
           </Link>
           <h2 className='mt-6 text-3xl font-bold tracking-tight text-white'>Sign in to your account</h2>
           <p className='mt-2 text-sm text-gray-400'>

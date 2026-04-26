@@ -36,7 +36,7 @@ export default async function LeaderboardPage() {
                 <span className='group-hover:-translate-x-1 transition-transform'>←</span> Back to Home
               </Link>
               <h1 className='text-4xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400'>Global Leaderboard</h1>
-              <p className='mt-4 text-lg text-gray-400'>The smartest minds on Trivioq. Are you on the list?</p>
+              <p className='mt-4 text-lg text-gray-400'>The smartest minds on TrivioQ. Are you on the list?</p>
             </div>
             <div className='bg-gray-900 rounded-2xl px-8 py-5 shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/10'>
               <span className='text-gray-500 text-xs uppercase font-extrabold tracking-widest block mb-1'>Top Players</span>

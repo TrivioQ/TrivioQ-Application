@@ -56,16 +56,16 @@ export function Footer() {
           <div className='sm:col-span-2 lg:col-span-1'>
             <Link href='/' className='flex items-center gap-2 group w-fit'>
               <span className='text-2xl'>⚡</span>
-              <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-indigo-300 transition-colors'>Trivioq</span>
+              <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-indigo-300 transition-colors'>TrivioQ</span>
             </Link>
             <p className='mt-4 text-sm leading-relaxed text-gray-400 max-w-xs'>Bite-sized trivia drops designed to make you smarter — delivered right to your device throughout the day.</p>
 
             {/* Socials */}
             <div className='mt-6 flex gap-4'>
-              <a href='https://x.com' target='_blank' rel='noopener noreferrer' aria-label='Follow Trivioq on X' className='group flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200'>
+              <a href='https://x.com' target='_blank' rel='noopener noreferrer' aria-label='Follow TrivioQ on X' className='group flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200'>
                 <XIcon className='h-4 w-4' />
               </a>
-              <a href='https://instagram.com' target='_blank' rel='noopener noreferrer' aria-label='Follow Trivioq on Instagram' className='group flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200'>
+              <a href='https://instagram.com' target='_blank' rel='noopener noreferrer' aria-label='Follow TrivioQ on Instagram' className='group flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200'>
                 <InstagramIcon className='h-4 w-4' />
               </a>
             </div>
@@ -100,7 +100,7 @@ export function Footer() {
 
         {/* ── Bottom bar ── */}
         <div className='border-t border-white/5 py-6 flex flex-col sm:flex-row items-center justify-between gap-4'>
-          <p className='text-xs text-gray-500'>© {year} Trivioq. All rights reserved.</p>
+          <p className='text-xs text-gray-500'>© {year} TrivioQ. All rights reserved.</p>
           <a href='https://nextjs.org' target='_blank' rel='noopener noreferrer' className='inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-gray-500 hover:text-gray-300 hover:bg-white/10 transition-all duration-200'>
             <svg className='h-3.5 w-3.5' viewBox='0 0 180 180' fill='currentColor' aria-hidden='true'>
               <mask id='mask0' style={{ maskType: 'alpha' }} maskUnits='userSpaceOnUse' x='0' y='0' width='180' height='180'>

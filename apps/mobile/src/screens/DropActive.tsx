@@ -122,7 +122,7 @@ export default function DropActive() {
     if (!answerResult) return;
     try {
       await Share.share({
-        message: `I just hit a ${answerResult.newStreak} streak on Trivioq! Can you beat my score?`,
+        message: `I just hit a ${answerResult.newStreak} streak on TrivioQ! Can you beat my score?`,
       });
     } catch (error: any) {
       console.error(error.message);

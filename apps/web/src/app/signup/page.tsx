@@ -4,20 +4,23 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useAuthSync } from '../../hooks/useAuthSync';
 
+const inputClass = 'relative block w-full border-0 bg-gray-800 py-3 px-4 text-white ring-1 ring-inset ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6';
+
 export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
 
-  // Errors are shown as toast notifications via useAuthSync → useNotification
   const { isPending, registerWithEmailSync, signInWithGoogleSync } = useAuthSync();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    await registerWithEmailSync(email, password);
+    await registerWithEmailSync(email, password, username, displayName);
   };
 
-  const handleGoogleSignup = async () => {
-    await signInWithGoogleSync();
+  const handleGoogleSignup = () => {
+    signInWithGoogleSync();
   };
 
   return (
@@ -25,7 +28,7 @@ export default function SignupPage() {
       <div className='w-full max-w-md space-y-8 bg-gray-900 p-10 rounded-2xl border border-white/5 shadow-2xl'>
         <div className='text-center'>
           <Link href='/' className='text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400'>
-            Trivioq
+            TrivioQ
           </Link>
           <h2 className='mt-6 text-3xl font-bold tracking-tight text-white'>Create your account</h2>
           <p className='mt-2 text-sm text-gray-400'>
@@ -37,28 +40,37 @@ export default function SignupPage() {
         </div>
 
         <form className='mt-8 space-y-6' onSubmit={handleSignup}>
-          <div className='space-y-4 rounded-md shadow-sm'>
+          <div className='space-y-px rounded-md shadow-sm'>
+            {/* Display Name */}
+            <div>
+              <label className='sr-only' htmlFor='displayName'>
+                Display name
+              </label>
+              <input id='displayName' type='text' required className={`${inputClass} rounded-t-md`} placeholder='Display name (e.g. John Doe)' value={displayName} onChange={(e) => setDisplayName(e.target.value)} disabled={isPending} />
+            </div>
+
+            {/* Username */}
+            <div>
+              <label className='sr-only' htmlFor='username'>
+                Username
+              </label>
+              <input id='username' type='text' required minLength={3} maxLength={30} pattern='[a-zA-Z0-9_]+' title='Username may only contain letters, numbers, and underscores' className={inputClass} placeholder='Username (letters, numbers, underscores)' value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} disabled={isPending} />
+            </div>
+
+            {/* Email */}
             <div>
               <label className='sr-only' htmlFor='email'>
                 Email address
               </label>
-              <input id='email' type='email' required className='relative block w-full rounded-t-md border-0 bg-gray-800 py-3 px-4 text-white ring-1 ring-inset ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6' placeholder='Email address' value={email} onChange={(e) => setEmail(e.target.value)} disabled={isPending} />
+              <input id='email' type='email' required className={inputClass} placeholder='Email address' value={email} onChange={(e) => setEmail(e.target.value)} disabled={isPending} />
             </div>
+
+            {/* Password */}
             <div>
               <label className='sr-only' htmlFor='password'>
                 Password
               </label>
-              <input
-                id='password'
-                type='password'
-                required
-                minLength={6}
-                className='relative block w-full rounded-b-md border-0 bg-gray-800 py-3 px-4 text-white ring-1 ring-inset ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6'
-                placeholder='Password (minimum 6 characters)'
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isPending}
-              />
+              <input id='password' type='password' required minLength={8} className={`${inputClass} rounded-b-md`} placeholder='Password (minimum 8 characters)' value={password} onChange={(e) => setPassword(e.target.value)} disabled={isPending} />
             </div>
           </div>
 

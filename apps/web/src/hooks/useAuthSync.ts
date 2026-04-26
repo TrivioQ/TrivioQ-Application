@@ -44,8 +44,8 @@ export function useAuthSync({ onSuccess, onError }: AuthSyncOptions = {}) {
   });
 
   const signupMutation = useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      makeAPICall('/auth/signup', { method: 'POST', body: { email, password } }),
+    mutationFn: ({ email, password, username, displayName }: { email: string; password: string; username: string; displayName: string }) =>
+      makeAPICall('/auth/signup', { method: 'POST', body: { email, password, username, displayName } }),
     onSuccess: handleSuccess,
     onError: handleError,
   });
@@ -54,8 +54,8 @@ export function useAuthSync({ onSuccess, onError }: AuthSyncOptions = {}) {
     isPending: loginMutation.isPending || signupMutation.isPending,
     loginWithEmailSync: (email: string, password: string) =>
       loginMutation.mutateAsync({ email, password }),
-    registerWithEmailSync: (email: string, password: string) =>
-      signupMutation.mutateAsync({ email, password }),
+    registerWithEmailSync: (email: string, password: string, username: string, displayName: string) =>
+      signupMutation.mutateAsync({ email, password, username, displayName }),
     // Google uses a server-side redirect — no async result to await.
     signInWithGoogleSync: () => {
       window.location.href = '/api/auth/google';

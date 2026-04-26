@@ -38,7 +38,7 @@ export default function HomeDashboard({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to Trivioq!</Text>
+      <Text style={styles.title}>Welcome to TrivioQ!</Text>
       <Text style={styles.subtitle}>Your daily trivia drops await.</Text>
 
       {isLoading ? (

@@ -139,7 +139,7 @@ export function Navbar() {
           {/* ── Logo ── */}
           <Link href='/' className='flex items-center gap-2 group shrink-0'>
             <span className='text-2xl'>⚡</span>
-            <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-indigo-300 transition-colors'>Trivioq</span>
+            <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-indigo-300 transition-colors'>TrivioQ</span>
           </Link>
 
           {/* ── Center links (desktop) ── */}
@@ -249,7 +249,7 @@ export function Navbar() {
               <div className='flex items-center justify-between px-6 h-16 border-b border-white/10'>
                 <Link href='/' onClick={() => setMobileOpen(false)} className='flex items-center gap-2'>
                   <span className='text-xl'>⚡</span>
-                  <span className='font-extrabold text-lg text-white'>Trivioq</span>
+                  <span className='font-extrabold text-lg text-white'>TrivioQ</span>
                 </Link>
                 <button onClick={() => setMobileOpen(false)} className='w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors' aria-label='Close menu'>
                   ✕

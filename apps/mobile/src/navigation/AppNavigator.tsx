@@ -28,7 +28,7 @@ export type RootTabParamList = {
 
 // ─── Brand colour ─────────────────────────────────────────────────────────────
 
-const BRAND = '#6366f1'; // Trivioq indigo
+const BRAND = '#6366f1'; // TrivioQ indigo
 const TAB_BG = '#0f172a'; // Dark navy background
 const INACTIVE = '#475569'; // Muted slate
 
@@ -53,7 +53,7 @@ function HomeStackNavigator() {
         headerTitleStyle: { fontWeight: '800' },
       }}
     >
-      <HomeStack.Screen name='HomeDashboard' component={HomeDashboard} options={{ title: 'Trivioq' }} />
+      <HomeStack.Screen name='HomeDashboard' component={HomeDashboard} options={{ title: 'TrivioQ' }} />
       <HomeStack.Screen
         name='DropActive'
         component={DropActive}

@@ -15,17 +15,29 @@ const FIREBASE_SIGN_UP_URL = 'https://identitytoolkit.googleapis.com/v1/accounts
 export async function POST(req: NextRequest): Promise<NextResponse> {
   let email: string | undefined;
   let password: string | undefined;
+  let username: string | undefined;
+  let displayName: string | undefined;
 
   try {
     const body = await req.json();
     email = body?.email;
     password = body?.password;
+    username = body?.username;
+    displayName = body?.displayName;
   } catch {
     // fall through
   }
 
   if (!email || !password) {
     return NextResponse.json({ message: 'Email and password are required' }, { status: 400 });
+  }
+
+  if (!username || username.trim().length < 3) {
+    return NextResponse.json({ message: 'Username must be at least 3 characters' }, { status: 400 });
+  }
+
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    return NextResponse.json({ message: 'Username may only contain letters, numbers, and underscores' }, { status: 400 });
   }
 
   if (password.length < 8) {
@@ -56,7 +68,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   // ── Step 2: Sync user record in Postgres ──────────────────────────────────
-  return syncAndRespond(idToken);
+  return syncAndRespond(idToken, { username: username.toLowerCase(), displayName: displayName ?? username });
 }
 
 function mapFirebaseSignupError(code: string): string {

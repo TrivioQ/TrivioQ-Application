@@ -75,7 +75,7 @@ function mapFirebaseError(code: string): string {
 }
 
 /** Shared helper: calls backend sync, sets cookie, returns response. */
-export async function syncAndRespond(idToken: string): Promise<NextResponse> {
+export async function syncAndRespond(idToken: string, extraData: Record<string, string> = {}): Promise<NextResponse> {
   try {
     const upstream = await fetch(new URL('/v1/auth/sync', env.API_URL).toString(), {
       method: 'POST',
@@ -83,6 +83,7 @@ export async function syncAndRespond(idToken: string): Promise<NextResponse> {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${idToken}`,
       },
+      body: JSON.stringify(extraData),
     });
 
     if (!upstream.ok) {

@@ -12,7 +12,7 @@ export default function Home() {
             Master the World Through <br />
             <span className='text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400'>Spontaneous Micro-Learning</span>
           </h1>
-          <p className='mt-6 text-lg md:text-2xl leading-relaxed text-gray-300 max-w-3xl mx-auto mb-10'>Trivioq drops bite-sized, high-quality trivia directly to your device throughout the day. Build your knowledge organically, without dedicating hours to study.</p>
+          <p className='mt-6 text-lg md:text-2xl leading-relaxed text-gray-300 max-w-3xl mx-auto mb-10'>TrivioQ drops bite-sized, high-quality trivia directly to your device throughout the day. Build your knowledge organically, without dedicating hours to study.</p>
           <div className='mt-10 flex flex-col sm:flex-row items-center justify-center gap-6'>
             <Link href='#' className='rounded-full bg-indigo-500 px-8 py-4 text-lg font-semibold text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:bg-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.6)] transition-all duration-300 transform hover:-translate-y-1 w-full sm:w-auto'>
               Download App

@@ -40,7 +40,7 @@ const dispatcherWorker = new Worker<DispatchNotificationJob>(
         return;
       }
 
-      const title = '🚨 New Trivioq Drop!';
+      const title = '🚨 New TrivioQ Drop!';
       const capitalizedDifficulty = difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
       const body = `A ${capitalizedDifficulty} ${category} question is waiting. You have 15 minutes.`;
 
