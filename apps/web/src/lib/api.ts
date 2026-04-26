@@ -73,4 +73,4 @@ export async function makeAPICall<T = unknown>(path: string, { body, headers, ..
   return response.json() as Promise<T>;
 }
 
-export const makeAPICallV1 = (path: string, options: APICallOptions = {}) => makeAPICall(`/v1/${path}`, options);
+export const makeAPICallV1 = <T = unknown>(path: string, options: APICallOptions = {}) => makeAPICall<T>(`/v1/${path}`, options);

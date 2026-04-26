@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <div className='flex flex-col min-h-screen bg-gray-950 text-white selection:bg-indigo-500 selection:text-white'>
       {/* Hero Section */}
-      <section className='relative pt-32 pb-20 px-6 lg:px-8 overflow-hidden flex-grow flex items-center'>
+      <section className='relative pt-16 pb-20 px-6 lg:px-8 overflow-hidden flex-grow flex items-center'>
         <div className='absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/50 via-gray-950 to-black'></div>
         <div className='mx-auto max-w-5xl text-center'>
           <div className='inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold text-indigo-300 ring-1 ring-inset ring-indigo-500/30 mb-8 bg-indigo-500/10'>Now available on iOS & Android</div>

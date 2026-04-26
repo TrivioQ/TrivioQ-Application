@@ -1,27 +1,30 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 
-import HomeDashboard from './src/screens/HomeDashboard';
-import DropActive from './src/screens/DropActive';
-import Preferences from './src/screens/Preferences';
 import { AuthProvider } from './src/context/AuthContext';
+import { AppNavigator, RootTabParamList } from './src/navigation/AppNavigator';
 
 const queryClient = new QueryClient();
-const Stack = createNativeStackNavigator();
 
 const prefix = Linking.createURL('/');
 
-const linking = {
+const linking: LinkingOptions<RootTabParamList> = {
   prefixes: [prefix],
   config: {
     screens: {
-      HomeDashboard: 'home',
-      DropActive: 'drop/:dropId',
-      Preferences: 'preferences',
+      // Map deep-links into the nested Home stack
+      Home: {
+        screens: {
+          HomeDashboard: 'home',
+          DropActive: 'drop/:dropId',
+        },
+      },
+      Leaderboard: 'leaderboard',
+      History: 'history',
+      Profile: 'profile',
     },
   },
   async getInitialURL() {
@@ -60,11 +63,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <NavigationContainer linking={linking}>
-          <Stack.Navigator initialRouteName='HomeDashboard'>
-            <Stack.Screen name='HomeDashboard' component={HomeDashboard} options={{ title: 'Trivioq Dashboard' }} />
-            <Stack.Screen name='Preferences' component={Preferences} options={{ title: 'Your Preferences' }} />
-            <Stack.Screen name='DropActive' component={DropActive} options={{ title: 'Active Drop' }} />
-          </Stack.Navigator>
+          <AppNavigator />
         </NavigationContainer>
       </AuthProvider>
     </QueryClientProvider>

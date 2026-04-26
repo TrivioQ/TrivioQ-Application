@@ -5,12 +5,14 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
-    "make-admin": "ts-node scripts/make-admin.ts"
+    "make-admin": "ts-node scripts/make-admin.ts",
+    "seed-mock-data": "ts-node scripts/seed-mock-data.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
     "prisma": "^5.14.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
