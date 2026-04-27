@@ -6,7 +6,7 @@ const FOOTER_COLUMNS = [
   {
     heading: 'Product',
     links: [
-      { label: 'Features', href: '/#how-it-works' },
+      { label: 'Home', href: '/' },
       { label: 'Leaderboard', href: '/leaderboard' },
       { label: 'FAQ', href: '/faq' },
     ],
