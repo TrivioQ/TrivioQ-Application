@@ -12,6 +12,7 @@
     "@base-ui/react": "^1.4.1",
     "@tanstack/react-table": "^8.21.3",
     "@trivioq/database": "workspace:^",
+    "@uiw/react-md-editor": "^4.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

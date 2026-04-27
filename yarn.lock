@@ -12520,6 +12520,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"marked@npm:^18.0.2":
+  version: 18.0.2
+  resolution: "marked@npm:18.0.2"
+  bin:
+    marked: bin/marked.js
+  checksum: 10c0/d04f58c0dee158a8069dad88de549b0039f2af7e1f0fd078aa783f360655e39296662f6c722dc6dd94c1c9ce9ba7ca9355ee1d8d77dd7b9a2f8162ebac6d9bbd
+  languageName: node
+  linkType: hard
+
 "marky@npm:^1.2.2":
   version: 1.3.0
   resolution: "marky@npm:1.3.0"
@@ -17718,6 +17727,7 @@ __metadata:
     "@types/react-dom": "npm:^18.2.0"
     autoprefixer: "npm:^10.4.19"
     framer-motion: "npm:^12.38.0"
+    marked: "npm:^18.0.2"
     next: "npm:14.2.3"
     postcss: "npm:^8.4.38"
     react: "npm:^18.2.0"

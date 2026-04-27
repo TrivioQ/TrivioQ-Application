@@ -133,3 +133,15 @@ model FAQ {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// Stores legal documents (Terms of Service, Privacy Policy) as markdown.
+// slug is a stable identifier: 'terms' | 'privacy'
+model LegalDocument {
+  id        String   @id @default(uuid())
+  slug      String   @unique  // 'terms' | 'privacy'
+  title     String
+  content   String   // Markdown content
+  version   String   @default("1.0")
+  updatedAt DateTime @updatedAt
+  updatedBy String?  // admin email who last saved
+}

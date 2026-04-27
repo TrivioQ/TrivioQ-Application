@@ -9,6 +9,7 @@ import leaderboardRoutes from './routes/leaderboard';
 import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
 import faqRoutes from './routes/faq';
+import legalRoutes from './routes/legal';
 
 import { env } from './config/env';
 
@@ -23,6 +24,7 @@ app.use('/v1/drops', dropRoutes);
 app.use('/v1/leaderboards', leaderboardRoutes);
 app.use('/v1/admin', adminRoutes);
 app.use('/v1/faqs', faqRoutes);
+app.use('/v1/legal', legalRoutes);
 
 app.get('/health', async (req: Request, res: Response) => {
   try {
