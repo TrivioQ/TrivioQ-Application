@@ -25,7 +25,7 @@ function getInitials(displayName: string | null, email: string) {
   return email.slice(0, 2).toUpperCase();
 }
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }: any) {
   const { userId, logout } = useAuth();
 
   const { data, isLoading } = useQuery<UserProfile>({
@@ -102,6 +102,20 @@ export default function ProfileScreen() {
         <TouchableOpacity style={[styles.menuItem, styles.upgradeItem]} activeOpacity={0.7}>
           <Text style={styles.menuIcon}>👑</Text>
           <Text style={[styles.menuLabel, { color: '#a78bfa' }]}>{isPremium ? 'Manage Subscription' : 'Upgrade to Premium'}</Text>
+          <Text style={styles.menuChevron}>›</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>Legal</Text>
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Terms')}>
+          <Text style={styles.menuIcon}>📄</Text>
+          <Text style={styles.menuLabel}>Terms of Service</Text>
+          <Text style={styles.menuChevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Privacy')}>
+          <Text style={styles.menuIcon}>🔒</Text>
+          <Text style={styles.menuLabel}>Privacy Policy</Text>
           <Text style={styles.menuChevron}>›</Text>
         </TouchableOpacity>
       </View>

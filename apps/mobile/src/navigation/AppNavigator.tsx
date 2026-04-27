@@ -11,6 +11,8 @@ import DropActive from '../screens/DropActive';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
 import HistoryScreen from '../screens/HistoryScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import TermsScreen from '../screens/TermsScreen';
+import PrivacyScreen from '../screens/PrivacyScreen';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,11 +21,17 @@ export type HomeStackParamList = {
   DropActive: { dropId?: string };
 };
 
+export type ProfileStackParamList = {
+  ProfileHome: undefined;
+  Terms: undefined;
+  Privacy: undefined;
+};
+
 export type RootTabParamList = {
   Home: NavigatorScreenParams<HomeStackParamList>;
   Leaderboard: undefined;
   History: undefined;
-  Profile: undefined;
+  Profile: NavigatorScreenParams<ProfileStackParamList>;
 };
 
 // ─── Brand colour ─────────────────────────────────────────────────────────────
@@ -64,6 +72,26 @@ function HomeStackNavigator() {
         }}
       />
     </HomeStack.Navigator>
+  );
+}
+
+// ─── Profile stack (Profile + Terms + Privacy) ───────────────────────────────
+
+const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
+
+function ProfileStackNavigator() {
+  return (
+    <ProfileStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: TAB_BG },
+        headerTintColor: '#f1f5f9',
+        headerTitleStyle: { fontWeight: '800' },
+      }}
+    >
+      <ProfileStack.Screen name='ProfileHome' component={ProfileScreen} options={{ title: 'Profile' }} />
+      <ProfileStack.Screen name='Terms' component={TermsScreen} options={{ title: 'Terms of Service' }} />
+      <ProfileStack.Screen name='Privacy' component={PrivacyScreen} options={{ title: 'Privacy Policy' }} />
+    </ProfileStack.Navigator>
   );
 }
 
@@ -119,7 +147,7 @@ export function AppNavigator() {
       />
       <Tab.Screen
         name='Profile'
-        component={ProfileScreen}
+        component={ProfileStackNavigator}
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon='👤' focused={focused} />,

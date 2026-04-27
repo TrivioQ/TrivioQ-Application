@@ -24,6 +24,7 @@ export default function DropActive() {
   // Reveal answer state
   const [revealedCorrectIndex, setRevealedCorrectIndex] = useState<number | null>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onDemandMutation = useMutation({
     mutationFn: async () => {
       const response = await apiClient.post('/api/v1/drops/on-demand');
@@ -277,9 +278,11 @@ export default function DropActive() {
                 <Text style={styles.shareButtonText}>Share to Social</Text>
               </TouchableOpacity>
 
+              {/* Request Next Question — hidden until feature is enabled
               <TouchableOpacity style={styles.nextQuestionButton} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending}>
                 <Text style={styles.nextQuestionButtonText}>{onDemandMutation.isPending ? 'Requesting...' : 'Request Next Question'}</Text>
               </TouchableOpacity>
+              */}
             </View>
           )}
         </View>

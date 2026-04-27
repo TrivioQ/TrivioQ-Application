@@ -1,0 +1,321 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { makeAPICallV1, APIError } from '../../lib/api';
+
+interface ActiveDrop {
+  dropId: string;
+  questionId: string;
+  category: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  questionText: string;
+  options: string[];
+  expiresAt: number;
+  pointsValue: number;
+  hintCost: number;
+  usedHint: boolean;
+  revealedAnswer: boolean;
+}
+
+interface SubmitResult {
+  isCorrect: boolean;
+  correctOptionIndex: number;
+  pointsAwarded: number;
+  revealedAnswer: boolean;
+  explanation?: string;
+  newStreak: number;
+  newTotalScore: number;
+}
+
+const DIFF_COLOR: Record<string, string> = {
+  easy: 'text-green-400 bg-green-400/10 border-green-400/20',
+  medium: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20',
+  hard: 'text-red-400 bg-red-400/10 border-red-400/20',
+};
+
+function formatTime(seconds: number) {
+  const m = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+export default function ActiveDropCard() {
+  const [drop, setDrop] = useState<ActiveDrop | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [revealed, setRevealed] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
+
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [hintText, setHintText] = useState<string | null>(null);
+  const [hintCostDeducted, setHintCostDeducted] = useState<number | null>(null);
+  const [hintLoading, setHintLoading] = useState(false);
+
+  const [revealedCorrectIndex, setRevealedCorrectIndex] = useState<number | null>(null);
+  const [revealLoading, setRevealLoading] = useState(false);
+
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchActiveDrop = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await makeAPICallV1<ActiveDrop>('drops/active');
+      setDrop(data);
+      if (data.usedHint) setHintText('(Hint already used)');
+    } catch (err) {
+      if (err instanceof APIError && err.status === 404) {
+        setDrop(null);
+      } else {
+        setError('Failed to load active drop.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchActiveDrop();
+  }, [fetchActiveDrop]);
+
+  useEffect(() => {
+    if (!drop?.expiresAt || submitResult) return;
+
+    const tick = () => {
+      const diff = Math.max(0, Math.floor((drop.expiresAt - Date.now()) / 1000));
+      setTimeLeft(diff);
+      if (diff === 0) setIsExpired(true);
+    };
+
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [drop?.expiresAt, submitResult]);
+
+  const handleSubmit = async (optionIndex: number) => {
+    if (!drop || isExpired || submitting || submitResult) return;
+    setSelectedOption(optionIndex);
+    setSubmitting(true);
+    try {
+      const result = await makeAPICallV1<SubmitResult>(`drops/${drop.dropId}/submit`, {
+        method: 'POST',
+        body: { selectedOptionIndex: optionIndex },
+      });
+      setSubmitResult(result);
+    } catch {
+      setError('Failed to submit answer.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleHint = async () => {
+    if (!drop || hintText || hintLoading || isExpired || drop.usedHint) return;
+    if (!window.confirm(`Getting a hint costs ${drop.hintCost} points (30% of this question's value). Continue?`)) return;
+    setHintLoading(true);
+    try {
+      const result = await makeAPICallV1<{ hintText: string; hintCost: number }>(`drops/${drop.dropId}/hint`, { method: 'POST' });
+      setHintText(result.hintText);
+      setHintCostDeducted(result.hintCost);
+    } catch (err) {
+      const msg = err instanceof APIError ? err.message : 'Failed to get hint.';
+      setError(msg);
+    } finally {
+      setHintLoading(false);
+    }
+  };
+
+  const handleReveal = async () => {
+    if (!drop || revealedCorrectIndex !== null || revealLoading || submitResult) return;
+    if (!window.confirm('Revealing the answer awards 0 points. This cannot be undone.')) return;
+    setRevealLoading(true);
+    try {
+      const result = await makeAPICallV1<{ correctOptionIndex: number }>(`drops/${drop.dropId}/reveal-answer`, { method: 'POST' });
+      setRevealedCorrectIndex(result.correctOptionIndex);
+    } catch (err) {
+      const msg = err instanceof APIError ? err.message : 'Failed to reveal answer.';
+      setError(msg);
+    } finally {
+      setRevealLoading(false);
+    }
+  };
+
+  const resetState = () => {
+    setRevealed(false);
+    setTimeLeft(null);
+    setIsExpired(false);
+    setSelectedOption(null);
+    setSubmitResult(null);
+    setHintText(null);
+    setHintCostDeducted(null);
+    setRevealedCorrectIndex(null);
+    setError(null);
+  };
+
+  if (loading) {
+    return (
+      <div className='rounded-2xl bg-white/5 border border-white/8 p-6 animate-pulse'>
+        <div className='h-4 w-32 bg-white/10 rounded mb-3' />
+        <div className='h-3 w-48 bg-white/5 rounded' />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='rounded-2xl bg-red-500/10 border border-red-500/20 p-6 flex items-center justify-between'>
+        <p className='text-sm text-red-400'>{error}</p>
+        <button onClick={fetchActiveDrop} className='text-xs text-red-300 hover:text-red-200 underline'>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!drop) {
+    return (
+      <div className='rounded-2xl bg-white/5 border border-white/8 overflow-hidden'>
+        <div className='px-6 py-4 border-b border-white/8 flex items-center justify-between'>
+          <div>
+            <p className='text-sm font-semibold text-gray-400 flex items-center gap-2'>
+              <span className='inline-flex h-2 w-2 rounded-full bg-gray-600' />
+              Active Drop
+            </p>
+            <p className='text-xs text-gray-600 mt-0.5'>No question active right now</p>
+          </div>
+          <p className='text-lg font-mono font-bold text-gray-600'>--:--</p>
+        </div>
+        <div className='px-6 py-8 flex flex-col items-center gap-3 text-center'>
+          <span className='text-4xl'>⏳</span>
+          <p className='text-sm font-semibold text-gray-300'>No active question at the moment</p>
+          <p className='text-xs text-gray-500 max-w-xs leading-relaxed'>There is no trivia question waiting for you right now. Questions are dropped automatically on your schedule — check back soon or use the mobile app to request one instantly.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isAnswerKnown = revealedCorrectIndex !== null;
+  const timerUrgent = timeLeft !== null && timeLeft <= 60;
+
+  return (
+    <div className='rounded-2xl bg-white/5 border border-white/8 overflow-hidden'>
+      {/* Header */}
+      <div className='px-6 py-4 border-b border-white/8 flex items-center justify-between'>
+        <div>
+          <p className='text-sm font-semibold text-gray-200 flex items-center gap-2'>
+            <span className='relative flex h-2 w-2'>
+              <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75' />
+              <span className='relative inline-flex rounded-full h-2 w-2 bg-indigo-500' />
+            </span>
+            Active Drop
+          </p>
+          <p className='text-xs text-gray-500 mt-0.5'>Answer before the timer runs out</p>
+        </div>
+
+        {/* Timer */}
+        <div className='text-right'>
+          {submitResult ? <p className='text-lg font-mono font-bold text-gray-500'>--:--</p> : <p className={`text-lg font-mono font-bold tabular-nums ${isExpired ? 'text-red-400' : timerUrgent ? 'text-orange-400' : 'text-indigo-300'}`}>{timeLeft !== null ? formatTime(timeLeft) : '--:--'}</p>}
+          {isExpired && !submitResult && <p className='text-[10px] font-bold text-red-400 uppercase tracking-widest'>Expired</p>}
+        </div>
+      </div>
+
+      <div className='px-6 py-5 space-y-4'>
+        {/* Difficulty + category badges */}
+        <div className='flex flex-wrap gap-2'>
+          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${DIFF_COLOR[drop.difficulty]}`}>{drop.difficulty}</span>
+          <span className='inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] text-gray-400'>{drop.category}</span>
+          <span className='inline-flex items-center rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-0.5 text-[11px] text-indigo-300'>{drop.pointsValue} pts</span>
+        </div>
+
+        {/* Mystery → Reveal */}
+        {!revealed ? (
+          <div className='text-center py-4'>
+            <p className='text-4xl mb-3'>🎁</p>
+            <p className='text-sm text-gray-400 mb-4'>A new question is waiting for you.</p>
+            <button onClick={() => setRevealed(true)} disabled={isExpired} className='rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors'>
+              Reveal Question
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Question text */}
+            <p className='text-base font-semibold text-white leading-snug'>{drop.questionText}</p>
+
+            {/* Hint / Reveal Answer row */}
+            {!submitResult && !isAnswerKnown && (
+              <div className='flex gap-2'>
+                {hintText ? (
+                  <div className='flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2'>
+                    <p className='text-[11px] font-bold text-yellow-400 mb-0.5'>💡 Hint {hintCostDeducted != null ? `(−${hintCostDeducted} pts)` : ''}</p>
+                    <p className='text-xs text-yellow-200'>{hintText}</p>
+                  </div>
+                ) : (
+                  <button onClick={handleHint} disabled={hintLoading || isExpired || drop.usedHint} className='flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-yellow-400 transition-colors'>
+                    {drop.usedHint ? 'Hint Used' : hintLoading ? 'Loading…' : `💡 Hint (−${drop.hintCost} pts)`}
+                  </button>
+                )}
+                <button onClick={handleReveal} disabled={revealLoading || isExpired || drop.revealedAnswer || isAnswerKnown} className='flex-1 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-purple-400 transition-colors'>
+                  {drop.revealedAnswer || isAnswerKnown ? 'Answer Revealed' : revealLoading ? 'Loading…' : '👁 Show Answer (0 pts)'}
+                </button>
+              </div>
+            )}
+
+            {isAnswerKnown && !submitResult && <div className='rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300 text-center'>Answer revealed — select the highlighted option to close this drop (0 points)</div>}
+
+            {/* Answer options */}
+            <div className='space-y-2'>
+              {drop.options.map((option, index) => {
+                let cls = 'w-full text-left rounded-xl border px-4 py-3 text-sm font-medium transition-colors ';
+                if (submitResult) {
+                  if (index === submitResult.correctOptionIndex) cls += 'border-green-500/50 bg-green-500/20 text-green-300';
+                  else if (index === selectedOption) cls += 'border-red-500/50 bg-red-500/20 text-red-300';
+                  else cls += 'border-white/5 bg-white/5 text-gray-500 cursor-default';
+                } else if (isAnswerKnown) {
+                  cls += index === revealedCorrectIndex ? 'border-green-500/50 bg-green-500/20 text-green-300 cursor-default' : 'border-white/5 bg-white/5 text-gray-500 cursor-default';
+                } else if (isExpired || submitting) {
+                  cls += 'border-white/5 bg-white/5 text-gray-500 cursor-default';
+                } else {
+                  cls += 'border-white/10 bg-white/5 hover:bg-indigo-500/20 hover:border-indigo-500/40 text-gray-200 cursor-pointer';
+                }
+
+                return (
+                  <button key={index} className={cls} disabled={isExpired || submitting || submitResult !== null} onClick={() => handleSubmit(index)}>
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+
+            {submitting && <p className='text-xs text-center text-gray-500 animate-pulse'>Submitting…</p>}
+
+            {/* Result card */}
+            {submitResult && (
+              <div className='rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-center space-y-1'>
+                <p className='text-lg font-bold text-white'>{submitResult.revealedAnswer ? 'Answer was revealed' : submitResult.isCorrect ? 'Correct! 🎉' : 'Incorrect ❌'}</p>
+                <p className={`text-sm font-semibold ${submitResult.pointsAwarded > 0 ? 'text-indigo-400' : 'text-gray-500'}`}>{submitResult.pointsAwarded > 0 ? `+${submitResult.pointsAwarded} pts` : '0 pts'}</p>
+                {submitResult.explanation && <p className='text-xs text-gray-400 italic mt-1'>{submitResult.explanation}</p>}
+                <p className='text-xs text-gray-500 mt-2'>
+                  Streak: {submitResult.newStreak} 🔥 · Total: {submitResult.newTotalScore.toLocaleString()} pts
+                </p>
+                <button
+                  onClick={() => {
+                    resetState();
+                    fetchActiveDrop();
+                  }}
+                  className='mt-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 px-4 py-1.5 text-xs text-indigo-300 font-medium transition-colors'
+                >
+                  Check for Next Drop
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

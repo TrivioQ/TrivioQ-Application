@@ -15,6 +15,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const { isPending, registerWithEmailSync, signInWithGoogleSync } = useAuthSync();
 
@@ -92,8 +93,24 @@ export default function SignupPage() {
             </div>
           </div>
 
+          {/* Terms & Privacy agreement */}
+          <div className='flex items-start gap-3'>
+            <input id='terms' type='checkbox' checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} disabled={isPending} className='mt-0.5 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900 cursor-pointer' />
+            <label htmlFor='terms' className='text-sm text-gray-400 leading-snug cursor-pointer select-none'>
+              I have read and agree to the{' '}
+              <Link href='/terms' target='_blank' className='text-indigo-400 hover:text-indigo-300 underline underline-offset-2'>
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link href='/privacy' target='_blank' className='text-indigo-400 hover:text-indigo-300 underline underline-offset-2'>
+                Privacy Policy
+              </Link>
+              . I confirm that I am at least 13 years of age.
+            </label>
+          </div>
+
           <div>
-            <button type='submit' disabled={isPending} className='group relative flex w-full justify-center rounded-md bg-indigo-500 px-3 py-3 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50 transition-colors'>
+            <button type='submit' disabled={isPending || !agreedToTerms} className='group relative flex w-full justify-center rounded-md bg-indigo-500 px-3 py-3 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'>
               {isPending ? 'Creating account...' : 'Sign up'}
             </button>
           </div>
@@ -110,7 +127,7 @@ export default function SignupPage() {
           </div>
 
           <div className='mt-6'>
-            <button onClick={handleGoogleSignup} disabled={isPending} className='flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-3 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent disabled:opacity-50 transition-colors'>
+            <button onClick={handleGoogleSignup} disabled={isPending || !agreedToTerms} className='flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-3 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors'>
               <svg className='h-5 w-5' viewBox='0 0 24 24' aria-hidden='true'>
                 <path d='M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z' fill='#EA4335' />
                 <path d='M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L19.945 21.1C22.2 19.01 23.49 15.92 23.49 12.275Z' fill='#4285F4' />
@@ -120,6 +137,7 @@ export default function SignupPage() {
               <span className='text-sm font-semibold leading-6'>Google</span>
             </button>
           </div>
+          {!agreedToTerms && <p className='mt-3 text-center text-xs text-gray-600'>Please agree to the Terms of Service and Privacy Policy above to continue.</p>}
         </div>
       </div>
     </div>
