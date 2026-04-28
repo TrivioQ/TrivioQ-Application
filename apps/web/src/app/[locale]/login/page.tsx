@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useAuth } from '@/context/auth-provider';
 
 export default function LoginPage() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const t = useTranslations('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -45,11 +47,11 @@ export default function LoginPage() {
           <Link href='/' className='text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400'>
             TrivioQ
           </Link>
-          <h2 className='mt-6 text-3xl font-bold tracking-tight text-white'>Sign in to your account</h2>
+          <h2 className='mt-6 text-3xl font-bold tracking-tight text-white'>{t('signInTitle')}</h2>
           <p className='mt-2 text-sm text-gray-400'>
-            Or{' '}
+            {t('signInSubtitle')}{' '}
             <Link href='/signup' className='font-medium text-indigo-400 hover:text-indigo-300 transition-colors'>
-              create a new account
+              {t('signInSubtitleLink')}
             </Link>
           </p>
         </div>
@@ -58,20 +60,20 @@ export default function LoginPage() {
           <div className='space-y-4 rounded-md shadow-sm'>
             <div>
               <label className='sr-only' htmlFor='email'>
-                Email address
+                {t('emailLabel')}
               </label>
-              <input id='email' type='email' required className='relative block w-full rounded-t-md border-0 bg-gray-800 py-3 px-4 text-white ring-1 ring-inset ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6' placeholder='Email address' value={email} onChange={(e) => setEmail(e.target.value)} disabled={isPending} />
+              <input id='email' type='email' required className='relative block w-full rounded-t-md border-0 bg-gray-800 py-3 px-4 text-white ring-1 ring-inset ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6' placeholder={t('emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} disabled={isPending} />
             </div>
             <div>
               <label className='sr-only' htmlFor='password'>
-                Password
+                {t('passwordLabel')}
               </label>
               <input
                 id='password'
                 type='password'
                 required
                 className='relative block w-full rounded-b-md border-0 bg-gray-800 py-3 px-4 text-white ring-1 ring-inset ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6'
-                placeholder='Password'
+                placeholder={t('passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isPending}
@@ -81,7 +83,7 @@ export default function LoginPage() {
 
           <div>
             <button type='submit' disabled={isPending} className='group relative flex w-full justify-center rounded-md bg-indigo-500 px-3 py-3 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50 transition-colors'>
-              {isPending ? 'Authenticating...' : 'Sign in'}
+              {isPending ? t('authenticating') : t('signInButton')}
             </button>
           </div>
         </form>
@@ -92,7 +94,7 @@ export default function LoginPage() {
               <div className='w-full border-t border-gray-700' />
             </div>
             <div className='relative flex justify-center text-sm font-medium leading-6'>
-              <span className='bg-gray-900 px-6 text-gray-400'>Or continue with</span>
+              <span className='bg-gray-900 px-6 text-gray-400'>{t('orContinueWith')}</span>
             </div>
           </div>
 

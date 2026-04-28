@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useNotification } from '@/context/notification-context';
 import { makeAPICallV1 } from '@/lib/api';
 import { useAuth } from '@/context/auth-provider';
@@ -17,6 +18,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
   const router = useRouter();
   const { user } = useAuth();
   const { success: notifySuccess, error: notifyError, info: notifyInfo } = useNotification();
+  const t = useTranslations('settings');
   const [isPending, setIsPending] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -122,48 +124,48 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
       {/* ── Display Name (Identity) ── */}
       <section className='bg-gray-900/50 rounded-2xl border border-white/5 p-6 space-y-6'>
         <div>
-          <h3 className='text-lg font-bold text-white'>Display Name</h3>
-          <p className='text-sm text-gray-400'>This is how other players will see you on the leaderboard.</p>
+          <h3 className='text-lg font-bold text-white'>{t('displayNameTitle')}</h3>
+          <p className='text-sm text-gray-400'>{t('displayNameDesc')}</p>
         </div>
 
         <div className='space-y-2'>
-          <label className='text-xs font-bold uppercase tracking-wider text-gray-500'>Name</label>
-          <input type='text' value={displayName} onChange={(e) => setDisplayName(e.target.value)} className='w-full bg-gray-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500' placeholder='Enter your display name' />
+          <label className='text-xs font-bold uppercase tracking-wider text-gray-500'>{t('nameLabel')}</label>
+          <input type='text' value={displayName} onChange={(e) => setDisplayName(e.target.value)} className='w-full bg-gray-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500' placeholder={t('displayNamePlaceholder')} />
         </div>
 
         <button onClick={handleUpdatePreferences} disabled={isPending} className='bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50'>
-          {isPending ? 'Saving...' : 'Update Name'}
+          {isPending ? t('saving') : t('updateName')}
         </button>
       </section>
 
       {/* ── Active Time (Most Used) ── */}
       <section className='bg-gray-900/50 rounded-2xl border border-white/5 p-6 space-y-6'>
         <div>
-          <h3 className='text-lg font-bold text-white'>Active Time</h3>
-          <p className='text-sm text-gray-400'>Questions will only be dropped during this window in your local time.</p>
+          <h3 className='text-lg font-bold text-white'>{t('activeTimeTitle')}</h3>
+          <p className='text-sm text-gray-400'>{t('activeTimeDesc')}</p>
         </div>
 
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <div className='space-y-2'>
-            <label className='text-xs font-bold uppercase tracking-wider text-gray-500'>Start Time</label>
+            <label className='text-xs font-bold uppercase tracking-wider text-gray-500'>{t('startTimeLabel')}</label>
             <input type='time' value={activeStart} onChange={(e) => setActiveStart(e.target.value)} className='w-full bg-gray-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500' />
           </div>
           <div className='space-y-2'>
-            <label className='text-xs font-bold uppercase tracking-wider text-gray-500'>End Time</label>
+            <label className='text-xs font-bold uppercase tracking-wider text-gray-500'>{t('endTimeLabel')}</label>
             <input type='time' value={activeEnd} onChange={(e) => setActiveEnd(e.target.value)} className='w-full bg-gray-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500' />
           </div>
         </div>
 
         <button onClick={handleUpdatePreferences} disabled={isPending} className='bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50'>
-          {isPending ? 'Saving...' : 'Save Time Settings'}
+          {isPending ? t('saving') : t('saveTimeSettings')}
         </button>
       </section>
 
       {/* ── Difficulty Preferences ── */}
       <section className='bg-gray-900/50 rounded-2xl border border-white/5 p-6 space-y-6'>
         <div>
-          <h3 className='text-lg font-bold text-white'>Question Difficulty</h3>
-          <p className='text-sm text-gray-400'>Specify the percentage of questions you want for each difficulty level. Must add up to 100%.</p>
+          <h3 className='text-lg font-bold text-white'>{t('difficultyTitle')}</h3>
+          <p className='text-sm text-gray-400'>{t('difficultyDesc')}</p>
         </div>
 
         <div className='space-y-4'>
@@ -175,9 +177,9 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
             </div>
           ))}
           <div className='pt-2 flex justify-between items-center'>
-            <p className={`text-xs font-bold ${Math.abs(Object.values(difficulty).reduce((a, b) => a + b, 0) - 100) < 0.1 ? 'text-green-400' : 'text-red-400'}`}>Total: {Object.values(difficulty).reduce((a, b) => a + b, 0)}%</p>
+            <p className={`text-xs font-bold ${Math.abs(Object.values(difficulty).reduce((a, b) => a + b, 0) - 100) < 0.1 ? 'text-green-400' : 'text-red-400'}`}>{t('total', { pct: Object.values(difficulty).reduce((a, b) => a + b, 0) })}</p>
             <button onClick={handleUpdatePreferences} disabled={isPending} className='bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50'>
-              Save Difficulty
+              {t('saveDifficulty')}
             </button>
           </div>
         </div>
@@ -187,25 +189,25 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
       {isEmailUser && (
         <section className='bg-gray-900/50 rounded-2xl border border-white/5 p-6 space-y-6'>
           <div>
-            <h3 className='text-lg font-bold text-white'>Change Password</h3>
-            <p className='text-sm text-gray-400'>Update your account security.</p>
+            <h3 className='text-lg font-bold text-white'>{t('changePasswordTitle')}</h3>
+            <p className='text-sm text-gray-400'>{t('changePasswordDesc')}</p>
           </div>
 
           <form onSubmit={handleChangePassword} className='space-y-4 max-w-sm'>
             <div className='space-y-2'>
-              <label className='text-xs font-bold text-gray-500'>Current Password</label>
+              <label className='text-xs font-bold text-gray-500'>{t('currentPasswordLabel')}</label>
               <input type='password' required value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className='w-full bg-gray-800 border border-white/10 rounded-xl px-4 py-2 text-white focus:ring-indigo-500' />
             </div>
             <div className='space-y-2'>
-              <label className='text-xs font-bold text-gray-500'>New Password</label>
+              <label className='text-xs font-bold text-gray-500'>{t('newPasswordLabel')}</label>
               <input type='password' required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className='w-full bg-gray-800 border border-white/10 rounded-xl px-4 py-2 text-white focus:ring-indigo-500' />
             </div>
             <div className='space-y-2'>
-              <label className='text-xs font-bold text-gray-500'>Confirm New Password</label>
+              <label className='text-xs font-bold text-gray-500'>{t('confirmPasswordLabel')}</label>
               <input type='password' required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className='w-full bg-gray-800 border border-white/10 rounded-xl px-4 py-2 text-white focus:ring-indigo-500' />
             </div>
             <button type='submit' disabled={isPending} className='bg-gray-800 hover:bg-gray-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50'>
-              Update Password
+              {t('updatePassword')}
             </button>
           </form>
         </section>
@@ -214,16 +216,16 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
       {/* ── Danger Zone ── */}
       <section className='bg-red-500/5 rounded-2xl border border-red-500/10 p-6 space-y-6'>
         <div>
-          <h3 className='text-lg font-bold text-red-400'>Danger Zone</h3>
-          <p className='text-sm text-gray-500 text-red-400/60'>Once you delete your account, there is no going back. Please be certain.</p>
+          <h3 className='text-lg font-bold text-red-400'>{t('dangerZoneTitle')}</h3>
+          <p className='text-sm text-gray-500 text-red-400/60'>{t('dangerZoneDesc')}</p>
         </div>
 
         <button onClick={() => setShowDeleteConfirm(true)} disabled={isPending} className='bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-6 py-2.5 rounded-xl text-sm font-bold transition-all'>
-          Delete My Account
+          {t('deleteAccount')}
         </button>
       </section>
 
-      <ConfirmModal isOpen={showDeleteConfirm} title='Delete Account?' message='Are you absolutely sure? This will permanently delete your account, score history, and streak. This action cannot be undone.' confirmLabel='Delete Permanently' cancelLabel='Keep Account' onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteConfirm(false)} isDestructive />
+      <ConfirmModal isOpen={showDeleteConfirm} title={t('deleteModalTitle')} message={t('deleteModalMessage')} confirmLabel={t('deleteConfirmLabel')} cancelLabel={t('deleteCancelLabel')} onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteConfirm(false)} isDestructive />
     </div>
   );
 }

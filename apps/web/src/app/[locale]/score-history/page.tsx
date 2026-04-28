@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { makeServerAPICallV1 } from '@/lib/api-server';
 import { ScoreHistoryTabs } from '@/components/score-history-tabs';
 import { cookies } from 'next/headers';
@@ -20,6 +21,7 @@ interface ScorePeriod {
 }
 
 export default async function ScoreHistoryPage() {
+  const t = await getTranslations('scoreHistory');
   // Verify session cookie exists before attempting fetch
   const hasCookie = !!cookies().get('tq_auth');
 
@@ -44,23 +46,23 @@ export default async function ScoreHistoryPage() {
         {/* ── Header ── */}
         <div className='space-y-4'>
           <Link href='/dashboard' className='group inline-flex items-center gap-2 text-sm font-semibold text-indigo-400 hover:text-indigo-300 transition-colors'>
-            <span className='group-hover:-translate-x-1 transition-transform'>←</span> Dashboard
+            <span className='group-hover:-translate-x-1 transition-transform'>←</span> {t('backToDashboard')}
           </Link>
           <div>
-            <h1 className='text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400'>Score History</h1>
-            <p className='mt-3 text-gray-400 text-lg'>Your weekly and monthly trivia performance for the past 12 months.</p>
+            <h1 className='text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400'>{t('title')}</h1>
+            <p className='mt-3 text-gray-400 text-lg'>{t('subtitle')}</p>
           </div>
         </div>
 
         {/* ── Scoring Guide ── */}
         <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
           {[
-            { label: 'Easy', pts: '10 pts', color: 'from-green-500/10 to-green-500/5 border-green-500/20 text-green-400' },
-            { label: 'Medium', pts: '20 pts', color: 'from-yellow-500/10 to-yellow-500/5 border-yellow-500/20 text-yellow-400' },
-            { label: 'Hard', pts: '30 pts', color: 'from-red-500/10 to-red-500/5 border-red-500/20 text-red-400' },
+            { label: t('easyLabel'), pts: t('easyPts'), color: 'from-green-500/10 to-green-500/5 border-green-500/20 text-green-400' },
+            { label: t('mediumLabel'), pts: t('mediumPts'), color: 'from-yellow-500/10 to-yellow-500/5 border-yellow-500/20 text-yellow-400' },
+            { label: t('hardLabel'), pts: t('hardPts'), color: 'from-red-500/10 to-red-500/5 border-red-500/20 text-red-400' },
           ].map((d) => (
             <div key={d.label} className={`rounded-2xl bg-gradient-to-br ${d.color} border p-5 text-center`}>
-              <p className='text-xs uppercase tracking-widest font-bold text-gray-400 mb-1'>Difficulty</p>
+              <p className='text-xs uppercase tracking-widest font-bold text-gray-400 mb-1'>{t('difficultyLabel')}</p>
               <p className={`text-xl font-extrabold ${d.color.split(' ')[4]}`}>{d.label}</p>
               <p className='text-3xl font-black text-white mt-1'>{d.pts}</p>
             </div>
@@ -69,21 +71,17 @@ export default async function ScoreHistoryPage() {
 
         {/* ── Bonus info callout ── */}
         <div className='rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-6 space-y-3'>
-          <h2 className='font-bold text-indigo-300 text-lg'>🏆 Bonus Points</h2>
+          <h2 className='font-bold text-indigo-300 text-lg'>{t('bonusPointsTitle')}</h2>
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-400'>
             <div>
-              <p className='font-semibold text-white mb-1'>Weekly Top 10</p>
-              <p>
-                Rank 1: <span className='text-indigo-300 font-bold'>+2,500 pts</span> → Rank 10: <span className='text-indigo-300 font-bold'>+200 pts</span>
-              </p>
-              <p className='text-xs mt-1 text-gray-500'>Awarded every Monday at midnight.</p>
+              <p className='font-semibold text-white mb-1'>{t('weeklyTop10')}</p>
+              <p>{t('weeklyBonusDesc')}</p>
+              <p className='text-xs mt-1 text-gray-500'>{t('weeklyBonusNote')}</p>
             </div>
             <div>
-              <p className='font-semibold text-white mb-1'>Monthly Top 10</p>
-              <p>
-                Rank 1: <span className='text-indigo-300 font-bold'>+10,000 pts</span> → Rank 10: <span className='text-indigo-300 font-bold'>+500 pts</span>
-              </p>
-              <p className='text-xs mt-1 text-gray-500'>Awarded on the 1st of every month.</p>
+              <p className='font-semibold text-white mb-1'>{t('monthlyTop10')}</p>
+              <p>{t('monthlyBonusDesc')}</p>
+              <p className='text-xs mt-1 text-gray-500'>{t('monthlyBonusNote')}</p>
             </div>
           </div>
         </div>
@@ -93,17 +91,17 @@ export default async function ScoreHistoryPage() {
           <div className='py-20 text-center text-gray-500'>
             <span className='text-5xl block mb-4'>🔒</span>
             <p>
-              Please{' '}
+              {t('signInPrompt')}{' '}
               <Link href='/login' className='text-indigo-400 hover:text-indigo-300'>
-                sign in
+                {t('signInLink')}
               </Link>{' '}
-              to view your score history.
+              {t('signInSuffix')}
             </p>
           </div>
         ) : fetchFailed ? (
           <div className='py-20 text-center text-red-400'>
             <span className='text-5xl block mb-4'>⚠️</span>
-            <p>Could not load your score history. Please try again later.</p>
+            <p>{t('fetchError')}</p>
           </div>
         ) : (
           <ScoreHistoryTabs weekly={weekly} monthly={monthly} />

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface ScorePeriod {
   id: string;
@@ -40,12 +41,12 @@ function RankBadge({ rank }: { rank: number | null }) {
   return <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${cls}`}>{rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`}</span>;
 }
 
-function HistoryTable({ data }: { data: ScorePeriod[] }) {
+function HistoryTable({ data, t }: { data: ScorePeriod[]; t: ReturnType<typeof useTranslations<'scoreHistory'>> }) {
   if (data.length === 0) {
     return (
       <div className='py-20 text-center text-gray-500'>
         <span className='text-5xl block mb-4'>📭</span>
-        <p>No data yet. Answer some drops to build your history!</p>
+        <p>{t('noDataYet')}</p>
       </div>
     );
   }
@@ -55,11 +56,11 @@ function HistoryTable({ data }: { data: ScorePeriod[] }) {
       <table className='w-full text-left'>
         <thead className='bg-white/5 text-xs uppercase tracking-widest text-gray-400'>
           <tr>
-            <th className='px-6 py-4'>Period</th>
-            <th className='px-6 py-4 text-right'>Trivia Score</th>
-            <th className='px-6 py-4 text-right'>Bonus</th>
-            <th className='px-6 py-4 text-right'>Total</th>
-            <th className='px-6 py-4 text-right'>Rank</th>
+            <th className='px-6 py-4'>{t('periodHeader')}</th>
+            <th className='px-6 py-4 text-right'>{t('triviaScoreHeader')}</th>
+            <th className='px-6 py-4 text-right'>{t('bonusHeader')}</th>
+            <th className='px-6 py-4 text-right'>{t('totalHeader')}</th>
+            <th className='px-6 py-4 text-right'>{t('rankHeader')}</th>
           </tr>
         </thead>
         <tbody className='divide-y divide-white/5'>
@@ -83,6 +84,7 @@ function HistoryTable({ data }: { data: ScorePeriod[] }) {
 }
 
 export function ScoreHistoryTabs({ weekly, monthly }: ScoreHistoryTabsProps) {
+  const t = useTranslations('scoreHistory');
   const [activeTab, setActiveTab] = useState<'weekly' | 'monthly'>('weekly');
 
   return (
@@ -90,14 +92,14 @@ export function ScoreHistoryTabs({ weekly, monthly }: ScoreHistoryTabsProps) {
       <div className='flex justify-center p-1 bg-gray-900/50 rounded-xl border border-white/5 backdrop-blur-sm w-fit mx-auto'>
         {(['weekly', 'monthly'] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)} className={`px-8 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === tab ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-            {tab === 'weekly' ? 'Weekly' : 'Monthly'}
+            {tab === 'weekly' ? t('weekly') : t('monthly')}
           </button>
         ))}
       </div>
 
-      <HistoryTable data={activeTab === 'weekly' ? weekly : monthly} />
+      <HistoryTable data={activeTab === 'weekly' ? weekly : monthly} t={t} />
 
-      <p className='text-center text-gray-600 text-xs'>Showing up to 12 months of history. Bonus points are awarded at the end of each period.</p>
+      <p className='text-center text-gray-600 text-xs'>{t('historyNote')}</p>
     </div>
   );
 }

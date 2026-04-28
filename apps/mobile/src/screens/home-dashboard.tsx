@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, Button, StyleSheet, ActivityIndicator, TouchableOpacity, Modal } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
@@ -56,7 +56,7 @@ function ActiveDropBanner({ drop, navigation }: { drop: QuestionDropPayload; nav
         </View>
         <View style={styles.bannerRight}>
           <Text style={[styles.timerText, isExpired ? styles.timerExpired : timeLeft <= 60 ? styles.timerUrgent : styles.timerNormal]}>{formatTime(timeLeft)}</Text>
-          {!isExpired && <Text style={styles.tapToAnswer}>Tap to answer →</Text>}
+          {!isExpired && <Text style={styles.tapToAnswer}>{t('home.tapToAnswer')}</Text>}
         </View>
       </View>
     </TouchableOpacity>
@@ -123,15 +123,15 @@ export default function HomeDashboard({ navigation }: any) {
       {dropLoading ? (
         <View style={styles.bannerSkeleton}>
           <ActivityIndicator size='small' color='#4c669f' />
-          <Text style={styles.skeletonLabel}>Checking for active drop…</Text>
+          <Text style={styles.skeletonLabel}>{t('home.checkingDrop')}</Text>
         </View>
       ) : activeDrop ? (
         <ActiveDropBanner drop={activeDrop} navigation={navigation} />
       ) : (
         <View style={styles.noDropBanner}>
           <Text style={styles.noDropIcon}>⏳</Text>
-          <Text style={styles.noDropText}>No active question or drop</Text>
-          <Text style={styles.noDropSub}>There is currently no active question for you. Questions are dropped automatically on your schedule — check back soon.</Text>
+          <Text style={styles.noDropText}>{t('home.noDropTitle')}</Text>
+          <Text style={styles.noDropSub}>{t('home.noDropSub')}</Text>
         </View>
       )}
 
@@ -140,8 +140,8 @@ export default function HomeDashboard({ navigation }: any) {
         <ActivityIndicator size='large' color='#0000ff' style={styles.loader} />
       ) : profileError ? (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Failed to load metrics</Text>
-          <Button title='Retry' onPress={() => refetchProfile()} />
+          <Text style={styles.errorText}>{t('home.failedMetrics')}</Text>
+          <Button title={t('common.retry')} onPress={() => refetchProfile()} />
         </View>
       ) : (
         <View style={styles.metricsContainer}>
@@ -165,8 +165,8 @@ export default function HomeDashboard({ navigation }: any) {
       <Modal visible={isPaywallVisible} animationType='slide' transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Upgrade to Premium</Text>
-            <Text style={styles.modalBody}>On-demand questions are a Premium feature. Upgrade to get up to 100 drops per day and request questions instantly, anytime.</Text>
+            <Text style={styles.modalTitle}>{t('home.paywallTitle')}</Text>
+            <Text style={styles.modalBody}>{t('home.paywallBody')}</Text>
             <TouchableOpacity
               style={styles.premiumButton}
               onPress={() => {
@@ -174,10 +174,10 @@ export default function HomeDashboard({ navigation }: any) {
                 navigation.navigate('Profile');
               }}
             >
-              <Text style={styles.premiumButtonText}>View Premium Plans</Text>
+              <Text style={styles.premiumButtonText}>{t('home.paywallCta')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setIsPaywallVisible(false)} style={{ marginTop: 12 }}>
-              <Text style={{ color: '#999', fontSize: 14 }}>Maybe later</Text>
+              <Text style={{ color: '#999', fontSize: 14 }}>{t('home.paywallDismiss')}</Text>
             </TouchableOpacity>
           </View>
         </View>

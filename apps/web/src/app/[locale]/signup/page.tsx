@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useAuth } from '@/context/auth-provider';
 
@@ -11,6 +12,7 @@ const inputClass = 'relative block w-full border-0 bg-gray-800 py-3 px-4 text-wh
 export default function SignupPage() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const t = useTranslations('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -49,11 +51,11 @@ export default function SignupPage() {
           <Link href='/' className='text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400'>
             TrivioQ
           </Link>
-          <h2 className='mt-6 text-3xl font-bold tracking-tight text-white'>Create your account</h2>
+          <h2 className='mt-6 text-3xl font-bold tracking-tight text-white'>{t('createTitle')}</h2>
           <p className='mt-2 text-sm text-gray-400'>
-            Already have an account?{' '}
+            {t('createSubtitle')}{' '}
             <Link href='/login' className='font-medium text-indigo-400 hover:text-indigo-300 transition-colors'>
-              Sign in
+              {t('createSubtitleLink')}
             </Link>
           </p>
         </div>
@@ -63,33 +65,33 @@ export default function SignupPage() {
             {/* Display Name */}
             <div>
               <label className='sr-only' htmlFor='displayName'>
-                Display name
+                {t('displayNameLabel')}
               </label>
-              <input id='displayName' type='text' required className={`${inputClass} rounded-t-md`} placeholder='Display name (e.g. John Doe)' value={displayName} onChange={(e) => setDisplayName(e.target.value)} disabled={isPending} />
+              <input id='displayName' type='text' required className={`${inputClass} rounded-t-md`} placeholder={t('displayNamePlaceholder')} value={displayName} onChange={(e) => setDisplayName(e.target.value)} disabled={isPending} />
             </div>
 
             {/* Username */}
             <div>
               <label className='sr-only' htmlFor='username'>
-                Username
+                {t('usernameLabel')}
               </label>
-              <input id='username' type='text' required minLength={3} maxLength={30} pattern='[a-zA-Z0-9_]+' title='Username may only contain letters, numbers, and underscores' className={inputClass} placeholder='Username (letters, numbers, underscores)' value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} disabled={isPending} />
+              <input id='username' type='text' required minLength={3} maxLength={30} pattern='[a-zA-Z0-9_]+' title={t('usernameTitle')} className={inputClass} placeholder={t('usernamePlaceholder')} value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} disabled={isPending} />
             </div>
 
             {/* Email */}
             <div>
               <label className='sr-only' htmlFor='email'>
-                Email address
+                {t('emailLabel')}
               </label>
-              <input id='email' type='email' required className={inputClass} placeholder='Email address' value={email} onChange={(e) => setEmail(e.target.value)} disabled={isPending} />
+              <input id='email' type='email' required className={inputClass} placeholder={t('emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} disabled={isPending} />
             </div>
 
             {/* Password */}
             <div>
               <label className='sr-only' htmlFor='password'>
-                Password
+                {t('passwordLabel')}
               </label>
-              <input id='password' type='password' required minLength={8} className={`${inputClass} rounded-b-md`} placeholder='Password (minimum 8 characters)' value={password} onChange={(e) => setPassword(e.target.value)} disabled={isPending} />
+              <input id='password' type='password' required minLength={8} className={`${inputClass} rounded-b-md`} placeholder={t('passwordMinLength')} value={password} onChange={(e) => setPassword(e.target.value)} disabled={isPending} />
             </div>
           </div>
 
@@ -97,21 +99,21 @@ export default function SignupPage() {
           <div className='flex items-start gap-3'>
             <input id='terms' type='checkbox' checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} disabled={isPending} className='mt-0.5 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900 cursor-pointer' />
             <label htmlFor='terms' className='text-sm text-gray-400 leading-snug cursor-pointer select-none'>
-              I have read and agree to the{' '}
+              {t('termsAgreement')}{' '}
               <Link href='/terms' target='_blank' className='text-indigo-400 hover:text-indigo-300 underline underline-offset-2'>
-                Terms of Service
+                {t('termsLink')}
               </Link>{' '}
-              and{' '}
+              {t('and')}{' '}
               <Link href='/privacy' target='_blank' className='text-indigo-400 hover:text-indigo-300 underline underline-offset-2'>
-                Privacy Policy
+                {t('privacyLink')}
               </Link>
-              . I confirm that I am at least 13 years of age.
+              {t('ageConfirmation')}
             </label>
           </div>
 
           <div>
             <button type='submit' disabled={isPending || !agreedToTerms} className='group relative flex w-full justify-center rounded-md bg-indigo-500 px-3 py-3 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'>
-              {isPending ? 'Creating account...' : 'Sign up'}
+              {isPending ? t('creatingAccount') : t('createButton')}
             </button>
           </div>
         </form>
@@ -122,7 +124,7 @@ export default function SignupPage() {
               <div className='w-full border-t border-gray-700' />
             </div>
             <div className='relative flex justify-center text-sm font-medium leading-6'>
-              <span className='bg-gray-900 px-6 text-gray-400'>Or continue with</span>
+              <span className='bg-gray-900 px-6 text-gray-400'>{t('orContinueWith')}</span>
             </div>
           </div>
 
@@ -137,7 +139,7 @@ export default function SignupPage() {
               <span className='text-sm font-semibold leading-6'>Google</span>
             </button>
           </div>
-          {!agreedToTerms && <p className='mt-3 text-center text-xs text-gray-600'>Please agree to the Terms of Service and Privacy Policy above to continue.</p>}
+          {!agreedToTerms && <p className='mt-3 text-center text-xs text-gray-600'>{t('termsRequired')}</p>}
         </div>
       </div>
     </div>

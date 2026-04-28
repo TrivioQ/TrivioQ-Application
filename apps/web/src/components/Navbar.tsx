@@ -4,20 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '../context/auth-provider';
 import { useUserProfile } from '../hooks/use-user-profile';
-
-// ─── Nav links ────────────────────────────────────────────────────────────────
-const NAV_LINKS = [
-  { label: 'Home', href: '/' },
-  { label: 'Leaderboard', href: '/leaderboard' },
-];
-
-const LOGGED_IN_NAV_LINKS = [
-  { label: 'Home', href: '/' },
-  { label: 'Dashboard', href: '/dashboard' },
-  { label: 'Leaderboard', href: '/leaderboard' },
-];
 
 // ─── Framer variants ──────────────────────────────────────────────────────────
 
@@ -96,12 +85,24 @@ export function Navbar() {
   const router = useRouter();
   const { user, isLoading: authLoading, logout } = useAuth();
   const { data: profile } = useUserProfile();
+  const t = useTranslations('nav');
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const NAV_LINKS = [
+    { label: t('home'), href: '/' },
+    { label: t('leaderboard'), href: '/leaderboard' },
+  ];
+
+  const LOGGED_IN_NAV_LINKS = [
+    { label: t('home'), href: '/' },
+    { label: t('dashboard'), href: '/dashboard' },
+    { label: t('leaderboard'), href: '/leaderboard' },
+  ];
 
   // Scroll shadow
   useEffect(() => {
@@ -175,7 +176,7 @@ export function Navbar() {
 
                 {/* Avatar + dropdown */}
                 <div className='relative' ref={dropdownRef}>
-                  <button id='user-avatar-btn' onClick={() => setDropdownOpen((o) => !o)} className='flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400' aria-label='User menu' aria-expanded={dropdownOpen}>
+                  <button id='user-avatar-btn' onClick={() => setDropdownOpen((o) => !o)} className='flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400' aria-label={t('userMenu')} aria-expanded={dropdownOpen}>
                     <UserAvatar profilePicture={profile?.profilePicture ?? null} displayName={profile?.displayName ?? null} email={user.email ?? ''} />
                     <motion.svg animate={{ rotate: dropdownOpen ? 180 : 0 }} transition={{ duration: 0.2 }} className='w-4 h-4 text-gray-400 hidden sm:block' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
                       <path strokeLinecap='round' strokeLinejoin='round' d='M19 9l-7 7-7-7' />
@@ -191,13 +192,13 @@ export function Navbar() {
                           <p className='text-xs text-gray-400 truncate mt-0.5'>{user.email}</p>
                           {/* Streak & score on mobile (also shown inside dropdown) */}
                           <div className='flex gap-3 mt-2 sm:hidden'>
-                            <span className='text-xs text-orange-300'>🔥 {profile?.currentStreak ?? 0} streak</span>
+                            <span className='text-xs text-orange-300'>🔥 {profile?.currentStreak ?? 0} {t('streak')}</span>
                             <span className='text-xs text-indigo-300'>⭐ {(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
                           </div>
                         </div>
 
                         {/* Menu items */}
-                        {[{ label: 'Settings', href: '/settings', icon: '⚙️' }].map((item) => (
+                        {[{ label: t('settings'), href: '/settings', icon: '⚙️' }].map((item) => (
                           <Link key={item.href} href={item.href} onClick={() => setDropdownOpen(false)} className='flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors'>
                             <span>{item.icon}</span>
                             {item.label}
@@ -207,7 +208,7 @@ export function Navbar() {
                         <div className='border-t border-white/10 mt-1'>
                           <button id='logout-btn' onClick={handleLogout} className='w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors'>
                             <span>🚪</span>
-                            Logout
+                            {t('logout')}
                           </button>
                         </div>
                       </motion.div>
@@ -219,16 +220,16 @@ export function Navbar() {
               // ── Logged-out state ──
               <div className='hidden md:flex items-center gap-3'>
                 <Link href='/login' className='text-sm font-medium text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5'>
-                  Login
+                  {t('login')}
                 </Link>
                 <Link href='/signup' className='text-sm font-semibold text-white bg-indigo-500 hover:bg-indigo-400 px-5 py-2 rounded-full shadow-[0_0_16px_rgba(99,102,241,0.35)] hover:shadow-[0_0_24px_rgba(99,102,241,0.55)] transition-all duration-200'>
-                  Get Started
+                  {t('getStarted')}
                 </Link>
               </div>
             )}
 
             {/* ── Hamburger (mobile) ── */}
-            <button id='mobile-menu-btn' className='md:hidden flex flex-col gap-1.5 w-8 h-8 items-center justify-center rounded-lg hover:bg-white/10 transition-colors' onClick={() => setMobileOpen((o) => !o)} aria-label='Toggle mobile menu' aria-expanded={mobileOpen}>
+            <button id='mobile-menu-btn' className='md:hidden flex flex-col gap-1.5 w-8 h-8 items-center justify-center rounded-lg hover:bg-white/10 transition-colors' onClick={() => setMobileOpen((o) => !o)} aria-label={t('toggleMobileMenu')} aria-expanded={mobileOpen}>
               <motion.span animate={mobileOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }} className='w-5 h-0.5 bg-white rounded-full block' />
               <motion.span animate={mobileOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }} className='w-5 h-0.5 bg-white rounded-full block' />
               <motion.span animate={mobileOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }} className='w-5 h-0.5 bg-white rounded-full block' />
@@ -252,7 +253,7 @@ export function Navbar() {
                   <span className='text-xl'>⚡</span>
                   <span className='font-extrabold text-lg text-white'>TrivioQ</span>
                 </Link>
-                <button onClick={() => setMobileOpen(false)} className='w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors' aria-label='Close menu'>
+                <button onClick={() => setMobileOpen(false)} className='w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors' aria-label={t('closeMenu')}>
                   ✕
                 </button>
               </div>
@@ -274,7 +275,7 @@ export function Navbar() {
                     <div className='flex gap-3 px-4 py-3'>
                       <div className='flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/25'>
                         <span>🔥</span>
-                        <span className='text-sm font-bold text-orange-300'>{profile?.currentStreak ?? 0} streak</span>
+                        <span className='text-sm font-bold text-orange-300'>{profile?.currentStreak ?? 0} {t('streak')}</span>
                       </div>
                       <div className='flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/25'>
                         <span>⭐</span>
@@ -283,7 +284,7 @@ export function Navbar() {
                     </div>
 
                     {/* Profile items */}
-                    {[{ label: 'Settings', href: '/settings', icon: '⚙️' }].map((item) => (
+                    {[{ label: t('settings'), href: '/settings', icon: '⚙️' }].map((item) => (
                       <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className='flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors'>
                         <span>{item.icon}</span>
                         {item.label}
@@ -292,16 +293,16 @@ export function Navbar() {
 
                     <button onClick={handleLogout} className='w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors'>
                       <span>🚪</span>
-                      Logout
+                      {t('logout')}
                     </button>
                   </>
                 ) : (
                   <div className='flex flex-col gap-3 pt-2'>
                     <Link href='/login' onClick={() => setMobileOpen(false)} className='flex items-center justify-center px-4 py-3 rounded-xl text-sm font-medium text-gray-300 border border-white/15 hover:bg-white/5 hover:text-white transition-colors'>
-                      Login
+                      {t('login')}
                     </Link>
                     <Link href='/signup' onClick={() => setMobileOpen(false)} className='flex items-center justify-center px-4 py-3 rounded-xl text-sm font-semibold text-white bg-indigo-500 hover:bg-indigo-400 shadow-[0_0_16px_rgba(99,102,241,0.35)] transition-all'>
-                      Get Started
+                      {t('getStarted')}
                     </Link>
                   </div>
                 )}

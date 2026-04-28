@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
 
 import apiClient from '../api/client';
 
 export default function Preferences({ navigation }: any) {
+  const { t } = useTranslation();
   const { userId } = useAuth();
   const queryClient = useQueryClient();
 
@@ -46,11 +48,11 @@ export default function Preferences({ navigation }: any) {
       }
     },
     onSuccess: () => {
-      Alert.alert('Success', 'Preferences updated!', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      Alert.alert(t('preferences.successTitle'), t('preferences.successBody'), [{ text: 'OK', onPress: () => navigation.goBack() }]);
       queryClient.invalidateQueries({ queryKey: ['userMe'] });
     },
     onError: (error: any) => {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('preferences.errorTitle'), error.message);
     },
   });
 
@@ -60,7 +62,7 @@ export default function Preferences({ navigation }: any) {
     const h = parseFloat(hardWeight);
 
     if (isNaN(e) || isNaN(m) || isNaN(h)) {
-      Alert.alert('Error', 'Weights must be valid numeric decimals (e.g. 0.5)');
+      Alert.alert(t('preferences.errorTitle'), t('preferences.validationError'));
       return;
     }
 
@@ -87,38 +89,38 @@ export default function Preferences({ navigation }: any) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Active Window (HH:MM)</Text>
+      <Text style={styles.header}>{t('preferences.windowHeader')}</Text>
 
       <View style={styles.row}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Start Time</Text>
+          <Text style={styles.label}>{t('preferences.startTime')}</Text>
           <TextInput style={styles.input} value={activeWindowStart} onChangeText={setActiveWindowStart} placeholder='09:00' />
         </View>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>End Time</Text>
+          <Text style={styles.label}>{t('preferences.endTime')}</Text>
           <TextInput style={styles.input} value={activeWindowEnd} onChangeText={setActiveWindowEnd} placeholder='17:00' />
         </View>
       </View>
 
-      <Text style={styles.header}>Difficulty Distribution (Must equal 1.0)</Text>
+      <Text style={styles.header}>{t('preferences.diffHeader')}</Text>
 
       <View style={styles.inputGroupFull}>
-        <Text style={styles.label}>Easy Percentage (e.g. 0.5)</Text>
+        <Text style={styles.label}>{t('preferences.easyLabel')}</Text>
         <TextInput style={styles.input} value={easyWeight} onChangeText={setEasyWeight} keyboardType='numeric' />
       </View>
 
       <View style={styles.inputGroupFull}>
-        <Text style={styles.label}>Medium Percentage (e.g. 0.3)</Text>
+        <Text style={styles.label}>{t('preferences.mediumLabel')}</Text>
         <TextInput style={styles.input} value={mediumWeight} onChangeText={setMediumWeight} keyboardType='numeric' />
       </View>
 
       <View style={styles.inputGroupFull}>
-        <Text style={styles.label}>Hard Percentage (e.g. 0.2)</Text>
+        <Text style={styles.label}>{t('preferences.hardLabel')}</Text>
         <TextInput style={styles.input} value={hardWeight} onChangeText={setHardWeight} keyboardType='numeric' />
       </View>
 
       <View style={styles.buttonContainer}>
-        <Button title={mutation.isPending ? 'Saving...' : 'Save Preferences'} onPress={handleSave} disabled={mutation.isPending} />
+        <Button title={mutation.isPending ? t('preferences.saving') : t('preferences.save')} onPress={handleSave} disabled={mutation.isPending} />
       </View>
     </ScrollView>
   );

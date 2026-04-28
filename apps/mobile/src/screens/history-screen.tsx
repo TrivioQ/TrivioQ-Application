@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
 import apiClient from '../api/client';
@@ -16,6 +17,7 @@ interface DropRecord {
 }
 
 export default function HistoryScreen() {
+  const { t } = useTranslation();
   const { userId } = useAuth();
 
   const { data, isLoading, error } = useQuery<DropRecord[]>({
@@ -59,7 +61,7 @@ export default function HistoryScreen() {
         </Text>
         <View style={styles.cardFooter}>
           <Text style={[styles.status, { color: statusColor }]}>
-            {statusIcon} {item.isAnswered ? (item.wasCorrect ? 'Correct' : 'Incorrect') : 'Unanswered'}
+            {statusIcon} {item.isAnswered ? (item.wasCorrect ? t('history.correct') : t('history.incorrect')) : t('history.unanswered')}
           </Text>
         </View>
       </View>
@@ -77,14 +79,14 @@ export default function HistoryScreen() {
   if (error) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>Failed to load history.</Text>
+        <Text style={styles.errorText}>{t('history.error')}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Drop History</Text>
+      <Text style={styles.heading}>{t('history.title')}</Text>
       <FlatList
         data={data ?? []}
         keyExtractor={(item) => item.id}
@@ -92,7 +94,7 @@ export default function HistoryScreen() {
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.centered}>
-            <Text style={styles.emptyText}>No drops yet. Stay tuned! 🎯</Text>
+            <Text style={styles.emptyText}>{t('history.empty')}</Text>
           </View>
         }
       />

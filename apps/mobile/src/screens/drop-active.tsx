@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, ScrollView, Modal, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
 import apiClient from '../api/client';
 import { QuestionDropPayload } from '@trivioq/shared-types';
 
 export default function DropActive() {
+  const { t } = useTranslation();
   const { userId } = useAuth();
   const queryClient = useQueryClient();
 
@@ -65,7 +67,7 @@ export default function DropActive() {
   // Restore hint placeholder if hint was already used in a prior session
   useEffect(() => {
     if (data?.usedHint && !hintText) {
-      setHintText('(Hint already used)');
+      setHintText(t('drop.hintUsed'));
     }
   }, [data?.usedHint]);
 
@@ -80,8 +82,8 @@ export default function DropActive() {
       queryClient.invalidateQueries({ queryKey: ['userMe'] });
     },
     onError: (err: any) => {
-      const message = err.response?.data?.error || 'Failed to get hint';
-      Alert.alert('Hint', message);
+      const message = err.response?.data?.error || t('drop.hintAlertTitle');
+      Alert.alert(t('drop.hintAlertTitle'), message);
     },
   });
 
@@ -94,8 +96,8 @@ export default function DropActive() {
       setRevealedCorrectIndex(result.correctOptionIndex);
     },
     onError: (err: any) => {
-      const message = err.response?.data?.error || 'Failed to reveal answer';
-      Alert.alert('Error', message);
+      const message = err.response?.data?.error || t('drop.revealAlertTitle');
+      Alert.alert(t('common.error'), message);
     },
   });
 
@@ -136,7 +138,7 @@ export default function DropActive() {
     return (
       <View style={styles.container}>
         <ActivityIndicator size='large' color='#4c669f' />
-        <Text style={styles.skeletonText}>Locating your drop...</Text>
+        <Text style={styles.skeletonText}>{t('drop.loading')}</Text>
       </View>
     );
   }
@@ -144,7 +146,7 @@ export default function DropActive() {
   if (isError || !data) {
     return (
       <View style={styles.container}>
-        <Text style={styles.questionText}>You have no active drops waiting.</Text>
+        <Text style={styles.questionText}>{t('drop.noDrops')}</Text>
       </View>
     );
   }
@@ -165,17 +167,17 @@ export default function DropActive() {
 
   const handleHint = () => {
     if (data.usedHint || hintText) return;
-    Alert.alert('Use Hint?', `Getting a hint costs ${data.hintCost} points (30% of this question's value) deducted from your score. Continue?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Get Hint', onPress: () => hintMutation.mutate() },
+    Alert.alert(t('drop.hintAlertTitle'), t('drop.hintAlertBody', { cost: data.hintCost }), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('drop.getHint'), onPress: () => hintMutation.mutate() },
     ]);
   };
 
   const handleRevealAnswer = () => {
     if (revealedCorrectIndex !== null || answerResult) return;
-    Alert.alert('Reveal Answer?', 'If you reveal the answer you will receive 0 points for this question. This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Reveal', style: 'destructive', onPress: () => revealMutation.mutate() },
+    Alert.alert(t('drop.revealAlertTitle'), t('drop.revealAlertBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('drop.revealAlertConfirm'), style: 'destructive', onPress: () => revealMutation.mutate() },
     ]);
   };
 
@@ -196,18 +198,18 @@ export default function DropActive() {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.timerContainer}>
         <Text style={[styles.timerText, isExpired && styles.timerExpired]}>{answerResult ? '--:--' : timeLeft !== null ? formatTime(timeLeft) : '--:--'}</Text>
-        {isExpired && !answerResult && <Text style={styles.expiredLabel}>EXPIRED</Text>}
+        {isExpired && !answerResult && <Text style={styles.expiredLabel}>{t('drop.expired')}</Text>}
       </View>
 
       {!isRevealed ? (
         <View style={styles.mysteryBadge}>
-          <Text style={styles.badgeTitle}>Mystery Drop</Text>
-          <Text style={styles.badgeDetail}>Difficulty: {data.difficulty.toUpperCase()}</Text>
-          <Text style={styles.badgeDetail}>Category: {data.category}</Text>
-          <Text style={styles.badgeDetail}>Worth: {data.pointsValue} pts</Text>
+          <Text style={styles.badgeTitle}>{t('drop.mysteryTitle')}</Text>
+          <Text style={styles.badgeDetail}>{t('drop.difficulty', { value: data.difficulty.toUpperCase() })}</Text>
+          <Text style={styles.badgeDetail}>{t('drop.category', { value: data.category })}</Text>
+          <Text style={styles.badgeDetail}>{t('drop.worth', { value: data.pointsValue })}</Text>
 
           <TouchableOpacity style={[styles.revealButton, isExpired && styles.disabledButton]} onPress={() => setIsRevealed(true)} disabled={isExpired}>
-            <Text style={styles.revealButtonText}>Reveal Question</Text>
+            <Text style={styles.revealButtonText}>{t('drop.revealQuestion')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -219,17 +221,17 @@ export default function DropActive() {
             <View style={styles.assistRow}>
               {hintText ? (
                 <View style={styles.hintBox}>
-                  <Text style={styles.hintLabel}>💡 Hint {hintCostDeducted != null ? `(−${hintCostDeducted} pts)` : ''}</Text>
+                  <Text style={styles.hintLabel}>{t('drop.hintLabel')}{hintCostDeducted != null ? ` (−${hintCostDeducted} pts)` : ''}</Text>
                   <Text style={styles.hintText}>{hintText}</Text>
                 </View>
               ) : (
                 <TouchableOpacity style={[styles.assistButton, (hintMutation.isPending || isExpired || data.usedHint) && styles.disabledButton]} onPress={handleHint} disabled={hintMutation.isPending || isExpired || data.usedHint}>
-                  <Text style={styles.assistButtonText}>{data.usedHint ? 'Hint Used' : `💡 Hint (−${data.hintCost} pts)`}</Text>
+                  <Text style={styles.assistButtonText}>{data.usedHint ? t('drop.hintUsed') : t('drop.hintButton', { cost: data.hintCost })}</Text>
                 </TouchableOpacity>
               )}
 
               <TouchableOpacity style={[styles.assistButton, styles.revealAnswerButton, (revealMutation.isPending || isExpired || data.revealedAnswer) && styles.disabledButton]} onPress={handleRevealAnswer} disabled={revealMutation.isPending || isExpired || data.revealedAnswer || isAnswerKnown}>
-                <Text style={styles.assistButtonText}>{data.revealedAnswer || isAnswerKnown ? 'Answer Revealed' : '👁 Show Answer (0 pts)'}</Text>
+                <Text style={styles.assistButtonText}>{data.revealedAnswer || isAnswerKnown ? t('drop.answerRevealed') : t('drop.showAnswer')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -237,7 +239,7 @@ export default function DropActive() {
           {/* Answer revealed banner */}
           {isAnswerKnown && !answerResult && (
             <View style={styles.revealedBanner}>
-              <Text style={styles.revealedBannerText}>Answer revealed — tap the correct option to close this drop (0 points)</Text>
+              <Text style={styles.revealedBannerText}>{t('drop.revealedBanner')}</Text>
             </View>
           )}
 
@@ -269,16 +271,16 @@ export default function DropActive() {
 
           {answerResult && (
             <View style={styles.resultContainer}>
-              <Text style={styles.resultTitle}>{answerResult.revealedAnswer ? 'Answer was revealed' : answerResult.isCorrect ? 'Correct! 🎉' : 'Incorrect ❌'}</Text>
-              <Text style={styles.pointsText}>{answerResult.pointsAwarded > 0 ? `+${answerResult.pointsAwarded} points` : '0 points'}</Text>
+              <Text style={styles.resultTitle}>{answerResult.revealedAnswer ? t('drop.answerWasRevealed') : answerResult.isCorrect ? t('drop.correct') : t('drop.incorrect')}</Text>
+              <Text style={styles.pointsText}>{answerResult.pointsAwarded > 0 ? t('drop.points', { count: answerResult.pointsAwarded }) : t('drop.zeroPoints')}</Text>
               {answerResult.explanation && <Text style={styles.explanationText}>{answerResult.explanation}</Text>}
 
               <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-                <Text style={styles.shareButtonText}>Share to Social</Text>
+                <Text style={styles.shareButtonText}>{t('drop.shareButton')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.nextQuestionButton} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending}>
-                <Text style={styles.nextQuestionButtonText}>{onDemandMutation.isPending ? 'Requesting...' : 'Request Next Question'}</Text>
+                <Text style={styles.nextQuestionButtonText}>{onDemandMutation.isPending ? t('drop.requesting') : t('drop.requestNext')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -288,13 +290,13 @@ export default function DropActive() {
       <Modal visible={isPaywallVisible} animationType='slide' transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Upgrade to Premium</Text>
-            <Text style={styles.modalBody}>On-demand questions are a Premium feature. Upgrade to get up to 100 drops per day and request questions instantly, anytime.</Text>
+            <Text style={styles.modalTitle}>{t('drop.paywallTitle')}</Text>
+            <Text style={styles.modalBody}>{t('drop.paywallBody')}</Text>
             <TouchableOpacity style={styles.premiumButton} onPress={() => setIsPaywallVisible(false)}>
-              <Text style={styles.premiumButtonText}>View Premium Plans</Text>
+              <Text style={styles.premiumButtonText}>{t('drop.paywallCta')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setIsPaywallVisible(false)} style={{ marginTop: 12 }}>
-              <Text style={{ color: '#999', fontSize: 14 }}>Maybe later</Text>
+              <Text style={{ color: '#999', fontSize: 14 }}>{t('drop.paywallDismiss')}</Text>
             </TouchableOpacity>
           </View>
         </View>

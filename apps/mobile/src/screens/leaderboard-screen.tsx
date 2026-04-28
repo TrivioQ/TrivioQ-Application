@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
 import apiClient from '../api/client';
@@ -21,6 +22,7 @@ function getRankBadge(rank: number) {
 }
 
 export default function LeaderboardScreen() {
+  const { t } = useTranslation();
   const { userId } = useAuth();
 
   const { data, isLoading, error } = useQuery<LeaderboardEntry[]>({
@@ -44,11 +46,11 @@ export default function LeaderboardScreen() {
         <View style={styles.userInfo}>
           <Text style={[styles.username, isCurrentUser && { color: '#818cf8' }]} numberOfLines={1}>
             {item.displayName ?? item.username}
-            {isCurrentUser ? ' (You)' : ''}
+            {isCurrentUser ? t('leaderboard.youSuffix') : ''}
           </Text>
-          <Text style={styles.streak}>🔥 {item.currentStreak} day streak</Text>
+          <Text style={styles.streak}>{t('leaderboard.dayStreak', { count: item.currentStreak })}</Text>
         </View>
-        <Text style={styles.score}>{item.cumulativeScore.toLocaleString()} pts</Text>
+        <Text style={styles.score}>{t('leaderboard.pts', { score: item.cumulativeScore.toLocaleString() })}</Text>
       </View>
     );
   };
@@ -64,15 +66,15 @@ export default function LeaderboardScreen() {
   if (error) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>Failed to load leaderboard.</Text>
+        <Text style={styles.errorText}>{t('leaderboard.error')}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Leaderboard</Text>
-      <Text style={styles.subheading}>Global Rankings</Text>
+      <Text style={styles.heading}>{t('leaderboard.title')}</Text>
+      <Text style={styles.subheading}>{t('leaderboard.subtitle')}</Text>
       <FlatList
         data={data ?? []}
         keyExtractor={(item) => item.userId}
@@ -80,7 +82,7 @@ export default function LeaderboardScreen() {
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.centered}>
-            <Text style={styles.emptyText}>No rankings yet. Start answering! 🏆</Text>
+            <Text style={styles.emptyText}>{t('leaderboard.empty')}</Text>
           </View>
         }
       />

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
 import apiClient from '../api/client';
@@ -26,6 +27,7 @@ function getInitials(displayName: string | null, email: string) {
 }
 
 export default function ProfileScreen({ navigation }: any) {
+  const { t } = useTranslation();
   const { userId, logout } = useAuth();
 
   const { data, isLoading } = useQuery<UserProfile>({
@@ -38,9 +40,9 @@ export default function ProfileScreen({ navigation }: any) {
   });
 
   const handleLogout = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: () => logout() },
+    Alert.alert(t('profile.signOutAlertTitle'), t('profile.signOutAlertBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('profile.signOutConfirm'), style: 'destructive', onPress: () => logout() },
     ]);
   };
 
@@ -65,7 +67,7 @@ export default function ProfileScreen({ navigation }: any) {
         <Text style={styles.displayName}>{data?.displayName ?? data?.username ?? '—'}</Text>
         <Text style={styles.email}>{data?.email}</Text>
         <View style={[styles.tierBadge, isPremium && styles.tierBadgePremium]}>
-          <Text style={[styles.tierText, isPremium && styles.tierTextPremium]}>{isPremium ? '⭐ Premium' : '🆓 Free Tier'}</Text>
+          <Text style={[styles.tierText, isPremium && styles.tierTextPremium]}>{isPremium ? t('profile.premiumTier') : t('profile.freeTier')}</Text>
         </View>
       </View>
 
@@ -73,21 +75,21 @@ export default function ProfileScreen({ navigation }: any) {
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>🔥 {data?.currentStreak ?? 0}</Text>
-          <Text style={styles.statLabel}>Day Streak</Text>
+          <Text style={styles.statLabel}>{t('profile.streak')}</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statCard}>
           <Text style={styles.statValue}>⭐ {(data?.cumulativeScore ?? 0).toLocaleString()}</Text>
-          <Text style={styles.statLabel}>Total Score</Text>
+          <Text style={styles.statLabel}>{t('profile.totalScore')}</Text>
         </View>
       </View>
 
       {/* Menu items */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Account</Text>
+        <Text style={styles.sectionLabel}>{t('profile.account')}</Text>
         {[
-          { icon: '⚙️', label: 'Preferences' },
-          { icon: '🔔', label: 'Notifications' },
+          { icon: '⚙️', label: t('profile.preferences') },
+          { icon: '🔔', label: t('profile.notifications') },
         ].map((item) => (
           <TouchableOpacity key={item.label} style={styles.menuItem} activeOpacity={0.7}>
             <Text style={styles.menuIcon}>{item.icon}</Text>
@@ -98,31 +100,31 @@ export default function ProfileScreen({ navigation }: any) {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Subscription</Text>
+        <Text style={styles.sectionLabel}>{t('profile.subscription')}</Text>
         <TouchableOpacity style={[styles.menuItem, styles.upgradeItem]} activeOpacity={0.7}>
           <Text style={styles.menuIcon}>👑</Text>
-          <Text style={[styles.menuLabel, { color: '#a78bfa' }]}>{isPremium ? 'Manage Subscription' : 'Upgrade to Premium'}</Text>
+          <Text style={[styles.menuLabel, { color: '#a78bfa' }]}>{isPremium ? t('profile.manageSubscription') : t('profile.upgradePremium')}</Text>
           <Text style={styles.menuChevron}>›</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Legal</Text>
+        <Text style={styles.sectionLabel}>{t('profile.legal')}</Text>
         <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Terms')}>
           <Text style={styles.menuIcon}>📄</Text>
-          <Text style={styles.menuLabel}>Terms of Service</Text>
+          <Text style={styles.menuLabel}>{t('profile.terms')}</Text>
           <Text style={styles.menuChevron}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Privacy')}>
           <Text style={styles.menuIcon}>🔒</Text>
-          <Text style={styles.menuLabel}>Privacy Policy</Text>
+          <Text style={styles.menuLabel}>{t('profile.privacy')}</Text>
           <Text style={styles.menuChevron}>›</Text>
         </TouchableOpacity>
       </View>
 
       {/* Logout */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
-        <Text style={styles.logoutText}>🚪 Sign Out</Text>
+        <Text style={styles.logoutText}>{t('profile.signOut')}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

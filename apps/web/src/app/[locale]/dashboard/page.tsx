@@ -1,7 +1,9 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { makeServerAPICallV1 } from '@/lib/api-server';
 import { ScoreTrendChart, ScorePeriod } from '@/components/dashboard/score-trend-chart';
+import ActiveDropCard from '@/components/dashboard/active-drop-card';
 
 export const metadata = {
   title: 'Dashboard | TrivioQ',
@@ -60,6 +62,7 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
 }
 
 export default async function WebDashboard() {
+  const t = await getTranslations('dashboard');
   const hasCookie = !!cookies().get('tq_auth');
 
   if (!hasCookie) {
@@ -68,11 +71,11 @@ export default async function WebDashboard() {
         <div className='text-center space-y-4'>
           <span className='text-6xl block'>🔒</span>
           <p className='text-gray-400'>
-            Please{' '}
+            {t('signInPrompt')}{' '}
             <Link href='/login' className='text-indigo-400 hover:text-indigo-300'>
-              sign in
+              {t('signInLink')}
             </Link>{' '}
-            to view your dashboard.
+            {t('signInSuffix')}
           </p>
         </div>
       </div>
@@ -108,28 +111,31 @@ export default async function WebDashboard() {
       <div className='max-w-5xl mx-auto px-6 py-16 space-y-10'>
         {/* ── Header ── */}
         <div>
-          <h1 className='text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400'>{profile ? `Hey, ${profile.displayName ?? profile.username} 👋` : 'Your Dashboard'}</h1>
-          <p className='text-gray-400 mt-2'>Here's how you're doing across all your trivia drops.</p>
+          <h1 className='text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400'>{profile ? t('greeting', { name: profile.displayName ?? profile.username }) : t('title')}</h1>
+          <p className='text-gray-400 mt-2'>{t('performanceSubtitle')}</p>
         </div>
+
+        {/* ── Active Drop ── */}
+        <ActiveDropCard />
 
         {/* ── Score Cards ── */}
         <div className='grid grid-cols-2 gap-4 sm:grid-cols-4'>
-          <StatCard label='Weekly Score' value={(currentWeek?.totalScore ?? 0).toLocaleString()} sub={currentWeek?.rank ? `Rank #${currentWeek.rank} this week` : 'No rank yet'} accent='text-indigo-400' />
-          <StatCard label='Monthly Score' value={(currentMonth?.totalScore ?? 0).toLocaleString()} sub={currentMonth?.rank ? `Rank #${currentMonth.rank} this month` : 'No rank yet'} accent='text-purple-400' />
-          <StatCard label='All-Time Score' value={(profile?.cumulativeScore ?? 0).toLocaleString()} sub='Cumulative points earned' accent='text-pink-400' />
-          <StatCard label='Current Streak' value={profile ? `${profile.currentStreak} 🔥` : '—'} sub={accuracyPct !== null ? `${accuracyPct}% accuracy (last 10)` : 'No data yet'} />
+          <StatCard label={t('weeklyScore')} value={(currentWeek?.totalScore ?? 0).toLocaleString()} sub={currentWeek?.rank ? t('rankThisWeek', { rank: currentWeek.rank }) : t('noRankYet')} accent='text-indigo-400' />
+          <StatCard label={t('monthlyScore')} value={(currentMonth?.totalScore ?? 0).toLocaleString()} sub={currentMonth?.rank ? t('rankThisMonth', { rank: currentMonth.rank }) : t('noRankYet')} accent='text-purple-400' />
+          <StatCard label={t('allTimeScore')} value={(profile?.cumulativeScore ?? 0).toLocaleString()} sub={t('cumulativePoints')} accent='text-pink-400' />
+          <StatCard label={t('currentStreak')} value={profile ? `${profile.currentStreak} 🔥` : '—'} sub={accuracyPct !== null ? t('accuracyLast10', { pct: accuracyPct }) : t('noDataYet')} />
         </div>
 
         {/* ── Score Trend Charts ── */}
         <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
           <div className='rounded-2xl bg-white/5 border border-white/8 p-6'>
-            <p className='text-sm font-semibold text-gray-300 mb-1'>Weekly Score Trend</p>
-            <p className='text-xs text-gray-500 mb-4'>Base + bonus points per week</p>
+            <p className='text-sm font-semibold text-gray-300 mb-1'>{t('weeklyTrendTitle')}</p>
+            <p className='text-xs text-gray-500 mb-4'>{t('weeklyTrendSubtitle')}</p>
             <ScoreTrendChart data={weekly} mode='weekly' />
           </div>
           <div className='rounded-2xl bg-white/5 border border-white/8 p-6'>
-            <p className='text-sm font-semibold text-gray-300 mb-1'>Monthly Score Trend</p>
-            <p className='text-xs text-gray-500 mb-4'>Base + bonus points per month</p>
+            <p className='text-sm font-semibold text-gray-300 mb-1'>{t('monthlyTrendTitle')}</p>
+            <p className='text-xs text-gray-500 mb-4'>{t('monthlyTrendSubtitle')}</p>
             <ScoreTrendChart data={monthly} mode='monthly' />
           </div>
         </div>
@@ -138,16 +144,16 @@ export default async function WebDashboard() {
         <div className='rounded-2xl bg-white/5 border border-white/8 overflow-hidden'>
           <div className='px-6 py-4 border-b border-white/8 flex items-center justify-between'>
             <div>
-              <p className='text-sm font-semibold text-gray-200'>Recent Questions</p>
-              <p className='text-xs text-gray-500 mt-0.5'>Last 10 drops you answered</p>
+              <p className='text-sm font-semibold text-gray-200'>{t('recentQuestionsTitle')}</p>
+              <p className='text-xs text-gray-500 mt-0.5'>{t('recentQuestionsSubtitle')}</p>
             </div>
             <Link href='/score-history' className='text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors'>
-              Full history →
+              {t('fullHistory')}
             </Link>
           </div>
 
           {recentDrops.length === 0 ? (
-            <div className='px-6 py-12 text-center text-sm text-gray-500'>You haven't answered any questions yet. Check your mobile app for drops!</div>
+            <div className='px-6 py-12 text-center text-sm text-gray-500'>{t('noDropsYet')}</div>
           ) : (
             <div className='divide-y divide-white/5'>
               {recentDrops.map((drop) => (
@@ -179,15 +185,15 @@ export default async function WebDashboard() {
                           {c.name}
                         </span>
                       ))}
-                      {drop.usedHint && <span className='text-[11px] text-yellow-500 bg-yellow-500/10 rounded-full px-2 py-0.5'>💡 Hint used (−{drop.hintCostDeducted} pts)</span>}
-                      {drop.revealedAnswer && <span className='text-[11px] text-orange-400 bg-orange-400/10 rounded-full px-2 py-0.5'>Answer revealed</span>}
+                      {drop.usedHint && <span className='text-[11px] text-yellow-500 bg-yellow-500/10 rounded-full px-2 py-0.5'>{t('hintUsed', { pts: drop.hintCostDeducted })}</span>}
+                      {drop.revealedAnswer && <span className='text-[11px] text-orange-400 bg-orange-400/10 rounded-full px-2 py-0.5'>{t('answerRevealed')}</span>}
                     </div>
                     <p className='text-[11px] text-gray-600 mt-1'>{formatDate(drop.answeredAt)}</p>
                   </div>
 
                   {/* Points */}
                   <div className='shrink-0 text-right'>
-                    <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-indigo-400' : 'text-gray-600'}`}>{drop.pointsAwarded > 0 ? `+${drop.pointsAwarded}` : '0'} pts</p>
+                    <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-indigo-400' : 'text-gray-600'}`}>{drop.pointsAwarded > 0 ? `+${drop.pointsAwarded}` : '0'} {t('pts')}</p>
                   </div>
                 </div>
               ))}
@@ -198,10 +204,10 @@ export default async function WebDashboard() {
         {/* ── Quick links ── */}
         <div className='flex flex-wrap gap-3 pt-2'>
           <Link href='/score-history' className='rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 px-4 py-2 text-sm text-indigo-300 font-medium transition-colors'>
-            Full Score History
+            {t('fullScoreHistory')}
           </Link>
           <Link href='/leaderboard' className='rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 px-4 py-2 text-sm text-purple-300 font-medium transition-colors'>
-            Leaderboard
+            {t('leaderboard')}
           </Link>
         </div>
       </div>

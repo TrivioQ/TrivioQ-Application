@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface LeaderboardUser {
   id: string;
@@ -27,14 +28,15 @@ interface LeaderboardTabsProps {
 }
 
 export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProps) {
+  const t = useTranslations('leaderboard');
   const [activeTab, setActiveTab] = useState<'weekly' | 'monthly' | 'alltime'>('weekly');
   const [activeMode, setActiveMode] = useState<'global' | 'friends'>('global');
 
   const tabs = [
-    { id: 'weekly', label: 'Weekly' },
-    { id: 'monthly', label: 'Monthly' },
-    { id: 'alltime', label: 'All Time' },
-  ] as const;
+    { id: 'weekly' as const, label: t('weekly') },
+    { id: 'monthly' as const, label: t('monthly') },
+    { id: 'alltime' as const, label: t('allTime') },
+  ];
 
   const currentData = initialData[activeMode][activeTab];
 
@@ -72,10 +74,10 @@ export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProp
         {isLoggedIn && (
           <div className='flex items-center p-1 bg-white/5 rounded-full border border-white/10'>
             <button onClick={() => setActiveMode('global')} className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'global' ? 'bg-indigo-500 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}>
-              Global
+              {t('global')}
             </button>
             <button onClick={() => setActiveMode('friends')} className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'friends' ? 'bg-indigo-500 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}>
-              Friends
+              {t('friends')}
             </button>
           </div>
         )}
@@ -91,7 +93,7 @@ export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProp
         {activeTab !== 'alltime' && (
           <div className='flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-indigo-400/80 bg-indigo-500/5 px-4 py-1.5 rounded-full border border-indigo-500/10'>
             <span className='animate-pulse'>●</span>
-            Period Ends: {activeTab === 'weekly' ? formatDate(getNextWeekReset()) : formatDate(getNextMonthReset())}
+            {t('periodEnds', { date: activeTab === 'weekly' ? formatDate(getNextWeekReset()) : formatDate(getNextMonthReset()) })}
           </div>
         )}
       </div>
@@ -101,16 +103,16 @@ export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProp
         {currentData.length === 0 ? (
           <div className='py-20 text-center text-gray-500'>
             <span className='text-4xl block mb-4'>🕸️</span>
-            No data for this period yet.
+            {t('noData')}
           </div>
         ) : (
           <table className='w-full text-left border-collapse'>
             <thead>
               <tr className='border-b border-white/10 bg-white/5'>
-                <th className='px-8 py-5 text-xs uppercase tracking-widest font-extrabold text-gray-400'>Rank</th>
-                <th className='px-8 py-5 text-xs uppercase tracking-widest font-extrabold text-gray-400'>Player</th>
-                <th className='px-8 py-5 text-xs uppercase tracking-widest font-extrabold text-gray-400 text-right'>Streak</th>
-                <th className='px-8 py-5 text-xs uppercase tracking-widest font-extrabold text-gray-400 text-right'>Score</th>
+                <th className='px-8 py-5 text-xs uppercase tracking-widest font-extrabold text-gray-400'>{t('rankHeader')}</th>
+                <th className='px-8 py-5 text-xs uppercase tracking-widest font-extrabold text-gray-400'>{t('playerHeader')}</th>
+                <th className='px-8 py-5 text-xs uppercase tracking-widest font-extrabold text-gray-400 text-right'>{t('streakHeader')}</th>
+                <th className='px-8 py-5 text-xs uppercase tracking-widest font-extrabold text-gray-400 text-right'>{t('scoreHeader')}</th>
               </tr>
             </thead>
             <tbody className='divide-y divide-white/5'>
@@ -140,7 +142,7 @@ export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProp
         )}
       </div>
 
-      <p className='text-center text-gray-500 text-sm'>Scores for Weekly and Monthly periods are calculated based on trivia drops won in that timeframe.</p>
+      <p className='text-center text-gray-500 text-sm'>{t('scoresInfo')}</p>
     </div>
   );
 }

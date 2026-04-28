@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 
 export const metadata = {
   title: 'Privacy Policy | TrivioQ',
@@ -14,14 +15,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const t = await getTranslations('legal');
   return (
     <div className='min-h-screen bg-gray-950 text-white'>
       <div className='max-w-3xl mx-auto px-6 py-16 space-y-10'>
         {/* Header */}
         <div>
           <Link href='/' className='text-sm text-indigo-400 hover:text-indigo-300 transition-colors'>
-            ← Back to TrivioQ
+            {t('backToTrivioQ')}
           </Link>
           <h1 className='mt-6 text-4xl font-extrabold tracking-tight text-white'>Privacy Policy</h1>
           <p className='mt-2 text-sm text-gray-500'>Last updated: April 27, 2026 · Effective upon account registration</p>

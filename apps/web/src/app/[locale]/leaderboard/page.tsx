@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { getTranslations } from 'next-intl/server';
 import { ErrorNotification } from '@/components/error-notification';
 import { makeServerAPICallV1 } from '@/lib/api-server';
 import { LeaderboardTabs } from '@/components/leaderboard-tabs';
@@ -16,6 +17,7 @@ interface LeaderboardUser {
 }
 
 export default async function LeaderboardPage() {
+  const t = await getTranslations('leaderboard');
   const isLoggedIn = !!cookies().get('tq_auth');
 
   let leaderboardData = {
@@ -59,17 +61,17 @@ export default async function LeaderboardPage() {
 
   return (
     <>
-      {fetchFailed && <ErrorNotification title='Could not load leaderboard' message='Failed to reach the server. Please try again later.' />}
+      {fetchFailed && <ErrorNotification title={t('fetchErrorTitle')} message={t('fetchError')} />}
       <div className='min-h-screen bg-gray-950 py-20 px-6 sm:px-8 text-white selection:bg-indigo-500 selection:text-white'>
         <div className='max-w-5xl mx-auto'>
           <div className='mb-12 flex flex-col md:flex-row justify-between items-end gap-6'>
             <div className='space-y-4'>
-              <h1 className='text-4xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400'>Leaderboard</h1>
-              <p className='text-gray-400 mt-2'>See how you stack up against the best in the world and your friends.</p>
+              <h1 className='text-4xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400'>{t('title')}</h1>
+              <p className='text-gray-400 mt-2'>{t('subtitle')}</p>
             </div>
           </div>
 
-          {fetchFailed ? <ErrorNotification message='Failed to load leaderboard. Please try again later.' /> : <LeaderboardTabs initialData={leaderboardData} isLoggedIn={isLoggedIn} />}
+          {fetchFailed ? <ErrorNotification message={t('fetchError')} /> : <LeaderboardTabs initialData={leaderboardData} isLoggedIn={isLoggedIn} />}
         </div>
       </div>
     </>

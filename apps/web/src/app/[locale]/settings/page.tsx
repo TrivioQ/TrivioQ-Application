@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { makeServerAPICallV1 } from '@/lib/api-server';
 import { SettingsForm } from './settings-form';
 
@@ -9,6 +10,7 @@ export const metadata = {
 };
 
 export default async function SettingsPage() {
+  const t = await getTranslations('settings');
   const hasCookie = !!cookies().get('tq_auth');
 
   if (!hasCookie) {
@@ -29,8 +31,8 @@ export default async function SettingsPage() {
       <div className='max-w-3xl mx-auto px-6 py-16 space-y-12'>
         {/* ── Header ── */}
         <div>
-          <h1 className='text-4xl font-extrabold tracking-tight text-white'>Settings</h1>
-          <p className='text-gray-400 mt-2'>Manage your preferences and account security.</p>
+          <h1 className='text-4xl font-extrabold tracking-tight text-white'>{t('title')}</h1>
+          <p className='text-gray-400 mt-2'>{t('subtitle')}</p>
         </div>
 
         <SettingsForm initialUser={user} />

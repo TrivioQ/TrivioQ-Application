@@ -1,25 +1,5 @@
 import Link from 'next/link';
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
-const FOOTER_COLUMNS = [
-  {
-    heading: 'Product',
-    links: [
-      { label: 'Home', href: '/' },
-      { label: 'Leaderboard', href: '/leaderboard' },
-      { label: 'FAQ', href: '/faq' },
-    ],
-  },
-  {
-    heading: 'Company',
-    links: [
-      { label: 'About Us', href: '/about' },
-      { label: 'Privacy Policy', href: '/privacy' },
-      { label: 'Terms of Service', href: '/terms' },
-    ],
-  },
-];
+import { getTranslations } from 'next-intl/server';
 
 // ─── Social icons ─────────────────────────────────────────────────────────────
 
@@ -41,8 +21,28 @@ function InstagramIcon({ className }: { className?: string }) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function Footer() {
+export async function Footer() {
+  const t = await getTranslations('footer');
   const year = new Date().getFullYear();
+
+  const FOOTER_COLUMNS = [
+    {
+      heading: t('productHeading'),
+      links: [
+        { label: t('links.home'), href: '/' },
+        { label: t('links.leaderboard'), href: '/leaderboard' },
+        { label: t('links.faq'), href: '/faq' },
+      ],
+    },
+    {
+      heading: t('companyHeading'),
+      links: [
+        { label: t('links.about'), href: '/about' },
+        { label: t('links.privacy'), href: '/privacy' },
+        { label: t('links.terms'), href: '/terms' },
+      ],
+    },
+  ];
 
   return (
     <footer className='relative bg-black border-t border-white/5'>
@@ -58,7 +58,7 @@ export function Footer() {
               <span className='text-2xl'>⚡</span>
               <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-indigo-300 transition-colors'>TrivioQ</span>
             </Link>
-            <p className='mt-4 text-sm leading-relaxed text-gray-400 max-w-xs'>Bite-sized trivia drops designed to make you smarter — delivered right to your device throughout the day.</p>
+            <p className='mt-4 text-sm leading-relaxed text-gray-400 max-w-xs'>{t('tagline')}</p>
 
             {/* Socials */}
             <div className='mt-6 flex gap-4'>
@@ -89,18 +89,18 @@ export function Footer() {
 
           {/* App download CTA */}
           <div>
-            <h3 className='text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-5'>Get the App</h3>
-            <p className='text-sm text-gray-400 mb-4'>Available on iOS and Android. Start your streak today.</p>
+            <h3 className='text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-5'>{t('getAppHeading')}</h3>
+            <p className='text-sm text-gray-400 mb-4'>{t('getAppDesc')}</p>
             <Link href='#' className='inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-indigo-500/20 border border-indigo-500/30 hover:bg-indigo-500/30 hover:border-indigo-500/50 transition-all duration-200'>
               <span>📱</span>
-              Download Free
+              {t('downloadFree')}
             </Link>
           </div>
         </div>
 
         {/* ── Bottom bar ── */}
         <div className='border-t border-white/5 py-6 flex flex-col sm:flex-row items-center justify-between gap-4'>
-          <p className='text-xs text-gray-500'>© {year} TrivioQ. All rights reserved.</p>
+          <p className='text-xs text-gray-500'>{t('copyright', { year })}</p>
           <a href='https://nextjs.org' target='_blank' rel='noopener noreferrer' className='inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-gray-500 hover:text-gray-300 hover:bg-white/10 transition-all duration-200'>
             <svg className='h-3.5 w-3.5' viewBox='0 0 180 180' fill='currentColor' aria-hidden='true'>
               <mask id='mask0' style={{ maskType: 'alpha' }} maskUnits='userSpaceOnUse' x='0' y='0' width='180' height='180'>
@@ -122,7 +122,7 @@ export function Footer() {
                 </linearGradient>
               </defs>
             </svg>
-            Powered by Next.js
+            {t('poweredBy')}
           </a>
         </div>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { makeAPICallV1, APIError } from '../../lib/api';
 
 interface ActiveDrop {
@@ -42,6 +43,7 @@ function formatTime(seconds: number) {
 }
 
 export default function ActiveDropCard() {
+  const t = useTranslations('activeDrop');
   const [drop, setDrop] = useState<ActiveDrop | null>(null);
   const [loading, setLoading] = useState(true);
   const [revealed, setRevealed] = useState(false);
@@ -71,7 +73,7 @@ export default function ActiveDropCard() {
       resetState();
       fetchActiveDrop();
     } catch (err) {
-      const msg = err instanceof APIError ? err.message : 'Failed to request a new drop.';
+      const msg = err instanceof APIError ? err.message : t('failedOnDemand');
       setOnDemandError(msg);
     } finally {
       setOnDemandLoading(false);
@@ -84,17 +86,17 @@ export default function ActiveDropCard() {
     try {
       const data = await makeAPICallV1<ActiveDrop>('drops/active');
       setDrop(data);
-      if (data.usedHint) setHintText('(Hint already used)');
+      if (data.usedHint) setHintText(t('hintAlreadyUsed'));
     } catch (err) {
       if (err instanceof APIError && err.status === 404) {
         setDrop(null);
       } else {
-        setError('Failed to load active drop.');
+        setError(t('failedLoadDrop'));
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchActiveDrop();
@@ -125,7 +127,7 @@ export default function ActiveDropCard() {
       });
       setSubmitResult(result);
     } catch {
-      setError('Failed to submit answer.');
+      setError(t('failedSubmit'));
     } finally {
       setSubmitting(false);
     }
@@ -133,14 +135,14 @@ export default function ActiveDropCard() {
 
   const handleHint = async () => {
     if (!drop || hintText || hintLoading || isExpired || drop.usedHint) return;
-    if (!window.confirm(`Getting a hint costs ${drop.hintCost} points (30% of this question's value). Continue?`)) return;
+    if (!window.confirm(t('hintConfirm', { cost: drop.hintCost }))) return;
     setHintLoading(true);
     try {
       const result = await makeAPICallV1<{ hintText: string; hintCost: number }>(`drops/${drop.dropId}/hint`, { method: 'POST' });
       setHintText(result.hintText);
       setHintCostDeducted(result.hintCost);
     } catch (err) {
-      const msg = err instanceof APIError ? err.message : 'Failed to get hint.';
+      const msg = err instanceof APIError ? err.message : t('failedHint');
       setError(msg);
     } finally {
       setHintLoading(false);
@@ -149,13 +151,13 @@ export default function ActiveDropCard() {
 
   const handleReveal = async () => {
     if (!drop || revealedCorrectIndex !== null || revealLoading || submitResult) return;
-    if (!window.confirm('Revealing the answer awards 0 points. This cannot be undone.')) return;
+    if (!window.confirm(t('revealConfirm'))) return;
     setRevealLoading(true);
     try {
       const result = await makeAPICallV1<{ correctOptionIndex: number }>(`drops/${drop.dropId}/reveal-answer`, { method: 'POST' });
       setRevealedCorrectIndex(result.correctOptionIndex);
     } catch (err) {
-      const msg = err instanceof APIError ? err.message : 'Failed to reveal answer.';
+      const msg = err instanceof APIError ? err.message : t('failedReveal');
       setError(msg);
     } finally {
       setRevealLoading(false);
@@ -201,16 +203,20 @@ export default function ActiveDropCard() {
           <div>
             <p className='text-sm font-semibold text-gray-400 flex items-center gap-2'>
               <span className='inline-flex h-2 w-2 rounded-full bg-gray-600' />
-              Active Drop
+              {t('activeDrop')}
             </p>
-            <p className='text-xs text-gray-600 mt-0.5'>No question active right now</p>
+            <p className='text-xs text-gray-600 mt-0.5'>{t('noQuestionActive')}</p>
           </div>
           <p className='text-lg font-mono font-bold text-gray-600'>--:--</p>
         </div>
         <div className='px-6 py-8 flex flex-col items-center gap-3 text-center'>
           <span className='text-4xl'>⏳</span>
-          <p className='text-sm font-semibold text-gray-300'>No active question at the moment</p>
-          <p className='text-xs text-gray-500 max-w-xs leading-relaxed'>There is no trivia question waiting for you right now. Questions are dropped automatically on your schedule — check back soon or use the mobile app to request one instantly.</p>
+          <p className='text-sm font-semibold text-gray-300'>{t('noActiveQuestion')}</p>
+          <p className='text-xs text-gray-500 max-w-xs leading-relaxed'>{t('noActiveDesc')}</p>
+          <button onClick={handleOnDemand} disabled={onDemandLoading} className='mt-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 text-sm text-purple-300 font-medium transition-colors'>
+            {onDemandLoading ? t('requesting') : t('requestNextQuestion')}
+          </button>
+          {onDemandError && <p className='text-xs text-amber-400 mt-1'>{onDemandError}</p>}
         </div>
       </div>
     );
@@ -229,15 +235,23 @@ export default function ActiveDropCard() {
               <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75' />
               <span className='relative inline-flex rounded-full h-2 w-2 bg-indigo-500' />
             </span>
-            Active Drop
+            {t('activeDrop')}
           </p>
-          <p className='text-xs text-gray-500 mt-0.5'>Answer before the timer runs out</p>
+          <p className='text-xs text-gray-500 mt-0.5'>{t('answerBeforeTimer')}</p>
         </div>
 
         {/* Timer */}
         <div className='text-right'>
           {submitResult ? <p className='text-lg font-mono font-bold text-gray-500'>--:--</p> : <p className={`text-lg font-mono font-bold tabular-nums ${isExpired ? 'text-red-400' : timerUrgent ? 'text-orange-400' : 'text-indigo-300'}`}>{timeLeft !== null ? formatTime(timeLeft) : '--:--'}</p>}
-          {isExpired && !submitResult && <p className='text-[10px] font-bold text-red-400 uppercase tracking-widest'>Expired</p>}
+          {isExpired && !submitResult && (
+            <div className='flex flex-col items-end gap-1'>
+              <p className='text-[10px] font-bold text-red-400 uppercase tracking-widest'>{t('expired')}</p>
+              <button onClick={handleOnDemand} disabled={onDemandLoading} className='rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1 text-[11px] text-purple-300 font-medium transition-colors'>
+                {onDemandLoading ? t('requesting') : t('requestNew')}
+              </button>
+              {onDemandError && <p className='text-[10px] text-amber-400 text-right max-w-[160px]'>{onDemandError}</p>}
+            </div>
+          )}
         </div>
       </div>
 
@@ -253,9 +267,9 @@ export default function ActiveDropCard() {
         {!revealed ? (
           <div className='text-center py-4'>
             <p className='text-4xl mb-3'>🎁</p>
-            <p className='text-sm text-gray-400 mb-4'>A new question is waiting for you.</p>
+            <p className='text-sm text-gray-400 mb-4'>{t('newQuestionWaiting')}</p>
             <button onClick={() => setRevealed(true)} disabled={isExpired} className='rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors'>
-              Reveal Question
+              {t('revealQuestion')}
             </button>
           </div>
         ) : (
@@ -273,16 +287,16 @@ export default function ActiveDropCard() {
                   </div>
                 ) : (
                   <button onClick={handleHint} disabled={hintLoading || isExpired || drop.usedHint} className='flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-yellow-400 transition-colors'>
-                    {drop.usedHint ? 'Hint Used' : hintLoading ? 'Loading…' : `💡 Hint (−${drop.hintCost} pts)`}
+                    {drop.usedHint ? t('hintUsed') : hintLoading ? t('hintLoading') : t('hintCost', { pts: drop.hintCost })}
                   </button>
                 )}
                 <button onClick={handleReveal} disabled={revealLoading || isExpired || drop.revealedAnswer || isAnswerKnown} className='flex-1 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-purple-400 transition-colors'>
-                  {drop.revealedAnswer || isAnswerKnown ? 'Answer Revealed' : revealLoading ? 'Loading…' : '👁 Show Answer (0 pts)'}
+                  {drop.revealedAnswer || isAnswerKnown ? t('answerRevealedBtn') : revealLoading ? t('revealLoading') : t('showAnswer')}
                 </button>
               </div>
             )}
 
-            {isAnswerKnown && !submitResult && <div className='rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300 text-center'>Answer revealed — select the highlighted option to close this drop (0 points)</div>}
+            {isAnswerKnown && !submitResult && <div className='rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300 text-center'>{t('answerRevealedNotice')}</div>}
 
             {/* Answer options */}
             <div className='space-y-2'>
@@ -308,17 +322,15 @@ export default function ActiveDropCard() {
               })}
             </div>
 
-            {submitting && <p className='text-xs text-center text-gray-500 animate-pulse'>Submitting…</p>}
+            {submitting && <p className='text-xs text-center text-gray-500 animate-pulse'>{t('submitting')}</p>}
 
             {/* Result card */}
             {submitResult && (
               <div className='rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-center space-y-1'>
-                <p className='text-lg font-bold text-white'>{submitResult.revealedAnswer ? 'Answer was revealed' : submitResult.isCorrect ? 'Correct! 🎉' : 'Incorrect ❌'}</p>
+                <p className='text-lg font-bold text-white'>{submitResult.revealedAnswer ? t('resultRevealed') : submitResult.isCorrect ? t('resultCorrect') : t('resultIncorrect')}</p>
                 <p className={`text-sm font-semibold ${submitResult.pointsAwarded > 0 ? 'text-indigo-400' : 'text-gray-500'}`}>{submitResult.pointsAwarded > 0 ? `+${submitResult.pointsAwarded} pts` : '0 pts'}</p>
                 {submitResult.explanation && <p className='text-xs text-gray-400 italic mt-1'>{submitResult.explanation}</p>}
-                <p className='text-xs text-gray-500 mt-2'>
-                  Streak: {submitResult.newStreak} 🔥 · Total: {submitResult.newTotalScore.toLocaleString()} pts
-                </p>
+                <p className='text-xs text-gray-500 mt-2'>{t('streakTotal', { streak: submitResult.newStreak, total: submitResult.newTotalScore.toLocaleString() })}</p>
                 <div className='flex gap-2 mt-3 flex-wrap justify-center'>
                   <button
                     onClick={() => {
@@ -327,10 +339,10 @@ export default function ActiveDropCard() {
                     }}
                     className='rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 px-4 py-1.5 text-xs text-indigo-300 font-medium transition-colors'
                   >
-                    Check for Next Drop
+                    {t('checkNextDrop')}
                   </button>
                   <button onClick={handleOnDemand} disabled={onDemandLoading} className='rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-xs text-purple-300 font-medium transition-colors'>
-                    {onDemandLoading ? 'Requesting…' : '⚡ Request Next Question'}
+                    {onDemandLoading ? t('requesting') : t('requestNextQuestion')}
                   </button>
                 </div>
                 {onDemandError && <p className='text-xs text-amber-400 text-center mt-2'>{onDemandError}</p>}
