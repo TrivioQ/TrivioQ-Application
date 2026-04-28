@@ -9,18 +9,12 @@ export default function Home() {
       <section className='relative pt-16 pb-20 px-6 lg:px-8 overflow-hidden flex-grow flex items-center'>
         <div className='absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/50 via-gray-950 to-black'></div>
         <div className='mx-auto max-w-5xl text-center'>
-          <div className='inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold text-indigo-300 ring-1 ring-inset ring-indigo-500/30 mb-8 bg-indigo-500/10'>
-            {t('badge')}
-          </div>
+          <div className='inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold text-indigo-300 ring-1 ring-inset ring-indigo-500/30 mb-8 bg-indigo-500/10'>{t('badge')}</div>
           <h1 className='text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight'>
             {t('titlePrefix')} <br />
-            <span className='text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400'>
-              {t('titleHighlight')}
-            </span>
+            <span className='text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400'>{t('titleHighlight')}</span>
           </h1>
-          <p className='mt-6 text-lg md:text-2xl leading-relaxed text-gray-300 max-w-3xl mx-auto mb-10'>
-            {t('description')}
-          </p>
+          <p className='mt-6 text-lg md:text-2xl leading-relaxed text-gray-300 max-w-3xl mx-auto mb-10'>{t('description')}</p>
           <div className='mt-10 flex flex-col sm:flex-row items-center justify-center gap-6'>
             <Link href='#' className='rounded-full bg-indigo-500 px-8 py-4 text-lg font-semibold text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:bg-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.6)] transition-all duration-300 transform hover:-translate-y-1 w-full sm:w-auto'>
               {t('downloadButton')}
@@ -39,12 +33,8 @@ export default function Home() {
       <section className='py-24 px-6 sm:px-8 bg-black relative border-t border-white/5'>
         <div className='mx-auto max-w-7xl'>
           <div className='mx-auto max-w-2xl lg:text-center'>
-            <h2 className='text-base font-semibold leading-7 text-indigo-400 uppercase tracking-widest'>
-              {t('features.tagline')}
-            </h2>
-            <p className='mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl'>
-              {t('features.heading')}
-            </p>
+            <h2 className='text-base font-semibold leading-7 text-indigo-400 uppercase tracking-widest'>{t('features.tagline')}</h2>
+            <p className='mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl'>{t('features.heading')}</p>
           </div>
           <div className='mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none'>
             <dl className='grid max-w-xl grid-cols-1 gap-x-12 gap-y-16 lg:max-w-none lg:grid-cols-3'>

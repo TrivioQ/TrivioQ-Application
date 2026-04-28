@@ -14,8 +14,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
+interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  order: number;
+  active: boolean;
+}
+
 interface FAQModalProps {
-  faq?: any;
+  faq?: FAQ;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }

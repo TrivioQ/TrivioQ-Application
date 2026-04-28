@@ -1,4 +1,4 @@
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import {
   getDashboardMetrics,
   getDailyActiveUsers,
@@ -16,7 +16,7 @@ import { DailyActiveUsersChart } from '@/components/charts/daily-active-users-ch
 import { CategoryPopularityChart } from '@/components/charts/category-popularity-chart';
 
 export default async function DashboardPage() {
-  const t = useTranslations('dashboard');
+  const t = await getTranslations('dashboard');
   
   // Fetch all data concurrently
   const [metrics, dauData, categoryData] = await Promise.all([

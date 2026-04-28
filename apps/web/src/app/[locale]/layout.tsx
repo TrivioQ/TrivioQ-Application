@@ -17,13 +17,7 @@ export const metadata: Metadata = {
   description: 'Your daily trivia drops',
 };
 
-export default async function RootLayout({
-  children,
-  params: { locale }
-}: {
-  children: React.ReactNode;
-  params: { locale: string };
-}) {
+export default async function RootLayout({ children, params: { locale } }: { children: React.ReactNode; params: { locale: string } }) {
   const messages = await getMessages();
   return (
     <html lang={locale}>
