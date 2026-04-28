@@ -1,4 +1,4 @@
-import { getCategories } from '@/app/actions/category.actions';
+import { getCategories } from '@/app/actions/category-actions';
 import { columns } from '@/components/categories/columns';
 import { DataTable } from '@/components/users-table/data-table';
 import { CategoryModal } from '@/components/categories/category-modal';

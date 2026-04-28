@@ -1,4 +1,4 @@
-import { getUsers } from '@/app/actions/user.actions';
+import { getUsers } from '@/app/actions/user-actions';
 import { columns } from '@/components/users-table/columns';
 import { DataTable } from '@/components/users-table/data-table';
 

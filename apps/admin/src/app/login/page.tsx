@@ -3,7 +3,7 @@
 import { useActionState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { loginAction } from '@/app/actions/auth.actions';
+import { loginAction } from '@/app/actions/auth-actions';
 import { Button } from '@/components/ui/button';
 import { ShieldAlert } from 'lucide-react';
 

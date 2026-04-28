@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { getQuestions, getCategories } from '@/app/actions/question.actions';
+import { getQuestions, getCategories } from '@/app/actions/question-actions';
 import { columns } from '@/components/questions/columns';
 import { CreateQuestionModal } from '@/components/questions/create-question-modal';
 import { QuestionFilterBar } from '@/components/questions/question-filter-bar';

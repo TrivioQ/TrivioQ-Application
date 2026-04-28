@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, Modal } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/auth-context';
 import { QuestionDropPayload } from '@trivioq/shared-types';
 
 import apiClient from '../api/client';
@@ -66,7 +66,6 @@ export default function HomeDashboard({ navigation }: any) {
   const queryClient = useQueryClient();
   const [isPaywallVisible, setIsPaywallVisible] = useState(false);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onDemandMutation = useMutation({
     mutationFn: async () => {
       const response = await apiClient.post('/api/v1/drops/on-demand');
@@ -156,19 +155,26 @@ export default function HomeDashboard({ navigation }: any) {
 
       <View style={styles.buttonContainer}>
         <Button title='Edit Preferences' onPress={() => navigation.navigate('Preferences')} />
-        {/* Request Next Question — hidden until feature is enabled
         <View style={{ height: 15 }} />
         <Button title={onDemandMutation.isPending ? 'Requesting...' : 'Request Next Question'} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending} color='#9b59b6' />
-        */}
       </View>
 
       <Modal visible={isPaywallVisible} animationType='slide' transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Premium Paywall</Text>
-            <Text style={styles.modalBody}>Want more trivia right now? Premium allows up to 100 questions a day and instant drops.</Text>
-            <TouchableOpacity style={styles.premiumButton} onPress={() => setIsPaywallVisible(false)}>
-              <Text style={styles.premiumButtonText}>Coming Soon!</Text>
+            <Text style={styles.modalTitle}>Upgrade to Premium</Text>
+            <Text style={styles.modalBody}>On-demand questions are a Premium feature. Upgrade to get up to 100 drops per day and request questions instantly, anytime.</Text>
+            <TouchableOpacity
+              style={styles.premiumButton}
+              onPress={() => {
+                setIsPaywallVisible(false);
+                navigation.navigate('Profile');
+              }}
+            >
+              <Text style={styles.premiumButtonText}>View Premium Plans</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setIsPaywallVisible(false)} style={{ marginTop: 12 }}>
+              <Text style={{ color: '#999', fontSize: 14 }}>Maybe later</Text>
             </TouchableOpacity>
           </View>
         </View>

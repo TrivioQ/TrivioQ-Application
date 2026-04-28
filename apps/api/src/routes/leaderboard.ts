@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '@trivioq/database';
-import { requireAuth } from '../middleware/firebaseAuth';
+import { requireAuth } from '../middleware/firebase-auth';
 import { getWeekStart, getMonthStart, OVERALL_PERIOD_START } from '../utils/scoring';
 
 const router = express.Router();

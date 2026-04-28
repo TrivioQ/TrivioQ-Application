@@ -1,4 +1,4 @@
-import { getFAQs } from '@/app/actions/faq.actions';
+import { getFAQs } from '@/app/actions/faq-actions';
 import { columns } from '@/components/faqs-table/columns';
 import { DataTable } from '@/components/faqs-table/data-table';
 

@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
-import { ErrorNotification } from '../../components/ErrorNotification';
-import { makeServerAPICallV1 } from '../../lib/apiServer';
-import { LeaderboardTabs } from '../../components/LeaderboardTabs';
+import { ErrorNotification } from '../../components/error-notification';
+import { makeServerAPICallV1 } from '../../lib/api-server';
+import { LeaderboardTabs } from '../../components/leaderboard-tabs';
 
 export const revalidate = 60; // Revalidate the leaderboard every 60 seconds
 

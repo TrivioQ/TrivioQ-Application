@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import type { DailyActiveUser } from '@/app/actions/dashboard.actions';
+import type { DailyActiveUser } from '@/app/actions/dashboard-actions';
 
 export function DailyActiveUsersChart({ data }: { data: DailyActiveUser[] }) {
   return (

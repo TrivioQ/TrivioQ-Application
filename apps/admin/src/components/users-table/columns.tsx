@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { deleteUser, toggleUserTier } from '@/app/actions/user.actions';
+import { deleteUser, toggleUserTier } from '@/app/actions/user-actions';
 import { SubscriptionTier } from '@trivioq/database';
 import { useState, useTransition } from 'react';
 import { UserModal } from './user-modal';

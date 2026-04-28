@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { DifficultyLevel } from '@trivioq/database';
-import { deleteQuestion, getCategories } from '@/app/actions/question.actions';
+import { deleteQuestion, getCategories } from '@/app/actions/question-actions';
 import { useState, useTransition, useEffect } from 'react';
 import { QuestionModal } from './question-modal';
 

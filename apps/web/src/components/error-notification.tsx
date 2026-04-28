@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useNotification } from '../context/NotificationContext';
+import { useNotification } from '../context/notification-context';
 
 interface ErrorNotificationProps {
   message: string;

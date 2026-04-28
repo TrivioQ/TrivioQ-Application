@@ -134,6 +134,17 @@ model FAQ {
   updatedAt DateTime @updatedAt
 }
 
+// Stores app-wide configuration settings editable from the admin panel.
+// dataType: "string" | "number" | "boolean"
+model Setting {
+  key       String   @id
+  value     String
+  dataType  String   @default("string")
+  label     String?
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
 // Stores legal documents (Terms of Service, Privacy Policy) as markdown.
 // slug is a stable identifier: 'terms' | 'privacy'
 model LegalDocument {

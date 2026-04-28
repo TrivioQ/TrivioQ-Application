@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '@trivioq/database';
-import { requireAuth } from '../middleware/firebaseAuth';
-import { requireAdmin } from '../middleware/requireAdmin';
+import { requireAuth } from '../middleware/firebase-auth';
+import { requireAdmin } from '../middleware/require-admin';
 
 const router = express.Router();
 

@@ -3,6 +3,7 @@ import { Queue } from 'bullmq';
 import Redis from 'ioredis';
 import { prisma } from '@trivioq/database';
 import { UserPreferences } from '@trivioq/shared-types';
+import { getSettingNumber } from '../utils/settings';
 
 const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
 const dispatchNotificationsQueue = new Queue('dispatch-notifications', {
@@ -51,7 +52,8 @@ cron.schedule('* * * * *', async () => {
       }
 
       // 2. Subscription tier limit enforcement
-      const dailyLimit = user.subscriptionTier === 'PREMIUM' ? 100 : 30;
+      const [freeLimit, premiumLimit] = await Promise.all([getSettingNumber('max_drops_free', 7), getSettingNumber('max_drops_premium', 100)]);
+      const dailyLimit = user.subscriptionTier === 'PREMIUM' ? premiumLimit : freeLimit;
       if (user.dropsReceivedToday >= dailyLimit) {
         continue; // Skip user for this run as they've hit their daily cap
       }

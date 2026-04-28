@@ -5,9 +5,13 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
+    "db-push": "prisma db push",
     "make-admin": "ts-node -r dotenv/config scripts/make-admin.ts",
     "seed-mock-data": "ts-node -r dotenv/config scripts/seed-mock-data.ts",
-    "seed-legal": "ts-node -r dotenv/config scripts/seed-legal.ts"
+    "seed-legal": "ts-node -r dotenv/config scripts/seed-legal.ts",
+    "seed-settings": "ts-node -r dotenv/config scripts/seed-settings.ts",
+    "seed-server": "yarn db-push && yarn seed-legal && yarn seed-settings",
+    "debug": "prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0"

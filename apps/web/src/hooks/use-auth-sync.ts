@@ -2,8 +2,8 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useNotification } from '../context/NotificationContext';
-import { useAuth } from '../context/AuthProvider';
+import { useNotification } from '../context/notification-context';
+import { useAuth } from '../context/auth-provider';
 import { makeAPICall } from '../lib/api';
 
 // ---------------------------------------------------------------------------

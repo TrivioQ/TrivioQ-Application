@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { deleteFAQ } from '@/app/actions/faq.actions';
+import { deleteFAQ } from '@/app/actions/faq-actions';
 import { useState, useTransition } from 'react';
 import { FAQModal } from './faq-modal';
 

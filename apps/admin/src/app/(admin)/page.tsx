@@ -2,7 +2,7 @@ import {
   getDashboardMetrics,
   getDailyActiveUsers,
   getCategoryPopularity,
-} from '@/app/actions/dashboard.actions';
+} from '@/app/actions/dashboard-actions';
 import {
   Card,
   CardContent,

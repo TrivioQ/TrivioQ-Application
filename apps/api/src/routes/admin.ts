@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@trivioq/database';
-import { verifyFirebaseToken } from '../middleware/firebaseAuth';
-import { requireAdmin } from '../middleware/requireAdmin';
+import { verifyFirebaseToken } from '../middleware/firebase-auth';
+import { requireAdmin } from '../middleware/require-admin';
 
 const router = Router();
 const prisma = new PrismaClient();

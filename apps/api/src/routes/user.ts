@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '@trivioq/database';
 import { UserPreferences } from '@trivioq/shared-types';
-import { requireAuth } from '../middleware/firebaseAuth';
+import { requireAuth } from '../middleware/firebase-auth';
 
 const router = express.Router();
 

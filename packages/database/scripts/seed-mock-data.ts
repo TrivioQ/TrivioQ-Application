@@ -322,7 +322,7 @@ async function main() {
           { question: 'What are difficulty levels?', answer: 'Questions are categorized as Easy, Medium, or Hard. Harder questions reward significantly more points.' },
           { question: 'Can I invite friends?', answer: 'Yes! You can search for friends by username and add them to see their progress on your private leaderboard.' },
           { question: 'How are leaderboard bonuses calculated?', answer: 'Top performers in the weekly and monthly leaderboards receive bonus points at the end of each period.' },
-          { question: 'What happens if I miss a drop?', answer: 'Missing a drop doesn\'t reset your streak, but you miss out on the potential points for that question.' },
+          { question: 'What happens if I miss a drop?', answer: "Missing a drop doesn't reset your streak, but you miss out on the potential points for that question." },
           { question: 'Can I use hints?', answer: 'Yes, most questions offer a hint for a small point deduction. Use them wisely!' },
           { question: 'How do I reset my password?', answer: 'In Settings > Security, you can update your password if you signed up with an email address.' },
           { question: 'Is my data secure?', answer: 'We use industry-standard encryption and Firebase Auth to keep your account and personal information safe.' },

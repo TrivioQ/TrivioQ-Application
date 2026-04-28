@@ -1,8 +1,9 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '@trivioq/database';
 import { QuestionDropPayload } from '@trivioq/shared-types';
-import { requireAuth } from '../middleware/firebaseAuth';
+import { requireAuth } from '../middleware/firebase-auth';
 import { DIFFICULTY_POINTS, deductUserScores, upsertUserScores } from '../utils/scoring';
+import { getSettingNumber } from '../utils/settings';
 
 const router = express.Router();
 
@@ -245,8 +246,9 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
 
     if (!isSameDay) dropsReceivedToday = 0;
 
-    if (dropsReceivedToday >= 100) {
-      return res.status(429).json({ error: 'Too Many Requests' });
+    const premiumLimit = await getSettingNumber('max_drops_premium', 100);
+    if (dropsReceivedToday >= premiumLimit) {
+      return res.status(429).json({ error: `Daily drop limit reached (${premiumLimit}/day).` });
     }
 
     const questions = await prisma.question.findMany({

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Notification, useNotification } from '../context/NotificationContext';
+import { Notification, useNotification } from '../context/notification-context';
 
 // ---------------------------------------------------------------------------
 // Per-toast styles

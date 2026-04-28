@@ -1,7 +1,7 @@
-import { AdminGuard } from '@/components/AdminGuard';
+import { AdminGuard } from '@/components/admin-guard';
 import Link from 'next/link';
-import { LayoutDashboard, Users, HelpCircle, Tags, LogOut, MessageSquareQuote } from 'lucide-react';
-import { logoutAction } from '@/app/actions/auth.actions';
+import { LayoutDashboard, Users, HelpCircle, Tags, LogOut, MessageSquareQuote, Settings } from 'lucide-react';
+import { logoutAction } from '@/app/actions/auth-actions';
  
 export default function AdminLayout({
   children,
@@ -36,6 +36,10 @@ export default function AdminLayout({
             <Link href="/faqs" className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors font-medium">
               <MessageSquareQuote size={20} className="text-gray-400" />
               <span>FAQs</span>
+            </Link>
+            <Link href="/app-settings" className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors font-medium">
+              <Settings size={20} className="text-gray-400" />
+              <span>App Settings</span>
             </Link>
           </nav>
  

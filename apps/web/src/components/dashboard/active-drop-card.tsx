@@ -60,6 +60,23 @@ export default function ActiveDropCard() {
   const [revealLoading, setRevealLoading] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
+  const [onDemandLoading, setOnDemandLoading] = useState(false);
+  const [onDemandError, setOnDemandError] = useState<string | null>(null);
+
+  const handleOnDemand = async () => {
+    setOnDemandLoading(true);
+    setOnDemandError(null);
+    try {
+      await makeAPICallV1('drops/on-demand', { method: 'POST' });
+      resetState();
+      fetchActiveDrop();
+    } catch (err) {
+      const msg = err instanceof APIError ? err.message : 'Failed to request a new drop.';
+      setOnDemandError(msg);
+    } finally {
+      setOnDemandLoading(false);
+    }
+  };
 
   const fetchActiveDrop = useCallback(async () => {
     setLoading(true);
@@ -302,15 +319,21 @@ export default function ActiveDropCard() {
                 <p className='text-xs text-gray-500 mt-2'>
                   Streak: {submitResult.newStreak} 🔥 · Total: {submitResult.newTotalScore.toLocaleString()} pts
                 </p>
-                <button
-                  onClick={() => {
-                    resetState();
-                    fetchActiveDrop();
-                  }}
-                  className='mt-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 px-4 py-1.5 text-xs text-indigo-300 font-medium transition-colors'
-                >
-                  Check for Next Drop
-                </button>
+                <div className='flex gap-2 mt-3 flex-wrap justify-center'>
+                  <button
+                    onClick={() => {
+                      resetState();
+                      fetchActiveDrop();
+                    }}
+                    className='rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 px-4 py-1.5 text-xs text-indigo-300 font-medium transition-colors'
+                  >
+                    Check for Next Drop
+                  </button>
+                  <button onClick={handleOnDemand} disabled={onDemandLoading} className='rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-xs text-purple-300 font-medium transition-colors'>
+                    {onDemandLoading ? 'Requesting…' : '⚡ Request Next Question'}
+                  </button>
+                </div>
+                {onDemandError && <p className='text-xs text-amber-400 text-center mt-2'>{onDemandError}</p>}
               </div>
             )}
           </>

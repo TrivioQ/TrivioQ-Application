@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '../context/AuthProvider';
+import { useAuth } from '../context/auth-provider';
 import { makeAPICallV1 } from '../lib/api';
 
 export interface UserProfile {

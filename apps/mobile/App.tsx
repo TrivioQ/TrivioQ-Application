@@ -4,8 +4,8 @@ import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 
-import { AuthProvider } from './src/context/AuthContext';
-import { AppNavigator, RootTabParamList } from './src/navigation/AppNavigator';
+import { AuthProvider } from './src/context/auth-context';
+import { AppNavigator, RootTabParamList } from './src/navigation/app-navigator';
 
 const queryClient = new QueryClient();
 

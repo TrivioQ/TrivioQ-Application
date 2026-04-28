@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { deleteCategory } from '@/app/actions/category.actions';
+import { deleteCategory } from '@/app/actions/category-actions';
 import { useState, useTransition } from 'react';
 import { Category, CategoryModal } from './category-modal';
 

@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import type { CategoryPopularity } from '@/app/actions/dashboard.actions';
+import type { CategoryPopularity } from '@/app/actions/dashboard-actions';
 
 // Indigo → purple gradient across bars
 const BAR_COLORS = [

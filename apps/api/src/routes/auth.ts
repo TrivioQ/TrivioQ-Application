@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
 import { prisma } from '@trivioq/database';
-import { verifyFirebaseToken } from '../middleware/firebaseAuth';
+import { verifyFirebaseToken } from '../middleware/firebase-auth';
 
 const router = express.Router();
 

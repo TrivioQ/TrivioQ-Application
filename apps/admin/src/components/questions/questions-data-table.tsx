@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/table';
 import { buttonVariants } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { PaginatedQuestionsResult } from '@/app/actions/question.actions';
+import type { PaginatedQuestionsResult } from '@/app/actions/question-actions';
 
 interface Props<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

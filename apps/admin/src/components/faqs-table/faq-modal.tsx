@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { createFAQ, updateFAQ } from '@/app/actions/faq.actions';
+import { createFAQ, updateFAQ } from '@/app/actions/faq-actions';
 import {
   Dialog,
   DialogContent,

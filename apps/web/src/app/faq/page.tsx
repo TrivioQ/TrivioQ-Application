@@ -1,4 +1,4 @@
-import { makeServerAPICallV1 } from '../../lib/apiServer';
+import { makeServerAPICallV1 } from '../../lib/api-server';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

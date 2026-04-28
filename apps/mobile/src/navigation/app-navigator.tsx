@@ -6,13 +6,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigatorScreenParams } from '@react-navigation/native';
 
 // Screens
-import HomeDashboard from '../screens/HomeDashboard';
-import DropActive from '../screens/DropActive';
-import LeaderboardScreen from '../screens/LeaderboardScreen';
-import HistoryScreen from '../screens/HistoryScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import TermsScreen from '../screens/TermsScreen';
-import PrivacyScreen from '../screens/PrivacyScreen';
+import HomeDashboard from '../screens/home-dashboard';
+import DropActive from '../screens/drop-active';
+import LeaderboardScreen from '../screens/leaderboard-screen';
+import HistoryScreen from '../screens/history-screen';
+import ProfileScreen from '../screens/profile-screen';
+import TermsScreen from '../screens/terms-screen';
+import PrivacyScreen from '../screens/privacy-screen';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
