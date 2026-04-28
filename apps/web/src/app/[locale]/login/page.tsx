@@ -62,7 +62,16 @@ export default function LoginPage() {
               <label className='sr-only' htmlFor='email'>
                 {t('emailLabel')}
               </label>
-              <input id='email' type='email' required className='relative block w-full rounded-t-md border-0 bg-gray-800 py-3 px-4 text-white ring-1 ring-inset ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6' placeholder={t('emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} disabled={isPending} />
+              <input
+                id='email'
+                type='email'
+                required
+                className='relative block w-full rounded-t-md border-0 bg-gray-800 py-3 px-4 text-white ring-1 ring-inset ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6'
+                placeholder={t('emailPlaceholder')}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isPending}
+              />
             </div>
             <div>
               <label className='sr-only' htmlFor='password'>

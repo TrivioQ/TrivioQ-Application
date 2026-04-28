@@ -192,7 +192,9 @@ export function Navbar() {
                           <p className='text-xs text-gray-400 truncate mt-0.5'>{user.email}</p>
                           {/* Streak & score on mobile (also shown inside dropdown) */}
                           <div className='flex gap-3 mt-2 sm:hidden'>
-                            <span className='text-xs text-orange-300'>🔥 {profile?.currentStreak ?? 0} {t('streak')}</span>
+                            <span className='text-xs text-orange-300'>
+                              🔥 {profile?.currentStreak ?? 0} {t('streak')}
+                            </span>
                             <span className='text-xs text-indigo-300'>⭐ {(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
                           </div>
                         </div>
@@ -275,7 +277,9 @@ export function Navbar() {
                     <div className='flex gap-3 px-4 py-3'>
                       <div className='flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/25'>
                         <span>🔥</span>
-                        <span className='text-sm font-bold text-orange-300'>{profile?.currentStreak ?? 0} {t('streak')}</span>
+                        <span className='text-sm font-bold text-orange-300'>
+                          {profile?.currentStreak ?? 0} {t('streak')}
+                        </span>
                       </div>
                       <div className='flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/25'>
                         <span>⭐</span>

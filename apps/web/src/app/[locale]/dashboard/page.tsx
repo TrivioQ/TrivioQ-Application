@@ -193,7 +193,9 @@ export default async function WebDashboard() {
 
                   {/* Points */}
                   <div className='shrink-0 text-right'>
-                    <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-indigo-400' : 'text-gray-600'}`}>{drop.pointsAwarded > 0 ? `+${drop.pointsAwarded}` : '0'} {t('pts')}</p>
+                    <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-indigo-400' : 'text-gray-600'}`}>
+                      {drop.pointsAwarded > 0 ? `+${drop.pointsAwarded}` : '0'} {t('pts')}
+                    </p>
                   </div>
                 </div>
               ))}
