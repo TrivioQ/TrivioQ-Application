@@ -31,7 +31,7 @@
       "name": "Debug Web (Client)",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:3011",
+      "url": "http://localhost:3011/en",
       "webRoot": "${workspaceFolder}/apps/web"
     },
     {
@@ -51,7 +51,7 @@
       "name": "Debug Admin (Client)",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:3012",
+      "url": "http://localhost:3012/en",
       "webRoot": "${workspaceFolder}/apps/admin"
     }
   ],
