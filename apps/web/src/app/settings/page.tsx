@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { makeServerAPICallV1 } from '../../lib/api-server';
-import { settings-form } from './settings-form';
+import { SettingsForm } from './settings-form';
 
 export const metadata = {
   title: 'Settings | TrivioQ',
@@ -33,7 +33,7 @@ export default async function SettingsPage() {
           <p className='text-gray-400 mt-2'>Manage your preferences and account security.</p>
         </div>
 
-        <settings-form initialUser={user} />
+        <SettingsForm initialUser={user} />
       </div>
     </div>
   );
