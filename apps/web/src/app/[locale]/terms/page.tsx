@@ -1,5 +1,5 @@
 import { marked } from 'marked';
-import { env } from '../../../env.mjs';
+import { env } from '@/../env.mjs';
 
 export const metadata = {
   title: 'Terms of Service | TrivioQ',

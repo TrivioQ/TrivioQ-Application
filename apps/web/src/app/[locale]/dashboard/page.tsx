@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { makeServerAPICallV1 } from '../../lib/api-server';
-import { ScoreTrendChart, ScorePeriod } from '../../components/dashboard/score-trend-chart';
+import { makeServerAPICallV1 } from '@/lib/api-server';
+import { ScoreTrendChart, ScorePeriod } from '@/components/dashboard/score-trend-chart';
 
 export const metadata = {
   title: 'Dashboard | TrivioQ',

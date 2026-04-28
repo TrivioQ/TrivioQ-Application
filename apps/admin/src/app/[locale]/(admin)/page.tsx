@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import {
   getDashboardMetrics,
   getDailyActiveUsers,
@@ -15,6 +16,8 @@ import { DailyActiveUsersChart } from '@/components/charts/daily-active-users-ch
 import { CategoryPopularityChart } from '@/components/charts/category-popularity-chart';
 
 export default async function DashboardPage() {
+  const t = useTranslations('dashboard');
+  
   // Fetch all data concurrently
   const [metrics, dauData, categoryData] = await Promise.all([
     getDashboardMetrics(),
@@ -25,12 +28,12 @@ export default async function DashboardPage() {
   const cards = [
     {
       id: 'total-users',
-      title: 'Total Users',
+      title: t('metrics.totalUsers'),
       icon: Users,
       iconColor: 'text-blue-600',
       iconBg: 'bg-blue-100',
       value: metrics.totalUsers.toLocaleString(),
-      description: `${metrics.newUsersThisMonth} new users this month`,
+      description: t('metrics.newUsersMonth', { count: metrics.newUsersThisMonth }),
       badge: {
         label: `+${metrics.userGrowthPct}%`,
         positive: metrics.userGrowthPct >= 0,
@@ -38,32 +41,32 @@ export default async function DashboardPage() {
     },
     {
       id: 'active-drops',
-      title: 'Active Drops Today',
+      title: t('metrics.activeDrops'),
       icon: Zap,
       iconColor: 'text-amber-600',
       iconBg: 'bg-amber-100',
       value: metrics.activeDropsToday.toLocaleString(),
-      description: 'Drops scheduled in the last 24 hours',
+      description: t('metrics.activeDropsDesc'),
       badge: null,
     },
     {
       id: 'premium-conversion',
-      title: 'Premium Conversion',
+      title: t('metrics.premiumConversion'),
       icon: Star,
       iconColor: 'text-purple-600',
       iconBg: 'bg-purple-100',
       value: `${metrics.premiumConversionRate}%`,
-      description: `${metrics.premiumUsers} of ${metrics.totalUsers} users are Premium`,
+      description: t('metrics.premiumDesc', { premium: metrics.premiumUsers, total: metrics.totalUsers }),
       badge: null,
     },
     {
       id: 'global-accuracy',
-      title: 'Global Accuracy',
+      title: t('metrics.globalAccuracy'),
       icon: Target,
       iconColor: 'text-green-600',
       iconBg: 'bg-green-100',
       value: `${metrics.globalAccuracy}%`,
-      description: `${metrics.correctDrops.toLocaleString()} correct out of ${metrics.totalAnsweredDrops.toLocaleString()} answered`,
+      description: t('metrics.accuracyDesc', { correct: metrics.correctDrops.toLocaleString(), total: metrics.totalAnsweredDrops.toLocaleString() }),
       badge: null,
     },
   ];
@@ -71,9 +74,9 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
         <p className="text-gray-500 mt-2">
-          A real-time overview of your TrivioQ platform&apos;s health and engagement.
+          {t('overview')}
         </p>
       </div>
 
@@ -126,16 +129,16 @@ export default async function DashboardPage() {
         <Card className="bg-white shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-semibold text-gray-900">
-              Daily Active Users
+              {t('dau.title')}
             </CardTitle>
             <CardDescription>
-              Unique users who received a drop — last 30 days
+              {t('dau.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {dauData.length === 0 ? (
               <div className="flex h-[280px] items-center justify-center text-sm text-gray-400">
-                No drop activity in the last 30 days.
+                {t('dau.empty')}
               </div>
             ) : (
               <DailyActiveUsersChart data={dauData} />
@@ -147,16 +150,16 @@ export default async function DashboardPage() {
         <Card className="bg-white shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-semibold text-gray-900">
-              Category Popularity
+              {t('categories.title')}
             </CardTitle>
             <CardDescription>
-              Top 10 categories by number of assigned questions
+              {t('categories.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {categoryData.length === 0 ? (
               <div className="flex h-[280px] items-center justify-center text-sm text-gray-400">
-                No categories with questions yet.
+                {t('categories.empty')}
               </div>
             ) : (
               <CategoryPopularityChart data={categoryData} />

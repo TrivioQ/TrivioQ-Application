@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { makeServerAPICallV1 } from '../../lib/api-server';
+import { makeServerAPICallV1 } from '@/lib/api-server';
 import { SettingsForm } from './settings-form';
 
 export const metadata = {

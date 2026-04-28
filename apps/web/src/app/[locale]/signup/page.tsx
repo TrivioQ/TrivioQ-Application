@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuthSync } from '../../hooks/use-auth-sync';
-import { useAuth } from '../../context/auth-provider';
+import { useAuthSync } from '@/hooks/use-auth-sync';
+import { useAuth } from '@/context/auth-provider';
 
 const inputClass = 'relative block w-full border-0 bg-gray-800 py-3 px-4 text-white ring-1 ring-inset ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6';
 

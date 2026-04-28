@@ -1,0 +1,27 @@
+{
+  "common": {
+    "score": "Score",
+    "leaderboard": "Leaderboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": "Login",
+    "signup": "Signup",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "retry": "Retry",
+    "cancel": "Cancel"
+  },
+  "home": {
+    "welcome": "Welcome to TrivioQ!",
+    "subtitle": "Your daily trivia drops await.",
+    "activeDrop": "Active Drop",
+    "expiredDrop": "Drop Expired",
+    "streak": "Current Streak",
+    "totalScore": "Total Score",
+    "editPreferences": "Edit Preferences",
+    "requestNext": "Request Next Question",
+    "requesting": "Requesting..."
+  }
+}

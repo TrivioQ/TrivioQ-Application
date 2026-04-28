@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, Modal } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
 import { QuestionDropPayload } from '@trivioq/shared-types';
@@ -15,6 +16,7 @@ function formatTime(seconds: number) {
 }
 
 function ActiveDropBanner({ drop, navigation }: { drop: QuestionDropPayload; navigation: any }) {
+  const { t } = useTranslation();
   const [timeLeft, setTimeLeft] = useState<number>(() => Math.max(0, Math.floor((drop.expiresAt - Date.now()) / 1000)));
   const [isExpired, setIsExpired] = useState(timeLeft === 0);
 
@@ -44,7 +46,7 @@ function ActiveDropBanner({ drop, navigation }: { drop: QuestionDropPayload; nav
         <View style={styles.bannerLeft}>
           {!isExpired && <View style={styles.pulseDot} />}
           <View>
-            <Text style={styles.bannerTitle}>{isExpired ? '⏱ Drop Expired' : '🎯 Active Drop'}</Text>
+            <Text style={styles.bannerTitle}>{isExpired ? t('home.expiredDrop') : t('home.activeDrop')}</Text>
             <View style={styles.bannerBadgesRow}>
               <Text style={[styles.diffBadge, { color: diffColor }]}>{drop.difficulty.toUpperCase()}</Text>
               <Text style={styles.catBadge}>{drop.category}</Text>
@@ -62,6 +64,7 @@ function ActiveDropBanner({ drop, navigation }: { drop: QuestionDropPayload; nav
 }
 
 export default function HomeDashboard({ navigation }: any) {
+  const { t } = useTranslation();
   const { userId } = useAuth();
   const queryClient = useQueryClient();
   const [isPaywallVisible, setIsPaywallVisible] = useState(false);
@@ -113,8 +116,8 @@ export default function HomeDashboard({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to TrivioQ!</Text>
-      <Text style={styles.subtitle}>Your daily trivia drops await.</Text>
+      <Text style={styles.title}>{t('home.welcome')}</Text>
+      <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
 
       {/* Active Drop Banner */}
       {dropLoading ? (
@@ -144,19 +147,19 @@ export default function HomeDashboard({ navigation }: any) {
         <View style={styles.metricsContainer}>
           <View style={styles.metricCard}>
             <Text style={styles.metricValue}>🔥 {profileData.currentStreak}</Text>
-            <Text style={styles.metricLabel}>Current Streak</Text>
+            <Text style={styles.metricLabel}>{t('home.streak')}</Text>
           </View>
           <View style={styles.metricCard}>
             <Text style={styles.metricValue}>🏆 {profileData.cumulativeScore}</Text>
-            <Text style={styles.metricLabel}>Total Score</Text>
+            <Text style={styles.metricLabel}>{t('home.totalScore')}</Text>
           </View>
         </View>
       )}
 
       <View style={styles.buttonContainer}>
-        <Button title='Edit Preferences' onPress={() => navigation.navigate('Preferences')} />
+        <Button title={t('home.editPreferences')} onPress={() => navigation.navigate('Preferences')} />
         <View style={{ height: 15 }} />
-        <Button title={onDemandMutation.isPending ? 'Requesting...' : 'Request Next Question'} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending} color='#9b59b6' />
+        <Button title={onDemandMutation.isPending ? t('home.requesting') : t('home.requestNext')} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending} color='#9b59b6' />
       </View>
 
       <Modal visible={isPaywallVisible} animationType='slide' transparent={true}>

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuthSync } from '../../hooks/use-auth-sync';
-import { useAuth } from '../../context/auth-provider';
+import { useAuthSync } from '@/hooks/use-auth-sync';
+import { useAuth } from '@/context/auth-provider';
 
 export default function LoginPage() {
   const router = useRouter();

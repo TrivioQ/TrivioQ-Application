@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
+import './src/i18n';
 
 import { AuthProvider } from './src/context/auth-context';
 import { AppNavigator, RootTabParamList } from './src/navigation/app-navigator';

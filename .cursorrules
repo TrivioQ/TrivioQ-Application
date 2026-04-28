@@ -4,6 +4,7 @@ You are an expert AI coding assistant specialized in full-stack TypeScript devel
 
 ## Project Architecture
 - **Naming Convention**: All filenames MUST be lowercase and use hyphens (`-`) for multiple words (e.g., `user-profile.tsx`). Exceptions are allowed only where mandatory (e.g., `README.md`, `.env.example`, or specific framework files like `layout.tsx`).
+- **Localization (i18n)**: All user-facing text MUST be localized. Never hardcode strings in UI components. Use the appropriate i18n hook (e.g., `useTranslations` in Web/Admin, `useTranslation` in Mobile) and add the strings to the corresponding translation files (e.g., `en.json`).
 - **Monorepo**: Turbo + Yarn Workspaces
 - **Apps**:
   - `apps/api`: Express.js backend.

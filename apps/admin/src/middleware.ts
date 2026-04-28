@@ -1,73 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
+import createMiddleware from 'next-intl/middleware';
 
-/**
- * Runs on the Edge runtime — no Prisma, no Node.js APIs.
- * For role verification it calls the internal /api/auth/me Route Handler
- * which runs in the Node.js runtime and can use Prisma.
- */
+const intlMiddleware = createMiddleware({
+  locales: ['en'],
+  defaultLocale: 'en'
+});
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // ── Public routes — always allow through ──────────────────────────────────
+  // 1. Handle locale routing with next-intl
+  const response = intlMiddleware(req);
+
+  // 2. Auth check logic
+  // Check if route is public (considering locale prefix)
   const isPublic =
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/403') ||
-    pathname.startsWith('/api/auth/me'); // prevent recursive self-calls
+    pathname.match(/^\/(en)?\/?login/) ||
+    pathname.match(/^\/(en)?\/?403/) ||
+    pathname.startsWith('/api/auth/me');
 
   if (isPublic) {
-    return NextResponse.next();
+    return response;
   }
 
-  // ── Fast pre-check: cookie missing → redirect immediately ─────────────────
+  // Fast pre-check: cookie missing
   const sessionCookie = req.cookies.get('firebase-token');
-
   if (!sessionCookie) {
-    const loginUrl = req.nextUrl.clone();
-    loginUrl.pathname = '/login';
+    const loginUrl = new URL('/en/login', req.url);
     return NextResponse.redirect(loginUrl);
   }
 
-  // ── Call the internal /api/auth/me handler to verify role ─────────────────
+  // Verify role via internal API
   try {
     const meUrl = new URL('/api/auth/me', req.url);
     const meRes = await fetch(meUrl.toString(), {
       headers: {
-        // Forward the session cookie to the internal route handler
         cookie: req.headers.get('cookie') ?? '',
       },
     });
 
     if (!meRes.ok) {
-      // Cookie exists but user not found or DB error → redirect to login
-      const loginUrl = req.nextUrl.clone();
-      loginUrl.pathname = '/login';
-      loginUrl.searchParams.set('error', 'Unauthorized Access');
-      return NextResponse.redirect(loginUrl);
+      return NextResponse.redirect(new URL('/en/login?error=Unauthorized Access', req.url));
     }
 
     const data = (await meRes.json()) as { role?: string };
-
     if (data.role !== 'ADMIN') {
-      // Valid user but not an admin
-      const loginUrl = req.nextUrl.clone();
-      loginUrl.pathname = '/login';
-      loginUrl.searchParams.set('error', 'Unauthorized Access');
-      return NextResponse.redirect(loginUrl);
+      return NextResponse.redirect(new URL('/en/login?error=Unauthorized Access', req.url));
     }
 
-    // ADMIN confirmed — allow the request through
-    return NextResponse.next();
+    return response;
   } catch (err) {
-    // Network/fetch error calling internal endpoint — fail closed
     console.error('[middleware] auth check failed:', err);
-    const loginUrl = req.nextUrl.clone();
-    loginUrl.pathname = '/login';
-    loginUrl.searchParams.set('error', 'Unauthorized Access');
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL('/en/login?error=Unauthorized Access', req.url));
   }
 }
 
 export const config = {
-  // Run on every route EXCEPT static assets, images, and favicons
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { makeServerAPICallV1 } from '../../lib/api-server';
-import { ScoreHistoryTabs } from '../../components/score-history-tabs';
+import { makeServerAPICallV1 } from '@/lib/api-server';
+import { ScoreHistoryTabs } from '@/components/score-history-tabs';
 import { cookies } from 'next/headers';
 
 export const metadata = {

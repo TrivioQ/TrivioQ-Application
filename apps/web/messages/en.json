@@ -1,0 +1,50 @@
+{
+  "common": {
+    "score": "Score",
+    "leaderboard": "Leaderboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": "Login",
+    "signup": "Signup",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "home": {
+    "badge": "Now available on iOS & Android",
+    "titlePrefix": "Master the World Through",
+    "titleHighlight": "Spontaneous Micro-Learning",
+    "description": "TrivioQ drops bite-sized, high-quality trivia directly to your device throughout the day. Build your knowledge organically, without dedicating hours to study.",
+    "downloadButton": "Download App",
+    "leaderboardLink": "View Global Leaderboard",
+    "features": {
+      "tagline": "Learn Faster",
+      "heading": "Knowledge engineered for the modern attention span",
+      "rapidFire": {
+        "title": "Rapid Fire Drops",
+        "description": "Receive unexpected, high-quality questions delivered right when you least expect them. You have 15 minutes to answer or the drop expires."
+      },
+      "smartTailoring": {
+        "title": "Smart Tailoring",
+        "description": "Adjust your active windows and category preferences. Our algorithm learns and adapts to your difficulty level to keep you challenged."
+      },
+      "globalCompetition": {
+        "title": "Global Competition",
+        "description": "Maintain your daily streak and climb the global leaderboards. Challenge your friends to beat your high score and earn bragging rights."
+      }
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome to TrivioQ!",
+    "subtitle": "Your daily trivia drops await.",
+    "activeDrop": "Active Drop",
+    "expiredDrop": "Drop Expired",
+    "currentStreak": "Current Streak",
+    "totalScore": "Total Score"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your account settings and trivia preferences."
+  }
+}

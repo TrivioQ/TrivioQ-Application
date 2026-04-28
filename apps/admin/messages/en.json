@@ -1,0 +1,40 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "questions": "Questions",
+    "categories": "Categories",
+    "faqs": "FAQs",
+    "settings": "Settings",
+    "logout": "Logout",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create"
+  },
+  "dashboard": {
+    "title": "Admin Dashboard",
+    "overview": "A real-time overview of your TrivioQ platform's health and engagement.",
+    "metrics": {
+      "totalUsers": "Total Users",
+      "newUsersMonth": "{count} new users this month",
+      "activeDrops": "Active Drops Today",
+      "activeDropsDesc": "Drops scheduled in the last 24 hours",
+      "premiumConversion": "Premium Conversion",
+      "premiumDesc": "{premium} of {total} users are Premium",
+      "globalAccuracy": "Global Accuracy",
+      "accuracyDesc": "{correct} correct out of {total} answered"
+    },
+    "dau": {
+      "title": "Daily Active Users",
+      "description": "Unique users who received a drop — last 30 days",
+      "empty": "No drop activity in the last 30 days."
+    },
+    "categories": {
+      "title": "Category Popularity",
+      "description": "Top 10 categories by number of assigned questions",
+      "empty": "No categories with questions yet."
+    }
+  }
+}

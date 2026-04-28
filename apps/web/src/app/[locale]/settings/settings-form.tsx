@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useNotification } from '../../context/notification-context';
-import { makeAPICallV1 } from '../../lib/api';
-import { useAuth } from '../../context/auth-provider';
-import { ConfirmModal } from '../../components/confirm-modal';
+import { useNotification } from '@/context/notification-context';
+import { makeAPICallV1 } from '@/lib/api';
+import { useAuth } from '@/context/auth-provider';
+import { ConfirmModal } from '@/components/confirm-modal';
 
 interface Preferences {
   difficultyPercentages: Record<string, number>;
