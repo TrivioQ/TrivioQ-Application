@@ -15,6 +15,7 @@ import {
 import { deleteFAQ } from '@/app/actions/faq-actions';
 import { useState, useTransition } from 'react';
 import { FAQModal } from './faq-modal';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 export type FAQRow = {
   id: string;
@@ -61,20 +62,25 @@ export const columns: ColumnDef<FAQRow>[] = [
 function FAQActions({ faq }: { faq: FAQRow }) {
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
+  const confirm = useConfirm();
 
-  const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete this FAQ? This action cannot be undone.`)) {
-      startTransition(async () => {
-        const res = await deleteFAQ(faq.id);
-        if (!res.success) alert(res.error);
-      });
-    }
+  const handleDelete = async () => {
+    const ok = await confirm({
+      title: 'Delete FAQ',
+      message: 'Are you sure you want to delete this FAQ? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      isDestructive: true,
+    });
+    if (!ok) return;
+    startTransition(async () => {
+      const res = await deleteFAQ(faq.id);
+      if (!res.success) console.error(res.error);
+    });
   };
 
   return (
     <>
       <FAQModal faq={faq} open={editOpen} onOpenChange={setEditOpen} />
-
       <DropdownMenu>
         <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>
           <span className="sr-only">Open menu</span>

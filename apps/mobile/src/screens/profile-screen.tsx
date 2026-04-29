@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { useConfirm } from '../components/confirm-modal';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
@@ -29,6 +30,7 @@ function getInitials(displayName: string | null, email: string) {
 export default function ProfileScreen({ navigation }: any) {
   const { t } = useTranslation();
   const { userId, logout } = useAuth();
+  const confirm = useConfirm();
 
   const { data, isLoading } = useQuery<UserProfile>({
     queryKey: ['userProfile', userId],
@@ -39,11 +41,15 @@ export default function ProfileScreen({ navigation }: any) {
     enabled: !!userId,
   });
 
-  const handleLogout = () => {
-    Alert.alert(t('profile.signOutAlertTitle'), t('profile.signOutAlertBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('profile.signOutConfirm'), style: 'destructive', onPress: () => logout() },
-    ]);
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: t('profile.signOutAlertTitle'),
+      message: t('profile.signOutAlertBody'),
+      confirmLabel: t('profile.signOutConfirm'),
+      cancelLabel: t('common.cancel'),
+      isDestructive: true,
+    });
+    if (ok) logout();
   };
 
   if (isLoading) {

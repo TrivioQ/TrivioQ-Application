@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useNotification } from '@/context/notification-context';
 import { makeAPICallV1 } from '@/lib/api';
 import { useAuth } from '@/context/auth-provider';
-import { ConfirmModal } from '@/components/confirm-modal';
+import { useConfirm } from '@/components/confirm-modal';
 
 interface Preferences {
   difficultyPercentages: Record<string, number>;
@@ -20,7 +20,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
   const { success: notifySuccess, error: notifyError, info: notifyInfo } = useNotification();
   const t = useTranslations('settings');
   const [isPending, setIsPending] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const confirm = useConfirm();
 
   const initialPrefs: Preferences = initialUser.preferences || {
     difficultyPercentages: { EASY: 40, MEDIUM: 40, HARD: 20 },
@@ -103,7 +103,14 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
   };
 
   const handleDeleteAccount = async () => {
-    setShowDeleteConfirm(false);
+    const ok = await confirm({
+      title: t('deleteModalTitle'),
+      message: t('deleteModalMessage'),
+      confirmLabel: t('deleteConfirmLabel'),
+      cancelLabel: t('deleteCancelLabel'),
+      isDestructive: true,
+    });
+    if (!ok) return;
     setIsPending(true);
     try {
       // 1. Delete from backend
@@ -220,12 +227,10 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
           <p className='text-sm text-gray-500 text-red-400/60'>{t('dangerZoneDesc')}</p>
         </div>
 
-        <button onClick={() => setShowDeleteConfirm(true)} disabled={isPending} className='bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-6 py-2.5 rounded-xl text-sm font-bold transition-all'>
+        <button onClick={handleDeleteAccount} disabled={isPending} className='bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-6 py-2.5 rounded-xl text-sm font-bold transition-all'>
           {t('deleteAccount')}
         </button>
       </section>
-
-      <ConfirmModal isOpen={showDeleteConfirm} title={t('deleteModalTitle')} message={t('deleteModalMessage')} confirmLabel={t('deleteConfirmLabel')} cancelLabel={t('deleteCancelLabel')} onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteConfirm(false)} isDestructive />
     </div>
   );
 }

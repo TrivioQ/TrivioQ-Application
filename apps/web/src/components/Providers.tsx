@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { AuthProvider } from '../context/auth-provider';
 import { NotificationProvider } from '../context/notification-context';
 import { Toaster } from './toaster';
+import { ConfirmProvider } from './confirm-modal';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -13,8 +14,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <NotificationProvider>
       <AuthProvider>
         <QueryClientProvider client={queryClient}>
-          {children}
-          <Toaster />
+          <ConfirmProvider>
+            {children}
+            <Toaster />
+          </ConfirmProvider>
         </QueryClientProvider>
       </AuthProvider>
     </NotificationProvider>

@@ -1,4 +1,5 @@
 import { AdminGuard } from '@/components/admin-guard';
+import { ConfirmProvider } from '@/components/ui/confirm-dialog';
 import Link from 'next/link';
 import { LayoutDashboard, Users, HelpCircle, Tags, LogOut, MessageSquareQuote, Settings } from 'lucide-react';
 import { logoutAction } from '@/app/actions/auth-actions';
@@ -9,6 +10,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
+    <ConfirmProvider>
     <AdminGuard>
       <div className="flex h-screen overflow-hidden bg-gray-50 text-gray-900">
         {/* Sidebar */}
@@ -65,5 +67,6 @@ export default function AdminLayout({
         </main>
       </div>
     </AdminGuard>
+    </ConfirmProvider>
   );
 }

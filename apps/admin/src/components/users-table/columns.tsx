@@ -16,6 +16,7 @@ import { deleteUser, toggleUserTier } from '@/app/actions/user-actions';
 import { SubscriptionTier } from '@trivioq/database';
 import { useState, useTransition } from 'react';
 import { UserModal } from './user-modal';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 // Using a partial User type since we don't need everything
 export type UserRow = {
@@ -64,6 +65,7 @@ export const columns: ColumnDef<UserRow>[] = [
 function UserActions({ user }: { user: UserRow }) {
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
+  const confirm = useConfirm();
 
   const handleToggleTier = () => {
     startTransition(async () => {
@@ -71,19 +73,23 @@ function UserActions({ user }: { user: UserRow }) {
     });
   };
 
-  const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete "${user.username}"? This action cannot be undone.`)) {
-      startTransition(async () => {
-        const res = await deleteUser(user.id);
-        if (!res.success) alert(res.error);
-      });
-    }
+  const handleDelete = async () => {
+    const ok = await confirm({
+      title: `Delete "${user.username}"?`,
+      message: 'This action cannot be undone.',
+      confirmLabel: 'Delete User',
+      isDestructive: true,
+    });
+    if (!ok) return;
+    startTransition(async () => {
+      const res = await deleteUser(user.id);
+      if (!res.success) console.error(res.error);
+    });
   };
 
   return (
     <>
       <UserModal user={user} open={editOpen} onOpenChange={setEditOpen} />
-
       <DropdownMenu>
         <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>
           <span className="sr-only">Open menu</span>

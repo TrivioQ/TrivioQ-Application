@@ -85,6 +85,7 @@
     "emailPlaceholder": "Email address",
     "passwordLabel": "Password",
     "passwordPlaceholder": "Password",
+    "keepMeLoggedIn": "Keep me logged in",
     "orContinueWith": "Or continue with",
     "createTitle": "Create your account",
     "createSubtitle": "Already have an account?",

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
 import { makeAPICallV1, APIError } from '../../lib/api';
+import { useConfirm } from '../confirm-modal';
 
 interface ActiveDrop {
   dropId: string;
@@ -66,6 +67,8 @@ export default function ActiveDropCard() {
   const [error, setError] = useState<string | null>(null);
   const [onDemandLoading, setOnDemandLoading] = useState(false);
   const [onDemandError, setOnDemandError] = useState<string | null>(null);
+
+  const confirm = useConfirm();
 
   const handleOnDemand = async () => {
     setOnDemandLoading(true);
@@ -142,7 +145,11 @@ export default function ActiveDropCard() {
 
   const handleHint = async () => {
     if (!drop || hintText || hintLoading || isExpired || drop.usedHint) return;
-    if (!window.confirm(t('hintConfirm', { cost: drop.hintCost }))) return;
+    const ok = await confirm({
+      title: t('hintLabel', { cost: drop.hintCost }),
+      message: t('hintConfirm', { cost: drop.hintCost }),
+    });
+    if (!ok) return;
     setHintLoading(true);
     try {
       const result = await makeAPICallV1<{ hintText: string; hintCost: number }>(`drops/${drop.dropId}/hint`, { method: 'POST' });
@@ -158,7 +165,12 @@ export default function ActiveDropCard() {
 
   const handleReveal = async () => {
     if (!drop || revealedCorrectIndex !== null || revealLoading || submitResult) return;
-    if (!window.confirm(t('revealConfirm'))) return;
+    const ok = await confirm({
+      title: t('showAnswer'),
+      message: t('revealConfirm'),
+      isDestructive: true,
+    });
+    if (!ok) return;
     setRevealLoading(true);
     try {
       const result = await makeAPICallV1<{ correctOptionIndex: number }>(`drops/${drop.dropId}/reveal-answer`, { method: 'POST' });

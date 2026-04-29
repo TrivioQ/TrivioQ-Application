@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, ScrollView, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, ScrollView, Modal } from 'react-native';
+import { useConfirm } from '../components/confirm-modal';
+import { useToast } from '../components/toast';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
@@ -10,6 +12,8 @@ export default function DropActive() {
   const { t } = useTranslation();
   const { userId } = useAuth();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
+  const toast = useToast();
 
   const [isRevealed, setIsRevealed] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
@@ -19,11 +23,8 @@ export default function DropActive() {
   const [answerResult, setAnswerResult] = useState<any>(null);
   const [isPaywallVisible, setIsPaywallVisible] = useState(false);
 
-  // Hint state
   const [hintText, setHintText] = useState<string | null>(null);
   const [hintCostDeducted, setHintCostDeducted] = useState<number | null>(null);
-
-  // Reveal answer state
   const [revealedCorrectIndex, setRevealedCorrectIndex] = useState<number | null>(null);
 
   const onDemandMutation = useMutation({
@@ -83,7 +84,7 @@ export default function DropActive() {
     },
     onError: (err: any) => {
       const message = err.response?.data?.error || t('drop.hintAlertTitle');
-      Alert.alert(t('drop.hintAlertTitle'), message);
+      toast({ message, type: 'error' });
     },
   });
 
@@ -97,7 +98,7 @@ export default function DropActive() {
     },
     onError: (err: any) => {
       const message = err.response?.data?.error || t('drop.revealAlertTitle');
-      Alert.alert(t('common.error'), message);
+      toast({ message, type: 'error' });
     },
   });
 
@@ -165,20 +166,25 @@ export default function DropActive() {
     submitMutation.mutate(index);
   };
 
-  const handleHint = () => {
+  const handleHint = async () => {
     if (data.usedHint || hintText) return;
-    Alert.alert(t('drop.hintAlertTitle'), t('drop.hintAlertBody', { cost: data.hintCost }), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('drop.getHint'), onPress: () => hintMutation.mutate() },
-    ]);
+    const ok = await confirm({
+      title: t('drop.hintAlertTitle'),
+      message: t('drop.hintAlertBody', { cost: data.hintCost }),
+      confirmLabel: t('drop.getHint'),
+    });
+    if (ok) hintMutation.mutate();
   };
 
-  const handleRevealAnswer = () => {
+  const handleRevealAnswer = async () => {
     if (revealedCorrectIndex !== null || answerResult) return;
-    Alert.alert(t('drop.revealAlertTitle'), t('drop.revealAlertBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('drop.revealAlertConfirm'), style: 'destructive', onPress: () => revealMutation.mutate() },
-    ]);
+    const ok = await confirm({
+      title: t('drop.revealAlertTitle'),
+      message: t('drop.revealAlertBody'),
+      confirmLabel: t('drop.revealAlertConfirm'),
+      isDestructive: true,
+    });
+    if (ok) revealMutation.mutate();
   };
 
   const handleShare = async () => {
@@ -221,7 +227,10 @@ export default function DropActive() {
             <View style={styles.assistRow}>
               {hintText ? (
                 <View style={styles.hintBox}>
-                  <Text style={styles.hintLabel}>{t('drop.hintLabel')}{hintCostDeducted != null ? ` (−${hintCostDeducted} pts)` : ''}</Text>
+                  <Text style={styles.hintLabel}>
+                    {t('drop.hintLabel')}
+                    {hintCostDeducted != null ? ` (−${hintCostDeducted} pts)` : ''}
+                  </Text>
                   <Text style={styles.hintText}>{hintText}</Text>
                 </View>
               ) : (

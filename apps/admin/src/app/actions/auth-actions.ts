@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 export async function loginAction(prevState: unknown, formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
+  const keepMeLoggedIn = formData.get('keepMeLoggedIn') === 'on';
 
   if (!email || !password) {
     return { error: 'Email and password are required' };
@@ -28,8 +29,8 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     cookieStore.set('firebase-token', user.firebaseUid, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 7, // 1 week
       path: '/',
+      ...(keepMeLoggedIn ? { maxAge: 60 * 60 * 24 * 14 } : {}),
     });
   } catch (error) {
     console.error('[loginAction] Login failed:', error);

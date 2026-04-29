@@ -13,16 +13,18 @@ import { env } from '../../../../../env.mjs';
 const FIREBASE_SIGN_IN_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword';
 
 const COOKIE_NAME = 'tq_auth';
-const COOKIE_MAX_AGE_SECONDS = 60 * 60; // 1 hour — matches Firebase idToken TTL
+const COOKIE_MAX_AGE_14_DAYS = 60 * 60 * 24 * 14; // 14 days in seconds
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   let email: string | undefined;
   let password: string | undefined;
+  let keepMeLoggedIn = false;
 
   try {
     const body = await req.json();
     email = body?.email;
     password = body?.password;
+    keepMeLoggedIn = body?.keepMeLoggedIn === true;
   } catch {
     // fall through
   }
@@ -55,7 +57,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   // ── Step 2: Sync user record in Postgres ──────────────────────────────────
-  return syncAndRespond(idToken);
+  return syncAndRespond(idToken, {}, keepMeLoggedIn);
 }
 
 /** Map Firebase error codes to user-friendly messages. */
@@ -75,7 +77,7 @@ function mapFirebaseError(code: string): string {
 }
 
 /** Shared helper: calls backend sync, sets cookie, returns response. */
-export async function syncAndRespond(idToken: string, extraData: Record<string, string> = {}): Promise<NextResponse> {
+export async function syncAndRespond(idToken: string, extraData: Record<string, string> = {}, keepMeLoggedIn = false): Promise<NextResponse> {
   try {
     const upstream = await fetch(new URL('/v1/auth/sync', env.API_URL).toString(), {
       method: 'POST',
@@ -95,21 +97,21 @@ export async function syncAndRespond(idToken: string, extraData: Record<string, 
     const data = await upstream.json();
 
     const response = NextResponse.json(data, { status: 200 });
-    response.cookies.set(COOKIE_NAME, idToken, {
+
+    const cookieBase = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: COOKIE_MAX_AGE_SECONDS,
+      sameSite: true,
       path: '/',
-    });
+      ...(keepMeLoggedIn ? { maxAge: COOKIE_MAX_AGE_14_DAYS } : {}),
+    };
+
+    response.cookies.set(COOKIE_NAME, idToken, cookieBase);
 
     // Companion non-httpOnly cookie for client-side detection
     response.cookies.set('tq_session_active', 'true', {
+      ...cookieBase,
       httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: COOKIE_MAX_AGE_SECONDS,
-      path: '/',
     });
 
     return response;

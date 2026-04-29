@@ -7,6 +7,8 @@ import './src/i18n';
 
 import { AuthProvider } from './src/context/auth-context';
 import { AppNavigator, RootTabParamList } from './src/navigation/app-navigator';
+import { ConfirmProvider } from './src/components/confirm-modal';
+import { ToastProvider } from './src/components/toast';
 
 const queryClient = new QueryClient();
 
@@ -63,9 +65,13 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <NavigationContainer linking={linking}>
-          <AppNavigator />
-        </NavigationContainer>
+        <ToastProvider>
+          <ConfirmProvider>
+            <NavigationContainer linking={linking}>
+              <AppNavigator />
+            </NavigationContainer>
+          </ConfirmProvider>
+        </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

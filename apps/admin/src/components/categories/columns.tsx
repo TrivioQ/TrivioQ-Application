@@ -15,6 +15,7 @@ import {
 import { deleteCategory } from '@/app/actions/category-actions';
 import { useState, useTransition } from 'react';
 import { Category, CategoryModal } from './category-modal';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 type CategoryRow = Category & {
   _count: {
@@ -53,20 +54,25 @@ export const columns: ColumnDef<CategoryRow>[] = [
 function CategoryActions({ category }: { category: CategoryRow }) {
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
+  const confirm = useConfirm();
 
-  const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete "${category.name}"? Questions in this category will not be deleted, but will be removed from this category.`)) {
-      startTransition(async () => {
-        const res = await deleteCategory(category.id);
-        if (!res.success) alert(res.error);
-      });
-    }
+  const handleDelete = async () => {
+    const ok = await confirm({
+      title: `Delete "${category.name}"?`,
+      message: 'Questions in this category will not be deleted, but will be removed from this category.',
+      confirmLabel: 'Delete Category',
+      isDestructive: true,
+    });
+    if (!ok) return;
+    startTransition(async () => {
+      const res = await deleteCategory(category.id);
+      if (!res.success) console.error(res.error);
+    });
   };
 
   return (
     <>
       <CategoryModal category={category} open={editOpen} onOpenChange={setEditOpen} />
-      
       <DropdownMenu>
         <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>
           <span className="sr-only">Open menu</span>

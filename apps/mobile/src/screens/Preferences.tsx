@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { useToast } from '../components/toast';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
@@ -10,6 +11,7 @@ export default function Preferences({ navigation }: any) {
   const { t } = useTranslation();
   const { userId } = useAuth();
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const [activeWindowStart, setActiveWindowStart] = useState('09:00');
   const [activeWindowEnd, setActiveWindowEnd] = useState('17:00');
@@ -48,11 +50,12 @@ export default function Preferences({ navigation }: any) {
       }
     },
     onSuccess: () => {
-      Alert.alert(t('preferences.successTitle'), t('preferences.successBody'), [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      toast({ message: `${t('preferences.successTitle')}: ${t('preferences.successBody')}`, type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['userMe'] });
+      navigation.goBack();
     },
     onError: (error: any) => {
-      Alert.alert(t('preferences.errorTitle'), error.message);
+      toast({ message: error.message, type: 'error' });
     },
   });
 
@@ -62,7 +65,7 @@ export default function Preferences({ navigation }: any) {
     const h = parseFloat(hardWeight);
 
     if (isNaN(e) || isNaN(m) || isNaN(h)) {
-      Alert.alert(t('preferences.errorTitle'), t('preferences.validationError'));
+      toast({ message: t('preferences.validationError'), type: 'error' });
       return;
     }
 

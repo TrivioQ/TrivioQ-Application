@@ -17,6 +17,7 @@ import { DifficultyLevel } from '@trivioq/database';
 import { deleteQuestion, getCategories } from '@/app/actions/question-actions';
 import { useState, useTransition, useEffect } from 'react';
 import { QuestionModal } from './question-modal';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 export type QuestionRow = {
   id: string;
@@ -78,6 +79,7 @@ function QuestionActions({ question }: { question: QuestionRow }) {
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const confirm = useConfirm();
 
   useEffect(() => {
     if (editOpen && categories.length === 0) {
@@ -87,24 +89,28 @@ function QuestionActions({ question }: { question: QuestionRow }) {
     }
   }, [editOpen, categories.length]);
 
-  const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete this question? This action cannot be undone.`)) {
-      startTransition(async () => {
-        const res = await deleteQuestion(question.id);
-        if (!res.success) alert(res.error);
-      });
-    }
+  const handleDelete = async () => {
+    const ok = await confirm({
+      title: 'Delete Question?',
+      message: 'Are you sure you want to delete this question? This action cannot be undone.',
+      confirmLabel: 'Delete Question',
+      isDestructive: true,
+    });
+    if (!ok) return;
+    startTransition(async () => {
+      const res = await deleteQuestion(question.id);
+      if (!res.success) console.error(res.error);
+    });
   };
 
   return (
     <>
-      <QuestionModal 
-        question={question} 
-        categories={categories} 
-        open={editOpen} 
-        onOpenChange={setEditOpen} 
+      <QuestionModal
+        question={question}
+        categories={categories}
+        open={editOpen}
+        onOpenChange={setEditOpen}
       />
-
       <DropdownMenu>
         <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>
           <span className="sr-only">Open menu</span>

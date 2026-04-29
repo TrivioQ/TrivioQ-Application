@@ -13,6 +13,7 @@ export default function LoginPage() {
   const t = useTranslations('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [keepMeLoggedIn, setKeepMeLoggedIn] = useState(false);
 
   // Errors are shown as toast notifications via useAuthSync → useNotification
   const { isPending, loginWithEmailSync, signInWithGoogleSync } = useAuthSync();
@@ -33,7 +34,7 @@ export default function LoginPage() {
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await loginWithEmailSync(email, password);
+    await loginWithEmailSync(email, password, keepMeLoggedIn);
   };
 
   const handleGoogleLogin = async () => {
@@ -88,6 +89,13 @@ export default function LoginPage() {
                 disabled={isPending}
               />
             </div>
+          </div>
+
+          <div className='flex items-center gap-3'>
+            <input id='keep-me-logged-in' type='checkbox' checked={keepMeLoggedIn} onChange={(e) => setKeepMeLoggedIn(e.target.checked)} disabled={isPending} className='h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900' />
+            <label htmlFor='keep-me-logged-in' className='text-sm text-gray-400 select-none cursor-pointer'>
+              {t('keepMeLoggedIn')}
+            </label>
           </div>
 
           <div>
