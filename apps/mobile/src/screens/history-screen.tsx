@@ -7,42 +7,65 @@ import apiClient from '../api/client';
 
 interface DropRecord {
   id: string;
-  scheduledDropTime: string;
-  isAnswered: boolean;
   wasCorrect: boolean | null;
+  pointsAwarded: number;
+  usedHint: boolean;
+  hintCostDeducted: number;
+  revealedAnswer: boolean;
+  selectedChoiceId: string | null;
+  answeredAt: string | null;
   question: {
     questionText: string;
     difficultyLevel: string;
+    categories: { name: string }[];
+    choices: string[] | { id: string; text: string }[];
+    correctAnswerId: string;
   };
+}
+
+function resolveChoiceText(choices: string[] | { id: string; text: string }[], idOrIndex: string): string {
+  if (choices.length === 0) return idOrIndex;
+  if (typeof choices[0] === 'string') {
+    const idx = Number(idOrIndex);
+    return isNaN(idx) ? idOrIndex : ((choices as string[])[idx] ?? idOrIndex);
+  }
+  const objArray = choices as { id: string; text: string }[];
+  const obj = objArray.find((c) => c.id === idOrIndex);
+  if (obj) return obj.text;
+
+  // Fallback: if it was saved as an index instead of an ID
+  const idx = Number(idOrIndex);
+  if (!isNaN(idx) && idx >= 0 && idx < objArray.length) {
+    return objArray[idx].text;
+  }
+  return idOrIndex;
 }
 
 export default function HistoryScreen() {
   const { t } = useTranslation();
   const { userId } = useAuth();
 
-  const { data, isLoading, error } = useQuery<DropRecord[]>({
+  const {
+    data: dropsRes,
+    isLoading,
+    error,
+  } = useQuery<{ drops: DropRecord[] }>({
     queryKey: ['dropHistory', userId],
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/drops/history');
+      const response = await apiClient.get('/api/v1/users/me/recent-drops');
       return response.data;
     },
     enabled: !!userId,
   });
 
-  const renderItem = ({ item }: { item: DropRecord }) => {
-    const date = new Date(item.scheduledDropTime).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const drops = dropsRes?.drops ?? [];
 
-    let statusIcon = '⏳';
-    let statusColor = '#94a3b8';
-    if (item.isAnswered) {
-      statusIcon = item.wasCorrect ? '✅' : '❌';
-      statusColor = item.wasCorrect ? '#22c55e' : '#ef4444';
-    }
+  const renderItem = ({ item }: { item: DropRecord }) => {
+    const date = item.answeredAt ? new Date(item.answeredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+
+    const isAnswered = item.wasCorrect !== null;
+    const statusIcon = item.revealedAnswer ? '👁' : isAnswered ? (item.wasCorrect ? '✅' : '❌') : '⏳';
+    const statusColor = item.revealedAnswer ? '#f97316' : isAnswered ? (item.wasCorrect ? '#22c55e' : '#ef4444') : '#94a3b8';
 
     const difficultyColor: Record<string, string> = {
       EASY: '#22c55e',
@@ -50,19 +73,44 @@ export default function HistoryScreen() {
       HARD: '#ef4444',
     };
 
+    const selectedText = item.selectedChoiceId != null ? resolveChoiceText(item.question.choices, item.selectedChoiceId) : null;
+    const correctText = resolveChoiceText(item.question.choices, item.question.correctAnswerId);
+
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <Text style={[styles.difficulty, { color: difficultyColor[item.question.difficultyLevel] ?? '#94a3b8' }]}>{item.question.difficultyLevel}</Text>
           <Text style={styles.date}>{date}</Text>
         </View>
-        <Text style={styles.questionText} numberOfLines={2}>
-          {item.question.questionText}
-        </Text>
+
+        <Text style={styles.questionText}>{item.question.questionText}</Text>
+
+        {(selectedText != null || correctText != null) && (
+          <View style={styles.answerBlock}>
+            {selectedText != null && (
+              <View style={styles.answerRow}>
+                <Text style={styles.answerLabel}>{t('history.yourAnswer')}</Text>
+                <Text style={[styles.answerValue, { color: item.wasCorrect ? '#22c55e' : '#ef4444' }]} numberOfLines={2}>
+                  {selectedText}
+                </Text>
+              </View>
+            )}
+            {(!item.wasCorrect || selectedText == null) && (
+              <View style={styles.answerRow}>
+                <Text style={styles.answerLabel}>{t('history.correctAnswer')}</Text>
+                <Text style={[styles.answerValue, { color: '#22c55e' }]} numberOfLines={2}>
+                  {correctText}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
         <View style={styles.cardFooter}>
           <Text style={[styles.status, { color: statusColor }]}>
-            {statusIcon} {item.isAnswered ? (item.wasCorrect ? t('history.correct') : t('history.incorrect')) : t('history.unanswered')}
+            {statusIcon} {item.revealedAnswer ? t('history.revealed') : isAnswered ? (item.wasCorrect ? t('history.correct') : t('history.incorrect')) : t('history.unanswered')}
           </Text>
+          {item.pointsAwarded > 0 && <Text style={styles.points}>+{item.pointsAwarded} pts</Text>}
         </View>
       </View>
     );
@@ -88,7 +136,7 @@ export default function HistoryScreen() {
     <View style={styles.container}>
       <Text style={styles.heading}>{t('history.title')}</Text>
       <FlatList
-        data={data ?? []}
+        data={drops}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
@@ -149,14 +197,47 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 10,
   },
+  answerBlock: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+    gap: 6,
+  },
+  answerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  answerLabel: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '600',
+    minWidth: 90,
+    paddingTop: 1,
+  },
+  answerValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
+    flexWrap: 'wrap',
+  },
   cardFooter: {
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.05)',
     paddingTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   status: {
     fontSize: 13,
     fontWeight: '600',
+  },
+  points: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#818cf8',
   },
   centered: {
     flex: 1,

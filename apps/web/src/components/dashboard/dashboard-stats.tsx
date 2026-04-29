@@ -21,11 +21,14 @@ interface RecentDrop {
   usedHint: boolean;
   hintCostDeducted: number;
   revealedAnswer: boolean;
+  selectedChoiceId: string | null;
   answeredAt: string | null;
   question: {
     questionText: string;
     difficultyLevel: 'EASY' | 'MEDIUM' | 'HARD';
     categories: { name: string }[];
+    choices: string[] | { id: string; text: string }[];
+    correctAnswerId: string;
   };
 }
 
@@ -44,6 +47,24 @@ function formatDate(iso: string | null) {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function resolveChoiceText(choices: string[] | { id: string; text: string }[], idOrIndex: string): string {
+  if (choices.length === 0) return idOrIndex;
+  if (typeof choices[0] === 'string') {
+    const idx = Number(idOrIndex);
+    return isNaN(idx) ? idOrIndex : ((choices as string[])[idx] ?? idOrIndex);
+  }
+  const objArray = choices as { id: string; text: string }[];
+  const obj = objArray.find((c) => c.id === idOrIndex);
+  if (obj) return obj.text;
+
+  // Fallback: if it was saved as an index instead of an ID
+  const idx = Number(idOrIndex);
+  if (!isNaN(idx) && idx >= 0 && idx < objArray.length) {
+    return objArray[idx].text;
+  }
+  return idOrIndex;
 }
 
 function StatCard({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: string }) {
@@ -164,6 +185,20 @@ export function DashboardStats() {
                     {drop.usedHint && <span className='text-[11px] text-yellow-500 bg-yellow-500/10 rounded-full px-2 py-0.5'>{t('hintUsed', { pts: drop.hintCostDeducted })}</span>}
                     {drop.revealedAnswer && <span className='text-[11px] text-orange-400 bg-orange-400/10 rounded-full px-2 py-0.5'>{t('answerRevealed')}</span>}
                   </div>
+                  {drop.selectedChoiceId != null && (
+                    <div className='mt-2 space-y-0.5'>
+                      <p className='text-[11px]'>
+                        <span className='text-gray-500'>Your answer: </span>
+                        <span className={drop.wasCorrect ? 'text-green-400' : 'text-red-400'}>{resolveChoiceText(drop.question.choices, drop.selectedChoiceId)}</span>
+                      </p>
+                      {!drop.wasCorrect && (
+                        <p className='text-[11px]'>
+                          <span className='text-gray-500'>Correct answer: </span>
+                          <span className='text-green-400'>{resolveChoiceText(drop.question.choices, drop.question.correctAnswerId)}</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <p className='text-[11px] text-gray-600 mt-1'>{formatDate(drop.answeredAt)}</p>
                 </div>
 

@@ -165,12 +165,15 @@ router.get('/me/recent-drops', requireAuth, async (req: Request, res: Response) 
         usedHint: true,
         hintCostDeducted: true,
         revealedAnswer: true,
+        selectedChoiceId: true,
         answeredAt: true,
         question: {
           select: {
             questionText: true,
             difficultyLevel: true,
             categories: { select: { name: true } },
+            choices: true,
+            correctAnswerId: true,
           },
         },
       },

@@ -1,22 +1,13 @@
 {
   "common": {
-    "score": "Score",
     "leaderboard": "Leaderboard",
     "profile": "Profile",
-    "settings": "Settings",
-    "logout": "Logout",
-    "login": "Login",
-    "signup": "Signup",
     "home": "Home",
     "history": "History",
     "activeDrop": "Active Drop",
-    "loading": "Loading...",
-    "error": "Error",
-    "success": "Success",
     "retry": "Retry",
     "cancel": "Cancel",
-    "confirm": "Confirm",
-    "footer": "© 2026 Enatos Tech. All rights reserved."
+    "confirm": "Confirm"
   },
   "home": {
     "welcome": "Welcome to TrivioQ!",
@@ -106,7 +97,9 @@
     "error": "Failed to load history.",
     "correct": "Correct",
     "incorrect": "Incorrect",
-    "unanswered": "Unanswered"
+    "unanswered": "Unanswered",
+    "yourAnswer": "Your Answer:",
+    "correctAnswer": "Correct Answer:"
   },
   "preferences": {
     "windowHeader": "Active Window (HH:MM)",
@@ -119,7 +112,6 @@
     "validationError": "Weights must be valid numeric decimals (e.g. 0.5)",
     "successTitle": "Success",
     "successBody": "Preferences updated!",
-    "errorTitle": "Error",
     "saving": "Saving...",
     "save": "Save Preferences"
   },
@@ -128,7 +120,6 @@
     "emailLabel": "Email Address",
     "passwordLabel": "Password",
     "signInButton": "Sign In",
-    "signingIn": "Signing in...",
     "orDivider": "OR",
     "googleButton": "Continue with Google",
     "noAccount": "Don't have an account? ",
@@ -136,180 +127,5 @@
     "missingFields": "Please enter both email and password",
     "loginFailed": "Login failed. Please check your credentials.",
     "googleFailed": "Google sign-in failed."
-  },
-  "privacy": {
-    "title": "Privacy Policy",
-    "lastUpdated": "Last updated: April 27, 2026",
-    "intro": "Enatos Tech (\"we\", \"us\", or \"our\") operates TrivioQ. This Privacy Policy explains how we collect, use, disclose, and safeguard your information. By using TrivioQ, you consent to the practices described here.",
-    "s1": {
-      "title": "1. Information We Collect",
-      "intro": "Information you provide directly:",
-      "b1": "Account data: email address, username, display name, and password (stored as a secure hash via Firebase Authentication).",
-      "b2": "Preferences: category interests, difficulty settings, active notification windows, and target drop frequency.",
-      "intro2": "Information collected automatically:",
-      "b3": "Usage data: answers submitted, questions received, points earned, streaks, hints and reveals used, and leaderboard activity.",
-      "b4": "Device data: device push notification token and operating system platform — collected to deliver push notifications.",
-      "b5": "Log data: IP address, browser/app type, pages visited, and timestamps — for security and operational purposes.",
-      "intro3": "Information from third-party sign-in:",
-      "p2": "If you sign in using Google, we receive your email address and a unique Google identifier. We do not receive your Google password."
-    },
-    "s2": {
-      "title": "2. How We Use Your Information",
-      "intro": "We use the information we collect to:",
-      "b1": "Create and manage your account and authenticate your identity.",
-      "b2": "Deliver trivia Drops based on your schedule and preferences.",
-      "b3": "Calculate and display scores, streaks, and leaderboard rankings.",
-      "b4": "Send push notifications when new Drops are available (only with your permission).",
-      "b5": "Respond to support requests and communicate service updates.",
-      "b6": "Monitor usage patterns, diagnose technical issues, and prevent abuse.",
-      "b7": "Enforce our Terms of Service and comply with legal obligations.",
-      "p2": "We do not use your data for advertising profiling and we do not sell your personal data."
-    },
-    "s3": {
-      "title": "3. Legal Bases for Processing (GDPR)",
-      "intro": "If you are in the EEA or UK, our legal bases are:",
-      "b1": "Contract performance — processing necessary to provide the Service.",
-      "b2": "Legitimate interests — security monitoring, fraud prevention, and product improvement.",
-      "b3": "Consent — for optional features such as push notifications; withdraw at any time.",
-      "b4": "Legal obligation — where required by law."
-    },
-    "s4": {
-      "title": "4. How We Share Your Information",
-      "intro": "We do not sell your personal data. We may share information in limited circumstances:",
-      "b1": "Service providers: Firebase (Google LLC) for authentication and push notifications — bound by data processing agreements.",
-      "b2": "Leaderboard data: Your username, display name, and score are visible to other users on the public leaderboard.",
-      "b3": "Legal requirements: Disclosure required by law or valid public authority request.",
-      "b4": "Business transfers: If we are acquired or merge, we will notify you before your data is subject to a different policy."
-    },
-    "s5": {
-      "title": "5. Data Retention",
-      "p1": "We retain your data for as long as your account is active. Upon account deletion request, we delete or anonymise your personal data within 30 days, except where required by law or where data has been incorporated into anonymised statistics."
-    },
-    "s6": {
-      "title": "6. Data Security",
-      "p1": "We use TLS/HTTPS for data transmission, hashed password storage via Firebase Authentication, and access controls limiting internal data access. No system is 100% secure — in the event of a breach affecting your rights, we will notify you and relevant authorities as required by law."
-    },
-    "s7": {
-      "title": "7. Push Notifications",
-      "p1": "Push notifications require your explicit permission. You can withdraw permission at any time in your device settings. Your push token is used solely to route notifications to your device via Firebase Cloud Messaging and is not shared with other third parties."
-    },
-    "s8": {
-      "title": "8. Children's Privacy",
-      "p1": "TrivioQ is not directed to children under 13. We do not knowingly collect personal data from children under 13. If you believe your child has provided data without your consent, contact:",
-      "p2": "We will promptly delete that information."
-    },
-    "s9": {
-      "title": "9. Your Rights",
-      "intro": "Depending on your location, you may have the right to:",
-      "b1": "Access — request a copy of your personal data.",
-      "b2": "Rectification — request correction of inaccurate data.",
-      "b3": "Erasure — request deletion of your personal data (subject to legal requirements).",
-      "b4": "Restriction of processing — limit how we process your data.",
-      "b5": "Data portability — receive your data in a structured, machine-readable format.",
-      "b6": "Objection — object to processing based on legitimate interests.",
-      "b7": "Withdraw consent — at any time for consent-based processing.",
-      "p2": "California residents (CCPA): you have the right to know what personal information is collected and the right to opt out of its sale. We do not sell personal information.",
-      "p3": "To exercise any of these rights, contact:",
-      "p4": "We will respond within 30 days."
-    },
-    "s10": {
-      "title": "10. International Data Transfers",
-      "p1": "Your data may be transferred to and processed in countries other than your own. We implement appropriate safeguards such as Standard Contractual Clauses where required by applicable law."
-    },
-    "s11": {
-      "title": "11. Third-Party Services",
-      "intro": "Key third-party services we use:",
-      "b1": "Firebase (Google LLC) — authentication, database, Cloud Messaging. Subject to Google's Privacy Policy."
-    },
-    "s12": {
-      "title": "12. Changes to This Privacy Policy",
-      "p1": "We may update this policy from time to time. For material changes we will notify you via email or an in-app notice. Continued use of TrivioQ after changes take effect constitutes your acceptance."
-    },
-    "s13": {
-      "title": "13. Contact Us",
-      "p1": "Privacy enquiries:",
-      "p2": "General support:"
-    }
-  },
-  "terms": {
-    "title": "Terms of Service",
-    "lastUpdated": "Last updated: April 27, 2026",
-    "intro": "Please read these Terms carefully before using TrivioQ. By creating an account or using our Service, you agree to be bound by these Terms. If you do not agree, do not access or use TrivioQ.",
-    "s1": {
-      "title": "1. Who We Are",
-      "p1": "TrivioQ is operated by Enatos Tech (\"Company\", \"we\", \"us\", or \"our\"). TrivioQ is a micro-learning trivia platform that delivers scheduled trivia questions (\"Drops\") to help you build knowledge and compete on leaderboards.",
-      "p2": "Questions? Contact us at:"
-    },
-    "s2": {
-      "title": "2. Eligibility",
-      "p1": "You must be at least 13 years of age to use TrivioQ. If you are under 18, you confirm you have your parent or guardian's permission. We do not knowingly collect personal data from children under 13. If we discover a user is under 13, we will immediately terminate that account and delete associated data."
-    },
-    "s3": {
-      "title": "3. Account Registration",
-      "intro": "To access TrivioQ you must create an account. You agree to:",
-      "b1": "Provide accurate and complete registration information.",
-      "b2": "Keep your password confidential and notify us immediately of any unauthorized access.",
-      "b3": "Be solely responsible for all activity under your account.",
-      "b4": "Not create accounts for others or use multiple accounts to gain unfair advantages.",
-      "p2": "We may suspend or terminate accounts that contain false information or violate these Terms."
-    },
-    "s4": {
-      "title": "4. Description of Service",
-      "intro": "TrivioQ provides:",
-      "b1": "Trivia Drops — scheduled multiple-choice questions based on your preferences.",
-      "b2": "Scoring & Streaks — points awarded for correct answers; hints and reveals available with point deductions.",
-      "b3": "Leaderboards — weekly and monthly rankings based on accumulated scores.",
-      "b4": "Push Notifications — optional alerts when new Drops are ready.",
-      "b5": "Premium Subscription — enhanced limits and on-demand Drops (subject to change; see Section 7).",
-      "p2": "We may modify, suspend, or discontinue any feature at any time with reasonable notice where practicable."
-    },
-    "s5": {
-      "title": "5. Acceptable Use",
-      "intro": "You agree not to:",
-      "b1": "Use bots, scripts, or automated tools to manipulate scores, leaderboards, or Drops.",
-      "b2": "Attempt to reverse engineer or extract source code from the Service.",
-      "b3": "Use the Service for any unlawful purpose.",
-      "b4": "Impersonate another person or entity.",
-      "b5": "Interfere with or disrupt the integrity or performance of the Service.",
-      "b6": "Attempt to gain unauthorized access to any part of the Service.",
-      "b7": "Harvest or scrape data from the Service without our written consent.",
-      "p2": "Violations may result in immediate account suspension, termination, and/or legal action."
-    },
-    "s6": {
-      "title": "6. Intellectual Property",
-      "p1": "All content on TrivioQ — including trivia questions, explanations, hints, branding, and software — is owned by or licensed to Enatos Tech. You are granted a limited, non-exclusive, revocable licence for personal, non-commercial use only. You may not reproduce, distribute, or exploit any content without our prior written consent."
-    },
-    "s7": {
-      "title": "7. Subscriptions and Payments",
-      "p1": "TrivioQ offers a Free tier and a Premium tier. Premium billing is not yet active. When introduced, we will provide clear pricing and cancellation terms before any charge is made. We may change pricing with at least 30 days' notice to active paying subscribers."
-    },
-    "s8": {
-      "title": "8. Points, Scores, and Leaderboard Rankings",
-      "p1": "Points, streaks, and rankings are virtual values with no monetary worth — they are not redeemable for cash or any goods or services. We may adjust or reset scores at any time in cases of abuse or technical error."
-    },
-    "s9": {
-      "title": "9. Privacy",
-      "p1": "Your use of TrivioQ is governed by our Privacy Policy, accessible in the app under Profile → Legal. By using TrivioQ, you consent to the data practices described there."
-    },
-    "s10": {
-      "title": "10. Disclaimer of Warranties",
-      "p1": "TO THE FULLEST EXTENT PERMITTED BY LAW, THE SERVICE IS PROVIDED \"AS IS\" WITHOUT WARRANTIES OF ANY KIND. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED OR ERROR-FREE. TRIVIA CONTENT IS PROVIDED FOR ENTERTAINMENT AND EDUCATIONAL PURPOSES ONLY — WE DO NOT GUARANTEE ITS ACCURACY OR COMPLETENESS."
-    },
-    "s11": {
-      "title": "11. Limitation of Liability",
-      "p1": "TO THE FULLEST EXTENT PERMITTED BY LAW, ENATOS TECH SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM YOUR USE OF THE SERVICE. OUR TOTAL LIABILITY SHALL NOT EXCEED THE GREATER OF THE AMOUNT YOU PAID TO US IN THE 12 MONTHS PRECEDING THE CLAIM OR USD $50."
-    },
-    "s12": {
-      "title": "12. Termination",
-      "p1": "We may suspend or terminate your account at any time if we believe you have violated these Terms. You may terminate your account by contacting:"
-    },
-    "s13": {
-      "title": "13. Changes to These Terms",
-      "p1": "We may update these Terms from time to time. For material changes, we will notify you via email or an in-app notice. Continued use of the Service after changes take effect constitutes your acceptance."
-    },
-    "s14": {
-      "title": "14. Governing Law",
-      "p1": "These Terms are governed by the laws of the jurisdiction in which Enatos Tech is incorporated. For disputes, please first contact us at:"
-    }
   }
 }

@@ -177,9 +177,16 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
       correctOptionIndex = choices.indexOf(question.correctAnswerId);
     }
 
-    // No points if the answer was already revealed
     const isCorrect = !userDrop.revealedAnswer && selectedOptionIndex === correctOptionIndex;
     const pointsAwarded = isCorrect ? (DIFFICULTY_POINTS[question.difficultyLevel] ?? 10) : 0;
+
+    let actualSelectedChoiceId = String(selectedOptionIndex);
+    if (choices && choices.length > 0 && typeof choices[0] !== 'string') {
+      const choiceObj = (choices as any)[Number(selectedOptionIndex)];
+      if (choiceObj && choiceObj.id) {
+        actualSelectedChoiceId = choiceObj.id;
+      }
+    }
 
     const [, updatedUser] = await prisma.$transaction([
       prisma.userDrop.update({
@@ -187,7 +194,7 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
         data: {
           isAnswered: true,
           wasCorrect: isCorrect,
-          selectedChoiceId: String(selectedOptionIndex),
+          selectedChoiceId: actualSelectedChoiceId,
           pointsAwarded,
           answeredAt: now,
         },
