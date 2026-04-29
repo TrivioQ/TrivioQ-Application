@@ -4,8 +4,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { NavigatorScreenParams } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/auth-context';
 
 // Screens
+import LoginScreen from '../screens/login-screen';
 import HomeDashboard from '../screens/home-dashboard';
 import DropActive from '../screens/drop-active';
 import LeaderboardScreen from '../screens/leaderboard-screen';
@@ -15,6 +18,11 @@ import TermsScreen from '../screens/terms-screen';
 import PrivacyScreen from '../screens/privacy-screen';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+export type RootStackParamList = {
+  Auth: undefined;
+  Main: undefined;
+};
 
 export type HomeStackParamList = {
   HomeDashboard: undefined;
@@ -53,6 +61,7 @@ function TabIcon({ icon, focused }: { icon: string; focused: boolean }) {
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 
 function HomeStackNavigator() {
+  const { t } = useTranslation();
   return (
     <HomeStack.Navigator
       screenOptions={{
@@ -66,7 +75,7 @@ function HomeStackNavigator() {
         name='DropActive'
         component={DropActive}
         options={{
-          title: 'Active Drop ⚡',
+          title: t('common.activeDrop'),
           presentation: 'modal',
           headerStyle: { backgroundColor: '#1e1b4b' },
         }}
@@ -80,6 +89,7 @@ function HomeStackNavigator() {
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
 function ProfileStackNavigator() {
+  const { t } = useTranslation();
   return (
     <ProfileStack.Navigator
       screenOptions={{
@@ -88,9 +98,9 @@ function ProfileStackNavigator() {
         headerTitleStyle: { fontWeight: '800' },
       }}
     >
-      <ProfileStack.Screen name='ProfileHome' component={ProfileScreen} options={{ title: 'Profile' }} />
-      <ProfileStack.Screen name='Terms' component={TermsScreen} options={{ title: 'Terms of Service' }} />
-      <ProfileStack.Screen name='Privacy' component={PrivacyScreen} options={{ title: 'Privacy Policy' }} />
+      <ProfileStack.Screen name='ProfileHome' component={ProfileScreen} options={{ title: t('common.profile') }} />
+      <ProfileStack.Screen name='Terms' component={TermsScreen} options={{ title: t('profile.terms') }} />
+      <ProfileStack.Screen name='Privacy' component={PrivacyScreen} options={{ title: t('profile.privacy') }} />
     </ProfileStack.Navigator>
   );
 }
@@ -99,7 +109,8 @@ function ProfileStackNavigator() {
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-export function AppNavigator() {
+function MainTabNavigator() {
+  const { t } = useTranslation();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -125,7 +136,7 @@ export function AppNavigator() {
         name='Home'
         component={HomeStackNavigator}
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: t('common.home'),
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon='🏠' focused={focused} />,
         }}
       />
@@ -133,7 +144,7 @@ export function AppNavigator() {
         name='Leaderboard'
         component={LeaderboardScreen}
         options={{
-          tabBarLabel: 'Leaderboard',
+          tabBarLabel: t('common.leaderboard'),
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon='🏆' focused={focused} />,
         }}
       />
@@ -141,7 +152,7 @@ export function AppNavigator() {
         name='History'
         component={HistoryScreen}
         options={{
-          tabBarLabel: 'History',
+          tabBarLabel: t('common.history'),
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon='📋' focused={focused} />,
         }}
       />
@@ -149,10 +160,22 @@ export function AppNavigator() {
         name='Profile'
         component={ProfileStackNavigator}
         options={{
-          tabBarLabel: 'Profile',
+          tabBarLabel: t('common.profile'),
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon='👤' focused={focused} />,
         }}
       />
     </Tab.Navigator>
   );
+}
+
+const RootStack = createNativeStackNavigator<RootStackParamList>();
+
+export function AppNavigator() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return null; // Or a splash/loading screen
+  }
+
+  return <RootStack.Navigator screenOptions={{ headerShown: false }}>{user ? <RootStack.Screen name='Main' component={MainTabNavigator} /> : <RootStack.Screen name='Auth' component={LoginScreen} />}</RootStack.Navigator>;
 }

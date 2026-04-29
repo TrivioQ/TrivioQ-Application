@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useRef, useState, useCallback } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 type ConfirmOptions = {
   title: string;
@@ -14,6 +15,7 @@ type ConfirmFn = (options: ConfirmOptions) => Promise<boolean>;
 const ConfirmContext = createContext<ConfirmFn | null>(null);
 
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<ConfirmOptions>({ title: '', message: '' });
   const resolveRef = useRef<((value: boolean) => void) | null>(null);
@@ -35,7 +37,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   return (
     <ConfirmContext.Provider value={confirm}>
       {children}
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => handleClose(false)}>
+      <Modal visible={open} transparent animationType='fade' onRequestClose={() => handleClose(false)}>
         <View style={styles.overlay}>
           <View style={styles.card}>
             <View style={[styles.accent, options.isDestructive ? styles.accentDestructive : styles.accentDefault]} />
@@ -44,15 +46,11 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             <View style={styles.actions}>
               {options.cancelLabel !== '' && (
                 <TouchableOpacity style={styles.cancelButton} onPress={() => handleClose(false)} activeOpacity={0.75}>
-                  <Text style={styles.cancelText}>{options.cancelLabel ?? 'Cancel'}</Text>
+                  <Text style={styles.cancelText}>{options.cancelLabel ?? t('common.cancel')}</Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity
-                style={[styles.confirmButton, options.isDestructive ? styles.confirmDestructive : styles.confirmDefault]}
-                onPress={() => handleClose(true)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.confirmText}>{options.confirmLabel ?? 'Confirm'}</Text>
+              <TouchableOpacity style={[styles.confirmButton, options.isDestructive ? styles.confirmDestructive : styles.confirmDefault]} onPress={() => handleClose(true)} activeOpacity={0.8}>
+                <Text style={styles.confirmText}>{options.confirmLabel ?? t('common.confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>

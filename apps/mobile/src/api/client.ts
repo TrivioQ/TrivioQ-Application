@@ -1,7 +1,5 @@
 import axios from 'axios';
-import { Platform } from 'react-native';
 import { auth } from '../config/firebase';
-
 import { env } from '../config/env';
 
 // Ensure Expo connects to our explicit API URL
@@ -32,6 +30,22 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// Response interceptor to handle unauthorized errors (session expiry)
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      console.warn('API returned 401, signing out user...');
+      try {
+        await auth.signOut();
+      } catch (signOutError) {
+        console.error('Error signing out after 401:', signOutError);
+      }
+    }
     return Promise.reject(error);
   },
 );

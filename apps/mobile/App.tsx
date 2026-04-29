@@ -6,7 +6,7 @@ import * as Notifications from 'expo-notifications';
 import './src/i18n';
 
 import { AuthProvider } from './src/context/auth-context';
-import { AppNavigator, RootTabParamList } from './src/navigation/app-navigator';
+import { AppNavigator, RootStackParamList } from './src/navigation/app-navigator';
 import { ConfirmProvider } from './src/components/confirm-modal';
 import { ToastProvider } from './src/components/toast';
 
@@ -14,20 +14,28 @@ const queryClient = new QueryClient();
 
 const prefix = Linking.createURL('/');
 
-const linking: LinkingOptions<RootTabParamList> = {
+const linking: LinkingOptions<RootStackParamList> = {
   prefixes: [prefix],
   config: {
     screens: {
-      // Map deep-links into the nested Home stack
-      Home: {
+      Auth: 'login',
+      Main: {
         screens: {
-          HomeDashboard: 'home',
-          DropActive: 'drop/:dropId',
+          Home: {
+            screens: {
+              HomeDashboard: 'home',
+              DropActive: 'drop/:dropId',
+            },
+          },
+          Leaderboard: 'leaderboard',
+          History: 'history',
+          Profile: {
+            screens: {
+              ProfileHome: 'profile',
+            },
+          },
         },
       },
-      Leaderboard: 'leaderboard',
-      History: 'history',
-      Profile: 'profile',
     },
   },
   async getInitialURL() {
