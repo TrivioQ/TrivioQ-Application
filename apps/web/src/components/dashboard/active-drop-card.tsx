@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { useQueryClient } from '@tanstack/react-query';
 import { makeAPICallV1, APIError } from '../../lib/api';
 
 interface ActiveDrop {
@@ -10,7 +11,7 @@ interface ActiveDrop {
   category: string;
   difficulty: 'easy' | 'medium' | 'hard';
   questionText: string;
-  options: string[];
+  options: (string | { id: string; text: string })[];
   expiresAt: number;
   pointsValue: number;
   hintCost: number;
@@ -20,7 +21,7 @@ interface ActiveDrop {
 
 interface SubmitResult {
   isCorrect: boolean;
-  correctOptionIndex: number;
+  correctOptionIndex: number | null;
   pointsAwarded: number;
   revealedAnswer: boolean;
   explanation?: string;
@@ -44,6 +45,7 @@ function formatTime(seconds: number) {
 
 export default function ActiveDropCard() {
   const t = useTranslations('activeDrop');
+  const queryClient = useQueryClient();
   const [drop, setDrop] = useState<ActiveDrop | null>(null);
   const [loading, setLoading] = useState(true);
   const [revealed, setRevealed] = useState(false);
@@ -116,16 +118,21 @@ export default function ActiveDropCard() {
     return () => clearInterval(id);
   }, [drop?.expiresAt, submitResult]);
 
-  const handleSubmit = async (optionIndex: number) => {
-    if (!drop || isExpired || submitting || submitResult) return;
-    setSelectedOption(optionIndex);
+  const handleSubmit = async () => {
+    if (!drop || isExpired || submitting || submitResult || selectedOption === null) return;
     setSubmitting(true);
     try {
       const result = await makeAPICallV1<SubmitResult>(`drops/${drop.dropId}/submit`, {
         method: 'POST',
-        body: { selectedOptionIndex: optionIndex },
+        body: { selectedOptionIndex: selectedOption },
       });
       setSubmitResult(result);
+      if (result.correctOptionIndex !== null) {
+        setRevealedCorrectIndex(result.correctOptionIndex);
+      }
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['scoreHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['recentDrops'] });
     } catch {
       setError(t('failedSubmit'));
     } finally {
@@ -300,27 +307,37 @@ export default function ActiveDropCard() {
 
             {/* Answer options */}
             <div className='space-y-2'>
-              {drop.options.map((option, index) => {
+              {drop.options.map((opt, index) => {
+                const option = typeof opt === 'string' ? opt : opt.text;
                 let cls = 'w-full text-left rounded-xl border px-4 py-3 text-sm font-medium transition-colors ';
                 if (submitResult) {
-                  if (index === submitResult.correctOptionIndex) cls += 'border-green-500/50 bg-green-500/20 text-green-300';
-                  else if (index === selectedOption) cls += 'border-red-500/50 bg-red-500/20 text-red-300';
+                  if (index === revealedCorrectIndex) cls += 'border-green-500/50 bg-green-500/20 text-green-300';
+                  else if (index === selectedOption && !submitResult.isCorrect) cls += 'border-red-500/50 bg-red-500/20 text-red-300';
                   else cls += 'border-white/5 bg-white/5 text-gray-500 cursor-default';
                 } else if (isAnswerKnown) {
                   cls += index === revealedCorrectIndex ? 'border-green-500/50 bg-green-500/20 text-green-300 cursor-default' : 'border-white/5 bg-white/5 text-gray-500 cursor-default';
                 } else if (isExpired || submitting) {
                   cls += 'border-white/5 bg-white/5 text-gray-500 cursor-default';
+                } else if (index === selectedOption) {
+                  cls += 'border-indigo-500/60 bg-indigo-500/20 text-indigo-200';
                 } else {
                   cls += 'border-white/10 bg-white/5 hover:bg-indigo-500/20 hover:border-indigo-500/40 text-gray-200 cursor-pointer';
                 }
 
                 return (
-                  <button key={index} className={cls} disabled={isExpired || submitting || submitResult !== null} onClick={() => handleSubmit(index)}>
+                  <button key={index} className={cls} disabled={isExpired || submitting || submitResult !== null || isAnswerKnown} onClick={() => setSelectedOption(index)}>
                     {option}
                   </button>
                 );
               })}
             </div>
+
+            {/* Submit button */}
+            {!submitResult && !isAnswerKnown && !isExpired && (
+              <button onClick={handleSubmit} disabled={selectedOption === null || submitting} className='w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors'>
+                {submitting ? t('submitting') : t('submitAnswer')}
+              </button>
+            )}
 
             {submitting && <p className='text-xs text-center text-gray-500 animate-pulse'>{t('submitting')}</p>}
 

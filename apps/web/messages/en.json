@@ -159,6 +159,7 @@
     "answerRevealedBtn": "Answer Revealed",
     "revealLoading": "Loading…",
     "answerRevealedNotice": "Answer revealed — select the highlighted option to close this drop (0 points)",
+    "submitAnswer": "Submit Answer",
     "submitting": "Submitting…",
     "resultRevealed": "Answer was revealed",
     "resultCorrect": "Correct! 🎉",
