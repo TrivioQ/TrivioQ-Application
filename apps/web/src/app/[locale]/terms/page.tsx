@@ -1,5 +1,5 @@
 import { marked } from 'marked';
-import { env } from '@/../env.mjs';
+import { makeServerAPICallV1 } from '@/lib/api-server';
 import { getTranslations } from 'next-intl/server';
 
 export const metadata = {
@@ -7,19 +7,11 @@ export const metadata = {
   description: 'TrivioQ Terms of Service — your rights and responsibilities when using our platform.',
 };
 
-async function fetchLegalDoc(slug: string): Promise<{ title: string; content: string; version: string; updatedAt: string } | null> {
-  try {
-    const res = await fetch(`${env.API_URL}/v1/legal/${slug}`, { next: { revalidate: 3600 } });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
+type LegalDoc = { title: string; content: string; version: string; updatedAt: string };
 
 export default async function TermsPage() {
   const t = await getTranslations('legal');
-  const doc = await fetchLegalDoc('terms');
+  const doc = await makeServerAPICallV1<LegalDoc>('legal/terms', { next: { revalidate: 3600 } }).catch(() => null);
 
   return (
     <main className='min-h-screen bg-slate-950 text-slate-100 py-12 px-4'>
