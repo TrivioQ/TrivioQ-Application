@@ -57,6 +57,9 @@ export default function DropActive() {
     queryFn: async () => {
       try {
         const response = await apiClient.get('/api/v1/drops/active');
+        if (response.status === 204 || !response.data || Object.keys(response.data).length === 0) {
+          return null;
+        }
         return response.data as QuestionDropPayload;
       } catch (error: any) {
         if (error.response?.status === 404) return null;

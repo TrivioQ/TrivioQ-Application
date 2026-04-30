@@ -90,8 +90,8 @@ export default function ActiveDropCard() {
     setError(null);
     try {
       const data = await makeAPICallV1<ActiveDrop>('drops/active');
-      setDrop(data);
-      if (data.usedHint) setHintText(t('hintAlreadyUsed'));
+      setDrop(data || null);
+      if (data?.usedHint) setHintText(t('hintAlreadyUsed'));
     } catch (err) {
       if (err instanceof APIError && err.status === 404) {
         setDrop(null);

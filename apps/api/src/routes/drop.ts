@@ -29,7 +29,7 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
     });
 
     if (!activeDrop || !activeDrop.question) {
-      return res.status(404).json({ error: 'No active drop found' });
+      return res.status(204).send({});
     }
 
     const pointsValue = DIFFICULTY_POINTS[activeDrop.question.difficultyLevel] ?? 10;
