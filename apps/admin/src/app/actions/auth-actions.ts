@@ -46,8 +46,14 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     return { error: 'Authentication service unavailable.' };
   }
 
+  const apiUrl = process.env.API_URL;
+  if (!apiUrl) {
+    console.error('[loginAction] API_URL is not defined');
+    return { error: 'Authentication service configuration missing.' };
+  }
+
   try {
-    const upstream = await fetch(new URL('/v1/auth/sync', process.env.API_URL).toString(), {
+    const upstream = await fetch(`${apiUrl}/v1/auth/sync`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
