@@ -5,6 +5,7 @@ import { UserPreferences } from '@trivioq/shared-types';
 
 import userRoutes from './routes/user';
 import dropRoutes from './routes/drop';
+import dropLifecycleRoutes from './routes/dropRoutes';
 import leaderboardRoutes from './routes/leaderboard';
 import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use('/v1/auth', authRoutes);
 app.use('/v1/users', userRoutes);
 app.use('/v1/drops', dropRoutes);
+app.use('/v1/drops', dropLifecycleRoutes);
 app.use('/v1/leaderboards', leaderboardRoutes);
 app.use('/v1/admin', adminRoutes);
 app.use('/v1/faqs', faqRoutes);

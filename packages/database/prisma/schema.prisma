@@ -22,6 +22,8 @@ model User {
   cumulativeScore   Int        @default(0)
   dropsReceivedToday Int       @default(0)
   lastDropDate      DateTime   @default(now())
+  questionsAnswered Int        @default(0)
+  correctAnswers    Int        @default(0)
   subscriptionTier  SubscriptionTier @default(FREE)
   preferences       Json?
   devicePushToken   String?
@@ -114,8 +116,13 @@ model UserDrop {
   questionId        String
   scheduledDropTime DateTime
   expirationTime    DateTime
+  // Delivery state
+  isViewed          Boolean   @default(false)
   isAnswered        Boolean   @default(false)
-  wasCorrect        Boolean?
+  wasCorrect        Boolean   @default(false)
+  // Spaced repetition — when BullMQ was scheduled to fire this drop
+  scheduledFor      DateTime
+  createdAt         DateTime  @default(now())
   // Audit fields — recorded at answer time for dispute resolution & reports
   usedHint          Boolean   @default(false)
   hintCostDeducted  Int       @default(0)

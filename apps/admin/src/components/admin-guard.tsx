@@ -1,28 +1,36 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { PrismaClient } from '@trivioq/database';
+const COOKIE_NAME = 'tq_auth';
 
 export async function AdminGuard({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
-  const token = cookieStore.get('firebase-token')?.value;
+  const idToken = cookieStore.get(COOKIE_NAME)?.value;
 
-  if (!token) {
+  if (!idToken) {
     redirect('/login');
   }
 
-  // In a real application, verify the Firebase token using firebase-admin to get the decoded UID.
-  // For this demonstration, we'll assume the token directly contains the UID or we lookup by token.
-  // Example: const decodedToken = await admin.auth().verifyIdToken(token);
-  // const uid = decodedToken.uid;
-  const uid = token; 
+  try {
+    const upstream = await fetch(new URL('/v1/auth/sync', process.env.API_URL).toString(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({}),
+    });
 
-  const prisma = new PrismaClient();
-  const user = await prisma.user.findUnique({
-    where: { firebaseUid: uid },
-  });
+    if (!upstream.ok) {
+      redirect('/login');
+    }
 
-  if (!user || user.role !== 'ADMIN') {
-    redirect('/403');
+    const user = await upstream.json();
+
+    if (!user || user.role !== 'ADMIN') {
+      redirect('/403');
+    }
+  } catch {
+    redirect('/login');
   }
 
   return <>{children}</>;

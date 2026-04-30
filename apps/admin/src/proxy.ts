@@ -24,7 +24,7 @@ export async function proxy(req: NextRequest) {
   }
 
   // Fast pre-check: cookie missing
-  const sessionCookie = req.cookies.get('firebase-token');
+  const sessionCookie = req.cookies.get('tq_auth');
   if (!sessionCookie) {
     const loginUrl = new URL('/en/login', req.url);
     return NextResponse.redirect(loginUrl);

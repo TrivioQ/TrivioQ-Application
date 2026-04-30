@@ -2,9 +2,11 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { PrismaClient } from '@trivioq/database';
 
-const prisma = new PrismaClient();
+
+const FIREBASE_SIGN_IN_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword';
+const COOKIE_NAME = 'tq_auth';
+const COOKIE_MAX_AGE_14_DAYS = 60 * 60 * 24 * 14;
 
 export async function loginAction(prevState: unknown, formData: FormData) {
   const email = formData.get('email') as string;
@@ -15,32 +17,72 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     return { error: 'Email and password are required' };
   }
 
+  let idToken: string;
+  let localId: string;
+
   try {
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const firebaseRes = await fetch(`${FIREBASE_SIGN_IN_URL}?key=${process.env.FIREBASE_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, returnSecureToken: true }),
     });
 
-    if (!user || user.role !== 'ADMIN') {
-      return { error: 'Invalid credentials or unauthorized access' };
+    const firebaseData = await firebaseRes.json();
+
+    if (!firebaseRes.ok) {
+      const code = firebaseData?.error?.message ?? '';
+      if (code === 'EMAIL_NOT_FOUND' || code === 'INVALID_PASSWORD' || code === 'INVALID_LOGIN_CREDENTIALS') {
+        return { error: 'Invalid email or password.' };
+      }
+      if (code === 'USER_DISABLED') return { error: 'This account has been disabled.' };
+      if (code === 'TOO_MANY_ATTEMPTS_TRY_LATER') return { error: 'Too many attempts. Please try again later.' };
+      return { error: 'Authentication failed. Please try again.' };
     }
 
-    // Set the cookie for the AdminGuard. In a real app, you'd verify credentials with Firebase Auth first.
-    const cookieStore = await cookies();
-    cookieStore.set('firebase-token', user.firebaseUid, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      ...(keepMeLoggedIn ? { maxAge: 60 * 60 * 24 * 14 } : {}),
-    });
-  } catch (error) {
-    console.error('[loginAction] Login failed:', error);
-    return { error: 'An unexpected error occurred' };
+    idToken = firebaseData.idToken;
+    localId = firebaseData.localId;
+  } catch (err) {
+    console.error('[loginAction] Firebase REST call failed:', err);
+    return { error: 'Authentication service unavailable.' };
   }
+
+  try {
+    const upstream = await fetch(new URL('/v1/auth/sync', process.env.API_URL).toString(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({}),
+    });
+
+    if (!upstream.ok) {
+      return { error: 'Authentication service unavailable.' };
+    }
+
+    const user = await upstream.json();
+
+    if (!user || user.role !== 'ADMIN') {
+      return { error: 'Access denied. Administrator privileges required.' };
+    }
+  } catch (err) {
+    console.error('[loginAction] Backend check failed:', err);
+    return { error: 'An unexpected error occurred.' };
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE_NAME, idToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    ...(keepMeLoggedIn ? { maxAge: COOKIE_MAX_AGE_14_DAYS } : {}),
+  });
 
   redirect('/');
 }
+
 export async function logoutAction() {
   const cookieStore = await cookies();
-  cookieStore.delete('firebase-token');
+  cookieStore.delete(COOKIE_NAME);
   redirect('/login');
 }

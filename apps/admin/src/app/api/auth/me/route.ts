@@ -1,33 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@trivioq/database';
-
-const prisma = new PrismaClient();
+const COOKIE_NAME = 'tq_auth';
 
 /**
  * Internal-only Route Handler — called exclusively by the middleware.
- * Reads the session cookie, looks up the user in the DB, and returns their role.
- * NOT a public endpoint — the middleware should never call this for external requests.
+ * Verifies the tq_auth Firebase idToken, looks up the user in the DB, and returns their role.
  */
 export async function GET(req: NextRequest) {
-  const token = req.cookies.get('firebase-token')?.value;
+  const idToken = req.cookies.get(COOKIE_NAME)?.value;
 
-  if (!token) {
+  if (!idToken) {
     return NextResponse.json({ error: 'No session cookie' }, { status: 401 });
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { firebaseUid: token },
-      select: { role: true, email: true },
+    const upstream = await fetch(new URL('/v1/users/me', process.env.API_URL).toString(), {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
     });
+
+    if (!upstream.ok) {
+      return NextResponse.json({ error: 'Invalid or expired session' }, { status: 401 });
+    }
+
+    const user = await upstream.json();
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 401 });
     }
 
     return NextResponse.json({ role: user.role, email: user.email }, { status: 200 });
-  } catch (error) {
-    console.error('[/api/auth/me] DB lookup failed:', error);
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+  } catch (err) {
+    console.error('[/api/auth/me] Backend check failed:', err);
+    return NextResponse.json({ error: 'Authentication service unavailable' }, { status: 503 });
   }
 }
