@@ -34,28 +34,28 @@ export default async function LeaderboardPage() {
   };
   let fetchFailed = false;
 
+  // Helper to safely fetch leaderboard data with a fallback
+  async function safeFetchLeaderboard(path: string) {
+    try {
+      const res = await makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>(path);
+      return res?.leaderboard ?? [];
+    } catch (err) {
+      console.error(`[LeaderboardPage] Failed to fetch ${path}:`, err);
+      return [];
+    }
+  }
+
   try {
-    const fetchGlobal = Promise.all([makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/global?period=weekly'), makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/global?period=monthly'), makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/global?period=alltime')]);
+    const [gw, gm, ga] = await Promise.all([safeFetchLeaderboard('leaderboards/global?period=weekly'), safeFetchLeaderboard('leaderboards/global?period=monthly'), safeFetchLeaderboard('leaderboards/global?period=alltime')]);
 
-    const fetchFriends = isLoggedIn ? Promise.all([makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/friends?period=weekly'), makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/friends?period=monthly'), makeServerAPICallV1<{ leaderboard: LeaderboardUser[] }>('leaderboards/friends?period=alltime')]) : Promise.resolve([null, null, null]);
+    leaderboardData.global = { weekly: gw, monthly: gm, alltime: ga };
 
-    const [[gw, gm, ga], [fw, fm, fa]] = await Promise.all([fetchGlobal, fetchFriends]);
-
-    leaderboardData.global = {
-      weekly: gw.leaderboard ?? [],
-      monthly: gm.leaderboard ?? [],
-      alltime: ga.leaderboard ?? [],
-    };
-
-    if (isLoggedIn && fw && fm && fa) {
-      leaderboardData.friends = {
-        weekly: fw.leaderboard ?? [],
-        monthly: fm.leaderboard ?? [],
-        alltime: fa.leaderboard ?? [],
-      };
+    if (isLoggedIn) {
+      const [fw, fm, fa] = await Promise.all([safeFetchLeaderboard('leaderboards/friends?period=weekly'), safeFetchLeaderboard('leaderboards/friends?period=monthly'), safeFetchLeaderboard('leaderboards/friends?period=alltime')]);
+      leaderboardData.friends = { weekly: fw, monthly: fm, alltime: fa };
     }
   } catch (error) {
-    console.error('[LeaderboardPage] Error fetching leaderboard:', error);
+    console.error('[LeaderboardPage] Unexpected error in data orchestration:', error);
     fetchFailed = true;
   }
 
