@@ -48,6 +48,6 @@ app.get('/v1/info', async (req: Request, res: Response) => {
   }
 });
 
-app.listen(port, () => {
+app.listen(Number(port), () => {
   console.log(`API server listening on port ${port}`);
 });
