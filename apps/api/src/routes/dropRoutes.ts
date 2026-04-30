@@ -63,10 +63,9 @@ router.patch('/:id/answer', requireAuth, async (req: Request, res: Response) => 
       include: {
         question: {
           select: {
-            correctAnswerId: true,
             difficultyLevel: true,
             explanationText: true,
-            choices: true,
+            choices: { select: { id: true, isCorrect: true } },
           },
         },
       },
@@ -86,7 +85,8 @@ router.patch('/:id/answer', requireAuth, async (req: Request, res: Response) => 
     }
 
     const { question } = userDrop;
-    const isCorrect = selectedChoice === question.correctAnswerId;
+    const correctChoice = question.choices.find((c) => c.isCorrect);
+    const isCorrect = !!correctChoice && selectedChoice === correctChoice.id;
     const pointsAwarded = isCorrect ? (DIFFICULTY_POINTS[question.difficultyLevel] ?? 10) : 0;
 
     // ── Prisma transaction: update drop + user stats atomically ───────────────
@@ -116,9 +116,7 @@ router.patch('/:id/answer', requireAuth, async (req: Request, res: Response) => 
     // Update period-based score ledger outside the transaction — failure here
     // is non-fatal; the core answer has already been committed.
     if (isCorrect) {
-      upsertUserScores(userId, pointsAwarded).catch((err) =>
-        console.error('[drops/answer] Failed to upsert UserScore ledger:', err),
-      );
+      upsertUserScores(userId, pointsAwarded).catch((err) => console.error('[drops/answer] Failed to upsert UserScore ledger:', err));
     }
 
     return res.status(200).json({

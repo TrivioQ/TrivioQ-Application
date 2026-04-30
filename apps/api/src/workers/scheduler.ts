@@ -110,6 +110,7 @@ cron.schedule('* * * * *', async () => {
             scheduledDropTime: now,
             expirationTime: expirationTime,
             isAnswered: false,
+            scheduledFor: now,
           },
         });
 

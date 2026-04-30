@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
 import { prisma } from '@trivioq/database';
 import { verifyFirebaseToken } from '../middleware/firebase-auth';
+import { getSetting } from '../utils/settings';
 
 const router = express.Router();
 
@@ -102,7 +103,11 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
       } catch (rollbackError) {
         console.error(`Failed to roll back Firebase user ${firebaseUid}:`, rollbackError);
       }
-      return res.status(500).json({ error: 'Account creation failed. Please try signing up again.' });
+      const supportEmail = await getSetting('support_email', 'support@trivioq.com');
+      return res.status(500).json({
+        error: 'Account creation failed. Please try signing up again.',
+        support: supportEmail,
+      });
     }
 
     res.json(user);

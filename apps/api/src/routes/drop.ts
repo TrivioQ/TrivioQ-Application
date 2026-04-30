@@ -21,8 +21,8 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
             categories: { select: { name: true } },
             difficultyLevel: true,
             questionText: true,
-            choices: true,
-            // Explicitly omitted: correctAnswerId, hintText, explanationText
+            // Choices sorted by display order; isCorrect intentionally omitted
+            choices: { select: { id: true, text: true, order: true }, orderBy: { order: 'asc' } },
           },
         },
       },
@@ -33,6 +33,7 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
     }
 
     const pointsValue = DIFFICULTY_POINTS[activeDrop.question.difficultyLevel] ?? 10;
+    const hintCostPercent = await getSettingNumber('hint_cost_percent', 30);
 
     const payload: QuestionDropPayload = {
       dropId: activeDrop.id,
@@ -40,10 +41,10 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
       category: activeDrop.question.categories[0]?.name ?? 'General',
       difficulty: activeDrop.question.difficultyLevel.toLowerCase() as 'easy' | 'medium' | 'hard',
       questionText: activeDrop.question.questionText,
-      options: activeDrop.question.choices as string[],
+      options: activeDrop.question.choices.map((c) => c.text),
       expiresAt: activeDrop.expirationTime.getTime(),
       pointsValue,
-      hintCost: Math.floor(pointsValue * 0.3),
+      hintCost: Math.floor(pointsValue * (hintCostPercent / 100)),
       usedHint: activeDrop.usedHint,
       revealedAnswer: activeDrop.revealedAnswer,
     };
@@ -62,7 +63,7 @@ router.post('/:dropId/hint', requireAuth, async (req: Request, res: Response) =>
 
     const userDrop = await prisma.userDrop.findUnique({
       where: { id: dropId },
-      include: { question: true },
+      include: { question: { select: { hintText: true, difficultyLevel: true } } },
     });
 
     if (!userDrop || userDrop.userId !== userId) {
@@ -82,7 +83,8 @@ router.post('/:dropId/hint', requireAuth, async (req: Request, res: Response) =>
     }
 
     const pointsValue = DIFFICULTY_POINTS[userDrop.question.difficultyLevel] ?? 10;
-    const hintCost = Math.floor(pointsValue * 0.3);
+    const hintCostPercent = await getSettingNumber('hint_cost_percent', 30);
+    const hintCost = Math.floor(pointsValue * (hintCostPercent / 100));
 
     await prisma.userDrop.update({
       where: { id: dropId },
@@ -105,7 +107,13 @@ router.post('/:dropId/reveal-answer', requireAuth, async (req: Request, res: Res
 
     const userDrop = await prisma.userDrop.findUnique({
       where: { id: dropId },
-      include: { question: true },
+      include: {
+        question: {
+          select: {
+            choices: { select: { id: true, isCorrect: true }, orderBy: { order: 'asc' } },
+          },
+        },
+      },
     });
 
     if (!userDrop || userDrop.userId !== userId) {
@@ -123,14 +131,7 @@ router.post('/:dropId/reveal-answer', requireAuth, async (req: Request, res: Res
       data: { revealedAnswer: true },
     });
 
-    const question = userDrop.question;
-    const choices = question.choices as { id: string; text: string }[];
-    let correctOptionIndex = -1;
-    if (!isNaN(Number(question.correctAnswerId))) {
-      correctOptionIndex = Number(question.correctAnswerId);
-    } else {
-      correctOptionIndex = choices.findIndex((c) => c.id === question.correctAnswerId);
-    }
+    const correctOptionIndex = userDrop.question.choices.findIndex((c) => c.isCorrect);
 
     res.json({ correctOptionIndex, message: 'Answer revealed. No points will be awarded.' });
   } catch (error) {
@@ -152,7 +153,15 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
 
     const userDrop = await prisma.userDrop.findUnique({
       where: { id: dropId },
-      include: { question: true, user: true },
+      include: {
+        question: {
+          select: {
+            difficultyLevel: true,
+            explanationText: true,
+            choices: { select: { id: true, isCorrect: true }, orderBy: { order: 'asc' } },
+          },
+        },
+      },
     });
 
     if (!userDrop || userDrop.userId !== userId) {
@@ -167,26 +176,13 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
       return res.status(410).json({ error: 'Drop has expired' });
     }
 
-    const question = userDrop.question;
-    const choices = question.choices as string[];
-
-    let correctOptionIndex = -1;
-    if (!isNaN(Number(question.correctAnswerId))) {
-      correctOptionIndex = Number(question.correctAnswerId);
-    } else {
-      correctOptionIndex = choices.indexOf(question.correctAnswerId);
-    }
-
+    const { question } = userDrop;
+    const correctOptionIndex = question.choices.findIndex((c) => c.isCorrect);
     const isCorrect = !userDrop.revealedAnswer && selectedOptionIndex === correctOptionIndex;
     const pointsAwarded = isCorrect ? (DIFFICULTY_POINTS[question.difficultyLevel] ?? 10) : 0;
 
-    let actualSelectedChoiceId = String(selectedOptionIndex);
-    if (choices && choices.length > 0 && typeof choices[0] !== 'string') {
-      const choiceObj = (choices as any)[Number(selectedOptionIndex)];
-      if (choiceObj && choiceObj.id) {
-        actualSelectedChoiceId = choiceObj.id;
-      }
-    }
+    // Resolve the selected index to the real Choice.id now that choices are a proper relation
+    const selectedChoiceId = question.choices[Number(selectedOptionIndex)]?.id ?? String(selectedOptionIndex);
 
     const [, updatedUser] = await prisma.$transaction([
       prisma.userDrop.update({
@@ -194,7 +190,7 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
         data: {
           isAnswered: true,
           wasCorrect: isCorrect,
-          selectedChoiceId: actualSelectedChoiceId,
+          selectedChoiceId,
           pointsAwarded,
           answeredAt: now,
         },
@@ -264,7 +260,7 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
         categories: { select: { name: true } },
         difficultyLevel: true,
         questionText: true,
-        choices: true,
+        choices: { select: { text: true }, orderBy: { order: 'asc' } },
       },
     });
 
@@ -282,6 +278,7 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
         scheduledDropTime: now,
         expirationTime,
         isAnswered: false,
+        scheduledFor: now,
       },
     });
 
@@ -291,6 +288,7 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
     });
 
     const pointsValue = DIFFICULTY_POINTS[randomQ.difficultyLevel] ?? 10;
+    const hintCostPercent = await getSettingNumber('hint_cost_percent', 30);
 
     const payload: QuestionDropPayload = {
       dropId: userDrop.id,
@@ -298,10 +296,10 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
       category: randomQ.categories[0]?.name ?? 'General',
       difficulty: randomQ.difficultyLevel.toLowerCase() as 'easy' | 'medium' | 'hard',
       questionText: randomQ.questionText,
-      options: randomQ.choices as string[],
+      options: randomQ.choices.map((c) => c.text),
       expiresAt: expirationTime.getTime(),
       pointsValue,
-      hintCost: Math.floor(pointsValue * 0.3),
+      hintCost: Math.floor(pointsValue * (hintCostPercent / 100)),
       usedHint: false,
       revealedAnswer: false,
     };

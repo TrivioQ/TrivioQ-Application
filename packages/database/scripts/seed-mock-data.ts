@@ -49,6 +49,8 @@ async function main() {
         await tx.category.deleteMany();
         await tx.user.deleteMany();
         await tx.fAQ.deleteMany();
+        await tx.legalDocument.deleteMany();
+        await tx.setting.deleteMany();
         console.log('✅ Database cleared.');
 
         // 1. Categories
@@ -76,13 +78,12 @@ async function main() {
         const difficulties = Object.values(DifficultyLevel);
 
         for (let i = 0; i < 500; i++) {
-          const choices = [
-            { id: faker.string.uuid(), text: faker.lorem.words(3) },
-            { id: faker.string.uuid(), text: faker.lorem.words(3) },
-            { id: faker.string.uuid(), text: faker.lorem.words(3) },
-            { id: faker.string.uuid(), text: faker.lorem.words(3) },
-          ];
-          const correctAnswerId = choices[faker.number.int({ min: 0, max: 3 })].id;
+          const correctIdx = faker.number.int({ min: 0, max: 3 });
+          const choices = [0, 1, 2, 3].map((idx) => ({
+            text: faker.lorem.words(3),
+            order: idx,
+            isCorrect: idx === correctIdx,
+          }));
 
           // Pick 1-3 random categories
           const shuffledCats = [...categories].sort(() => 0.5 - Math.random());
@@ -91,8 +92,9 @@ async function main() {
           questionsData.push({
             questionText: faker.lorem.sentence() + '?',
             difficultyLevel: difficulties[faker.number.int({ min: 0, max: difficulties.length - 1 })],
-            choices: choices,
-            correctAnswerId,
+            choices: {
+              create: choices,
+            },
             explanationText: faker.lorem.paragraph(),
             hintText: faker.lorem.sentence(),
             categories: {
@@ -103,7 +105,14 @@ async function main() {
 
         // We can't use createMany with relations in Prisma, so we do it in a loop or chunks
         // To speed up, we'll do them in parallel with Promise.all
-        const createdQuestions = await Promise.all(questionsData.map((q) => tx.question.create({ data: q })));
+        const createdQuestions = await Promise.all(
+          questionsData.map((q) =>
+            tx.question.create({
+              data: q,
+              include: { choices: true },
+            }),
+          ),
+        );
         console.log(`✅ Created ${createdQuestions.length} questions.`);
 
         // 3. Users
@@ -123,6 +132,7 @@ async function main() {
               email: faker.internet.email(),
               username: faker.internet.userName(),
               displayName: faker.person.fullName(),
+              dateOfBirth: faker.date.birthdate({ min: 18, max: 65, mode: 'age' }),
               profilePicture: faker.image.avatar(),
               currentStreak,
               subscriptionTier: tier,
@@ -137,15 +147,24 @@ async function main() {
 
         // 4. User Drops (History)
         console.log('📥 Stage 4: Generating historical user drops (90 days)...');
-        const userPointsMap: Record<string, { overall: number; weekly: Record<string, number>; monthly: Record<string, number> }> = {};
+        const userStatsMap: Record<
+          string,
+          {
+            overall: number;
+            weekly: Record<string, number>;
+            monthly: Record<string, number>;
+            questionsAnswered: number;
+            correctAnswers: number;
+          }
+        > = {};
 
         for (const user of users) {
-          userPointsMap[user.id] = { overall: 0, weekly: {}, monthly: {} };
+          userStatsMap[user.id] = { overall: 0, weekly: {}, monthly: {}, questionsAnswered: 0, correctAnswers: 0 };
           const numDrops = faker.number.int({ min: 50, max: 100 });
 
           for (let j = 0; j < numDrops; j++) {
             const isAnswered = faker.datatype.boolean();
-            let wasCorrect = null;
+            let wasCorrect = false;
             const scheduledDropTime = faker.date.recent({ days: 90 });
             const expirationTime = new Date(scheduledDropTime.getTime() + 15 * 60000);
             const randomQ = createdQuestions[faker.number.int({ min: 0, max: createdQuestions.length - 1 })];
@@ -157,6 +176,7 @@ async function main() {
             let selectedChoiceId = null;
 
             if (isAnswered) {
+              userStatsMap[user.id].questionsAnswered++;
               answeredAt = new Date(scheduledDropTime.getTime() + faker.number.int({ min: 1, max: 10 }) * 60000);
               const successProb = user.subscriptionTier === SubscriptionTier.PREMIUM ? 0.8 : 0.6;
 
@@ -170,11 +190,13 @@ async function main() {
                 selectedChoiceId = null;
               } else {
                 wasCorrect = Math.random() < successProb;
-                const correctIdx = (randomQ?.choices as any[]).findIndex((c: any) => c.id === randomQ.correctAnswerId);
+                const choices = randomQ.choices as any[];
+                const correctIdx = choices.findIndex((c) => c.isCorrect);
                 const randomIdx = faker.number.int({ min: 0, max: 3 });
-                selectedChoiceId = String(wasCorrect ? correctIdx : randomIdx);
+                selectedChoiceId = choices[wasCorrect ? correctIdx : randomIdx]?.id || null;
 
                 if (wasCorrect) {
+                  userStatsMap[user.id].correctAnswers++;
                   const basePts = DIFFICULTY_POINTS[randomQ.difficultyLevel];
                   const hintCost = usedHint ? Math.floor(basePts * 0.3) : 0;
                   pointsAwarded = basePts - hintCost;
@@ -182,9 +204,9 @@ async function main() {
                   const wKey = getWeekStart(scheduledDropTime).toISOString();
                   const mKey = getMonthStart(scheduledDropTime).toISOString();
 
-                  userPointsMap[user.id].overall += pointsAwarded;
-                  userPointsMap[user.id].weekly[wKey] = (userPointsMap[user.id].weekly[wKey] || 0) + pointsAwarded;
-                  userPointsMap[user.id].monthly[mKey] = (userPointsMap[user.id].monthly[mKey] || 0) + pointsAwarded;
+                  userStatsMap[user.id].overall += pointsAwarded;
+                  userStatsMap[user.id].weekly[wKey] = (userStatsMap[user.id].weekly[wKey] || 0) + pointsAwarded;
+                  userStatsMap[user.id].monthly[mKey] = (userStatsMap[user.id].monthly[mKey] || 0) + pointsAwarded;
                 }
               }
             }
@@ -202,14 +224,21 @@ async function main() {
                 answeredAt,
                 pointsAwarded,
                 selectedChoiceId,
+                isViewed: isAnswered || faker.datatype.boolean(),
+                scheduledFor: scheduledDropTime,
+                createdAt: scheduledDropTime,
               },
             });
           }
 
-          // Update user's cumulativeScore in the DB
+          // Update user's cumulativeScore and stats in the DB
           await tx.user.update({
             where: { id: user.id },
-            data: { cumulativeScore: userPointsMap[user.id].overall },
+            data: {
+              cumulativeScore: userStatsMap[user.id].overall,
+              questionsAnswered: userStatsMap[user.id].questionsAnswered,
+              correctAnswers: userStatsMap[user.id].correctAnswers,
+            },
           });
         }
         console.log('✅ Generated historical drops and updated user cumulative scores.');
@@ -247,7 +276,7 @@ async function main() {
 
         // 6. Score Ledger
         console.log('📊 Stage 6: Generating persistent score ledger entries...');
-        for (const [userId, scores] of Object.entries(userPointsMap)) {
+        for (const [userId, scores] of Object.entries(userStatsMap)) {
           // 6a. Overall record
           await tx.userScore.create({
             data: {

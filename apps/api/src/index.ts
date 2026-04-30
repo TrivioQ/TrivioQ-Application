@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 process.env.TZ = 'UTC';
 import { prisma } from '@trivioq/database';
-import { UserPreferences } from '@trivioq/shared-types';
 
 import userRoutes from './routes/user';
 import dropRoutes from './routes/drop';
@@ -13,6 +12,7 @@ import faqRoutes from './routes/faq';
 import legalRoutes from './routes/legal';
 
 import { env } from './config/env';
+import { getSetting } from './utils/settings';
 
 const app = express();
 const port = env.PORT;
@@ -30,22 +30,22 @@ app.use('/v1/legal', legalRoutes);
 
 app.get('/health', async (req: Request, res: Response) => {
   try {
-    // Simple db query to check if DB connection is alive
     await prisma.$queryRaw`SELECT 1`;
     res.status(200).json({ status: 'ok', database: 'connected' });
   } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      database: 'disconnected',
-      error: String(error),
-    });
+    res.status(500).json({ status: 'error', database: 'disconnected', error: String(error) });
   }
 });
 
-// Example route using shared-types to verify compilation
-app.post('/preferences', (req: Request, res: Response) => {
-  const prefs: UserPreferences = req.body;
-  res.json({ received: prefs });
+// Public app metadata — consumed by mobile clients for support contact etc.
+app.get('/v1/info', async (req: Request, res: Response) => {
+  try {
+    const supportEmail = await getSetting('support_email', 'support@trivioq.com');
+    res.json({ supportEmail });
+  } catch (error) {
+    console.error('Failed to fetch app info:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 app.listen(port, () => {

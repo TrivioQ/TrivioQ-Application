@@ -3,11 +3,11 @@ export interface UserPreferences {
   notificationsEnabled: boolean;
   language: string;
   categoryPercentages: Record<string, number>;
-  activeWindowStart: string; // 'HH:MM'
-  activeWindowEnd: string; // 'HH:MM'
   targetDropsPerWeek: number;
   difficultyPercentages: Record<string, number>;
   displayName?: string;
+  // activeWindowStart / activeWindowEnd live as typed DateTime columns on User,
+  // not in this JSON blob. They are accepted by PUT /preferences but not stored here.
 }
 
 export interface QuestionDropPayload {

@@ -4,7 +4,7 @@ const CACHE_TTL_MS = 60_000; // re-fetch from DB at most once per minute
 
 const cache = new Map<string, { value: string; expiresAt: number }>();
 
-async function getSetting(key: string, fallback: string): Promise<string> {
+export async function getSetting(key: string, fallback: string): Promise<string> {
   const hit = cache.get(key);
   if (hit && hit.expiresAt > Date.now()) return hit.value;
 

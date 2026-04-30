@@ -16,17 +16,19 @@ const UserPreferencesSchema = z.object({
   categoryPercentages: z.record(z.string(), z.number()).refine(
     (data) => {
       const sum = Object.values(data).reduce((acc: number, val: number) => acc + val, 0);
-      return Math.abs(sum - 1.0) < 0.001; // Handle floating point precision
+      return Math.abs(sum - 1.0) < 0.001;
     },
     { message: 'Category percentages must add up to 1.0' },
   ),
   difficultyPercentages: z.record(z.string(), z.number()).refine(
     (data) => {
       const sum = Object.values(data).reduce((acc: number, val: number) => acc + val, 0);
-      return Math.abs(sum - 100) < 0.1; // Using percentages 0-100 here for UI ease
+      return Math.abs(sum - 100) < 0.1;
     },
     { message: 'Difficulty percentages must add up to 100' },
   ),
+  // Accepted from the client to populate the User DateTime columns, but NOT
+  // stored in the preferences JSON blob (authoritative source is the DB columns).
   activeWindowStart: z.string().regex(timeRegex, 'Invalid 24h time format'),
   activeWindowEnd: z.string().regex(timeRegex, 'Invalid 24h time format'),
   targetDropsPerWeek: z.number().min(1).max(100).default(35),
@@ -34,16 +36,22 @@ const UserPreferencesSchema = z.object({
 
 router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
   try {
-    const payload = UserPreferencesSchema.parse(req.body) as UserPreferences;
+    // Parse the full body (includes activeWindowStart/End for DB column writes)
+    const raw = UserPreferencesSchema.parse(req.body);
     const userId = (req as any).userId;
 
-    // Convert "HH:MM" to a generic DateTime for the User model
+    // Convert "HH:MM" strings to DateTime for the typed User columns
     const now = new Date();
-    const [startHour, startMin] = payload.activeWindowStart.split(':').map(Number);
-    const [endHour, endMin] = payload.activeWindowEnd.split(':').map(Number);
+    const [startHour, startMin] = raw.activeWindowStart.split(':').map(Number);
+    const [endHour, endMin] = raw.activeWindowEnd.split(':').map(Number);
 
     const activeWindowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, startMin);
     const activeWindowEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endHour, endMin);
+
+    // Strip the window fields before writing to the JSON blob — the DB columns
+    // are the authoritative source; storing them twice causes drift.
+    const { activeWindowStart: _s, activeWindowEnd: _e, ...preferencesBlob } = raw;
+    const payload = preferencesBlob as UserPreferences;
 
     // Upsert preferences into the database
     const updatedUser = await prisma.user.upsert({
@@ -56,9 +64,9 @@ router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
       },
       create: {
         id: userId,
-        firebaseUid: `mock_${userId}`, // Dummy value for mock
-        email: `mock_${userId}@example.com`, // Dummy value for mock
-        username: `user_${userId}`, // Dummy username for the mock
+        firebaseUid: `mock_${userId}`,
+        email: `mock_${userId}@example.com`,
+        username: `user_${userId}`,
         displayName: payload.displayName || `user_${userId}`,
         activeWindowStart,
         activeWindowEnd,
@@ -173,7 +181,6 @@ router.get('/me/recent-drops', requireAuth, async (req: Request, res: Response) 
             difficultyLevel: true,
             categories: { select: { name: true } },
             choices: true,
-            correctAnswerId: true,
           },
         },
       },

@@ -71,7 +71,7 @@ model Friendship {
   requesterId String
   addressee   User     @relation("UserFriendshipsAccepted", fields: [addresseeId], references: [id])
   addresseeId String
-  status      String   @default("PENDING") // e.g. PENDING, ACCEPTED
+  status      FriendshipStatus @default(PENDING)
   createdAt   DateTime @default(now())
 
   @@unique([requesterId, addresseeId])
@@ -81,6 +81,12 @@ enum DifficultyLevel {
   EASY
   MEDIUM
   HARD
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
 }
 
 enum SubscriptionTier {
@@ -101,11 +107,21 @@ model Question {
   categories      Category[]
   difficultyLevel DifficultyLevel
   questionText    String
-  choices         Json
-  correctAnswerId String
+  choices         Choice[]
   explanationText String?
   hintText        String?
   drops           UserDrop[]
+}
+
+model Choice {
+  id         String   @id @default(uuid())
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId String
+  text       String
+  order      Int      @default(0)
+  isCorrect  Boolean  @default(false)
+
+  @@index([questionId])
 }
 
 model UserDrop {
