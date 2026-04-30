@@ -147,7 +147,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
         {initialUser.dateOfBirth && (
           <div className='space-y-2'>
             <label className='text-xs font-bold uppercase tracking-wider text-gray-500'>{t('dateOfBirthLabel')}</label>
-            <div className='w-full bg-gray-800/60 border border-white/5 rounded-xl px-4 py-3 text-gray-400 text-sm select-none'>{new Date(initialUser.dateOfBirth).toLocaleDateString('en-CA')}</div>
+            <div className='w-full bg-gray-800/60 border border-white/5 rounded-xl px-4 py-3 text-gray-400 text-sm select-none cursor-not-allowed'>{new Date(initialUser.dateOfBirth).toLocaleDateString()}</div>
             <p className='text-xs text-gray-600'>{t('dateOfBirthReadOnly')}</p>
           </div>
         )}

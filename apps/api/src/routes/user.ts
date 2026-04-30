@@ -97,6 +97,7 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
         email: true,
         username: true,
         displayName: true,
+        dateOfBirth: true,
         role: true,
         currentStreak: true,
         cumulativeScore: true,
