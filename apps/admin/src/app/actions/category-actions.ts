@@ -5,17 +5,44 @@ import { revalidatePath } from 'next/cache';
 
 const prisma = new PrismaClient();
 
-export async function getCategories() {
+export type CategoryFilters = {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+};
+
+export async function getCategories(filters: CategoryFilters = {}) {
+  const { search, page = 1, pageSize = 20, sortBy = 'name', sortOrder = 'asc' } = filters;
   try {
-    const categories = await prisma.category.findMany({
-      orderBy: { name: 'asc' },
-      include: {
-        _count: {
-          select: { questions: true }
+    const where = {
+      ...(search ? { name: { contains: search, mode: 'insensitive' as const } } : {}),
+    };
+    const skip = (page - 1) * pageSize;
+
+    const [total, data] = await Promise.all([
+      prisma.category.count({ where }),
+      prisma.category.findMany({
+        where,
+        orderBy: { [sortBy]: sortOrder },
+        skip,
+        take: pageSize,
+        include: {
+          _count: {
+            select: { questions: true }
+          }
         }
-      }
-    });
-    return { success: true, data: categories };
+      })
+    ]);
+    return { 
+      success: true, 
+      data, 
+      total, 
+      page, 
+      pageSize, 
+      totalPages: Math.max(1, Math.ceil(total / pageSize)) 
+    };
   } catch (error) {
     console.error('Failed to fetch categories:', error);
     return { success: false, error: 'Failed to fetch categories' };

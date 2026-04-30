@@ -3,14 +3,42 @@
 import { prisma } from '@trivioq/database';
 import { revalidatePath } from 'next/cache';
 
-export async function getFAQs() {
+export type FAQFilters = {
+  search?: string;
+  active?: boolean;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+};
+
+export async function getFAQs(filters: FAQFilters = {}) {
+  const { search, active, page = 1, pageSize = 20, sortBy = 'order', sortOrder = 'asc' } = filters;
   try {
-    const faqs = await prisma.fAQ.findMany({
-      orderBy: {
-        order: 'asc',
-      },
-    });
-    return { success: true, data: faqs };
+    const where = {
+      ...(search ? { question: { contains: search, mode: 'insensitive' as const } } : {}),
+      ...(active !== undefined ? { active } : {}),
+    };
+    const skip = (page - 1) * pageSize;
+
+    const [total, data] = await Promise.all([
+      prisma.fAQ.count({ where }),
+      prisma.fAQ.findMany({
+        where,
+        orderBy: { [sortBy]: sortOrder },
+        skip,
+        take: pageSize,
+      })
+    ]);
+
+    return { 
+      success: true, 
+      data, 
+      total, 
+      page, 
+      pageSize, 
+      totalPages: Math.max(1, Math.ceil(total / pageSize)) 
+    };
   } catch (error) {
     console.error('Failed to fetch FAQs:', error);
     return { success: false, error: 'Failed to fetch FAQs' };

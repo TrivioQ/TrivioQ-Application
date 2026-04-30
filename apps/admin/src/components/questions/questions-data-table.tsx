@@ -7,8 +7,7 @@ import {
   useReactTable,
   ColumnDef,
 } from '@tanstack/react-table';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { useTransition } from 'react';
+import { useTableParams } from '@/hooks/use-table-params';
 import {
   Table,
   TableBody,
@@ -24,42 +23,30 @@ import type { PaginatedQuestionsResult } from '@/app/actions/question-actions';
 interface Props<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   result: PaginatedQuestionsResult;
-  categories?: { id: string; name: string }[];
 }
 
-export function QuestionsDataTable<TData, TValue>({
-  columns,
-  result,
-}: Props<TData, TValue>) {
+export function QuestionsDataTable<TData, TValue>({ columns, result }: Props<TData, TValue>) {
   "use no memo";
 
   const { data, page, totalPages, total, pageSize } = result;
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const { pushParams, isPending, sorting, handleSortingChange } = useTableParams();
 
   const table = useReactTable({
     data: data as TData[],
     columns,
-    // Client-side column filtering on the current page's data
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: handleSortingChange,
+    manualSorting: true,
+    state: { sorting },
   });
-
-  const goToPage = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', String(newPage));
-    startTransition(() => router.push(`${pathname}?${params.toString()}`));
-  };
 
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
 
   return (
     <div className="space-y-4">
-      {/* Table */}
-      <div className={`rounded-md border bg-white transition-opacity ${isPending ? 'opacity-60' : ''}`}>
+      <div className={`rounded-md border bg-white transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -96,19 +83,15 @@ export function QuestionsDataTable<TData, TValue>({
         </Table>
       </div>
 
-      {/* Pagination controls */}
       <div className="flex items-center justify-between text-sm text-gray-600">
         <span>
           {total === 0 ? 'No results' : `Showing ${start}–${end} of ${total} questions`}
         </span>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => goToPage(page - 1)}
+            onClick={() => pushParams({ page: String(page - 1) })}
             disabled={page <= 1 || isPending}
-            className={buttonVariants({
-              variant: 'outline',
-              className: 'h-8 w-8 p-0 disabled:opacity-40',
-            })}
+            className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
             aria-label="Previous page"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -117,12 +100,9 @@ export function QuestionsDataTable<TData, TValue>({
             Page {page} of {totalPages}
           </span>
           <button
-            onClick={() => goToPage(page + 1)}
+            onClick={() => pushParams({ page: String(page + 1) })}
             disabled={page >= totalPages || isPending}
-            className={buttonVariants({
-              variant: 'outline',
-              className: 'h-8 w-8 p-0 disabled:opacity-40',
-            })}
+            className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
             aria-label="Next page"
           >
             <ChevronRight className="h-4 w-4" />

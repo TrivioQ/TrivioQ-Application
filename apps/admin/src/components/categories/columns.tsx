@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -23,14 +23,28 @@ type CategoryRow = Category & {
   };
 };
 
+function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
+  if (sorted === 'asc') return <ArrowUp className="h-3.5 w-3.5" />;
+  if (sorted === 'desc') return <ArrowDown className="h-3.5 w-3.5" />;
+  return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />;
+}
+
 export const columns: ColumnDef<CategoryRow>[] = [
   {
     accessorKey: 'name',
-    header: 'Name',
+    header: ({ column }) => (
+      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+        Name <SortIcon sorted={column.getIsSorted()} />
+      </button>
+    ),
   },
   {
     accessorKey: 'slug',
-    header: 'Slug',
+    header: ({ column }) => (
+      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+        Slug <SortIcon sorted={column.getIsSorted()} />
+      </button>
+    ),
   },
   {
     accessorKey: 'description',

@@ -6,7 +6,7 @@ const intlMiddleware = createMiddleware({
   defaultLocale: 'en'
 });
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // 1. Handle locale routing with next-intl
@@ -56,5 +56,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
 };

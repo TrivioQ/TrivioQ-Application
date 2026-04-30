@@ -5,14 +5,48 @@ import { revalidatePath } from 'next/cache';
 
 const prisma = new PrismaClient();
 
-export async function getUsers() {
+export type UserFilters = {
+  search?: string;
+  tier?: SubscriptionTier;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+};
+
+export async function getUsers(filters: UserFilters = {}) {
+  const { search, tier, page = 1, pageSize = 20, sortBy = 'lastLogin', sortOrder = 'desc' } = filters;
   try {
-    const users = await prisma.user.findMany({
-      orderBy: {
-        lastLogin: 'desc',
-      },
-    });
-    return { success: true, data: users };
+    const where = {
+      ...(search ? {
+        OR: [
+          { username: { contains: search, mode: 'insensitive' as const } },
+          { email: { contains: search, mode: 'insensitive' as const } },
+        ]
+      } : {}),
+      ...(tier ? { subscriptionTier: tier } : {}),
+    };
+    
+    const skip = (page - 1) * pageSize;
+    
+    const [total, data] = await Promise.all([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        orderBy: { [sortBy]: sortOrder },
+        skip,
+        take: pageSize,
+      })
+    ]);
+
+    return { 
+      success: true, 
+      data, 
+      total, 
+      page, 
+      pageSize, 
+      totalPages: Math.max(1, Math.ceil(total / pageSize)) 
+    };
   } catch (error) {
     console.error('Failed to fetch users:', error);
     return { success: false, error: 'Failed to fetch users' };

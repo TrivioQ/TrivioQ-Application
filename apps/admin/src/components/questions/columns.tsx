@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -30,10 +30,20 @@ export type QuestionRow = {
   hintText: string | null;
 };
 
+function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
+  if (sorted === 'asc') return <ArrowUp className="h-3.5 w-3.5" />;
+  if (sorted === 'desc') return <ArrowDown className="h-3.5 w-3.5" />;
+  return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />;
+}
+
 export const columns: ColumnDef<QuestionRow>[] = [
   {
     accessorKey: 'questionText',
-    header: 'Question',
+    header: ({ column }) => (
+      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+        Question <SortIcon sorted={column.getIsSorted()} />
+      </button>
+    ),
     cell: ({ row }) => {
       const text = row.getValue('questionText') as string;
       return <div className="max-w-[400px] truncate" title={text}>{text}</div>;
@@ -41,7 +51,11 @@ export const columns: ColumnDef<QuestionRow>[] = [
   },
   {
     accessorKey: 'difficultyLevel',
-    header: 'Difficulty',
+    header: ({ column }) => (
+      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+        Difficulty <SortIcon sorted={column.getIsSorted()} />
+      </button>
+    ),
     cell: ({ row }) => {
       const diff = row.getValue('difficultyLevel') as string;
       const colors: Record<string, string> = {

@@ -16,7 +16,7 @@ function isProtected(pathname: string): boolean {
   return PROTECTED_SEGMENTS.some((seg) => withoutLocale === seg || withoutLocale.startsWith(seg + '/'));
 }
 
-export async function middleware(req: NextRequest): Promise<NextResponse> {
+export async function proxy(req: NextRequest): Promise<NextResponse> {
   const { pathname } = req.nextUrl;
 
   if (isProtected(pathname) && !req.cookies.get('tq_auth')) {

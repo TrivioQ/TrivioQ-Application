@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -28,18 +28,36 @@ export type UserRow = {
   currentStreak: number;
 };
 
+function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
+  if (sorted === 'asc') return <ArrowUp className="h-3.5 w-3.5" />;
+  if (sorted === 'desc') return <ArrowDown className="h-3.5 w-3.5" />;
+  return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />;
+}
+
 export const columns: ColumnDef<UserRow>[] = [
   {
     accessorKey: 'username',
-    header: 'Username',
+    header: ({ column }) => (
+      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+        Username <SortIcon sorted={column.getIsSorted()} />
+      </button>
+    ),
   },
   {
     accessorKey: 'email',
-    header: 'Email',
+    header: ({ column }) => (
+      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+        Email <SortIcon sorted={column.getIsSorted()} />
+      </button>
+    ),
   },
   {
     accessorKey: 'subscriptionTier',
-    header: 'Subscription Tier',
+    header: ({ column }) => (
+      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+        Subscription Tier <SortIcon sorted={column.getIsSorted()} />
+      </button>
+    ),
     cell: ({ row }) => {
       const tier = row.getValue('subscriptionTier') as string;
       return (
@@ -51,7 +69,11 @@ export const columns: ColumnDef<UserRow>[] = [
   },
   {
     accessorKey: 'currentStreak',
-    header: 'Current Streak',
+    header: ({ column }) => (
+      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+        Current Streak <SortIcon sorted={column.getIsSorted()} />
+      </button>
+    ),
   },
   {
     id: 'actions',

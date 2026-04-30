@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { updateSetting } from '@/app/actions/setting-actions';
 import { Check, Pencil, X } from 'lucide-react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 type Setting = {
   key: string;
@@ -85,28 +86,103 @@ function SettingRow({ setting }: { setting: Setting }) {
   );
 }
 
-export default function SettingsEditor({ settings }: { settings: Setting[] }) {
-  if (settings.length === 0) {
-    return <p className='text-gray-500 py-8 text-center'>No settings found. Run the seed script to populate defaults.</p>;
-  }
+export default function SettingsEditor({
+  settings,
+  pageCount = 1,
+  currentPage = 1,
+  search = '',
+}: {
+  settings: Setting[];
+  pageCount?: number;
+  currentPage?: number;
+  search?: string;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [searchValue, setSearchValue] = useState(search);
+
+  const handleSearch = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (searchValue) {
+      params.set('search', searchValue);
+    } else {
+      params.delete('search');
+    }
+    params.set('page', '1');
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', newPage.toString());
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   return (
-    <div className='overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
-      <table className='w-full text-sm'>
-        <thead>
-          <tr className='border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500'>
-            <th className='py-3 px-6'>Setting</th>
-            <th className='py-3 px-6'>Type</th>
-            <th className='py-3 px-6'>Value</th>
-            <th className='py-3 px-6'>Last Updated</th>
-          </tr>
-        </thead>
-        <tbody>
-          {settings.map((s) => (
-            <SettingRow key={s.key} setting={s} />
-          ))}
-        </tbody>
-      </table>
+    <div className='space-y-4'>
+      <div className="flex items-center max-w-sm border rounded-md overflow-hidden bg-white px-2 h-10 border-gray-200 shadow-sm">
+        <input
+          placeholder="Search settings..."
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          className="w-full border-0 focus:outline-none px-2 text-sm"
+        />
+        {searchValue !== search && (
+          <button onClick={handleSearch} className="ml-2 px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded">
+            Apply
+          </button>
+        )}
+      </div>
+
+      <div className='overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
+        <table className='w-full text-sm'>
+          <thead>
+            <tr className='border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500'>
+              <th className='py-3 px-6'>Setting</th>
+              <th className='py-3 px-6'>Type</th>
+              <th className='py-3 px-6'>Value</th>
+              <th className='py-3 px-6'>Last Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            {settings.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="text-center py-8 text-gray-500">
+                  No settings found.
+                </td>
+              </tr>
+            ) : (
+              settings.map((s) => (
+                <SettingRow key={s.key} setting={s} />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-gray-500">
+          Showing page {currentPage} of {Math.max(1, pageCount)}
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage <= 1}
+            className="px-3 py-1 border border-gray-200 rounded text-sm disabled:opacity-50 hover:bg-gray-50"
+          >
+            Prev
+          </button>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage >= pageCount}
+            className="px-3 py-1 border border-gray-200 rounded text-sm disabled:opacity-50 hover:bg-gray-50"
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -11,6 +11,8 @@ type SearchParams = {
   search?: string;
   difficulty?: string | string[];
   category?: string | string[];
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export default async function QuestionsPage({
@@ -22,22 +24,23 @@ export default async function QuestionsPage({
 
   const page = Math.max(1, parseInt(sp.page ?? '1', 10));
   const search = sp.search ?? '';
-  const difficulties = (
-    Array.isArray(sp.difficulty) ? sp.difficulty : sp.difficulty ? [sp.difficulty] : []
-  ) as DifficultyLevel[];
-  const categoryIds = Array.isArray(sp.category)
-    ? sp.category
-    : sp.category
-    ? [sp.category]
-    : [];
+  const rawDifficulty = Array.isArray(sp.difficulty) ? sp.difficulty.join(',') : (sp.difficulty ?? '');
+  const difficulties = (rawDifficulty.split(',').filter(Boolean)) as DifficultyLevel[];
+  const rawCategory = Array.isArray(sp.category) ? sp.category.join(',') : (sp.category ?? '');
+  const categoryFilterNames = rawCategory.split(',').filter(Boolean);
 
-  const [result, categoriesResult] = await Promise.all([
-    getQuestions({ page, search, difficulties, categoryIds }),
-    getCategories(),
-  ]);
+  const sortBy = typeof sp.sortBy === 'string' ? sp.sortBy : 'id';
+  const sortOrder = typeof sp.sortOrder === 'string' ? (sp.sortOrder as 'asc' | 'desc') : 'desc';
 
+  const categoriesResult = await getCategories();
   const categories =
     categoriesResult.success && categoriesResult.data ? categoriesResult.data : [];
+
+  const categoryIds = categoryFilterNames.length > 0
+    ? categories.filter((c) => categoryFilterNames.includes(c.name)).map((c) => c.id)
+    : [];
+
+  const result = await getQuestions({ page, search, difficulties, categoryIds, sortBy, sortOrder });
 
   return (
     <div className="space-y-6">
