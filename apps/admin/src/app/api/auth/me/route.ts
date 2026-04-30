@@ -21,7 +21,11 @@ export async function GET(req: NextRequest) {
     });
 
     if (!upstream.ok) {
-      return NextResponse.json({ error: 'Invalid or expired session' }, { status: 401 });
+      const errorData = await upstream.json().catch(() => ({}));
+      return NextResponse.json({ 
+        error: errorData.error || 'Invalid or expired session',
+        code: errorData.code 
+      }, { status: 401 });
     }
 
     const user = await upstream.json();

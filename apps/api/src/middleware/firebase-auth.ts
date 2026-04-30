@@ -92,8 +92,16 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     (req as any).userId = user.id;
     (req as any).firebaseUid = firebaseUid;
     next();
-  } catch (error) {
+  } catch (error: any) {
     console.error('[requireAuth] Token verification failed:', error);
+
+    if (error.code === 'auth/id-token-expired') {
+      return res.status(401).json({
+        error: 'Unauthorized: Session expired',
+        code: 'auth/id-token-expired',
+      });
+    }
+
     return res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
   }
 };

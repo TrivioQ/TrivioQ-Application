@@ -6,7 +6,7 @@ const intlMiddleware = createMiddleware({
   defaultLocale: 'en'
 });
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // 1. Handle locale routing with next-intl
@@ -40,6 +40,14 @@ export async function proxy(req: NextRequest) {
     });
 
     if (!meRes.ok) {
+      const errorData = await meRes.json().catch(() => ({}));
+      if (meRes.status === 401 && errorData.code === 'auth/id-token-expired') {
+        const loginUrl = new URL('/en/login', req.url);
+        loginUrl.searchParams.set('error', 'Session Expired');
+        const res = NextResponse.redirect(loginUrl);
+        res.cookies.delete('tq_auth');
+        return res;
+      }
       return NextResponse.redirect(new URL('/en/login?error=Unauthorized Access', req.url));
     }
 

@@ -63,7 +63,8 @@ async function handleRequest(req: NextRequest): Promise<NextResponse> {
     }
 
     if (!upstream.ok) {
-      const errorText = await upstream.text();
+      const errorData = await upstream.json().catch(() => null);
+
       // Forward safe upstream response headers to the client
       const responseHeaders = new Headers();
       upstream.headers.forEach((value, key) => {
@@ -71,10 +72,18 @@ async function handleRequest(req: NextRequest): Promise<NextResponse> {
           responseHeaders.set(key, value);
         }
       });
-      return new NextResponse(errorText, {
+
+      const response = NextResponse.json(errorData || { message: 'Upstream error' }, {
         status: upstream.status,
         headers: responseHeaders,
       });
+
+      // Automatically clear the auth cookie if the session has expired
+      if (upstream.status === 401 && errorData?.code === 'auth/id-token-expired') {
+        response.cookies.delete(COOKIE_NAME);
+      }
+
+      return response;
     }
 
     const data = await upstream.json();
