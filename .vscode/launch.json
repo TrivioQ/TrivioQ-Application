@@ -65,8 +65,12 @@
       "configurations": ["Debug Admin (Server)", "Debug Admin (Client)"]
     },
     {
-      "name": "Debug All (Backend + Web)",
+      "name": "Debug (API + Web)",
       "configurations": ["Debug API", "Debug Web (Server)"]
+    },
+    {
+      "name": "Debug (API + Admin)",
+      "configurations": ["Debug API", "Debug Admin (Server)"]
     }
   ]
 }

@@ -38,8 +38,11 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      console.warn('API returned 401, signing out user...');
+    const status = error.response?.status;
+    const code = error.response?.data?.code;
+
+    if (status === 401 && (code === 'auth/id-token-expired' || !code)) {
+      console.warn('API returned 401 (expired/invalid token), signing out user...');
       try {
         await auth.signOut();
       } catch (signOutError) {

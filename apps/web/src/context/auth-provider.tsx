@@ -26,7 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUser = useCallback(async () => {
     // Optimization: Only call the backend if we see the non-httpOnly companion cookie.
     // This avoids 401 noise in the console for unauthenticated users.
-    if (!document.cookie.split('; ').find((row) => row.startsWith('tq_session_active='))) {
+    if (!document.cookie.split('; ').find((row) => row.startsWith('tq_auth='))) {
       setUser(null);
       setIsLoading(false);
       return;

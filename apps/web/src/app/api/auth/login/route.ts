@@ -108,12 +108,6 @@ export async function syncAndRespond(idToken: string, extraData: Record<string, 
 
     response.cookies.set(COOKIE_NAME, idToken, cookieBase);
 
-    // Companion non-httpOnly cookie for client-side detection
-    response.cookies.set('tq_session_active', 'true', {
-      ...cookieBase,
-      httpOnly: false,
-    });
-
     return response;
   } catch (err) {
     console.error('[auth] Backend sync failed:', err);

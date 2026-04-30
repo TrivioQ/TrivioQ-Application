@@ -1,6 +1,7 @@
 import { env } from '../../env.mjs';
 import { APICallOptions, APIError, APIErrorBody } from './api';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 /**
  * makeServerAPICall — helper for making backend requests from Server Components or Route Handlers.
@@ -39,6 +40,16 @@ export async function makeServerAPICall<T = unknown>(path: string, { body, heade
 
   if (!response.ok) {
     const errorData: APIErrorBody = await response.json().catch(() => ({}));
+
+    if (response.status === 401 && errorData.code === 'auth/id-token-expired') {
+      try {
+        cookies().delete('tq_auth');
+      } catch (e) {
+        // Ignored if called outside of request context
+      }
+      redirect('/en/login?error=Session Expired');
+    }
+
     throw new APIError(response.status, errorData.message ?? `Request failed with status ${response.status}`, errorData.code);
   }
 

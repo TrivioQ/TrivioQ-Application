@@ -62,6 +62,14 @@ export async function makeAPICall<T = unknown>(path: string, { body, headers, ..
 
   if (!response.ok) {
     const errorData: APIErrorBody = await response.json().catch(() => ({}));
+
+    // Auto-logout if token is expired
+    if (response.status === 401 && errorData.code === 'auth/id-token-expired') {
+      if (typeof window !== 'undefined') {
+        window.location.href = '/en/login?error=Session Expired';
+      }
+    }
+
     throw new APIError(response.status, errorData.message ?? `Request failed with status ${response.status}`, errorData.code);
   }
 

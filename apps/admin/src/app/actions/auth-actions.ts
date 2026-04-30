@@ -71,9 +71,10 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     if (!user || user.role !== 'ADMIN') {
       return { error: 'Access denied. Administrator privileges required.' };
     }
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[loginAction] Backend check failed:', err);
-    return { error: 'An unexpected error occurred.' };
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    return { error: errorMessage || 'An unexpected error occurred' };
   }
 
   const cookieStore = await cookies();

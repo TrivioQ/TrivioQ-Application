@@ -20,13 +20,5 @@ export async function POST(): Promise<NextResponse> {
     path: '/',
   });
 
-  response.cookies.set('tq_session_active', '', {
-    httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 0,
-    path: '/',
-  });
-
   return response;
 }
