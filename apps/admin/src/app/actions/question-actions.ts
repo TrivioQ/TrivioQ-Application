@@ -17,14 +17,21 @@ export type QuestionFilters = {
   sortOrder?: 'asc' | 'desc';
 };
 
+export type QuestionChoice = {
+  id: string;
+  text: string;
+  order: number;
+  isCorrect: boolean;
+};
+
 export type PaginatedQuestionsResult = {
   data: {
     id: string;
     questionText: string;
     difficultyLevel: DifficultyLevel;
     categories: { id: string; name: string }[];
-    choices: unknown;
-    correctAnswerId: string;
+    choices: QuestionChoice[];
+    explanationText: string | null;
     hintText: string | null;
   }[];
   total: number;
@@ -64,7 +71,10 @@ export async function getQuestions(
     prisma.question.count({ where }),
     prisma.question.findMany({
       where,
-      include: { categories: { select: { id: true, name: true } } },
+      include: {
+        categories: { select: { id: true, name: true } },
+        choices: { orderBy: { order: 'asc' } },
+      },
       orderBy: { [sortBy]: sortOrder },
       skip,
       take: pageSize,
@@ -106,13 +116,13 @@ export async function getCategories(filters: QuestionCategoryFilters = {}) {
       })
     ]);
 
-    return { 
-      success: true, 
-      data, 
-      total, 
-      page, 
-      pageSize, 
-      totalPages: Math.max(1, Math.ceil(total / pageSize)) 
+    return {
+      success: true,
+      data,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize))
     };
   } catch (error) {
     console.error('Failed to fetch categories:', error);
@@ -123,8 +133,7 @@ export async function getCategories(filters: QuestionCategoryFilters = {}) {
 export async function createQuestion(data: {
   questionText: string;
   difficultyLevel: DifficultyLevel;
-  choices: { id: string; text: string }[];
-  correctAnswerId: string;
+  choices: { text: string; isCorrect: boolean }[];
   categoryIds: string[];
   explanationText?: string;
   hintText?: string;
@@ -134,10 +143,15 @@ export async function createQuestion(data: {
       data: {
         questionText: data.questionText,
         difficultyLevel: data.difficultyLevel,
-        choices: data.choices,
-        correctAnswerId: data.correctAnswerId,
         explanationText: data.explanationText,
         hintText: data.hintText,
+        choices: {
+          create: data.choices.map((c, idx) => ({
+            text: c.text,
+            order: idx,
+            isCorrect: c.isCorrect,
+          })),
+        },
         categories: {
           connect: data.categoryIds.map(id => ({ id })),
         },
@@ -155,8 +169,7 @@ export async function createQuestion(data: {
 export async function updateQuestion(id: string, data: {
   questionText: string;
   difficultyLevel: DifficultyLevel;
-  choices: { id: string; text: string }[];
-  correctAnswerId: string;
+  choices: { text: string; isCorrect: boolean }[];
   categoryIds: string[];
   explanationText?: string;
   hintText?: string;
@@ -177,10 +190,17 @@ export async function updateQuestion(id: string, data: {
       data: {
         questionText: data.questionText,
         difficultyLevel: data.difficultyLevel,
-        choices: data.choices,
-        correctAnswerId: data.correctAnswerId,
         explanationText: data.explanationText,
         hintText: data.hintText,
+        // Delete all existing choices and recreate — simplest safe update strategy
+        choices: {
+          deleteMany: {},
+          create: data.choices.map((c, idx) => ({
+            text: c.text,
+            order: idx,
+            isCorrect: c.isCorrect,
+          })),
+        },
         categories: {
           connect: toConnect.map(cid => ({ id: cid })),
           disconnect: toDisconnect.map(cid => ({ id: cid })),

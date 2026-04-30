@@ -14,6 +14,13 @@ interface UserProfile {
   subscriptionTier: 'FREE' | 'PREMIUM';
 }
 
+interface DropChoice {
+  id: string;
+  text: string;
+  order: number;
+  isCorrect: boolean;
+}
+
 interface RecentDrop {
   id: string;
   wasCorrect: boolean | null;
@@ -27,8 +34,7 @@ interface RecentDrop {
     questionText: string;
     difficultyLevel: 'EASY' | 'MEDIUM' | 'HARD';
     categories: { name: string }[];
-    choices: string[] | { id: string; text: string }[];
-    correctAnswerId: string;
+    choices: DropChoice[];
   };
 }
 
@@ -47,24 +53,6 @@ function formatDate(iso: string | null) {
     hour: '2-digit',
     minute: '2-digit',
   });
-}
-
-function resolveChoiceText(choices: string[] | { id: string; text: string }[], idOrIndex: string): string {
-  if (choices.length === 0) return idOrIndex;
-  if (typeof choices[0] === 'string') {
-    const idx = Number(idOrIndex);
-    return isNaN(idx) ? idOrIndex : ((choices as string[])[idx] ?? idOrIndex);
-  }
-  const objArray = choices as { id: string; text: string }[];
-  const obj = objArray.find((c) => c.id === idOrIndex);
-  if (obj) return obj.text;
-
-  // Fallback: if it was saved as an index instead of an ID
-  const idx = Number(idOrIndex);
-  if (!isNaN(idx) && idx >= 0 && idx < objArray.length) {
-    return objArray[idx].text;
-  }
-  return idOrIndex;
 }
 
 function StatCard({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: string }) {
@@ -155,60 +143,65 @@ export function DashboardStats() {
           <div className='px-6 py-12 text-center text-sm text-gray-500'>{t('noDropsYet')}</div>
         ) : (
           <div className='divide-y divide-white/5'>
-            {recentDrops.map((drop) => (
-              <div key={drop.id} className='px-6 py-4 flex items-start gap-4'>
-                <div className='mt-0.5 shrink-0'>
-                  {drop.revealedAnswer ? (
-                    <span className='text-lg' title='Answer revealed'>
-                      👁
-                    </span>
-                  ) : drop.wasCorrect ? (
-                    <span className='text-lg' title='Correct'>
-                      ✅
-                    </span>
-                  ) : (
-                    <span className='text-lg' title='Incorrect'>
-                      ❌
-                    </span>
-                  )}
-                </div>
+            {recentDrops.map((drop) => {
+              const selectedText = drop.selectedChoiceId != null ? (drop.question.choices.find((c) => c.id === drop.selectedChoiceId)?.text ?? '—') : null;
+              const correctText = drop.question.choices.find((c) => c.isCorrect)?.text ?? '—';
 
-                <div className='flex-1 min-w-0'>
-                  <p className='text-sm text-gray-200 truncate'>{drop.question.questionText}</p>
-                  <div className='flex flex-wrap items-center gap-2 mt-1.5'>
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${DIFF_COLOR[drop.question.difficultyLevel]}`}>{DIFF_LABEL[drop.question.difficultyLevel]}</span>
-                    {drop.question.categories.slice(0, 2).map((c) => (
-                      <span key={c.name} className='text-[11px] text-gray-500 bg-white/5 rounded-full px-2 py-0.5'>
-                        {c.name}
+              return (
+                <div key={drop.id} className='px-6 py-4 flex items-start gap-4'>
+                  <div className='mt-0.5 shrink-0'>
+                    {drop.revealedAnswer ? (
+                      <span className='text-lg' title='Answer revealed'>
+                        👁
                       </span>
-                    ))}
-                    {drop.usedHint && <span className='text-[11px] text-yellow-500 bg-yellow-500/10 rounded-full px-2 py-0.5'>{t('hintUsed', { pts: drop.hintCostDeducted })}</span>}
-                    {drop.revealedAnswer && <span className='text-[11px] text-orange-400 bg-orange-400/10 rounded-full px-2 py-0.5'>{t('answerRevealed')}</span>}
+                    ) : drop.wasCorrect ? (
+                      <span className='text-lg' title='Correct'>
+                        ✅
+                      </span>
+                    ) : (
+                      <span className='text-lg' title='Incorrect'>
+                        ❌
+                      </span>
+                    )}
                   </div>
-                  {drop.selectedChoiceId != null && (
-                    <div className='mt-2 space-y-0.5'>
-                      <p className='text-[11px]'>
-                        <span className='text-gray-500'>Your answer: </span>
-                        <span className={drop.wasCorrect ? 'text-green-400' : 'text-red-400'}>{resolveChoiceText(drop.question.choices, drop.selectedChoiceId)}</span>
-                      </p>
-                      {!drop.wasCorrect && (
-                        <p className='text-[11px]'>
-                          <span className='text-gray-500'>Correct answer: </span>
-                          <span className='text-green-400'>{resolveChoiceText(drop.question.choices, drop.question.correctAnswerId)}</span>
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  <p className='text-[11px] text-gray-600 mt-1'>{formatDate(drop.answeredAt)}</p>
-                </div>
 
-                <div className='shrink-0 text-right'>
-                  <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-indigo-400' : 'text-gray-600'}`}>
-                    {drop.pointsAwarded > 0 ? `+${drop.pointsAwarded}` : '0'} {t('pts')}
-                  </p>
+                  <div className='flex-1 min-w-0'>
+                    <p className='text-sm text-gray-200 truncate'>{drop.question.questionText}</p>
+                    <div className='flex flex-wrap items-center gap-2 mt-1.5'>
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${DIFF_COLOR[drop.question.difficultyLevel]}`}>{DIFF_LABEL[drop.question.difficultyLevel]}</span>
+                      {drop.question.categories.slice(0, 2).map((c) => (
+                        <span key={c.name} className='text-[11px] text-gray-500 bg-white/5 rounded-full px-2 py-0.5'>
+                          {c.name}
+                        </span>
+                      ))}
+                      {drop.usedHint && <span className='text-[11px] text-yellow-500 bg-yellow-500/10 rounded-full px-2 py-0.5'>{t('hintUsed', { pts: drop.hintCostDeducted })}</span>}
+                      {drop.revealedAnswer && <span className='text-[11px] text-orange-400 bg-orange-400/10 rounded-full px-2 py-0.5'>{t('answerRevealed')}</span>}
+                    </div>
+                    {selectedText != null && (
+                      <div className='mt-2 space-y-0.5'>
+                        <p className='text-[11px]'>
+                          <span className='text-gray-500'>Your answer: </span>
+                          <span className={drop.wasCorrect ? 'text-green-400' : 'text-red-400'}>{selectedText}</span>
+                        </p>
+                        {!drop.wasCorrect && (
+                          <p className='text-[11px]'>
+                            <span className='text-gray-500'>Correct answer: </span>
+                            <span className='text-green-400'>{correctText}</span>
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    <p className='text-[11px] text-gray-600 mt-1'>{formatDate(drop.answeredAt)}</p>
+                  </div>
+
+                  <div className='shrink-0 text-right'>
+                    <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-indigo-400' : 'text-gray-600'}`}>
+                      {drop.pointsAwarded > 0 ? `+${drop.pointsAwarded}` : '0'} {t('pts')}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

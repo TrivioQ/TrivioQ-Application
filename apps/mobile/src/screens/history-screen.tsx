@@ -18,25 +18,20 @@ interface DropRecord {
     questionText: string;
     difficultyLevel: string;
     categories: { name: string }[];
-    choices: string[] | { id: string; text: string }[];
-    correctAnswerId: string;
+    choices: { id: string; text: string; isCorrect: boolean }[];
   };
 }
 
-function resolveChoiceText(choices: string[] | { id: string; text: string }[], idOrIndex: string): string {
-  if (choices.length === 0) return idOrIndex;
-  if (typeof choices[0] === 'string') {
-    const idx = Number(idOrIndex);
-    return isNaN(idx) ? idOrIndex : ((choices as string[])[idx] ?? idOrIndex);
-  }
-  const objArray = choices as { id: string; text: string }[];
-  const obj = objArray.find((c) => c.id === idOrIndex);
+function resolveChoiceText(choices: { id: string; text: string; isCorrect: boolean }[], idOrIndex: string | null): string | null {
+  if (!idOrIndex || choices.length === 0) return idOrIndex;
+
+  const obj = choices.find((c) => c.id === idOrIndex);
   if (obj) return obj.text;
 
   // Fallback: if it was saved as an index instead of an ID
   const idx = Number(idOrIndex);
-  if (!isNaN(idx) && idx >= 0 && idx < objArray.length) {
-    return objArray[idx].text;
+  if (!isNaN(idx) && idx >= 0 && idx < choices.length) {
+    return choices[idx].text;
   }
   return idOrIndex;
 }
@@ -73,8 +68,9 @@ export default function HistoryScreen() {
       HARD: '#ef4444',
     };
 
-    const selectedText = item.selectedChoiceId != null ? resolveChoiceText(item.question.choices, item.selectedChoiceId) : null;
-    const correctText = resolveChoiceText(item.question.choices, item.question.correctAnswerId);
+    const selectedText = resolveChoiceText(item.question.choices, item.selectedChoiceId);
+    const correctChoice = item.question.choices.find((c) => c.isCorrect);
+    const correctText = correctChoice ? correctChoice.text : null;
 
     return (
       <View style={styles.card}>

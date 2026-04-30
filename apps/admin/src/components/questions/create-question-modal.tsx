@@ -15,32 +15,43 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 
+const DEFAULT_CHOICES = () => [
+  { text: '', isCorrect: true },
+  { text: '', isCorrect: false },
+  { text: '', isCorrect: false },
+  { text: '', isCorrect: false },
+];
+
 export function CreateQuestionModal({ categories }: { categories: { id: string; name: string }[] }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const [questionText, setQuestionText] = useState('');
   const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel>('EASY');
-  const [choices, setChoices] = useState(['', '', '', '']);
-  const [correctIndex, setCorrectIndex] = useState('0');
+  const [choices, setChoices] = useState(DEFAULT_CHOICES());
   const [hintText, setHintText] = useState('');
   const [explanationText, setExplanationText] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  
+
   const [comboboxOpen, setComboboxOpen] = useState(false);
+
+  const markCorrect = (idx: number) => {
+    setChoices(prev => prev.map((c, i) => ({ ...c, isCorrect: i === idx })));
+  };
+
+  const updateChoiceText = (idx: number, text: string) => {
+    setChoices(prev => prev.map((c, i) => i === idx ? { ...c, text } : c));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedCategories.length === 0) return alert('Select at least one category');
 
-    const formattedChoices = choices.map((text, idx) => ({ id: idx.toString(), text }));
-
     startTransition(async () => {
       const res = await createQuestion({
         questionText,
         difficultyLevel,
-        choices: formattedChoices,
-        correctAnswerId: correctIndex,
+        choices,
         hintText: hintText || undefined,
         explanationText: explanationText || undefined,
         categoryIds: selectedCategories,
@@ -49,11 +60,10 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
       if (res.success) {
         setOpen(false);
         setQuestionText('');
-        setChoices(['', '', '', '']);
+        setChoices(DEFAULT_CHOICES());
         setHintText('');
         setExplanationText('');
         setSelectedCategories([]);
-        setCorrectIndex('0');
       } else {
         alert(res.error);
       }
@@ -61,7 +71,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
   };
 
   const toggleCategory = (id: string) => {
-    setSelectedCategories(prev => 
+    setSelectedCategories(prev =>
       prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
     );
   };
@@ -76,7 +86,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
           <DialogTitle>Add New Question</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-          
+
           <div className="space-y-2">
             <Label htmlFor="question">Question Text</Label>
             <Input id="question" required value={questionText} onChange={e => setQuestionText(e.target.value)} />
@@ -97,32 +107,29 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
           </div>
 
           <div className="space-y-3">
-            <Label>Choices & Correct Answer</Label>
+            <Label>Choices — select the radio button to mark the correct answer</Label>
             {choices.map((choice, idx) => (
               <div key={idx} className="flex items-center gap-2">
-                <input 
-                  type="radio" 
-                  name="correctAnswer" 
-                  checked={correctIndex === idx.toString()} 
-                  onChange={() => setCorrectIndex(idx.toString())}
+                <input
+                  type="radio"
+                  name="correctAnswer"
+                  title="Mark as correct answer"
+                  checked={choice.isCorrect}
+                  onChange={() => markCorrect(idx)}
                   className="h-4 w-4 shrink-0"
                 />
-                <Input 
-                  required 
-                  placeholder={`Choice ${idx + 1}`} 
-                  value={choice}
-                  onChange={e => {
-                    const newChoices = [...choices];
-                    newChoices[idx] = e.target.value;
-                    setChoices(newChoices);
-                  }}
+                <Input
+                  required
+                  placeholder={`Choice ${idx + 1}`}
+                  value={choice.text}
+                  onChange={e => updateChoiceText(idx, e.target.value)}
                 />
               </div>
             ))}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="hint">Hint (Optional — costs 30% of points to reveal)</Label>
+            <Label htmlFor="hint">Hint (Optional — costs points to reveal)</Label>
             <Textarea
               id="hint"
               value={hintText}
@@ -147,8 +154,8 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
             <Label>Categories</Label>
             <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
               <PopoverTrigger className={buttonVariants({ variant: "outline", className: "w-full justify-between" })} role="combobox" aria-expanded={comboboxOpen}>
-                  {selectedCategories.length > 0 
-                    ? `${selectedCategories.length} categories selected` 
+                  {selectedCategories.length > 0
+                    ? `${selectedCategories.length} categories selected`
                     : "Select categories..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </PopoverTrigger>

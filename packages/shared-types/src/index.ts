@@ -55,4 +55,7 @@ export interface UserProfile {
   lastDropDate: Date | string;
   currentStreak: number;
   cumulativeScore: number;
+  activeWindowStart: string;
+  activeWindowEnd: string;
+  preferences?: any;
 }

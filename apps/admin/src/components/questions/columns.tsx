@@ -24,8 +24,7 @@ export type QuestionRow = {
   questionText: string;
   difficultyLevel: DifficultyLevel;
   categories: { id: string; name: string }[];
-  choices: { id: string; text: string }[];
-  correctAnswerId: string;
+  choices: { id: string; text: string; order: number; isCorrect: boolean }[];
   explanationText: string | null;
   hintText: string | null;
 };

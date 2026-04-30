@@ -101,6 +101,9 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
         cumulativeScore: true,
         subscriptionTier: true,
         preferences: true,
+        // Returned as ISO strings; clients convert to HH:MM for display
+        activeWindowStart: true,
+        activeWindowEnd: true,
       },
     });
 
@@ -180,7 +183,10 @@ router.get('/me/recent-drops', requireAuth, async (req: Request, res: Response) 
             questionText: true,
             difficultyLevel: true,
             categories: { select: { name: true } },
-            choices: true,
+            choices: {
+              select: { id: true, text: true, order: true, isCorrect: true },
+              orderBy: { order: 'asc' },
+            },
           },
         },
       },

@@ -28,14 +28,20 @@ export default function Preferences({ navigation }: any) {
   });
 
   useEffect(() => {
-    if (data?.preferences) {
-      const p = data.preferences;
-      if (p.activeWindowStart) setActiveWindowStart(p.activeWindowStart);
-      if (p.activeWindowEnd) setActiveWindowEnd(p.activeWindowEnd);
-      if (p.categoryPercentages) {
-        setEasyWeight((p.categoryPercentages.easy || 0.5).toString());
-        setMediumWeight((p.categoryPercentages.medium || 0.3).toString());
-        setHardWeight((p.categoryPercentages.hard || 0.2).toString());
+    if (data) {
+      if (data.activeWindowStart) {
+        const d = new Date(data.activeWindowStart);
+        setActiveWindowStart(`${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`);
+      }
+      if (data.activeWindowEnd) {
+        const d = new Date(data.activeWindowEnd);
+        setActiveWindowEnd(`${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`);
+      }
+      if (data.preferences?.categoryPercentages) {
+        const p = data.preferences.categoryPercentages;
+        setEasyWeight((p.easy || 0.5).toString());
+        setMediumWeight((p.medium || 0.3).toString());
+        setHardWeight((p.hard || 0.2).toString());
       }
     }
   }, [data]);

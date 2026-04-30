@@ -16,30 +16,31 @@ import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import type { QuestionRow } from './columns';
 
-export function QuestionModal({ 
-  question, 
-  categories, 
-  open, 
-  onOpenChange 
-}: { 
-  question: QuestionRow; 
-  categories: { id: string; name: string }[]; 
-  open: boolean; 
-  onOpenChange: (open: boolean) => void 
+type EditableChoice = { id: string; text: string; order: number; isCorrect: boolean };
+
+export function QuestionModal({
+  question,
+  categories,
+  open,
+  onOpenChange
+}: {
+  question: QuestionRow;
+  categories: { id: string; name: string }[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void
 }) {
   const [isPending, startTransition] = useTransition();
 
   const [questionText, setQuestionText] = useState(question.questionText);
   const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel>(question.difficultyLevel);
-  const [choices, setChoices] = useState<{ id: string; text: string }[]>(question.choices);
-  const [correctAnswerId, setCorrectAnswerId] = useState(question.correctAnswerId);
+  const [choices, setChoices] = useState<EditableChoice[]>(question.choices);
   const [hintText, setHintText] = useState(question.hintText || '');
   const [explanationText, setExplanationText] = useState(question.explanationText || '');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(question.categories.map(c => c.id));
-  
+
   const [comboboxOpen, setComboboxOpen] = useState(false);
 
-  // Initialize form when question changes or modal opens
+  // Re-initialize form when modal opens for a (possibly different) question
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
@@ -47,23 +48,30 @@ export function QuestionModal({
       setQuestionText(question.questionText);
       setDifficultyLevel(question.difficultyLevel);
       setChoices(question.choices);
-      setCorrectAnswerId(question.correctAnswerId);
       setHintText(question.hintText || '');
       setExplanationText(question.explanationText || '');
       setSelectedCategories(question.categories.map(c => c.id));
     }
   }
 
+  const markCorrect = (idx: number) => {
+    setChoices(prev => prev.map((c, i) => ({ ...c, isCorrect: i === idx })));
+  };
+
+  const updateChoiceText = (idx: number, text: string) => {
+    setChoices(prev => prev.map((c, i) => i === idx ? { ...c, text } : c));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedCategories.length === 0) return alert('Select at least one category');
+    if (!choices.some(c => c.isCorrect)) return alert('Select a correct answer');
 
     startTransition(async () => {
       const res = await updateQuestion(question.id, {
         questionText,
         difficultyLevel,
-        choices,
-        correctAnswerId,
+        choices: choices.map(c => ({ text: c.text, isCorrect: c.isCorrect })),
         hintText: hintText || undefined,
         explanationText: explanationText || undefined,
         categoryIds: selectedCategories,
@@ -78,7 +86,7 @@ export function QuestionModal({
   };
 
   const toggleCategory = (id: string) => {
-    setSelectedCategories(prev => 
+    setSelectedCategories(prev =>
       prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
     );
   };
@@ -90,7 +98,7 @@ export function QuestionModal({
           <DialogTitle>Edit Question</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-          
+
           <div className="space-y-2">
             <Label htmlFor="question">Question Text</Label>
             <Input id="question" required value={questionText} onChange={e => setQuestionText(e.target.value)} />
@@ -111,32 +119,29 @@ export function QuestionModal({
           </div>
 
           <div className="space-y-3">
-            <Label>Choices & Correct Answer</Label>
+            <Label>Choices — select the radio button to mark the correct answer</Label>
             {choices.map((choice, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <input 
-                  type="radio" 
-                  name="correctAnswer" 
-                  checked={correctAnswerId === choice.id} 
-                  onChange={() => setCorrectAnswerId(choice.id)}
+              <div key={choice.id} className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="correctAnswer"
+                  title="Mark as correct answer"
+                  checked={choice.isCorrect}
+                  onChange={() => markCorrect(idx)}
                   className="h-4 w-4 shrink-0"
                 />
-                <Input 
-                  required 
-                  placeholder={`Choice ${idx + 1}`} 
+                <Input
+                  required
+                  placeholder={`Choice ${idx + 1}`}
                   value={choice.text}
-                  onChange={e => {
-                    const newChoices = [...choices];
-                    newChoices[idx] = { ...newChoices[idx], text: e.target.value };
-                    setChoices(newChoices);
-                  }}
+                  onChange={e => updateChoiceText(idx, e.target.value)}
                 />
               </div>
             ))}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="hint">Hint (Optional — costs 30% of points to reveal)</Label>
+            <Label htmlFor="hint">Hint (Optional — costs points to reveal)</Label>
             <Textarea
               id="hint"
               value={hintText}
@@ -161,8 +166,8 @@ export function QuestionModal({
             <Label>Categories</Label>
             <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
               <PopoverTrigger className={buttonVariants({ variant: "outline", className: "w-full justify-between" })} role="combobox" aria-expanded={comboboxOpen}>
-                  {selectedCategories.length > 0 
-                    ? `${selectedCategories.length} categories selected` 
+                  {selectedCategories.length > 0
+                    ? `${selectedCategories.length} categories selected`
                     : "Select categories..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </PopoverTrigger>

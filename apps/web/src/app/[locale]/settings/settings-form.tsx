@@ -10,8 +10,13 @@ import { useConfirm } from '@/components/confirm-modal';
 
 interface Preferences {
   difficultyPercentages: Record<string, number>;
-  activeWindowStart: string;
-  activeWindowEnd: string;
+}
+
+// Convert a UTC DateTime ISO string from the DB column to a "HH:MM" string for <input type="time">
+function isoToHHMM(iso: string | undefined | null): string {
+  if (!iso) return '09:00';
+  const d = new Date(iso);
+  return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
 }
 
 export function SettingsForm({ initialUser }: { initialUser: any }) {
@@ -24,13 +29,12 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
 
   const initialPrefs: Preferences = initialUser.preferences || {
     difficultyPercentages: { EASY: 40, MEDIUM: 40, HARD: 20 },
-    activeWindowStart: '09:00',
-    activeWindowEnd: '17:00',
   };
 
   const [displayName, setDisplayName] = useState(initialUser.displayName || '');
-  const [activeStart, setActiveStart] = useState(initialPrefs.activeWindowStart);
-  const [activeEnd, setActiveEnd] = useState(initialPrefs.activeWindowEnd);
+  // Active window is authoritative in the User DB columns, not the preferences JSON blob
+  const [activeStart, setActiveStart] = useState(isoToHHMM(initialUser.activeWindowStart));
+  const [activeEnd, setActiveEnd] = useState(isoToHHMM(initialUser.activeWindowEnd));
   const [difficulty, setDifficulty] = useState(initialPrefs.difficultyPercentages);
 
   // Password change state
