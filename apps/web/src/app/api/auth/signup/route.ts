@@ -17,6 +17,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   let password: string | undefined;
   let username: string | undefined;
   let displayName: string | undefined;
+  let dateOfBirth: string | undefined;
 
   try {
     const body = await req.json();
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     password = body?.password;
     username = body?.username;
     displayName = body?.displayName;
+    dateOfBirth = body?.dateOfBirth;
   } catch {
     // fall through
   }
@@ -42,6 +44,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   if (password.length < 8) {
     return NextResponse.json({ message: 'Password must be at least 8 characters' }, { status: 400 });
+  }
+
+  if (!dateOfBirth) {
+    return NextResponse.json({ message: 'Date of birth is required' }, { status: 400 });
+  }
+
+  const dob = new Date(dateOfBirth);
+  if (isNaN(dob.getTime())) {
+    return NextResponse.json({ message: 'Invalid date of birth' }, { status: 400 });
+  }
+
+  const minAgeDate = new Date();
+  minAgeDate.setFullYear(minAgeDate.getFullYear() - 13);
+  if (dob > minAgeDate) {
+    return NextResponse.json({ message: 'You must be at least 13 years old to create an account.' }, { status: 400 });
   }
 
   // ── Step 1: Create account with Firebase REST API (server-side) ───────────
@@ -68,7 +85,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   // ── Step 2: Sync user record in Postgres ──────────────────────────────────
-  return syncAndRespond(idToken, { username: username.toLowerCase(), displayName: displayName ?? username });
+  return syncAndRespond(idToken, { username: username.toLowerCase(), displayName: displayName ?? username, dateOfBirth });
 }
 
 function mapFirebaseSignupError(code: string): string {

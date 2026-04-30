@@ -140,6 +140,14 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
           <input type='text' value={displayName} onChange={(e) => setDisplayName(e.target.value)} className='w-full bg-gray-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500' placeholder={t('displayNamePlaceholder')} />
         </div>
 
+        {initialUser.dateOfBirth && (
+          <div className='space-y-2'>
+            <label className='text-xs font-bold uppercase tracking-wider text-gray-500'>{t('dateOfBirthLabel')}</label>
+            <div className='w-full bg-gray-800/60 border border-white/5 rounded-xl px-4 py-3 text-gray-400 text-sm select-none'>{new Date(initialUser.dateOfBirth).toLocaleDateString('en-CA')}</div>
+            <p className='text-xs text-gray-600'>{t('dateOfBirthReadOnly')}</p>
+          </div>
+        )}
+
         <button onClick={handleUpdatePreferences} disabled={isPending} className='bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50'>
           {isPending ? t('saving') : t('updateName')}
         </button>

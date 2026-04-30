@@ -9,6 +9,7 @@ import { useAuth } from '../context/auth-context';
 
 // Screens
 import LoginScreen from '../screens/login-screen';
+import SignupScreen from '../screens/signup-screen';
 import HomeDashboard from '../screens/home-dashboard';
 import DropActive from '../screens/drop-active';
 import LeaderboardScreen from '../screens/leaderboard-screen';
@@ -22,6 +23,11 @@ import PrivacyScreen from '../screens/privacy-screen';
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
+};
+
+export type AuthStackParamList = {
+  Login: undefined;
+  Signup: undefined;
 };
 
 export type HomeStackParamList = {
@@ -168,6 +174,17 @@ function MainTabNavigator() {
   );
 }
 
+const AuthStack = createNativeStackNavigator<AuthStackParamList>();
+
+function AuthStackNavigator() {
+  return (
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+      <AuthStack.Screen name='Login' component={LoginScreen} />
+      <AuthStack.Screen name='Signup'>{({ navigation }) => <SignupScreen onNavigateToLogin={() => navigation.navigate('Login')} />}</AuthStack.Screen>
+    </AuthStack.Navigator>
+  );
+}
+
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
@@ -177,5 +194,5 @@ export function AppNavigator() {
     return null; // Or a splash/loading screen
   }
 
-  return <RootStack.Navigator screenOptions={{ headerShown: false }}>{user ? <RootStack.Screen name='Main' component={MainTabNavigator} /> : <RootStack.Screen name='Auth' component={LoginScreen} />}</RootStack.Navigator>;
+  return <RootStack.Navigator screenOptions={{ headerShown: false }}>{user ? <RootStack.Screen name='Main' component={MainTabNavigator} /> : <RootStack.Screen name='Auth' component={AuthStackNavigator} />}</RootStack.Navigator>;
 }

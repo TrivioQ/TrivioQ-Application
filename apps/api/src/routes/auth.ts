@@ -15,7 +15,7 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
     }
 
     // Optional profile fields — only provided on initial sign-up (not on subsequent logins)
-    const { username: requestedUsername, displayName: requestedDisplayName } = req.body ?? {};
+    const { username: requestedUsername, displayName: requestedDisplayName, dateOfBirth: requestedDob } = req.body ?? {};
 
     const now = new Date();
 
@@ -46,6 +46,21 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
       return res.status(400).json({ error: 'Username may only contain lowercase letters, numbers, and underscores.' });
     }
 
+    // ── Validate date of birth (must be at least 13 years old) ───────────────
+    if (!requestedDob) {
+      return res.status(400).json({ error: 'Date of birth is required.' });
+    }
+
+    const dob = new Date(requestedDob);
+    if (isNaN(dob.getTime())) {
+      return res.status(400).json({ error: 'Invalid date of birth.' });
+    }
+
+    const minAgeDate = new Date(now.getFullYear() - 13, now.getMonth(), now.getDate());
+    if (dob > minAgeDate) {
+      return res.status(400).json({ error: 'You must be at least 13 years old to create an account.' });
+    }
+
     // ── Check username uniqueness ─────────────────────────────────────────────
     const usernameConflict = await prisma.user.findUnique({ where: { username } });
     if (usernameConflict) {
@@ -70,6 +85,7 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
           email,
           username,
           displayName: requestedDisplayName?.trim() || username,
+          dateOfBirth: dob,
           currentStreak: 0,
           cumulativeScore: 0,
           activeWindowStart,

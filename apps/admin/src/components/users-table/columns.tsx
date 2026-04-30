@@ -24,6 +24,7 @@ export type UserRow = {
   username: string;
   displayName?: string | null;
   email: string;
+  dateOfBirth?: Date | null;
   subscriptionTier: SubscriptionTier;
   currentStreak: number;
 };
@@ -50,6 +51,15 @@ export const columns: ColumnDef<UserRow>[] = [
         Email <SortIcon sorted={column.getIsSorted()} />
       </button>
     ),
+  },
+  {
+    accessorKey: 'dateOfBirth',
+    header: 'Date of Birth',
+    cell: ({ row }) => {
+      const dob = row.getValue('dateOfBirth') as Date | null | undefined;
+      if (!dob) return <span className="text-gray-400">—</span>;
+      return new Date(dob).toLocaleDateString('en-CA'); // YYYY-MM-DD
+    },
   },
   {
     accessorKey: 'subscriptionTier',

@@ -1,46 +1,53 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '../navigation/app-navigator';
 import { useAuth } from '../context/auth-context';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../components/toast';
 
-export default function LoginScreen() {
+export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin: () => void }) {
   const { t } = useTranslation();
-  const { loginWithEmail, signInWithGoogle } = useAuth();
+  const { registerWithEmail } = useAuth();
   const toast = useToast();
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [isPending, setIsPending] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      toast({ message: t('auth.missingFields'), type: 'error' });
+  const handleSignup = async () => {
+    if (!email || !password || !username || !dateOfBirth) {
+      toast({ message: t('auth.signupMissingFields'), type: 'error' });
+      return;
+    }
+
+    // Validate date format YYYY-MM-DD
+    const dobRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dobRegex.test(dateOfBirth)) {
+      toast({ message: t('auth.invalidDateFormat'), type: 'error' });
+      return;
+    }
+
+    const dob = new Date(dateOfBirth);
+    if (isNaN(dob.getTime())) {
+      toast({ message: t('auth.invalidDateFormat'), type: 'error' });
+      return;
+    }
+
+    const minAgeDate = new Date();
+    minAgeDate.setFullYear(minAgeDate.getFullYear() - 13);
+    if (dob > minAgeDate) {
+      toast({ message: t('auth.ageTooYoung'), type: 'error' });
       return;
     }
 
     setIsPending(true);
     try {
-      await loginWithEmail(email, password);
+      await registerWithEmail(email, password, username, displayName || username, dateOfBirth);
     } catch (error: any) {
-      console.error('Login failed:', error);
-      toast({ message: error.message || t('auth.loginFailed'), type: 'error' });
-    } finally {
-      setIsPending(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsPending(true);
-    try {
-      await signInWithGoogle();
-    } catch (error: any) {
-      console.error('Google sign-in failed:', error);
-      toast({ message: error.message || t('auth.googleFailed'), type: 'error' });
+      console.error('Signup failed:', error);
+      toast({ message: error.message || t('auth.signupFailed'), type: 'error' });
     } finally {
       setIsPending(false);
     }
@@ -48,41 +55,41 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps='handled'>
         <View style={styles.header}>
           <Text style={styles.logoText}>
             Trivio<Text style={styles.logoAccent}>Q</Text>
           </Text>
-          <Text style={styles.subtitle}>{t('auth.loginSubtitle')}</Text>
+          <Text style={styles.subtitle}>{t('auth.signupSubtitle')}</Text>
         </View>
 
         <View style={styles.form}>
+          <Text style={styles.label}>{t('auth.displayNameLabel')}</Text>
+          <TextInput style={styles.input} placeholder={t('auth.displayNamePlaceholder')} placeholderTextColor='#64748b' value={displayName} onChangeText={setDisplayName} />
+
+          <Text style={styles.label}>{t('auth.usernameLabel')}</Text>
+          <TextInput style={styles.input} placeholder={t('auth.usernamePlaceholder')} placeholderTextColor='#64748b' value={username} onChangeText={(v) => setUsername(v.toLowerCase())} autoCapitalize='none' />
+
           <Text style={styles.label}>{t('auth.emailLabel')}</Text>
           <TextInput style={styles.input} placeholder='email@example.com' placeholderTextColor='#64748b' value={email} onChangeText={setEmail} autoCapitalize='none' keyboardType='email-address' />
 
           <Text style={styles.label}>{t('auth.passwordLabel')}</Text>
           <TextInput style={styles.input} placeholder='••••••••' placeholderTextColor='#64748b' value={password} onChangeText={setPassword} secureTextEntry />
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isPending} activeOpacity={0.8}>
-            {isPending ? <ActivityIndicator color='#fff' /> : <Text style={styles.loginButtonText}>{t('auth.signInButton')}</Text>}
-          </TouchableOpacity>
+          <Text style={styles.label}>{t('auth.dateOfBirthLabel')}</Text>
+          <TextInput style={styles.input} placeholder='YYYY-MM-DD' placeholderTextColor='#64748b' value={dateOfBirth} onChangeText={setDateOfBirth} keyboardType='numbers-and-punctuation' maxLength={10} />
+          <Text style={styles.hint}>{t('auth.dateOfBirthHint')}</Text>
 
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>{t('auth.orDivider')}</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <TouchableOpacity style={styles.googleButton} onPress={handleGoogleSignIn} disabled={isPending} activeOpacity={0.8}>
-            <Text style={styles.googleButtonText}>{t('auth.googleButton')}</Text>
+          <TouchableOpacity style={styles.signupButton} onPress={handleSignup} disabled={isPending} activeOpacity={0.8}>
+            {isPending ? <ActivityIndicator color='#fff' /> : <Text style={styles.signupButtonText}>{t('auth.createButton')}</Text>}
           </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            {t('auth.noAccount')}
-            <Text style={styles.footerLink} onPress={() => navigation.navigate('Signup')}>
-              {t('auth.signUpLink')}
+            {t('auth.hasAccount')}{' '}
+            <Text style={styles.footerLink} onPress={onNavigateToLogin}>
+              {t('auth.signInLink')}
             </Text>
           </Text>
         </View>
@@ -103,7 +110,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 40,
   },
   logoText: {
     fontSize: 42,
@@ -140,7 +147,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
   },
-  loginButton: {
+  hint: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: -16,
+    marginBottom: 20,
+    marginLeft: 4,
+  },
+  signupButton: {
     backgroundColor: '#6366f1',
     borderRadius: 12,
     padding: 16,
@@ -152,40 +166,13 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  loginButtonText: {
+  signupButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
   },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 32,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-  },
-  dividerText: {
-    color: '#64748b',
-    paddingHorizontal: 16,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  googleButton: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  googleButtonText: {
-    color: '#0f172a',
-    fontSize: 16,
-    fontWeight: '700',
-  },
   footer: {
-    marginTop: 48,
+    marginTop: 40,
     alignItems: 'center',
   },
   footerText: {

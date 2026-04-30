@@ -10,6 +10,7 @@ interface UserProfile {
   email: string;
   username: string;
   displayName: string | null;
+  dateOfBirth: string | null;
   currentStreak: number;
   cumulativeScore: number;
   subscriptionTier: 'FREE' | 'PREMIUM';
@@ -93,6 +94,15 @@ export default function ProfileScreen({ navigation }: any) {
       {/* Menu items */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>{t('profile.account')}</Text>
+        {data?.dateOfBirth && (
+          <View style={styles.infoItem}>
+            <Text style={styles.menuIcon}>🎂</Text>
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoLabel}>{t('profile.dateOfBirth')}</Text>
+              <Text style={styles.infoValue}>{new Date(data.dateOfBirth).toLocaleDateString('en-CA')}</Text>
+            </View>
+          </View>
+        )}
         {[
           { icon: '⚙️', label: t('profile.preferences') },
           { icon: '🔔', label: t('profile.notifications') },
@@ -286,6 +296,35 @@ const styles = StyleSheet.create({
   menuChevron: {
     fontSize: 20,
     color: '#475569',
+  },
+
+  // DOB info row
+  infoItem: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    backgroundColor: '#1e293b',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    gap: 12,
+  },
+  infoTextContainer: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 11,
+    fontWeight: '600' as const,
+    color: '#64748b',
+    marginBottom: 2,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.5,
+  },
+  infoValue: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: '#cbd5e1',
   },
 
   // Logout

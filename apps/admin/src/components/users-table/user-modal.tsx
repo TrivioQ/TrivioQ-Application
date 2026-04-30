@@ -14,6 +14,7 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
   const [isPending, startTransition] = useTransition();
   const [username, setUsername] = useState(user.username);
   const [displayName, setDisplayName] = useState(user.displayName ?? '');
+  const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '');
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>(user.subscriptionTier);
 
   const [prevOpen, setPrevOpen] = useState(open);
@@ -22,6 +23,7 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
     if (open) {
       setUsername(user.username);
       setDisplayName(user.displayName ?? '');
+      setDateOfBirth(user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '');
       setSubscriptionTier(user.subscriptionTier);
     }
   }
@@ -32,6 +34,7 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
       const res = await updateUser(user.id, {
         username,
         displayName: displayName || undefined,
+        dateOfBirth: dateOfBirth || undefined,
         subscriptionTier,
       });
       if (res.success) {
@@ -56,6 +59,10 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
           <div className="space-y-2">
             <Label htmlFor="displayName">Display Name</Label>
             <Input id="displayName" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Optional" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="dateOfBirth">Date of Birth</Label>
+            <Input id="dateOfBirth" type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} placeholder="YYYY-MM-DD" />
           </div>
           <div className="space-y-2">
             <Label>Subscription Tier</Label>

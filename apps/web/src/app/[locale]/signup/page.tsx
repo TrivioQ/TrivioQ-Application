@@ -17,6 +17,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const { isPending, registerWithEmailSync, signInWithGoogleSync } = useAuthSync();
@@ -37,7 +38,7 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    await registerWithEmailSync(email, password, username, displayName);
+    await registerWithEmailSync(email, password, username, displayName, dateOfBirth);
   };
 
   const handleGoogleSignup = () => {
@@ -91,7 +92,15 @@ export default function SignupPage() {
               <label className='sr-only' htmlFor='password'>
                 {t('passwordLabel')}
               </label>
-              <input id='password' type='password' required minLength={8} className={`${inputClass} rounded-b-md`} placeholder={t('passwordMinLength')} value={password} onChange={(e) => setPassword(e.target.value)} disabled={isPending} />
+              <input id='password' type='password' required minLength={8} className={inputClass} placeholder={t('passwordMinLength')} value={password} onChange={(e) => setPassword(e.target.value)} disabled={isPending} />
+            </div>
+
+            {/* Date of Birth */}
+            <div>
+              <label className='sr-only' htmlFor='dateOfBirth'>
+                {t('dateOfBirthLabel')}
+              </label>
+              <input id='dateOfBirth' type='date' required max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]} className={`${inputClass} rounded-b-md`} placeholder={t('dateOfBirthLabel')} value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} disabled={isPending} />
             </div>
           </div>
 

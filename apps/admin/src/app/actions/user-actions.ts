@@ -68,11 +68,16 @@ export async function toggleUserTier(userId: string, currentTier: SubscriptionTi
   }
 }
 
-export async function updateUser(userId: string, data: { username: string; displayName?: string; subscriptionTier: SubscriptionTier }) {
+export async function updateUser(userId: string, data: { username: string; displayName?: string; dateOfBirth?: string; subscriptionTier: SubscriptionTier }) {
   try {
     await prisma.user.update({
       where: { id: userId },
-      data,
+      data: {
+        username: data.username,
+        displayName: data.displayName,
+        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
+        subscriptionTier: data.subscriptionTier,
+      },
     });
     revalidatePath('/users');
     return { success: true };

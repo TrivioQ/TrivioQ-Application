@@ -19,7 +19,7 @@ interface AuthContextType {
   pushToken: string | null;
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
-  registerWithEmail: (email: string, pass: string) => Promise<void>;
+  registerWithEmail: (email: string, pass: string, username: string, displayName: string, dateOfBirth: string) => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -66,14 +66,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
-  const syncUserWithBackend = async (firebaseUser: User) => {
+  const syncUserWithBackend = async (firebaseUser: User, extraData?: { username?: string; displayName?: string; dateOfBirth?: string }) => {
     try {
       const token = await firebaseUser.getIdToken();
       await fetch(`${API_URL}/api/v1/auth/sync`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify(extraData ?? {}),
       });
       console.log('Successfully synced user with Postgres backend!');
     } catch (error) {
@@ -141,8 +143,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const registerWithEmail = async (email: string, pass: string) => {
-    await createUserWithEmailAndPassword(auth, email, pass);
+  const registerWithEmail = async (email: string, pass: string, username: string, displayName: string, dateOfBirth: string) => {
+    const { user: newUser } = await createUserWithEmailAndPassword(auth, email, pass);
+    await syncUserWithBackend(newUser, { username, displayName, dateOfBirth });
   };
 
   const loginWithEmail = async (email: string, pass: string) => {

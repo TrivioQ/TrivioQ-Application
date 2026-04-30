@@ -75,6 +75,7 @@
     "legal": "Legal",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
+    "dateOfBirth": "Date of Birth",
     "signOut": "🚪 Sign Out",
     "signOutAlertTitle": "Sign Out",
     "signOutAlertBody": "Are you sure you want to sign out?",
@@ -126,6 +127,20 @@
     "signUpLink": "Sign Up",
     "missingFields": "Please enter both email and password",
     "loginFailed": "Login failed. Please check your credentials.",
-    "googleFailed": "Google sign-in failed."
+    "googleFailed": "Google sign-in failed.",
+    "signupSubtitle": "Create your account to get started.",
+    "displayNameLabel": "Display Name",
+    "displayNamePlaceholder": "Your display name (optional)",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "letters, numbers, underscores",
+    "dateOfBirthLabel": "Date of Birth",
+    "dateOfBirthHint": "Format: YYYY-MM-DD — you must be at least 13 years old",
+    "createButton": "Create Account",
+    "hasAccount": "Already have an account?",
+    "signInLink": "Sign In",
+    "signupMissingFields": "Please fill in all required fields.",
+    "invalidDateFormat": "Please enter your date of birth in YYYY-MM-DD format.",
+    "ageTooYoung": "You must be at least 13 years old to create an account.",
+    "signupFailed": "Sign-up failed. Please try again."
   }
 }
