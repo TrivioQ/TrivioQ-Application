@@ -17,6 +17,7 @@ import HistoryScreen from '../screens/history-screen';
 import ProfileScreen from '../screens/profile-screen';
 import TermsScreen from '../screens/terms-screen';
 import PrivacyScreen from '../screens/privacy-screen';
+import SubscriptionScreen from '../screens/subscription-screen';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,6 +38,7 @@ export type HomeStackParamList = {
 
 export type ProfileStackParamList = {
   ProfileHome: undefined;
+  Subscription: undefined;
   Terms: undefined;
   Privacy: undefined;
 };
@@ -105,6 +107,7 @@ function ProfileStackNavigator() {
       }}
     >
       <ProfileStack.Screen name='ProfileHome' component={ProfileScreen} options={{ title: t('common.profile') }} />
+      <ProfileStack.Screen name='Subscription' component={SubscriptionScreen} options={{ title: 'Subscription' }} />
       <ProfileStack.Screen name='Terms' component={TermsScreen} options={{ title: t('profile.terms') }} />
       <ProfileStack.Screen name='Privacy' component={PrivacyScreen} options={{ title: t('profile.privacy') }} />
     </ProfileStack.Navigator>

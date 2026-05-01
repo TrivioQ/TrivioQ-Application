@@ -117,7 +117,7 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>{t('profile.subscription')}</Text>
-        <TouchableOpacity style={[styles.menuItem, styles.upgradeItem]} activeOpacity={0.7}>
+        <TouchableOpacity style={[styles.menuItem, styles.upgradeItem]} activeOpacity={0.7} onPress={() => navigation.navigate('Subscription')}>
           <Text style={styles.menuIcon}>👑</Text>
           <Text style={[styles.menuLabel, { color: '#a78bfa' }]}>{isPremium ? t('profile.manageSubscription') : t('profile.upgradePremium')}</Text>
           <Text style={styles.menuChevron}>›</Text>

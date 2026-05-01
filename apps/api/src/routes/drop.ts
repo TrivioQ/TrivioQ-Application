@@ -235,14 +235,15 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    if (user.subscriptionTier === 'FREE') {
+    const now = new Date();
+    const vaultActive = user.onDemandVaultExpires != null && user.onDemandVaultExpires > now;
+    if (user.subscriptionTier === 'FREE' && !vaultActive) {
       return res.status(403).json({
         code: 'UPGRADE_REQUIRED',
         message: 'Instant drops are a Premium feature.',
       });
     }
 
-    const now = new Date();
     let dropsReceivedToday = user.dropsReceivedToday;
 
     const isSameDay = user.lastDropDate.getUTCFullYear() === now.getUTCFullYear() && user.lastDropDate.getUTCMonth() === now.getUTCMonth() && user.lastDropDate.getUTCDate() === now.getUTCDate();
