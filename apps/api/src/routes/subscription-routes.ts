@@ -3,7 +3,6 @@ import { z } from 'zod';
 import * as admin from 'firebase-admin';
 import { prisma } from '@trivioq/database';
 import { requireAuth } from '../middleware/firebase-auth';
-import { UserPreferences } from '@trivioq/shared-types';
 import { addDays, endOfDay } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
@@ -111,18 +110,29 @@ router.post('/activate-vault', requireAuth, async (req: Request, res: Response) 
     const zonedEndOfDay = endOfDay(zonedFinalDay);
     const utcExpiry = fromZonedTime(zonedEndOfDay, timezone);
 
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        onDemandTokens: { decrement: daysToActivate },
-        subscriptionTier: 'PLUS',
-        subscriptionExpiresAt: utcExpiry,
-      },
-      select: {
-        onDemandTokens: true,
-        subscriptionExpiresAt: true,
-      },
-    });
+    const [updatedUser] = await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: {
+          onDemandTokens: { decrement: daysToActivate },
+          subscriptionTier: 'PLUS',
+          subscriptionExpiresAt: utcExpiry,
+        },
+        select: {
+          onDemandTokens: true,
+          subscriptionExpiresAt: true,
+        },
+      }),
+      prisma.userSubscriptionHistory.create({
+        data: {
+          userId,
+          tier: 'PLUS',
+          source: 'VAULT_ACTIVATION',
+          startedAt: baseDate,
+          expiresAt: utcExpiry,
+        },
+      }),
+    ]);
 
     return res.status(200).json({
       subscriptionExpiresAt: updatedUser.subscriptionExpiresAt,

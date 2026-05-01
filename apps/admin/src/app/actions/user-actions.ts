@@ -1,6 +1,6 @@
 'use server';
 
-import { PrismaClient, SubscriptionTier } from '@trivioq/database';
+import { PrismaClient, SubscriptionTier, Prisma } from '@trivioq/database';
 import { revalidatePath } from 'next/cache';
 
 const prisma = new PrismaClient();
@@ -56,10 +56,16 @@ export async function getUsers(filters: UserFilters = {}) {
 export async function toggleUserTier(userId: string, currentTier: SubscriptionTier) {
   try {
     const newTier = currentTier === 'FREE' ? 'PREMIUM' : 'FREE';
-    await prisma.user.update({
-      where: { id: userId },
-      data: { subscriptionTier: newTier },
-    });
+    const now = new Date();
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: { subscriptionTier: newTier },
+      }),
+      prisma.userSubscriptionHistory.create({
+        data: { userId, tier: newTier, source: 'ADMIN_GRANT', startedAt: now },
+      }),
+    ]);
     revalidatePath('/users');
     return { success: true };
   } catch (error) {
@@ -79,24 +85,80 @@ export async function updateUser(userId: string, data: {
   onDemandTokens: number;
 }) {
   try {
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        email: data.email,
-        username: data.username,
-        displayName: data.displayName,
-        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
-        subscriptionTier: data.subscriptionTier,
-        activeWindowStart: new Date(data.activeWindowStart),
-        activeWindowEnd: new Date(data.activeWindowEnd),
-        onDemandTokens: data.onDemandTokens,
-      },
-    });
+    const now = new Date();
+    const existing = await prisma.user.findUnique({ where: { id: userId }, select: { subscriptionTier: true } });
+    const tierChanged = existing && existing.subscriptionTier !== data.subscriptionTier;
+
+    const ops: Prisma.PrismaPromise<unknown>[] = [
+      prisma.user.update({
+        where: { id: userId },
+        data: {
+          email: data.email,
+          username: data.username,
+          displayName: data.displayName,
+          dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
+          subscriptionTier: data.subscriptionTier,
+          activeWindowStart: new Date(data.activeWindowStart),
+          activeWindowEnd: new Date(data.activeWindowEnd),
+          onDemandTokens: data.onDemandTokens,
+        },
+      }),
+    ];
+
+    if (tierChanged) {
+      ops.push(prisma.userSubscriptionHistory.create({
+        data: { userId, tier: data.subscriptionTier, source: 'ADMIN_GRANT', startedAt: now },
+      }));
+    }
+
+    await prisma.$transaction(ops);
     revalidatePath('/users');
     return { success: true };
   } catch (error) {
     console.error('Failed to update user:', error);
     return { success: false, error: 'Failed to update user. Username must be unique.' };
+  }
+}
+
+export async function searchUsersByUsername(query: string) {
+  if (!query.trim()) return { success: true, data: [] };
+  try {
+    const data = await prisma.user.findMany({
+      where: { username: { contains: query, mode: 'insensitive' } },
+      select: { id: true, username: true, email: true, subscriptionTier: true },
+      take: 8,
+      orderBy: { username: 'asc' },
+    });
+    return { success: true, data };
+  } catch (error) {
+    console.error('Failed to search users:', error);
+    return { success: false, data: [], error: 'Search failed' };
+  }
+}
+
+export async function getSubscriptionHistory(userId: string, page = 1, pageSize = 20) {
+  try {
+    const skip = (page - 1) * pageSize;
+    const [total, data] = await Promise.all([
+      prisma.userSubscriptionHistory.count({ where: { userId } }),
+      prisma.userSubscriptionHistory.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+    ]);
+    return {
+      success: true,
+      data,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    };
+  } catch (error) {
+    console.error('Failed to fetch subscription history:', error);
+    return { success: false, data: [], total: 0, page, pageSize, totalPages: 1, error: 'Failed to load history' };
   }
 }
 
