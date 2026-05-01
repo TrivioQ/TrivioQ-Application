@@ -4,6 +4,18 @@ import { z } from 'zod';
 
 const prisma = new PrismaClient();
 
+export async function GET() {
+  try {
+    const plans = await prisma.bonusPlan.findMany({
+      orderBy: { startDate: 'desc' },
+    });
+    return NextResponse.json(plans);
+  } catch (error) {
+    console.error('[GET /api/admin/bonus-plans] Failed:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 const CreateBonusPlanSchema = z.object({
   title: z.string().min(1),
   periodType: z.enum(['WEEK', 'MONTH']),

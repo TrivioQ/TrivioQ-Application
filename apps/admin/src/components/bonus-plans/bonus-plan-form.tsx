@@ -18,7 +18,6 @@ const schema = z.object({
   title: z.string().min(1, 'Title is required'),
   periodType: z.enum(['WEEK', 'MONTH']),
   rewardType: z.enum(['POINTS', 'PREMIUM_DAYS']),
-  // startDate is set via Controller/DayPicker, never from a raw input
   startDate: z.date().refine((d) => d instanceof Date && !isNaN(d.getTime()), {
     message: 'Start date is required',
   }),
@@ -32,7 +31,6 @@ type FormValues = z.infer<typeof schema>;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/** Sunday 23:59:59.999 UTC of the week starting on the given Monday. */
 function computeWeekEnd(monday: Date): Date {
   const y = monday.getFullYear();
   const m = monday.getMonth();
@@ -40,7 +38,6 @@ function computeWeekEnd(monday: Date): Date {
   return new Date(Date.UTC(y, m, d + 6, 23, 59, 59, 999));
 }
 
-/** Last millisecond of the given month in UTC. */
 function computeMonthEnd(firstOfMonth: Date): Date {
   const y = firstOfMonth.getFullYear();
   const mo = firstOfMonth.getMonth();
@@ -75,13 +72,27 @@ const pickerClassNames = {
   hidden: 'invisible',
 };
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-interface BonusPlanFormProps {
-  onSuccess?: () => void;
+export interface BonusPlanInitialValues {
+  id: string;
+  title: string;
+  periodType: 'WEEK' | 'MONTH';
+  rewardType: 'POINTS' | 'PREMIUM_DAYS';
+  startDate: Date;
+  payoutValues: number[];
 }
 
-export function BonusPlanForm({ onSuccess }: BonusPlanFormProps) {
+interface BonusPlanFormProps {
+  initialValues?: BonusPlanInitialValues;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
+export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanFormProps) {
+  const isEdit = !!initialValues;
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,11 +106,19 @@ export function BonusPlanForm({ onSuccess }: BonusPlanFormProps) {
   } = useForm<FormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(schema as any),
-    defaultValues: {
-      periodType: 'WEEK',
-      rewardType: 'POINTS',
-      payoutValues: [{ value: 0 }, { value: 0 }, { value: 0 }],
-    },
+    defaultValues: initialValues
+      ? {
+          title: initialValues.title,
+          periodType: initialValues.periodType,
+          rewardType: initialValues.rewardType,
+          startDate: initialValues.startDate,
+          payoutValues: initialValues.payoutValues.map((v) => ({ value: v })),
+        }
+      : {
+          periodType: 'WEEK',
+          rewardType: 'POINTS',
+          payoutValues: [{ value: 0 }, { value: 0 }, { value: 0 }],
+        },
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: 'payoutValues' });
@@ -107,7 +126,6 @@ export function BonusPlanForm({ onSuccess }: BonusPlanFormProps) {
   const periodType = useWatch({ control, name: 'periodType' });
   const startDate = useWatch({ control, name: 'startDate' });
 
-  // Derived end date (display only — sent to API on submit)
   const endDate =
     startDate && periodType === 'WEEK'
       ? computeWeekEnd(startDate)
@@ -122,8 +140,13 @@ export function BonusPlanForm({ onSuccess }: BonusPlanFormProps) {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/admin/bonus-plans', {
-        method: 'POST',
+      const url = isEdit
+        ? `/api/admin/bonus-plans/${initialValues!.id}`
+        : '/api/admin/bonus-plans';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: data.title,
@@ -327,10 +350,15 @@ export function BonusPlanForm({ onSuccess }: BonusPlanFormProps) {
         </div>
       )}
 
-      {/* Submit */}
-      <div className="flex justify-end pt-2">
+      {/* Actions */}
+      <div className="flex justify-end gap-2 pt-2">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving…' : 'Save Bonus Plan'}
+          {isSubmitting ? (isEdit ? 'Saving…' : 'Creating…') : (isEdit ? 'Save Changes' : 'Create Bonus Plan')}
         </Button>
       </div>
     </form>
