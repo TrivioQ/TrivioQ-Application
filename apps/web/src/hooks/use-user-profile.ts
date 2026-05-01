@@ -12,7 +12,7 @@ export interface UserProfile {
   profilePicture: string | null;
   currentStreak: number;
   cumulativeScore: number;
-  subscriptionTier: 'FREE' | 'PREMIUM';
+  subscriptionTier: 'FREE' | 'PREMIUM' | 'PLUS';
 }
 
 export function useUserProfile() {

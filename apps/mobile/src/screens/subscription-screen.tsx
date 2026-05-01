@@ -6,12 +6,11 @@ import { useToast } from '../components/toast';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type SubscriptionStatus = 'ACTIVE_AUTO_RENEW' | 'ACTIVE_VAULT' | 'FREE';
+type SubscriptionStatus = 'PREMIUM' | 'PLUS' | 'FREE';
 
 interface SubscriptionData {
   currentStatus: SubscriptionStatus;
-  nextBillingDate: string | null;
-  vaultExpiresAt: string | null;
+  subscriptionExpiresAt: string | null;
   onDemandTokensAvailable: number;
   userTimezone: string;
 }
@@ -90,9 +89,9 @@ export default function SubscriptionScreen() {
     );
   }
 
-  const { currentStatus, nextBillingDate, vaultExpiresAt, onDemandTokensAvailable } = data;
-  const isAutoRenew = currentStatus === 'ACTIVE_AUTO_RENEW';
-  const isVault = currentStatus === 'ACTIVE_VAULT';
+  const { currentStatus, subscriptionExpiresAt, onDemandTokensAvailable } = data;
+  const isAutoRenew = currentStatus === 'PREMIUM';
+  const isVault = currentStatus === 'PLUS';
   const isFree = currentStatus === 'FREE';
   const canActivate = isFree || isVault;
   const stepMin = onDemandTokensAvailable > 0 ? 1 : 0;
@@ -109,7 +108,7 @@ export default function SubscriptionScreen() {
               <Text style={[styles.badgeText, styles.badgeTextGold]}>👑 Premium</Text>
             </View>
             <Text style={styles.metaLabel}>Next billing date</Text>
-            <Text style={styles.metaValue}>{formatDate(nextBillingDate)}</Text>
+            <Text style={styles.metaValue}>{formatDate(subscriptionExpiresAt)}</Text>
           </>
         )}
 
@@ -119,7 +118,7 @@ export default function SubscriptionScreen() {
               <Text style={[styles.badgeText, styles.badgeTextPurple]}>🔮 Plus</Text>
             </View>
             <Text style={styles.metaLabel}>Expires</Text>
-            <Text style={styles.metaValue}>{formatDate(vaultExpiresAt)}</Text>
+            <Text style={styles.metaValue}>{formatDate(subscriptionExpiresAt)}</Text>
           </>
         )}
 

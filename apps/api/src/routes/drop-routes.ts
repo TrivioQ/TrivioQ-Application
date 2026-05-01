@@ -151,8 +151,8 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
       where: { id: userId },
       select: {
         id: true,
-        isSubscriptionActive: true,
-        onDemandVaultExpires: true,
+        subscriptionTier: true,
+        subscriptionExpiresAt: true,
         preferences: true,
         currentStreak: true,
       },
@@ -163,8 +163,10 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
     }
 
     // ── 2. Entitlement check ──────────────────────────────────────────────────
-    const vaultActive = user.onDemandVaultExpires != null && user.onDemandVaultExpires > now;
-    if (!user.isSubscriptionActive && !vaultActive) {
+    const isEntitled =
+      user.subscriptionTier === 'PREMIUM' ||
+      (user.subscriptionTier === 'PLUS' && user.subscriptionExpiresAt != null && user.subscriptionExpiresAt > now);
+    if (!isEntitled) {
       return res.status(403).json({ error: 'Active subscription or on-demand vault required' });
     }
 

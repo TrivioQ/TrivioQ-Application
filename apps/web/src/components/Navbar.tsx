@@ -191,7 +191,7 @@ export function Navbar() {
                 {/* Avatar + dropdown */}
                 <div className='relative' ref={dropdownRef}>
                   <button id='user-avatar-btn' onClick={() => setDropdownOpen((o) => !o)} className='flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400' aria-label={t('userMenu')} aria-expanded={dropdownOpen}>
-                    <UserAvatar profilePicture={profile?.profilePicture ?? null} displayName={profile?.displayName ?? null} email={user.email ?? ''} isPremium={profile?.subscriptionTier === 'PREMIUM'} />
+                    <UserAvatar profilePicture={profile?.profilePicture ?? null} displayName={profile?.displayName ?? null} email={user.email ?? ''} isPremium={profile?.subscriptionTier === 'PREMIUM' || profile?.subscriptionTier === 'PLUS'} />
                     <motion.svg animate={{ rotate: dropdownOpen ? 180 : 0 }} transition={{ duration: 0.2 }} className='w-4 h-4 text-gray-400 hidden sm:block' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
                       <path strokeLinecap='round' strokeLinejoin='round' d='M19 9l-7 7-7-7' />
                     </motion.svg>

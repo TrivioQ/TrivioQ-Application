@@ -25,10 +25,9 @@ model User {
   questionsAnswered Int        @default(0)
   correctAnswers    Int        @default(0)
   subscriptionTier         SubscriptionTier @default(FREE)
-  isSubscriptionActive     Boolean          @default(false)
+  isAutoRenewalEnabled     Boolean          @default(false)
   subscriptionExpiresAt    DateTime?
   onDemandTokens           Int              @default(0)
-  onDemandVaultExpires     DateTime?
   referredById             String?
   points                   Int              @default(0)
   preferences              Json?
@@ -113,6 +112,7 @@ enum FriendshipStatus {
 enum SubscriptionTier {
   FREE
   PREMIUM
+  PLUS
 }
 
 model Category {

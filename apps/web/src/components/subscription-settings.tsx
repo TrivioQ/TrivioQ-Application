@@ -6,12 +6,11 @@ import { useNotification } from '@/context/notification-context';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type SubscriptionStatus = 'ACTIVE_AUTO_RENEW' | 'ACTIVE_VAULT' | 'FREE';
+type SubscriptionStatus = 'PREMIUM' | 'PLUS' | 'FREE';
 
 interface SubscriptionData {
   currentStatus: SubscriptionStatus;
-  nextBillingDate: string | null;
-  vaultExpiresAt: string | null;
+  subscriptionExpiresAt: string | null;
   onDemandTokensAvailable: number;
 }
 
@@ -182,9 +181,9 @@ export function SubscriptionSettings() {
     );
   }
 
-  const { currentStatus, nextBillingDate, vaultExpiresAt, onDemandTokensAvailable } = data;
-  const isAutoRenew = currentStatus === 'ACTIVE_AUTO_RENEW';
-  const isVault = currentStatus === 'ACTIVE_VAULT';
+  const { currentStatus, subscriptionExpiresAt, onDemandTokensAvailable } = data;
+  const isAutoRenew = currentStatus === 'PREMIUM';
+  const isVault = currentStatus === 'PLUS';
   const isFree = currentStatus === 'FREE';
   const canActivate = (isFree || isVault) && onDemandTokensAvailable > 0;
 
@@ -218,19 +217,19 @@ export function SubscriptionSettings() {
           )}
         </div>
 
-        {isAutoRenew && nextBillingDate && (
+        {isAutoRenew && subscriptionExpiresAt && (
           <div className='flex items-center gap-2 text-sm text-amber-300/80'>
             <IconCalendar />
             <span>
-              Next billing date: <span className='font-semibold text-amber-200'>{formatDate(nextBillingDate)}</span>
+              Next billing date: <span className='font-semibold text-amber-200'>{formatDate(subscriptionExpiresAt)}</span>
             </span>
           </div>
         )}
-        {isVault && vaultExpiresAt && (
+        {isVault && subscriptionExpiresAt && (
           <div className='flex items-center gap-2 text-sm text-purple-300/80'>
             <IconCalendar />
             <span>
-              Plus expires: <span className='font-semibold text-purple-200'>{formatDate(vaultExpiresAt)}</span>
+              Plus expires: <span className='font-semibold text-purple-200'>{formatDate(subscriptionExpiresAt)}</span>
             </span>
           </div>
         )}

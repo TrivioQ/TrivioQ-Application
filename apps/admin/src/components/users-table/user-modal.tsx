@@ -102,6 +102,7 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
               <SelectContent>
                 <SelectItem value="FREE">Free</SelectItem>
                 <SelectItem value="PREMIUM">Premium</SelectItem>
+                <SelectItem value="PLUS">Plus</SelectItem>
               </SelectContent>
             </Select>
           </div>

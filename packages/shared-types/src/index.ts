@@ -41,6 +41,7 @@ export interface AnswerResponse {
 export enum SubscriptionTier {
   FREE = 'FREE',
   PREMIUM = 'PREMIUM',
+  PLUS = 'PLUS',
 }
 
 export interface UserProfile {

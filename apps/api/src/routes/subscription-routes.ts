@@ -22,9 +22,8 @@ router.get('/status', requireAuth, async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
-        isSubscriptionActive: true,
+        subscriptionTier: true,
         subscriptionExpiresAt: true,
-        onDemandVaultExpires: true,
         onDemandTokens: true,
         preferences: true,
       },
@@ -37,19 +36,19 @@ router.get('/status', requireAuth, async (req: Request, res: Response) => {
     const now = new Date();
     const timezone = resolveTimezone(user.preferences);
 
-    let currentStatus: 'ACTIVE_AUTO_RENEW' | 'ACTIVE_VAULT' | 'FREE';
-    if (user.isSubscriptionActive) {
-      currentStatus = 'ACTIVE_AUTO_RENEW';
-    } else if (user.onDemandVaultExpires != null && user.onDemandVaultExpires > now) {
-      currentStatus = 'ACTIVE_VAULT';
+    // PLUS is time-limited; treat as FREE if the window has passed
+    let currentStatus: 'PREMIUM' | 'PLUS' | 'FREE';
+    if (user.subscriptionTier === 'PREMIUM') {
+      currentStatus = 'PREMIUM';
+    } else if (user.subscriptionTier === 'PLUS' && user.subscriptionExpiresAt != null && user.subscriptionExpiresAt > now) {
+      currentStatus = 'PLUS';
     } else {
       currentStatus = 'FREE';
     }
 
     return res.status(200).json({
       currentStatus,
-      nextBillingDate: user.subscriptionExpiresAt ?? null,
-      vaultExpiresAt: user.onDemandVaultExpires ?? null,
+      subscriptionExpiresAt: user.subscriptionExpiresAt ?? null,
       onDemandTokensAvailable: user.onDemandTokens,
       userTimezone: timezone,
     });
@@ -79,8 +78,9 @@ router.post('/activate-vault', requireAuth, async (req: Request, res: Response) 
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
+        subscriptionTier: true,
         onDemandTokens: true,
-        onDemandVaultExpires: true,
+        subscriptionExpiresAt: true,
         preferences: true,
       },
     });
@@ -100,8 +100,9 @@ router.post('/activate-vault', requireAuth, async (req: Request, res: Response) 
     const timezone = resolveTimezone(user.preferences);
     const now = new Date();
 
-    // Start counting from today (or from existing expiry if vault is still active)
-    const baseDate = user.onDemandVaultExpires != null && user.onDemandVaultExpires > now ? user.onDemandVaultExpires : now;
+    // Extend from existing expiry if PLUS vault is still active, otherwise start from today
+    const plusActive = user.subscriptionTier === 'PLUS' && user.subscriptionExpiresAt != null && user.subscriptionExpiresAt > now;
+    const baseDate = plusActive ? user.subscriptionExpiresAt! : now;
 
     // Convert base to the user's local timezone, advance by daysToActivate, then
     // snap to 23:59:59.999 of that final local day before converting back to UTC.
@@ -114,16 +115,17 @@ router.post('/activate-vault', requireAuth, async (req: Request, res: Response) 
       where: { id: userId },
       data: {
         onDemandTokens: { decrement: daysToActivate },
-        onDemandVaultExpires: utcExpiry,
+        subscriptionTier: 'PLUS',
+        subscriptionExpiresAt: utcExpiry,
       },
       select: {
         onDemandTokens: true,
-        onDemandVaultExpires: true,
+        subscriptionExpiresAt: true,
       },
     });
 
     return res.status(200).json({
-      vaultExpiresAt: updatedUser.onDemandVaultExpires,
+      subscriptionExpiresAt: updatedUser.subscriptionExpiresAt,
       onDemandTokensRemaining: updatedUser.onDemandTokens,
     });
   } catch (error) {

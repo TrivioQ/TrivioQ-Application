@@ -74,7 +74,7 @@ export const columns: ColumnDef<UserRow>[] = [
     cell: ({ row }) => {
       const tier = row.getValue('subscriptionTier') as string;
       return (
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${tier === 'PREMIUM' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800'}`}>
+        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${tier === 'PREMIUM' ? 'bg-amber-100 text-amber-800' : tier === 'PLUS' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`}>
           {tier}
         </span>
       );

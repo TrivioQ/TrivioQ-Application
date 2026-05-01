@@ -236,8 +236,10 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
     }
 
     const now = new Date();
-    const vaultActive = user.onDemandVaultExpires != null && user.onDemandVaultExpires > now;
-    if (user.subscriptionTier === 'FREE' && !vaultActive) {
+    const isEntitled =
+      user.subscriptionTier === 'PREMIUM' ||
+      (user.subscriptionTier === 'PLUS' && user.subscriptionExpiresAt != null && user.subscriptionExpiresAt > now);
+    if (!isEntitled) {
       return res.status(403).json({
         code: 'UPGRADE_REQUIRED',
         message: 'Instant drops are a Premium feature.',
