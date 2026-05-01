@@ -6,6 +6,7 @@ import { DIFFICULTY_POINTS, upsertUserScores } from '../utils/scoring';
 import { UserPreferences } from '@trivioq/shared-types';
 import { startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
+import { getSettingNumber } from '../utils/settings';
 
 const router = express.Router();
 
@@ -163,9 +164,7 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
     }
 
     // ── 2. Entitlement check ──────────────────────────────────────────────────
-    const isEntitled =
-      user.subscriptionTier === 'PREMIUM' ||
-      (user.subscriptionTier === 'PLUS' && user.subscriptionExpiresAt != null && user.subscriptionExpiresAt > now);
+    const isEntitled = user.subscriptionTier === 'PREMIUM' || (user.subscriptionTier === 'PLUS' && user.subscriptionExpiresAt != null && user.subscriptionExpiresAt > now);
     if (!isEntitled) {
       return res.status(403).json({ error: 'Active subscription or on-demand vault required' });
     }
@@ -228,7 +227,8 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
     }
 
     // ── 5. Create the UserDrop — immediately marked as viewed ─────────────────
-    const expirationTime = new Date(now.getTime() + 15 * 60_000);
+    const dropExpiryMinutes = await getSettingNumber('drop_expiry_minutes', 30);
+    const expirationTime = new Date(now.getTime() + dropExpiryMinutes * 60_000);
 
     const userDrop = await prisma.userDrop.create({
       data: {

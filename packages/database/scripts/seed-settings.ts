@@ -27,6 +27,30 @@ const settings = [
     dataType: 'string',
     label: 'Public support contact email',
   },
+  {
+    key: 'drop_expiry_minutes',
+    value: '30',
+    dataType: 'number',
+    label: 'Minutes a dropped question stays available before it expires',
+  },
+  {
+    key: 'answer_timer_easy_seconds',
+    value: '60',
+    dataType: 'number',
+    label: 'Seconds to answer an Easy question after revealing it',
+  },
+  {
+    key: 'answer_timer_medium_seconds',
+    value: '180',
+    dataType: 'number',
+    label: 'Seconds to answer a Medium question after revealing it',
+  },
+  {
+    key: 'answer_timer_hard_seconds',
+    value: '300',
+    dataType: 'number',
+    label: 'Seconds to answer a Hard question after revealing it',
+  },
 ];
 
 async function main() {

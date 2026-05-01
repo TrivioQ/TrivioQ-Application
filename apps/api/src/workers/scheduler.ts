@@ -100,8 +100,9 @@ cron.schedule('* * * * *', async () => {
         // Pick a completely random question from the filtered subset
         const randomQ = questions[Math.floor(Math.random() * questions.length)];
 
-        // Create the user drop expiring in 15 minutes
-        const expirationTime = new Date(now.getTime() + 15 * 60000);
+        // Create the user drop expiring based on setting
+        const dropExpiryMinutes = await getSettingNumber('drop_expiry_minutes', 30);
+        const expirationTime = new Date(now.getTime() + dropExpiryMinutes * 60000);
 
         const userDrop = await prisma.userDrop.create({
           data: {
@@ -130,6 +131,7 @@ cron.schedule('* * * * *', async () => {
           category: selectedCategory || 'Mixed',
           difficulty: randomQ.difficultyLevel,
           expirationTimestamp: expirationTime.getTime(),
+          dropExpiryMinutes,
         });
 
         console.log(`Successfully scheduled drop ${userDrop.id} for user ${user.id}`);

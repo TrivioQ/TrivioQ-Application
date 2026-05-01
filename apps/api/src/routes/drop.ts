@@ -7,6 +7,13 @@ import { getSettingNumber } from '../utils/settings';
 
 const router = express.Router();
 
+// Returns seconds allowed to answer a question based on its difficulty (from settings).
+async function getAnswerTimerSeconds(difficulty: string): Promise<number> {
+  const key = difficulty === 'EASY' ? 'answer_timer_easy_seconds' : difficulty === 'MEDIUM' ? 'answer_timer_medium_seconds' : 'answer_timer_hard_seconds';
+  const defaults: Record<string, number> = { EASY: 60, MEDIUM: 180, HARD: 300 };
+  return getSettingNumber(key, defaults[difficulty] ?? 60);
+}
+
 router.get('/active', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -43,6 +50,7 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
       questionText: activeDrop.question.questionText,
       options: activeDrop.question.choices.map((c) => c.text),
       expiresAt: activeDrop.expirationTime.getTime(),
+      answerDeadline: activeDrop.answerDeadline?.getTime() ?? null,
       pointsValue,
       hintCost: Math.floor(pointsValue * (hintCostPercent / 100)),
       usedHint: activeDrop.usedHint,
@@ -52,6 +60,51 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
     res.json(payload);
   } catch (error) {
     console.error('Failed to fetch active drop:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Called when user clicks "Reveal Question". Sets a per-difficulty answer deadline
+// that persists across page refreshes. Idempotent — returns the existing deadline
+// if already set.
+router.post('/:dropId/reveal-question', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const { dropId } = req.params;
+
+    const userDrop = await prisma.userDrop.findUnique({
+      where: { id: dropId },
+      include: { question: { select: { difficultyLevel: true } } },
+    });
+
+    if (!userDrop || userDrop.userId !== userId) {
+      return res.status(404).json({ error: 'Drop not found' });
+    }
+    if (userDrop.isAnswered) {
+      return res.status(400).json({ error: 'Drop already answered' });
+    }
+
+    const now = new Date();
+    if (now > userDrop.expirationTime) {
+      return res.status(410).json({ error: 'Drop has expired' });
+    }
+
+    // Idempotent: return existing deadline if already set
+    if (userDrop.answerDeadline) {
+      return res.json({ answerDeadline: userDrop.answerDeadline.getTime() });
+    }
+
+    const timerSeconds = await getAnswerTimerSeconds(userDrop.question.difficultyLevel);
+    const answerDeadline = new Date(now.getTime() + timerSeconds * 1000);
+
+    await prisma.userDrop.update({
+      where: { id: dropId },
+      data: { answerDeadline, isViewed: true },
+    });
+
+    res.json({ answerDeadline: answerDeadline.getTime() });
+  } catch (error) {
+    console.error('Failed to reveal question:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -72,9 +125,13 @@ router.post('/:dropId/hint', requireAuth, async (req: Request, res: Response) =>
     if (userDrop.isAnswered) {
       return res.status(400).json({ error: 'Drop already answered' });
     }
-    if (new Date() > userDrop.expirationTime) {
+
+    const now = new Date();
+    const effectiveDeadline = userDrop.answerDeadline ?? userDrop.expirationTime;
+    if (now > effectiveDeadline) {
       return res.status(410).json({ error: 'Drop has expired' });
     }
+
     if (userDrop.usedHint) {
       return res.status(400).json({ error: 'Hint already used for this drop' });
     }
@@ -122,7 +179,10 @@ router.post('/:dropId/reveal-answer', requireAuth, async (req: Request, res: Res
     if (userDrop.isAnswered) {
       return res.status(400).json({ error: 'Drop already answered' });
     }
-    if (new Date() > userDrop.expirationTime) {
+
+    const now = new Date();
+    const effectiveDeadline = userDrop.answerDeadline ?? userDrop.expirationTime;
+    if (now > effectiveDeadline) {
       return res.status(410).json({ error: 'Drop has expired' });
     }
 
@@ -172,7 +232,8 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
     }
 
     const now = new Date();
-    if (now > userDrop.expirationTime) {
+    const effectiveDeadline = userDrop.answerDeadline ?? userDrop.expirationTime;
+    if (now > effectiveDeadline) {
       return res.status(410).json({ error: 'Drop has expired' });
     }
 
@@ -236,9 +297,7 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
     }
 
     const now = new Date();
-    const isEntitled =
-      user.subscriptionTier === 'PREMIUM' ||
-      (user.subscriptionTier === 'PLUS' && user.subscriptionExpiresAt != null && user.subscriptionExpiresAt > now);
+    const isEntitled = user.subscriptionTier === 'PREMIUM' || (user.subscriptionTier === 'PLUS' && user.subscriptionExpiresAt != null && user.subscriptionExpiresAt > now);
     if (!isEntitled) {
       return res.status(403).json({
         code: 'UPGRADE_REQUIRED',
@@ -272,7 +331,8 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
     }
 
     const randomQ = questions[Math.floor(Math.random() * questions.length)];
-    const expirationTime = new Date(now.getTime() + 15 * 60000);
+    const dropExpiryMinutes = await getSettingNumber('drop_expiry_minutes', 30);
+    const expirationTime = new Date(now.getTime() + dropExpiryMinutes * 60_000);
 
     const userDrop = await prisma.userDrop.create({
       data: {
@@ -301,6 +361,7 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
       questionText: randomQ.questionText,
       options: randomQ.choices.map((c) => c.text),
       expiresAt: expirationTime.getTime(),
+      answerDeadline: null,
       pointsValue,
       hintCost: Math.floor(pointsValue * (hintCostPercent / 100)),
       usedHint: false,

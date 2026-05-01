@@ -18,6 +18,7 @@ export interface QuestionDropPayload {
   questionText: string;
   options: string[];
   expiresAt: number;
+  answerDeadline: number | null;
   pointsValue: number;
   hintCost: number;
   usedHint: boolean;

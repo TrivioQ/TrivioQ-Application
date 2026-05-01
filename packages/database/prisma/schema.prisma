@@ -176,6 +176,8 @@ model UserDrop {
   dropType          DropType  @default(SPONTANEOUS)
   pointsAwarded     Int       @default(0)
   answeredAt        DateTime?
+  // Set when user clicks "Reveal Question"; drives the per-difficulty answer countdown
+  answerDeadline    DateTime?
 }
 
 model FAQ {

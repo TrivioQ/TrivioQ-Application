@@ -3,6 +3,7 @@ import Redis from 'ioredis';
 import * as admin from 'firebase-admin';
 import { prisma, DifficultyLevel } from '@trivioq/database';
 import { UserPreferences } from '@trivioq/shared-types';
+import { getSettingNumber } from '../utils/settings';
 
 try {
   admin.initializeApp();
@@ -20,18 +21,11 @@ interface DropsQueuePayload {
 
 // ── Mastery day: pick 1 question the user has already seen, in strict priority ─
 
-async function pickMasteryQuestion(
-  userId: string,
-  sevenDaysAgo: Date,
-): Promise<string | null> {
+async function pickMasteryQuestion(userId: string, sevenDaysAgo: Date): Promise<string | null> {
   // Priority 1: questions answered incorrectly (Mistakes)
   // Priority 2: questions viewed but not answered (Missed)
   // Priority 3: questions answered correctly (Reinforcement)
-  const priorities: Array<{ isAnswered: boolean; wasCorrect?: boolean }> = [
-    { isAnswered: true, wasCorrect: false },
-    { isAnswered: false },
-    { isAnswered: true, wasCorrect: true },
-  ];
+  const priorities: Array<{ isAnswered: boolean; wasCorrect?: boolean }> = [{ isAnswered: true, wasCorrect: false }, { isAnswered: false }, { isAnswered: true, wasCorrect: true }];
 
   for (const filter of priorities) {
     const drop = await prisma.userDrop.findFirst({
@@ -39,9 +33,7 @@ async function pickMasteryQuestion(
         userId,
         isViewed: true,
         createdAt: { gte: sevenDaysAgo },
-        ...(filter.wasCorrect !== undefined
-          ? { isAnswered: filter.isAnswered, wasCorrect: filter.wasCorrect }
-          : { isAnswered: filter.isAnswered }),
+        ...(filter.wasCorrect !== undefined ? { isAnswered: filter.isAnswered, wasCorrect: filter.wasCorrect } : { isAnswered: filter.isAnswered }),
       },
       select: { questionId: true },
       orderBy: { createdAt: 'desc' },
@@ -55,11 +47,7 @@ async function pickMasteryQuestion(
 
 // ── Standard day: weighted dice roll → unseen question with waterfall fallback ─
 
-const DIFFICULTY_ORDER: DifficultyLevel[] = [
-  DifficultyLevel.EASY,
-  DifficultyLevel.MEDIUM,
-  DifficultyLevel.HARD,
-];
+const DIFFICULTY_ORDER: DifficultyLevel[] = [DifficultyLevel.EASY, DifficultyLevel.MEDIUM, DifficultyLevel.HARD];
 
 function rollDifficulty(percentages: Record<string, number>): DifficultyLevel {
   const roll = Math.random() * 100;
@@ -73,16 +61,10 @@ function rollDifficulty(percentages: Record<string, number>): DifficultyLevel {
   }
 
   // Fallback to whichever level has the highest weight
-  return DIFFICULTY_ORDER.reduce((best, lvl) =>
-    (percentages[lvl] ?? 0) >= (percentages[best] ?? 0) ? lvl : best,
-  );
+  return DIFFICULTY_ORDER.reduce((best, lvl) => ((percentages[lvl] ?? 0) >= (percentages[best] ?? 0) ? lvl : best));
 }
 
-async function pickStandardQuestion(
-  userId: string,
-  categoryIds: string[],
-  startDifficulty: DifficultyLevel,
-): Promise<string | null> {
+async function pickStandardQuestion(userId: string, categoryIds: string[], startDifficulty: DifficultyLevel): Promise<string | null> {
   // Waterfall: try startDifficulty first, then the others in descending weight order
   const remaining = DIFFICULTY_ORDER.filter((d) => d !== startDifficulty);
   const tryOrder = [startDifficulty, ...remaining];
@@ -111,7 +93,7 @@ async function pickStandardQuestion(
 const dropWorker = new Worker<DropsQueuePayload>(
   'drops-queue',
   async (job: Job<DropsQueuePayload>) => {
-    const { userId, isMasteryDay, dailyLimit } = job.data;
+    const { userId, isMasteryDay } = job.data;
     const now = new Date();
 
     console.log(`[DropWorker] Processing job ${job.id} for user ${userId} (mastery=${isMasteryDay})`);
@@ -150,8 +132,7 @@ const dropWorker = new Worker<DropsQueuePayload>(
 
     // ── Part 2: Standard Day (or mastery fallback) ────────────────────────────
     if (!questionId) {
-      const difficultyPercentages: Record<string, number> =
-        prefs?.difficultyPercentages ?? { EASY: 50, MEDIUM: 30, HARD: 20 };
+      const difficultyPercentages: Record<string, number> = prefs?.difficultyPercentages ?? { EASY: 50, MEDIUM: 30, HARD: 20 };
 
       // Resolve category names → IDs
       let categoryIds: string[] = [];
@@ -180,7 +161,8 @@ const dropWorker = new Worker<DropsQueuePayload>(
     // ── Part 3: Execution ─────────────────────────────────────────────────────
 
     // 3a. Create UserDrop
-    const expirationTime = new Date(now.getTime() + 15 * 60_000);
+    const dropExpiryMinutes = await getSettingNumber('drop_expiry_minutes', 30);
+    const expirationTime = new Date(now.getTime() + dropExpiryMinutes * 60_000);
 
     const userDrop = await prisma.userDrop.create({
       data: {
@@ -210,13 +192,12 @@ const dropWorker = new Worker<DropsQueuePayload>(
 
     const category = question?.categories[0]?.name ?? 'Trivia';
     const difficulty = question?.difficultyLevel ?? 'MIXED';
-    const capitalizedDifficulty =
-      difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
+    const capitalizedDifficulty = difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
 
     const message: admin.messaging.Message = {
       notification: {
         title: '🚨 New TrivioQ Drop!',
-        body: `A ${capitalizedDifficulty} ${category} question is waiting. You have 15 minutes.`,
+        body: `A ${capitalizedDifficulty} ${category} question is waiting. You have ${dropExpiryMinutes} minutes.`,
       },
       data: {
         dropId: userDrop.id,
@@ -231,10 +212,7 @@ const dropWorker = new Worker<DropsQueuePayload>(
     } catch (error: any) {
       console.error(`[DropWorker] FCM failed for user ${userId}:`, error);
 
-      if (
-        error.code === 'messaging/invalid-registration-token' ||
-        error.code === 'messaging/registration-token-not-registered'
-      ) {
+      if (error.code === 'messaging/invalid-registration-token' || error.code === 'messaging/registration-token-not-registered') {
         await prisma.user.update({
           where: { id: userId },
           data: { devicePushToken: null },

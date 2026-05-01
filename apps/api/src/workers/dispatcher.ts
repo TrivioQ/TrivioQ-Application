@@ -20,12 +20,13 @@ interface DispatchNotificationJob {
   category: string;
   difficulty: string;
   expirationTimestamp: number;
+  dropExpiryMinutes?: number;
 }
 
 const dispatcherWorker = new Worker<DispatchNotificationJob>(
   'dispatch-notifications',
   async (job: Job<DispatchNotificationJob>) => {
-    const { userId, dropId, category, difficulty, expirationTimestamp } = job.data;
+    const { userId, dropId, category, difficulty, expirationTimestamp, dropExpiryMinutes = 30 } = job.data;
 
     console.log(`Processing push notification for user ${userId}, drop ${dropId}`);
 
@@ -42,7 +43,7 @@ const dispatcherWorker = new Worker<DispatchNotificationJob>(
 
       const title = '🚨 New TrivioQ Drop!';
       const capitalizedDifficulty = difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
-      const body = `A ${capitalizedDifficulty} ${category} question is waiting. You have 15 minutes.`;
+      const body = `A ${capitalizedDifficulty} ${category} question is waiting. You have ${dropExpiryMinutes} minutes.`;
 
       const message = {
         notification: {
