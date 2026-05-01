@@ -5,11 +5,12 @@ import { useForm, useFieldArray, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { DayPicker } from 'react-day-picker';
-import { format } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
 // ── Schema ────────────────────────────────────────────────────────────────────
@@ -50,13 +51,13 @@ const pickerClassNames = {
   root: 'p-3',
   months: 'flex flex-col',
   month: 'space-y-4',
-  month_caption: 'flex justify-center items-center h-7 relative',
+  month_caption: 'flex justify-center items-center h-7 relative overflow-visible',
   caption_label: 'text-sm font-medium',
   nav: 'flex items-center gap-1',
   button_previous:
-    'absolute left-1 h-7 w-7 inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-muted',
+    'absolute left-1 top-[10px] z-[1] h-7 w-7 inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-muted',
   button_next:
-    'absolute right-1 h-7 w-7 inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-muted',
+    'absolute right-1 top-[10px] z-[1] h-7 w-7 inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-muted',
   month_grid: 'w-full border-collapse',
   weekdays: 'flex',
   weekday: 'text-muted-foreground w-9 text-center text-[0.8rem] font-normal',
@@ -238,10 +239,9 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
           control={control}
           name="startDate"
           render={({ field }) => (
-            <div className="relative">
-              <button
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger
                 type="button"
-                onClick={() => setCalendarOpen((o) => !o)}
                 className={cn(
                   'flex h-8 w-full items-center justify-between rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors',
                   'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -252,27 +252,25 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
                   {field.value ? format(field.value, 'PPP') : 'Pick a date'}
                 </span>
                 <CalendarIcon className="h-4 w-4 opacity-50" />
-              </button>
+              </PopoverTrigger>
 
-              {calendarOpen && (
-                <div className="absolute z-50 mt-1 rounded-lg border border-border bg-background shadow-md">
-                  <DayPicker
-                    mode="single"
-                    selected={field.value}
-                    onSelect={(date) => {
-                      field.onChange(date ?? null);
-                      setCalendarOpen(false);
-                    }}
-                    disabled={
-                      periodType === 'WEEK'
-                        ? (date: Date) => date.getDay() !== 1
-                        : (date: Date) => date.getDate() !== 1
-                    }
-                    classNames={pickerClassNames}
-                  />
-                </div>
-              )}
-            </div>
+              <PopoverContent className="w-auto p-0" align="start">
+                <DayPicker
+                  mode="single"
+                  selected={field.value}
+                  onSelect={(date) => {
+                    field.onChange(date ?? null);
+                    setCalendarOpen(false);
+                  }}
+                  disabled={
+                    periodType === 'WEEK'
+                      ? (date: Date) => date.getDay() !== 1 || date < startOfDay(new Date())
+                      : (date: Date) => date.getDate() !== 1 || date < startOfDay(new Date())
+                  }
+                  classNames={pickerClassNames}
+                />
+              </PopoverContent>
+            </Popover>
           )}
         />
         {errors.startDate && (

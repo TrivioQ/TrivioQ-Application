@@ -1,9 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { BonusPlanForm, type BonusPlanInitialValues } from '@/components/bonus-plans/bonus-plan-form';
 import { BonusPlanList } from '@/components/bonus-plans/bonus-plan-list';
 
@@ -33,47 +39,35 @@ export default function BonusPlansPage() {
           </p>
         </div>
 
-        {!isFormOpen && (
-          <Button onClick={() => setFormMode({ type: 'create' })} className="gap-2 shrink-0">
-            <Plus className="h-4 w-4" />
-            Create
-          </Button>
-        )}
+        <Button onClick={() => setFormMode({ type: 'create' })} className="gap-2 shrink-0">
+          <Plus className="h-4 w-4" />
+          Create
+        </Button>
       </div>
 
       {/* Create / Edit Form */}
-      {isFormOpen && (
-        <Card className="bg-white shadow-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">
-                  {formMode.type === 'edit' ? 'Edit Bonus Plan' : 'New Bonus Plan'}
-                </CardTitle>
-                <CardDescription>
-                  Configure the period, reward type, and payout values for each rank.
-                </CardDescription>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => setFormMode(null)}
-                aria-label="Close form"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+      <Dialog open={isFormOpen} onOpenChange={(open) => !open && setFormMode(null)}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {formMode?.type === 'edit' ? 'Edit Bonus Plan' : 'New Bonus Plan'}
+            </DialogTitle>
+            <DialogDescription>
+              Configure the period, reward type, and payout values for each rank.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {isFormOpen && (
+            <div className="mt-4">
+              <BonusPlanForm
+                initialValues={formMode.type === 'edit' ? formMode.plan : undefined}
+                onSuccess={handleSuccess}
+                onCancel={() => setFormMode(null)}
+              />
             </div>
-          </CardHeader>
-          <CardContent>
-            <BonusPlanForm
-              initialValues={formMode.type === 'edit' ? formMode.plan : undefined}
-              onSuccess={handleSuccess}
-              onCancel={() => setFormMode(null)}
-            />
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* List */}
       <BonusPlanList
