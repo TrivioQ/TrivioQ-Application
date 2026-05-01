@@ -230,7 +230,7 @@ export function SubscriptionSettings() {
           <div className='flex items-center gap-2 text-sm text-purple-300/80'>
             <IconCalendar />
             <span>
-              Premium expires: <span className='font-semibold text-purple-200'>{formatDate(vaultExpiresAt)}</span>
+              Plus expires: <span className='font-semibold text-purple-200'>{formatDate(vaultExpiresAt)}</span>
             </span>
           </div>
         )}
@@ -247,8 +247,8 @@ export function SubscriptionSettings() {
       <section className='bg-gray-900/50 rounded-2xl border border-white/5 p-6 space-y-5'>
         <div className='flex items-start justify-between gap-4 flex-wrap'>
           <div>
-            <h3 className='text-lg font-bold text-white'>Your Premium Vault</h3>
-            <p className='text-sm text-gray-400 mt-0.5'>Banked premium days you can activate any time</p>
+            <h3 className='text-lg font-bold text-white'>Your Banked Plus Subscription Days</h3>
+            <p className='text-sm text-gray-400 mt-0.5'>Banked Plus days you can activate any time</p>
           </div>
           <div className='flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-2'>
             <span className='text-indigo-400'>
