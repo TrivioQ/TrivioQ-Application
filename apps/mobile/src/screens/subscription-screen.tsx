@@ -106,7 +106,7 @@ export default function SubscriptionScreen() {
         {isAutoRenew && (
           <>
             <View style={[styles.badge, styles.badgeGold]}>
-              <Text style={[styles.badgeText, styles.badgeTextGold]}>👑 TrivioQ Premium</Text>
+              <Text style={[styles.badgeText, styles.badgeTextGold]}>👑 Premium</Text>
             </View>
             <Text style={styles.metaLabel}>Next billing date</Text>
             <Text style={styles.metaValue}>{formatDate(nextBillingDate)}</Text>
@@ -116,7 +116,7 @@ export default function SubscriptionScreen() {
         {isVault && (
           <>
             <View style={[styles.badge, styles.badgePurple]}>
-              <Text style={[styles.badgeText, styles.badgeTextPurple]}>🔮 Premium via Vault</Text>
+              <Text style={[styles.badgeText, styles.badgeTextPurple]}>🔮 Plus</Text>
             </View>
             <Text style={styles.metaLabel}>Expires</Text>
             <Text style={styles.metaValue}>{formatDate(vaultExpiresAt)}</Text>
@@ -126,7 +126,7 @@ export default function SubscriptionScreen() {
         {isFree && (
           <>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>TrivioQ Free Tier</Text>
+              <Text style={styles.badgeText}>Free</Text>
             </View>
             <TouchableOpacity style={styles.upgradeButton} activeOpacity={0.8}>
               <Text style={styles.upgradeButtonText}>⚡ Upgrade to Premium</Text>

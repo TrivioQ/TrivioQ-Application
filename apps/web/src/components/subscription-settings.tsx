@@ -201,19 +201,19 @@ export function SubscriptionSettings() {
           {isAutoRenew && (
             <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/25'>
               <IconCrown />
-              TrivioQ Premium
+              Premium
             </span>
           )}
           {isVault && (
             <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25'>
               <IconVault />
-              Premium via Vault
+              Plus
             </span>
           )}
           {isFree && (
             <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/5 text-gray-400 border border-white/10'>
               <IconSparkles />
-              Free Tier
+              Free
             </span>
           )}
         </div>
