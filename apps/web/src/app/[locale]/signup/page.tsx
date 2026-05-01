@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useAuth } from '@/context/auth-provider';
@@ -19,6 +19,9 @@ export default function SignupPage() {
   const [displayName, setDisplayName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  const searchParams = useSearchParams();
+  const [referralCode, setReferralCode] = useState(searchParams.get('referral') ?? '');
 
   const { isPending, registerWithEmailSync, signInWithGoogleSync } = useAuthSync();
 
@@ -38,7 +41,7 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    await registerWithEmailSync(email, password, username, displayName, dateOfBirth);
+    await registerWithEmailSync(email, password, username, displayName, dateOfBirth, referralCode || undefined);
   };
 
   const handleGoogleSignup = () => {
@@ -100,7 +103,15 @@ export default function SignupPage() {
               <label className='sr-only' htmlFor='dateOfBirth'>
                 {t('dateOfBirthLabel')}
               </label>
-              <input id='dateOfBirth' type='date' required max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]} className={`${inputClass} rounded-b-md`} placeholder={t('dateOfBirthLabel')} value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} disabled={isPending} />
+              <input id='dateOfBirth' type='date' required max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]} className={inputClass} placeholder={t('dateOfBirthLabel')} value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} disabled={isPending} />
+            </div>
+
+            {/* Referral Code (optional) */}
+            <div>
+              <label className='sr-only' htmlFor='referralCode'>
+                {t('referralCodeLabel')}
+              </label>
+              <input id='referralCode' type='text' className={`${inputClass} rounded-b-md`} placeholder={t('referralCodePlaceholder')} value={referralCode} onChange={(e) => setReferralCode(e.target.value)} disabled={isPending} />
             </div>
           </div>
 

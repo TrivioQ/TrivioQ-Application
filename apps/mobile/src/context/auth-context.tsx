@@ -19,7 +19,7 @@ interface AuthContextType {
   pushToken: string | null;
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
-  registerWithEmail: (email: string, pass: string, username: string, displayName: string, dateOfBirth: string) => Promise<void>;
+  registerWithEmail: (email: string, pass: string, username: string, displayName: string, dateOfBirth: string, referralCode?: string) => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -143,9 +143,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const registerWithEmail = async (email: string, pass: string, username: string, displayName: string, dateOfBirth: string) => {
+  const registerWithEmail = async (email: string, pass: string, username: string, displayName: string, dateOfBirth: string, referralCode?: string) => {
     const { user: newUser } = await createUserWithEmailAndPassword(auth, email, pass);
-    await syncUserWithBackend(newUser, { username, displayName, dateOfBirth });
+    await syncUserWithBackend(newUser, { username, displayName, dateOfBirth, ...(referralCode ? { referralCode } : {}) });
   };
 
   const loginWithEmail = async (email: string, pass: string) => {

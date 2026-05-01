@@ -14,6 +14,7 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [isPending, setIsPending] = useState(false);
 
   const handleSignup = async () => {
@@ -44,7 +45,7 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
 
     setIsPending(true);
     try {
-      await registerWithEmail(email, password, username, displayName || username, dateOfBirth);
+      await registerWithEmail(email, password, username, displayName || username, dateOfBirth, referralCode || undefined);
     } catch (error: any) {
       console.error('Signup failed:', error);
       toast({ message: error.message || t('auth.signupFailed'), type: 'error' });
@@ -79,6 +80,9 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
           <Text style={styles.label}>{t('auth.dateOfBirthLabel')}</Text>
           <TextInput style={styles.input} placeholder='YYYY-MM-DD' placeholderTextColor='#64748b' value={dateOfBirth} onChangeText={setDateOfBirth} keyboardType='numbers-and-punctuation' maxLength={10} />
           <Text style={styles.hint}>{t('auth.dateOfBirthHint')}</Text>
+
+          <Text style={styles.label}>{t('auth.referralCodeLabel')}</Text>
+          <TextInput style={styles.input} placeholder={t('auth.referralCodePlaceholder')} placeholderTextColor='#64748b' value={referralCode} onChangeText={setReferralCode} autoCapitalize='none' />
 
           <TouchableOpacity style={styles.signupButton} onPress={handleSignup} disabled={isPending} activeOpacity={0.8}>
             {isPending ? <ActivityIndicator color='#fff' /> : <Text style={styles.signupButtonText}>{t('auth.createButton')}</Text>}

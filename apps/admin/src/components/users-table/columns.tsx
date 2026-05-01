@@ -27,6 +27,9 @@ export type UserRow = {
   dateOfBirth?: Date | null;
   subscriptionTier: SubscriptionTier;
   currentStreak: number;
+  activeWindowStart: Date;
+  activeWindowEnd: Date;
+  onDemandTokens: number;
 };
 
 function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {

@@ -135,6 +135,8 @@
     "usernamePlaceholder": "letters, numbers, underscores",
     "dateOfBirthLabel": "Date of Birth",
     "dateOfBirthHint": "Format: YYYY-MM-DD — you must be at least 13 years old",
+    "referralCodeLabel": "Referral Code",
+    "referralCodePlaceholder": "Referral code (optional)",
     "createButton": "Create Account",
     "hasAccount": "Already have an account?",
     "signInLink": "Sign In",

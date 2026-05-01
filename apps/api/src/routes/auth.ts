@@ -16,7 +16,7 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
     }
 
     // Optional profile fields — only provided on initial sign-up (not on subsequent logins)
-    const { username: requestedUsername, displayName: requestedDisplayName, dateOfBirth: requestedDob } = req.body ?? {};
+    const { username: requestedUsername, displayName: requestedDisplayName, dateOfBirth: requestedDob, referralCode } = req.body ?? {};
 
     const now = new Date();
 
@@ -78,6 +78,13 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
     const activeWindowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0);
     const activeWindowEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 0);
 
+    // Validate referral code — it must be an existing user's ID
+    let referredById: string | undefined;
+    if (referralCode) {
+      const referrer = await prisma.user.findUnique({ where: { id: referralCode }, select: { id: true } });
+      if (referrer) referredById = referrer.id;
+    }
+
     let user;
     try {
       user = await prisma.user.create({
@@ -92,6 +99,7 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
           activeWindowStart,
           activeWindowEnd,
           lastLogin: now,
+          ...(referredById ? { referredById } : {}),
         },
       });
     } catch (dbError) {

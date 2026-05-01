@@ -29,7 +29,6 @@ model User {
   subscriptionExpiresAt    DateTime?
   onDemandTokens           Int              @default(0)
   onDemandVaultExpires     DateTime?
-  referralCode             String?          @unique
   referredById             String?
   points                   Int              @default(0)
   preferences              Json?

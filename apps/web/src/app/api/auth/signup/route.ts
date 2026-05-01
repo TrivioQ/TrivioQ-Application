@@ -18,6 +18,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   let username: string | undefined;
   let displayName: string | undefined;
   let dateOfBirth: string | undefined;
+  let referralCode: string | undefined;
 
   try {
     const body = await req.json();
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     username = body?.username;
     displayName = body?.displayName;
     dateOfBirth = body?.dateOfBirth;
+    referralCode = body?.referralCode || undefined;
   } catch {
     // fall through
   }
@@ -85,7 +87,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   // ── Step 2: Sync user record in Postgres ──────────────────────────────────
-  return syncAndRespond(idToken, { username: username.toLowerCase(), displayName: displayName ?? username, dateOfBirth });
+  return syncAndRespond(idToken, { username: username.toLowerCase(), displayName: displayName ?? username, dateOfBirth, ...(referralCode ? { referralCode } : {}) });
 }
 
 function mapFirebaseSignupError(code: string): string {

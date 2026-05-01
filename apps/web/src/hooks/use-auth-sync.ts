@@ -43,7 +43,7 @@ export function useAuthSync({ onSuccess, onError }: AuthSyncOptions = {}) {
   });
 
   const signupMutation = useMutation({
-    mutationFn: ({ email, password, username, displayName, dateOfBirth }: { email: string; password: string; username: string; displayName: string; dateOfBirth: string }) => makeAPICall('/auth/signup', { method: 'POST', body: { email, password, username, displayName, dateOfBirth } }),
+    mutationFn: ({ email, password, username, displayName, dateOfBirth, referralCode }: { email: string; password: string; username: string; displayName: string; dateOfBirth: string; referralCode?: string }) => makeAPICall('/auth/signup', { method: 'POST', body: { email, password, username, displayName, dateOfBirth, ...(referralCode ? { referralCode } : {}) } }),
     onSuccess: handleSuccess,
     onError: handleError,
   });
@@ -51,7 +51,7 @@ export function useAuthSync({ onSuccess, onError }: AuthSyncOptions = {}) {
   return {
     isPending: loginMutation.isPending || signupMutation.isPending,
     loginWithEmailSync: (email: string, password: string, keepMeLoggedIn: boolean) => loginMutation.mutateAsync({ email, password, keepMeLoggedIn }),
-    registerWithEmailSync: (email: string, password: string, username: string, displayName: string, dateOfBirth: string) => signupMutation.mutateAsync({ email, password, username, displayName, dateOfBirth }),
+    registerWithEmailSync: (email: string, password: string, username: string, displayName: string, dateOfBirth: string, referralCode?: string) => signupMutation.mutateAsync({ email, password, username, displayName, dateOfBirth, referralCode }),
     // Google uses a server-side redirect — no async result to await.
     signInWithGoogleSync: () => {
       window.location.href = '/api/auth/google';
