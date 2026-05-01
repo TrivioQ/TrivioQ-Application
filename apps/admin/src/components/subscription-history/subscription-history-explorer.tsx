@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useRef, useEffect } from 'react';
+import { useState, useTransition, useRef, useEffect, useCallback } from 'react';
 import { Search, ChevronLeft, ChevronRight, Loader2, History } from 'lucide-react';
 import { searchUsersByUsername, getSubscriptionHistory } from '@/app/actions/user-actions';
 import { Button } from '@/components/ui/button';
@@ -63,7 +63,7 @@ export function SubscriptionHistoryExplorer() {
   const [history, setHistory] = useState<HistoryResult | null>(null);
   const [page, setPage] = useState(1);
 
-  const [isSearching, startSearch] = useTransition();
+  const [isSearching, setIsSearching] = useState(false);
   const [isLoading, startLoad] = useTransition();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -80,18 +80,18 @@ export function SubscriptionHistoryExplorer() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  function handleQueryChange(val: string) {
+  const handleQueryChange = useCallback((val: string) => {
     setQuery(val);
     setShowDropdown(true);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!val.trim()) { setSuggestions([]); return; }
-    debounceRef.current = setTimeout(() => {
-      startSearch(async () => {
-        const result = await searchUsersByUsername(val);
-        setSuggestions(result.data ?? []);
-      });
-    }, 300);
-  }
+    if (!val.trim()) { setSuggestions([]); setIsSearching(false); return; }
+    setIsSearching(true);
+    debounceRef.current = setTimeout(async () => {
+      const result = await searchUsersByUsername(val);
+      setSuggestions(result.data ?? []);
+      setIsSearching(false);
+    }, 400);
+  }, []);
 
   function handleSelect(user: UserSuggestion) {
     setSelectedUser(user);
