@@ -24,10 +24,17 @@ model User {
   lastDropDate      DateTime   @default(now())
   questionsAnswered Int        @default(0)
   correctAnswers    Int        @default(0)
-  subscriptionTier  SubscriptionTier @default(FREE)
-  preferences       Json?
-  devicePushToken   String?
-  role              Role         @default(USER)
+  subscriptionTier         SubscriptionTier @default(FREE)
+  isSubscriptionActive     Boolean          @default(false)
+  subscriptionExpiresAt    DateTime?
+  onDemandTokens           Int              @default(0)
+  onDemandVaultExpires     DateTime?
+  referralCode             String?          @unique
+  referredById             String?
+  points                   Int              @default(0)
+  preferences              Json?
+  devicePushToken          String?
+  role                     Role             @default(USER)
   drops             UserDrop[]
   scores            UserScore[]
   friendshipsInitiated Friendship[] @relation("UserFriendshipsInitiated")
@@ -43,6 +50,21 @@ enum PeriodType {
   WEEKLY
   MONTHLY
   OVERALL
+}
+
+enum DropType {
+  SPONTANEOUS
+  ON_DEMAND
+}
+
+enum BonusPeriodType {
+  WEEK
+  MONTH
+}
+
+enum BonusRewardType {
+  POINTS
+  PREMIUM_DAYS
 }
 
 // Persistent score ledger — one row per user per period.
@@ -144,6 +166,7 @@ model UserDrop {
   hintCostDeducted  Int       @default(0)
   revealedAnswer    Boolean   @default(false)
   selectedChoiceId  String?
+  dropType          DropType  @default(SPONTANEOUS)
   pointsAwarded     Int       @default(0)
   answeredAt        DateTime?
 }
@@ -167,6 +190,18 @@ model Setting {
   label     String?
   updatedAt DateTime @updatedAt
   updatedBy String?
+}
+
+model BonusPlan {
+  id           String          @id @default(uuid())
+  title        String
+  periodType   BonusPeriodType
+  rewardType   BonusRewardType
+  startDate    DateTime
+  endDate      DateTime
+  payoutValues Int[]
+
+  @@index([startDate, endDate])
 }
 
 // Stores legal documents (Terms of Service, Privacy Policy) as markdown.

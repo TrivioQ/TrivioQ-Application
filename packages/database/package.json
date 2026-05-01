@@ -6,6 +6,7 @@
   "types": "./src/index.ts",
   "scripts": {
     "db-push": "prisma db push",
+    "generate": "prisma generate",
     "make-admin": "ts-node -r dotenv/config scripts/make-admin.ts",
     "seed-mock-data": "ts-node -r dotenv/config scripts/seed-mock-data.ts",
     "seed-legal": "ts-node -r dotenv/config scripts/seed-legal.ts",

@@ -12,6 +12,8 @@
     "@trivioq/database": "workspace:*",
     "@trivioq/shared-types": "workspace:*",
     "bullmq": "^5.75.2",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "dotenv": "^17.4.2",
     "express": "^4.18.2",
     "firebase-admin": "^13.8.0",

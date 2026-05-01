@@ -4,15 +4,17 @@ import { prisma } from '@trivioq/database';
 
 import userRoutes from './routes/user';
 import dropRoutes from './routes/drop';
-import dropLifecycleRoutes from './routes/dropRoutes';
+import dropLifecycleRoutes from './routes/drop-routes';
 import leaderboardRoutes from './routes/leaderboard';
 import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
 import faqRoutes from './routes/faq';
 import legalRoutes from './routes/legal';
+import subscriptionRoutes from './routes/subscription-routes';
 
 import { env } from './config/env';
 import { getSetting } from './utils/settings';
+import { initLeaderboardWorker } from './workers/leaderboard-worker';
 
 const app = express();
 const port = env.PORT;
@@ -27,6 +29,7 @@ app.use('/v1/leaderboards', leaderboardRoutes);
 app.use('/v1/admin', adminRoutes);
 app.use('/v1/faqs', faqRoutes);
 app.use('/v1/legal', legalRoutes);
+app.use('/v1/subscriptions', subscriptionRoutes);
 
 app.get('/health', async (req: Request, res: Response) => {
   try {
@@ -47,6 +50,8 @@ app.get('/v1/info', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+initLeaderboardWorker();
 
 app.listen(Number(port), () => {
   console.log(`API server listening on port ${port}`);

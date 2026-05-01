@@ -4,7 +4,7 @@ import { Queue } from 'bullmq';
 import Redis from 'ioredis';
 import { prisma } from '@trivioq/database';
 import { distributeBonuses, getWeekStart, getMonthStart } from './utils/scoring';
-import { initDropPlanner } from './services/DropPlannerService';
+import { initDropPlanner } from './services/drop-planner-service';
 
 const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
 const triviaDropsQueue = new Queue('trivia-drops', { connection });
