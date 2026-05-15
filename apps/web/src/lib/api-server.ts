@@ -44,7 +44,7 @@ export async function makeServerAPICall<T = unknown>(path: string, { body, heade
     if (response.status === 401 && errorData.code === 'auth/id-token-expired') {
       try {
         cookies().delete('tq_auth');
-      } catch (e) {
+      } catch {
         // Ignored if called outside of request context
       }
       redirect('/en/login?error=Session Expired');

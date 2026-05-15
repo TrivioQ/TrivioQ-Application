@@ -18,7 +18,6 @@ export async function loginAction(prevState: unknown, formData: FormData) {
   }
 
   let idToken: string;
-  let localId: string;
 
   try {
     const firebaseRes = await fetch(`${FIREBASE_SIGN_IN_URL}?key=${process.env.FIREBASE_API_KEY}`, {
@@ -40,7 +39,6 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     }
 
     idToken = firebaseData.idToken;
-    localId = firebaseData.localId;
   } catch (err) {
     console.error('[loginAction] Firebase REST call failed:', err);
     return { error: 'Authentication service unavailable.' };

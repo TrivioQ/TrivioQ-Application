@@ -51,6 +51,7 @@ export function DataTable<TData, TValue>({
 
   const { pushParams, isPending, sorting, handleSortingChange } = useTableParams();
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table API is inherently incompatible with React Compiler memoization
   const table = useReactTable({
     data,
     columns,
