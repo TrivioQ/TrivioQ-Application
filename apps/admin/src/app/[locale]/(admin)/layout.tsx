@@ -1,7 +1,7 @@
 import { AdminGuard } from '@/components/admin-guard';
 import { ConfirmProvider } from '@/components/ui/confirm-dialog';
 import Link from 'next/link';
-import { LayoutDashboard, Users, HelpCircle, Tags, LogOut, MessageSquareQuote, Settings, Trophy, ClockIcon } from 'lucide-react';
+import { LayoutDashboard, Users, HelpCircle, Tags, LogOut, MessageSquareQuote, Settings, Trophy, ClockIcon, EyeIcon } from 'lucide-react';
 import { logoutAction } from '@/app/actions/auth-actions';
  
 export default function AdminLayout({
@@ -30,6 +30,10 @@ export default function AdminLayout({
             <Link href="/questions" className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors font-medium">
               <HelpCircle size={20} className="text-gray-400" />
               <span>Questions</span>
+            </Link>
+            <Link href="/questions/review" className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors font-medium">
+              <EyeIcon size={20} className="text-gray-400" />
+              <span>Review Questions</span>
             </Link>
             <Link href="/categories" className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors font-medium">
               <Tags size={20} className="text-gray-400" />

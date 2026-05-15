@@ -45,6 +45,33 @@ export enum SubscriptionTier {
   PLUS = 'PLUS',
 }
 
+export interface SuggestedChoice {
+  text: string;
+  order: number;
+  isCorrect: boolean;
+}
+
+export enum DifficultyLevel {
+  EASY = 'EASY',
+  MEDIUM = 'MEDIUM',
+  HARD = 'HARD',
+}
+
+export interface PendingQuestionPayload {
+  id: string;
+  topic: string;
+  categorySlug: string;
+  difficultyLevel: DifficultyLevel;
+  suggestedText: string;
+  suggestedChoices: SuggestedChoice[];
+  hint?: string | null;
+  explanation?: string | null;
+  status: string;
+  rejectionReason?: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
 export interface UserProfile {
   id: string;
   firebaseUid: string;
