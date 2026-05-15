@@ -84,7 +84,8 @@ router.patch('/:id/answer', requireAuth, async (req: Request, res: Response) => 
     }
 
     const now = new Date();
-    if (now > userDrop.expirationTime) {
+    const effectiveDeadline = userDrop.answerDeadline ?? userDrop.expirationTime;
+    if (now > effectiveDeadline) {
       return res.status(410).json({ error: 'Drop has expired' });
     }
 

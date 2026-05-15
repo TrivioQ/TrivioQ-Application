@@ -55,8 +55,8 @@ export async function Footer() {
           {/* Brand column */}
           <div className='sm:col-span-2 lg:col-span-1'>
             <Link href='/' className='flex items-center gap-2 group w-fit'>
-              <span className='text-2xl'>⚡</span>
-              <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-indigo-300 transition-colors'>TrivioQ</span>
+              <img src='/logo.png' alt='TrivioQ' className='w-8 h-8' />
+              <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-orange-100 transition-colors'>TrivioQ</span>
             </Link>
             <p className='mt-4 text-sm leading-relaxed text-gray-400 max-w-xs'>{t('tagline')}</p>
 

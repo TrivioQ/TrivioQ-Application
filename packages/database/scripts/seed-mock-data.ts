@@ -11,6 +11,13 @@ const DIFFICULTY_POINTS: Record<DifficultyLevel, number> = {
   HARD: 30,
 };
 
+const DROP_EXPIRY_MINUTES = 30;
+const ANSWER_TIMER_SECONDS: Record<string, number> = {
+  EASY: 60,
+  MEDIUM: 180,
+  HARD: 300,
+};
+
 function getWeekStart(date: Date): Date {
   const d = new Date(date);
   const day = d.getUTCDay();
@@ -166,7 +173,7 @@ async function main() {
             const isAnswered = faker.datatype.boolean();
             let wasCorrect = false;
             const scheduledDropTime = faker.date.recent({ days: 90 });
-            const expirationTime = new Date(scheduledDropTime.getTime() + 15 * 60000);
+            const expirationTime = new Date(scheduledDropTime.getTime() + DROP_EXPIRY_MINUTES * 60000);
             const randomQ = createdQuestions[faker.number.int({ min: 0, max: createdQuestions.length - 1 })];
 
             let answeredAt = null;
@@ -174,9 +181,15 @@ async function main() {
             let usedHint = false;
             let revealedAnswer = false;
             let selectedChoiceId = null;
+            let answerDeadline: Date | null = null;
 
             if (isAnswered) {
               userStatsMap[user.id].questionsAnswered++;
+              // Simulate the reveal→answer flow: user reveals the question
+              // after a short delay, which starts the per-difficulty countdown.
+              const revealDelay = faker.number.int({ min: 1, max: 5 }) * 60000;
+              const timerSeconds = ANSWER_TIMER_SECONDS[randomQ.difficultyLevel] ?? 60;
+              answerDeadline = new Date(scheduledDropTime.getTime() + revealDelay + timerSeconds * 1000);
               answeredAt = new Date(scheduledDropTime.getTime() + faker.number.int({ min: 1, max: 10 }) * 60000);
               const successProb = user.subscriptionTier === SubscriptionTier.PREMIUM ? 0.8 : 0.6;
 
@@ -224,6 +237,7 @@ async function main() {
                 answeredAt,
                 pointsAwarded,
                 selectedChoiceId,
+                answerDeadline,
                 isViewed: isAnswered || faker.datatype.boolean(),
                 scheduledFor: scheduledDropTime,
                 createdAt: scheduledDropTime,

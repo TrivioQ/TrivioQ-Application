@@ -14,6 +14,7 @@ interface ActiveDrop {
   questionText: string;
   options: (string | { id: string; text: string })[];
   expiresAt: number;
+  answerDeadline: number | null;
   pointsValue: number;
   hintCost: number;
   usedHint: boolean;
@@ -108,10 +109,18 @@ export default function ActiveDropCard() {
   }, [fetchActiveDrop]);
 
   useEffect(() => {
-    if (!drop?.expiresAt || submitResult) return;
+    if (drop?.answerDeadline) setRevealed(true);
+  }, [drop?.answerDeadline]);
+
+  // Use answerDeadline if the question has been revealed (server-enforced
+  // per-difficulty timer), otherwise fall back to the overall drop expiration.
+  const effectiveDeadline: number | null = drop?.answerDeadline ?? drop?.expiresAt ?? null;
+
+  useEffect(() => {
+    if (!effectiveDeadline || submitResult) return;
 
     const tick = () => {
-      const diff = Math.max(0, Math.floor((drop.expiresAt - Date.now()) / 1000));
+      const diff = Math.max(0, Math.floor((effectiveDeadline - Date.now()) / 1000));
       setTimeLeft(diff);
       if (diff === 0) setIsExpired(true);
     };
@@ -119,7 +128,7 @@ export default function ActiveDropCard() {
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [drop?.expiresAt, submitResult]);
+  }, [effectiveDeadline, submitResult]);
 
   const handleSubmit = async () => {
     if (!drop || isExpired || submitting || submitResult || selectedOption === null) return;
@@ -160,6 +169,29 @@ export default function ActiveDropCard() {
       setError(msg);
     } finally {
       setHintLoading(false);
+    }
+  };
+
+  const [revealQuestionLoading, setRevealQuestionLoading] = useState(false);
+
+  const handleRevealQuestion = async () => {
+    if (!drop || revealQuestionLoading || isExpired) return;
+    setRevealQuestionLoading(true);
+    try {
+      const result = await makeAPICallV1<{ answerDeadline: number }>(`drops/${drop.dropId}/reveal-question`, { method: 'POST' });
+      setRevealed(true);
+      // Start the per-difficulty countdown immediately
+      if (result.answerDeadline) {
+        const diff = Math.max(0, Math.floor((result.answerDeadline - Date.now()) / 1000));
+        setTimeLeft(diff);
+        if (diff === 0) setIsExpired(true);
+      }
+      fetchActiveDrop(); // refresh so subsequent renders see server state
+    } catch (err) {
+      const msg = err instanceof APIError ? err.message : t('failedReveal');
+      setError(msg);
+    } finally {
+      setRevealQuestionLoading(false);
     }
   };
 
@@ -287,8 +319,8 @@ export default function ActiveDropCard() {
           <div className='text-center py-4'>
             <p className='text-4xl mb-3'>🎁</p>
             <p className='text-sm text-gray-400 mb-4'>{t('newQuestionWaiting')}</p>
-            <button onClick={() => setRevealed(true)} disabled={isExpired} className='rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors'>
-              {t('revealQuestion')}
+            <button onClick={handleRevealQuestion} disabled={isExpired || revealQuestionLoading} className='rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors'>
+              {revealQuestionLoading ? '...' : t('revealQuestion')}
             </button>
           </div>
         ) : (

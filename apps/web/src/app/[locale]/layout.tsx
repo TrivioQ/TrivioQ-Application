@@ -15,6 +15,9 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: 'TrivioQ',
   description: 'Your daily trivia drops',
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default async function RootLayout({ children, params: { locale } }: { children: React.ReactNode; params: { locale: string } }) {

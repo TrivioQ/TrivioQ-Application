@@ -75,6 +75,11 @@ export default function DropActive() {
     }
   }, [data?.usedHint]);
 
+  // Restore revealed state if question was already revealed in a prior session
+  useEffect(() => {
+    if (data?.answerDeadline) setIsRevealed(true);
+  }, [data?.answerDeadline]);
+
   const hintMutation = useMutation({
     mutationFn: async () => {
       const response = await apiClient.post(`/api/v1/drops/${data!.dropId}/hint`);
@@ -87,6 +92,25 @@ export default function DropActive() {
     },
     onError: (err: any) => {
       const message = err.response?.data?.error || t('drop.hintAlertTitle');
+      toast({ message, type: 'error' });
+    },
+  });
+
+  const revealQuestionMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post(`/api/v1/drops/${data!.dropId}/reveal-question`);
+      return response.data;
+    },
+    onSuccess: (result) => {
+      // answerDeadline is now set server-side; the active-drop query will pick it up on next fetch
+      if (result.answerDeadline) {
+        setTimeLeft(Math.max(0, Math.floor((result.answerDeadline - Date.now()) / 1000)));
+      }
+      setIsRevealed(true);
+      queryClient.invalidateQueries({ queryKey: ['activeDrop'] });
+    },
+    onError: (err: any) => {
+      const message = err.response?.data?.error || t('drop.revealAlertTitle');
       toast({ message, type: 'error' });
     },
   });
@@ -118,12 +142,17 @@ export default function DropActive() {
     },
   });
 
+  // Determine the effective deadline: use answerDeadline if the question
+  // has been revealed (server-enforced per-difficulty timer), otherwise
+  // fall back to the overall drop expiration.
+  const effectiveDeadline: number | null = data?.answerDeadline ?? data?.expiresAt ?? null;
+
   useEffect(() => {
-    if (!data?.expiresAt || answerResult) return;
+    if (!effectiveDeadline || answerResult) return;
 
     const interval = setInterval(() => {
       const now = Date.now();
-      const diff = Math.max(0, Math.floor((data.expiresAt - now) / 1000));
+      const diff = Math.max(0, Math.floor((effectiveDeadline - now) / 1000));
       setTimeLeft(diff);
       if (diff === 0) {
         setIsExpired(true);
@@ -131,12 +160,12 @@ export default function DropActive() {
       }
     }, 1000);
 
-    const diff = Math.max(0, Math.floor((data.expiresAt - Date.now()) / 1000));
+    const diff = Math.max(0, Math.floor((effectiveDeadline - Date.now()) / 1000));
     setTimeLeft(diff);
     if (diff === 0) setIsExpired(true);
 
     return () => clearInterval(interval);
-  }, [data?.expiresAt, answerResult]);
+  }, [effectiveDeadline, answerResult]);
 
   if (isLoading) {
     return (
@@ -217,8 +246,8 @@ export default function DropActive() {
           <Text style={styles.badgeDetail}>{t('drop.category', { value: data.category })}</Text>
           <Text style={styles.badgeDetail}>{t('drop.worth', { value: data.pointsValue })}</Text>
 
-          <TouchableOpacity style={[styles.revealButton, isExpired && styles.disabledButton]} onPress={() => setIsRevealed(true)} disabled={isExpired}>
-            <Text style={styles.revealButtonText}>{t('drop.revealQuestion')}</Text>
+          <TouchableOpacity style={[styles.revealButton, (isExpired || revealQuestionMutation.isPending) && styles.disabledButton]} onPress={() => revealQuestionMutation.mutate()} disabled={isExpired || revealQuestionMutation.isPending}>
+            <Text style={styles.revealButtonText}>{revealQuestionMutation.isPending ? '...' : t('drop.revealQuestion')}</Text>
           </TouchableOpacity>
         </View>
       ) : (

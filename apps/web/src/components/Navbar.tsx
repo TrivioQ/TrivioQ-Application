@@ -157,8 +157,8 @@ export function Navbar() {
         <nav className='mx-auto max-w-7xl px-6 lg:px-8 h-16 flex items-center justify-between gap-6'>
           {/* ── Logo ── */}
           <Link href='/' className='flex items-center gap-2 group shrink-0'>
-            <span className='text-2xl'>⚡</span>
-            <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-indigo-300 transition-colors'>TrivioQ</span>
+            <img src='/logo.png' alt='TrivioQ' className='w-8 h-8' />
+            <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-orange-100 transition-colors'>TrivioQ</span>
           </Link>
 
           {/* ── Center links (desktop) ── */}
@@ -269,7 +269,7 @@ export function Navbar() {
               {/* Header */}
               <div className='flex items-center justify-between px-6 h-16 border-b border-white/10'>
                 <Link href='/' onClick={() => setMobileOpen(false)} className='flex items-center gap-2'>
-                  <span className='text-xl'>⚡</span>
+                  <img src='/logo.svg' alt='TrivioQ' className='w-7 h-7' />
                   <span className='font-extrabold text-lg text-white'>TrivioQ</span>
                 </Link>
                 <button onClick={() => setMobileOpen(false)} className='w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors' aria-label={t('closeMenu')}>

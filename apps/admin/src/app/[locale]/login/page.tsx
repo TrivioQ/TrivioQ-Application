@@ -3,9 +3,10 @@
 import { useActionState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import Image from 'next/image';
 import { loginAction } from '@/app/actions/auth-actions';
 import { Button } from '@/components/ui/button';
-import { ShieldAlert, LayoutDashboard, Users, HelpCircle, Tags, Lock } from 'lucide-react';
+import { ShieldAlert, LayoutDashboard, Users, HelpCircle, Tags } from 'lucide-react';
 
 function LoginForm() {
   const [state, formAction, isPending] = useActionState(loginAction, null);
@@ -28,9 +29,12 @@ function LoginForm() {
 
         {/* Top: wordmark */}
         <div className="relative">
-          <span className="text-2xl font-bold tracking-tight text-white">
-            TrivioQ <span className="text-blue-500">Admin</span>
-          </span>
+          <div className="flex items-center gap-2">
+            <Image src="/logo.png" alt="TrivioQ Admin" width={50} height={50} />
+            <span className="text-2xl font-bold tracking-tight text-white">
+              TrivioQ <span className="text-blue-500">Admin</span>
+            </span>
+          </div>
         </div>
 
         {/* Centre: headline + feature list */}
@@ -83,8 +87,8 @@ function LoginForm() {
         <div className="w-full max-w-sm space-y-8">
           {/* Heading */}
           <div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-900 mb-4">
-              <Lock size={22} className="text-blue-400" />
+            <div className="flex h-12 w-12 items-center justify-center mb-4">
+              <Image src="/logo.png" alt="TrivioQ Admin" width={50} height={50} />
             </div>
             <h2 className="text-2xl font-bold tracking-tight text-gray-900">
               Welcome back

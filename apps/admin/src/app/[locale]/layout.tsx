@@ -13,6 +13,9 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "TrivioQ Admin Panel",
   description: "TrivioQ Admin Panel",
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default async function RootLayout({
