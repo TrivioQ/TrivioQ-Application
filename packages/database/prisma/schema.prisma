@@ -213,6 +213,10 @@ model PendingQuestion {
   explanation      String?
   status           String   @default("PENDING")
   rejectionReason  String?
+  isValidated     Boolean  @default(false)
+  isDuplicate     Boolean  @default(false)
+  aiQualityScore  Int?
+  aiFeedback      String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

@@ -5,13 +5,25 @@ CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN');
 CREATE TYPE "PeriodType" AS ENUM ('WEEKLY', 'MONTHLY', 'OVERALL');
 
 -- CreateEnum
+CREATE TYPE "DropType" AS ENUM ('SPONTANEOUS', 'ON_DEMAND');
+
+-- CreateEnum
+CREATE TYPE "BonusPeriodType" AS ENUM ('WEEK', 'MONTH');
+
+-- CreateEnum
+CREATE TYPE "BonusRewardType" AS ENUM ('POINTS', 'PREMIUM_DAYS');
+
+-- CreateEnum
 CREATE TYPE "DifficultyLevel" AS ENUM ('EASY', 'MEDIUM', 'HARD');
 
 -- CreateEnum
 CREATE TYPE "FriendshipStatus" AS ENUM ('PENDING', 'ACCEPTED', 'BLOCKED');
 
 -- CreateEnum
-CREATE TYPE "SubscriptionTier" AS ENUM ('FREE', 'PREMIUM');
+CREATE TYPE "SubscriptionTier" AS ENUM ('FREE', 'PREMIUM', 'PLUS');
+
+-- CreateEnum
+CREATE TYPE "SubscriptionSource" AS ENUM ('PURCHASE', 'VAULT_ACTIVATION', 'ADMIN_GRANT', 'LEADERBOARD');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -32,6 +44,11 @@ CREATE TABLE "User" (
     "questionsAnswered" INTEGER NOT NULL DEFAULT 0,
     "correctAnswers" INTEGER NOT NULL DEFAULT 0,
     "subscriptionTier" "SubscriptionTier" NOT NULL DEFAULT 'FREE',
+    "isAutoRenewalEnabled" BOOLEAN NOT NULL DEFAULT false,
+    "subscriptionExpiresAt" TIMESTAMP(3),
+    "onDemandTokens" INTEGER NOT NULL DEFAULT 0,
+    "referredById" TEXT,
+    "points" INTEGER NOT NULL DEFAULT 0,
     "preferences" JSONB,
     "devicePushToken" TEXT,
     "role" "Role" NOT NULL DEFAULT 'USER',
@@ -115,8 +132,10 @@ CREATE TABLE "UserDrop" (
     "hintCostDeducted" INTEGER NOT NULL DEFAULT 0,
     "revealedAnswer" BOOLEAN NOT NULL DEFAULT false,
     "selectedChoiceId" TEXT,
+    "dropType" "DropType" NOT NULL DEFAULT 'SPONTANEOUS',
     "pointsAwarded" INTEGER NOT NULL DEFAULT 0,
     "answeredAt" TIMESTAMP(3),
+    "answerDeadline" TIMESTAMP(3),
 
     CONSTRAINT "UserDrop_pkey" PRIMARY KEY ("id")
 );
@@ -147,6 +166,37 @@ CREATE TABLE "Setting" (
 );
 
 -- CreateTable
+CREATE TABLE "PendingQuestion" (
+    "id" TEXT NOT NULL,
+    "topic" TEXT NOT NULL,
+    "categorySlug" TEXT NOT NULL,
+    "difficultyLevel" "DifficultyLevel" NOT NULL,
+    "suggestedText" TEXT NOT NULL,
+    "suggestedChoices" JSONB NOT NULL,
+    "hint" TEXT,
+    "explanation" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "rejectionReason" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PendingQuestion_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "BonusPlan" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "periodType" "BonusPeriodType" NOT NULL,
+    "rewardType" "BonusRewardType" NOT NULL,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3) NOT NULL,
+    "payoutValues" INTEGER[],
+
+    CONSTRAINT "BonusPlan_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "LegalDocument" (
     "id" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
@@ -157,6 +207,19 @@ CREATE TABLE "LegalDocument" (
     "updatedBy" TEXT,
 
     CONSTRAINT "LegalDocument_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "UserSubscriptionHistory" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "tier" "SubscriptionTier" NOT NULL,
+    "source" "SubscriptionSource" NOT NULL,
+    "startedAt" TIMESTAMP(3) NOT NULL,
+    "expiresAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "UserSubscriptionHistory_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -190,7 +253,13 @@ CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
 CREATE INDEX "Choice_questionId_idx" ON "Choice"("questionId");
 
 -- CreateIndex
+CREATE INDEX "BonusPlan_startDate_endDate_idx" ON "BonusPlan"("startDate", "endDate");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "LegalDocument_slug_key" ON "LegalDocument"("slug");
+
+-- CreateIndex
+CREATE INDEX "UserSubscriptionHistory_userId_createdAt_idx" ON "UserSubscriptionHistory"("userId", "createdAt" DESC);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_CategoryToQuestion_AB_unique" ON "_CategoryToQuestion"("A", "B");
@@ -215,6 +284,9 @@ ALTER TABLE "UserDrop" ADD CONSTRAINT "UserDrop_userId_fkey" FOREIGN KEY ("userI
 
 -- AddForeignKey
 ALTER TABLE "UserDrop" ADD CONSTRAINT "UserDrop_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserSubscriptionHistory" ADD CONSTRAINT "UserSubscriptionHistory_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_CategoryToQuestion" ADD CONSTRAINT "_CategoryToQuestion_A_fkey" FOREIGN KEY ("A") REFERENCES "Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;

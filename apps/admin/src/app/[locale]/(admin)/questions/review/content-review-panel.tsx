@@ -5,6 +5,13 @@ import { ReviewEditor } from './review-editor';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
+function scoreBadge(score: number | null) {
+  if (score == null) return null;
+  if (score > 80) return { className: 'bg-green-100 text-green-800', label: `High (${score})` };
+  if (score >= 50) return { className: 'bg-yellow-100 text-yellow-800', label: `Medium (${score})` };
+  return { className: 'bg-red-100 text-red-800', label: `Low (${score})` };
+}
+
 interface PendingQuestion {
   id: string;
   topic: string;
@@ -17,6 +24,9 @@ interface PendingQuestion {
   rejectionReason: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
+  aiQualityScore: number | null;
+  aiFeedback: string | null;
+  isDuplicate: boolean;
 }
 
 interface Category {
@@ -68,6 +78,7 @@ export function ContentReviewPanel({
                   className={cn(
                     'w-full text-left px-4 py-3 transition-colors hover:bg-gray-100',
                     selectedId === q.id && 'bg-blue-50 border-l-2 border-l-blue-500 hover:bg-blue-50',
+                    q.isDuplicate && 'opacity-50 grayscale',
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -81,6 +92,23 @@ export function ContentReviewPanel({
                   <p className="text-xs text-gray-500 mt-1 line-clamp-2">
                     {q.suggestedText}
                   </p>
+                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    {q.isDuplicate && (
+                      <Badge variant="destructive" className="text-[10px]">
+                        DUPLICATE
+                      </Badge>
+                    )}
+                    {q.aiQualityScore != null && scoreBadge(q.aiQualityScore) != null && (
+                      <span
+                        className={cn(
+                          'inline-flex h-5 w-fit shrink-0 items-center justify-center rounded-4xl px-2 py-0.5 text-[10px] font-medium',
+                          scoreBadge(q.aiQualityScore)!.className,
+                        )}
+                      >
+                        {scoreBadge(q.aiQualityScore)!.label}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[10px] text-gray-400 mt-1.5">
                     {new Date(q.createdAt).toLocaleDateString(undefined, {
                       month: 'short',

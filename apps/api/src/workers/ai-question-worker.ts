@@ -3,6 +3,7 @@ import Redis from 'ioredis';
 import { prisma, DifficultyLevel } from '@trivioq/database';
 import type { SuggestedChoice } from '@trivioq/shared-types';
 import { shuffleArray } from '../utils/shuffle';
+import { checkIsDuplicate } from '../utils/checkIsDuplicate';
 
 const QUEUE_NAME = 'ai-question-generation';
 
@@ -20,6 +21,11 @@ interface LLMQuestion {
   choices: SuggestedChoice[];
   hint: string;
   explanation: string;
+}
+
+interface AIReviewResult {
+  aiQualityScore: number;
+  aiFeedback: string;
 }
 
 // ── Redis / Queue ────────────────────────────────────────────────────────────────
@@ -90,6 +96,41 @@ async function generateTriviaQuestions(topic: string, categorySlug: string, diff
   }));
 }
 
+const QUALITY_REVIEW_SYSTEM_PROMPT = `You are a trivia quality reviewer. Evaluate the following list of trivia questions for difficulty accuracy, distractor plausibility, and overall quality.
+
+Return a JSON array of objects with exactly one entry per question, in the same order. Each object must match this schema:
+{
+  "aiQualityScore": <integer 0-100>,
+  "aiFeedback": "<concise feedback explaining the score>"
+}`;
+
+async function reviewQuestionsForQuality(
+  questions: { suggestedText: string; difficultyLevel: DifficultyLevel; suggestedChoices: any; hint: string; explanation: string }[],
+  topic: string,
+  _categorySlug: string,
+): Promise<AIReviewResult[]> {
+  console.log(`[AIQuestionWorker] Requesting quality review for ${questions.length} questions on topic="${topic}"`);
+  console.log(`[AIQuestionWorker] Quality review system prompt (first 120 chars): ${QUALITY_REVIEW_SYSTEM_PROMPT.slice(0, 120)}...`);
+
+  // TODO: Replace with actual OpenAI / Vertex AI API call
+  // const response = await openai.chat.completions.create({
+  //   model: 'gpt-4o',
+  //   messages: [
+  //     { role: 'system', content: QUALITY_REVIEW_SYSTEM_PROMPT },
+  //     { role: 'user', content: JSON.stringify(questions) },
+  //   ],
+  //   response_format: { type: 'json_object' },
+  // });
+  // return JSON.parse(response.choices[0].message.content);
+
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
+  return questions.map(() => ({
+    aiQualityScore: 80,
+    aiFeedback: 'Placeholder quality review — needs actual LLM integration.',
+  }));
+}
+
 // ── Job handler ──────────────────────────────────────────────────────────────────
 
 async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promise<void> {
@@ -122,14 +163,59 @@ async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promi
       hint: q.hint,
       explanation: q.explanation,
       status: 'PENDING' as const,
+      isDuplicate: false,
+      isValidated: false,
+      aiQualityScore: undefined as number | undefined,
+      aiFeedback: undefined as string | undefined,
     })),
   );
 
-  // 3. Batch insert all 30 into PendingQuestion
-  try {
-    await prisma.pendingQuestion.createMany({ data: rows });
+  // 3. Run duplicate checks in parallel against the Question table
+  const duplicateFlags = await Promise.all(rows.map((row) => checkIsDuplicate(row.suggestedText)));
 
-    console.log(`[AIQuestionWorker] Batch-inserted ${rows.length} PendingQuestions for topic="${topic}"`);
+  for (let i = 0; i < rows.length; i++) {
+    if (duplicateFlags[i]) {
+      rows[i].isDuplicate = true;
+      rows[i].isValidated = true;
+    }
+  }
+
+  const duplicateCount = duplicateFlags.filter(Boolean).length;
+  if (duplicateCount > 0) {
+    console.log(`[AIQuestionWorker] Found ${duplicateCount} duplicate(s) out of ${rows.length} generated questions`);
+  }
+
+  // 4. Filter out duplicates for quality review
+  const uniqueQuestions = rows.filter((row) => !row.isDuplicate);
+
+  // 5. Send unique questions in a single batch for LLM quality review
+  if (uniqueQuestions.length > 0) {
+    let qualityReviews: AIReviewResult[];
+    try {
+      qualityReviews = await reviewQuestionsForQuality(uniqueQuestions, topic, categorySlug);
+    } catch (error) {
+      console.error(`[AIQuestionWorker] Quality review failed for topic="${topic}":`, error);
+      throw error;
+    }
+
+    // 6. Merge quality scores and feedback back into unique questions
+    for (let i = 0; i < uniqueQuestions.length; i++) {
+      uniqueQuestions[i].aiQualityScore = qualityReviews[i].aiQualityScore;
+      uniqueQuestions[i].aiFeedback = qualityReviews[i].aiFeedback;
+    }
+  }
+
+  // 7. Mark all questions as validated and batch insert
+  for (const row of rows) {
+    row.isValidated = true;
+  }
+
+  try {
+    await prisma.pendingQuestion.createMany({ data: rows as any });
+
+    console.log(
+      `[AIQuestionWorker] Batch-inserted ${rows.length} PendingQuestions for topic="${topic}" (${duplicateCount} duplicates, ${uniqueQuestions.length} reviewed)`,
+    );
   } catch (error) {
     console.error(`[AIQuestionWorker] createMany failed for topic="${topic}":`, error);
     throw error;

@@ -41,6 +41,9 @@ interface PendingQuestion {
   rejectionReason: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
+  aiFeedback: string | null;
+  aiQualityScore: number | null;
+  isDuplicate: boolean;
 }
 
 interface Category {
@@ -159,6 +162,31 @@ export function ReviewEditor({
           </Button>
         </div>
       </div>
+
+      {/* AI Feedback & Warnings */}
+      {(pendingQuestion.isDuplicate || pendingQuestion.aiFeedback) && (
+        <div className="px-6 py-3 space-y-3 border-b border-gray-200 bg-gray-50/50">
+          {pendingQuestion.isDuplicate && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+              <span className="text-base shrink-0">&#9888;</span>
+              <span>
+                <strong>DUPLICATE DETECTED</strong> — This question appears to be a
+                duplicate of an existing question. Review carefully before approving.
+              </span>
+            </div>
+          )}
+          {pendingQuestion.aiFeedback && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                AI Feedback
+              </p>
+              <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 whitespace-pre-wrap">
+                {pendingQuestion.aiFeedback}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Form */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">

@@ -18,10 +18,15 @@ export interface EditQuestionPayload {
 
 // ── Fetch ────────────────────────────────────────────────────────────────────────
 
-export async function getPendingQuestions() {
+export async function getPendingQuestions(filter?: string) {
   try {
+    const where =
+      filter === 'ai-validated'
+        ? { isValidated: true, status: 'PENDING' }
+        : { status: 'PENDING' };
+
     const questions = await prisma.pendingQuestion.findMany({
-      where: { status: 'PENDING' },
+      where,
       orderBy: { createdAt: 'asc' },
     });
 
