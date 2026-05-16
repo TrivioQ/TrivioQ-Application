@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { env } from 'env';
 
 
 const FIREBASE_SIGN_IN_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword';
@@ -20,7 +21,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
   let idToken: string;
 
   try {
-    const firebaseRes = await fetch(`${FIREBASE_SIGN_IN_URL}?key=${process.env.FIREBASE_API_KEY}`, {
+    const firebaseRes = await fetch(`${FIREBASE_SIGN_IN_URL}?key=${env.FIREBASE_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, returnSecureToken: true }),
@@ -44,12 +45,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     return { error: 'Authentication service unavailable.' };
   }
 
-  const apiUrl = process.env.API_URL;
-  if (!apiUrl) {
-    console.error('[loginAction] API_URL is not defined');
-    return { error: 'Authentication service configuration missing.' };
-  }
-
+  const apiUrl = env.API_URL;
   try {
     const upstream = await fetch(`${apiUrl}/v1/auth/sync`, {
       method: 'POST',
@@ -78,7 +74,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, idToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.NODE_ENV === 'production',
     path: '/',
     ...(keepMeLoggedIn ? { maxAge: COOKIE_MAX_AGE_14_DAYS } : {}),
   });

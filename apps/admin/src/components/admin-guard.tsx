@@ -1,5 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { env } from 'env';
+
 const COOKIE_NAME = 'tq_auth';
 
 export async function AdminGuard({ children }: { children: React.ReactNode }) {
@@ -11,7 +13,8 @@ export async function AdminGuard({ children }: { children: React.ReactNode }) {
   }
 
   try {
-    const upstream = await fetch(new URL('/v1/auth/sync', process.env.API_URL).toString(), {
+    const upstream = await fetch(new URL('/v1/auth/sync', env.API_URL).toString(), {
+
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

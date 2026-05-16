@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { env } from 'env';
+
 const COOKIE_NAME = 'tq_auth';
 
 /**
@@ -13,7 +15,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const upstream = await fetch(new URL('/v1/users/me', process.env.API_URL).toString(), {
+    const upstream = await fetch(new URL('/v1/users/me', env.API_URL).toString(), {
+
       method: 'GET',
       headers: {
         Authorization: `Bearer ${idToken}`,

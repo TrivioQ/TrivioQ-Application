@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from '../../../../env.mjs';
+import { env } from 'env';
 
 // ---------------------------------------------------------------------------
 // Catch-all proxy: /api/[...slug]  →  env.API_URL/[...slug]

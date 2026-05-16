@@ -1,4 +1,4 @@
-import { env } from '../../env.mjs';
+import { env } from 'env';
 import { APICallOptions, APIError, APIErrorBody } from './api';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';

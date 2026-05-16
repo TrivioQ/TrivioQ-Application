@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from '../../../../../env.mjs';
+import { env } from 'env';
 
 const FIREBASE_LOGIN_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword';
 const FIREBASE_UPDATE_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:update';

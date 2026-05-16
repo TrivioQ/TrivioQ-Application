@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from '../../../../../env.mjs';
+import { env } from 'env';
 
 // ---------------------------------------------------------------------------
 // GET /api/auth/me
