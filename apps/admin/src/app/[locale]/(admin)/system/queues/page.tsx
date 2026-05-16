@@ -7,11 +7,7 @@ export default async function QueuesPage() {
 
   return (
     <div className="-m-8 h-screen">
-      <iframe
-        src={`${apiUrl}/admin/queues`}
-        className="h-full w-full border-0"
-        title={t('title')}
-      />
+      <iframe src={`${apiUrl}/admin/queues`} className="h-full w-full border-0" title={t('title')} />
     </div>
   );
 }

@@ -93,7 +93,7 @@ export default function Preferences({ navigation }: any) {
   };
 
   if (isLoading) {
-    return <ActivityIndicator size='large' style={styles.loader} />;
+    return <ActivityIndicator size="large" style={styles.loader} />;
   }
 
   return (
@@ -103,11 +103,11 @@ export default function Preferences({ navigation }: any) {
       <View style={styles.row}>
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{t('preferences.startTime')}</Text>
-          <TextInput style={styles.input} value={activeWindowStart} onChangeText={setActiveWindowStart} placeholder='09:00' />
+          <TextInput style={styles.input} value={activeWindowStart} onChangeText={setActiveWindowStart} placeholder="09:00" />
         </View>
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{t('preferences.endTime')}</Text>
-          <TextInput style={styles.input} value={activeWindowEnd} onChangeText={setActiveWindowEnd} placeholder='17:00' />
+          <TextInput style={styles.input} value={activeWindowEnd} onChangeText={setActiveWindowEnd} placeholder="17:00" />
         </View>
       </View>
 
@@ -115,17 +115,17 @@ export default function Preferences({ navigation }: any) {
 
       <View style={styles.inputGroupFull}>
         <Text style={styles.label}>{t('preferences.easyLabel')}</Text>
-        <TextInput style={styles.input} value={easyWeight} onChangeText={setEasyWeight} keyboardType='numeric' />
+        <TextInput style={styles.input} value={easyWeight} onChangeText={setEasyWeight} keyboardType="numeric" />
       </View>
 
       <View style={styles.inputGroupFull}>
         <Text style={styles.label}>{t('preferences.mediumLabel')}</Text>
-        <TextInput style={styles.input} value={mediumWeight} onChangeText={setMediumWeight} keyboardType='numeric' />
+        <TextInput style={styles.input} value={mediumWeight} onChangeText={setMediumWeight} keyboardType="numeric" />
       </View>
 
       <View style={styles.inputGroupFull}>
         <Text style={styles.label}>{t('preferences.hardLabel')}</Text>
-        <TextInput style={styles.input} value={hardWeight} onChangeText={setHardWeight} keyboardType='numeric' />
+        <TextInput style={styles.input} value={hardWeight} onChangeText={setHardWeight} keyboardType="numeric" />
       </View>
 
       <View style={styles.buttonContainer}>

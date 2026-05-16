@@ -74,7 +74,9 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [refreshKey, t]);
 
   const handleDelete = async (plan: BonusPlan) => {
@@ -129,10 +131,7 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
                     <Badge variant={statusVariant[status]}>{statusLabel}</Badge>
                   </div>
                   <CardDescription className="text-xs">
-                    {plan.periodType === 'WEEK' ? t('weekly') : t('monthly')} ·{' '}
-                    {plan.rewardType === 'POINTS' ? t('points') : t('premiumDays')} ·{' '}
-                    {format(new Date(plan.startDate), 'MMM d, yyyy')} –{' '}
-                    {format(new Date(plan.endDate), 'MMM d, yyyy')}
+                    {plan.periodType === 'WEEK' ? t('weekly') : t('monthly')} · {plan.rewardType === 'POINTS' ? t('points') : t('premiumDays')} · {format(new Date(plan.startDate), 'MMM d, yyyy')} – {format(new Date(plan.endDate), 'MMM d, yyyy')}
                   </CardDescription>
                 </div>
 
@@ -156,13 +155,7 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                      aria-label={t('deleteAriaLabel')}
-                      onClick={() => handleDelete(plan)}
-                    >
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive" aria-label={t('deleteAriaLabel')} onClick={() => handleDelete(plan)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -173,10 +166,7 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
             <CardContent className="pt-0">
               <div className="flex flex-wrap gap-1.5">
                 {plan.payoutValues.map((val, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                  >
+                  <span key={i} className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                     <span className="font-medium text-foreground">#{i + 1}</span>
                     {val.toLocaleString()}
                   </span>

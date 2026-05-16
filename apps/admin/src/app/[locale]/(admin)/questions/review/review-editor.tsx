@@ -2,30 +2,13 @@
 
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  approvePendingQuestion,
-  rejectPendingQuestion,
-  type EditQuestionPayload,
-} from '@/app/actions/pending-questions';
+import { approvePendingQuestion, rejectPendingQuestion, type EditQuestionPayload } from '@/app/actions/pending-questions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DifficultyLevel } from '@trivioq/database';
 import type { SuggestedChoice } from '@trivioq/shared-types';
 import { formatDistanceToNow } from 'date-fns';
@@ -69,15 +52,7 @@ function parseChoices(raw: unknown): SuggestedChoice[] {
   ];
 }
 
-export function ReviewEditor({
-  pendingQuestion,
-  categories,
-  onComplete,
-}: {
-  pendingQuestion: PendingQuestion;
-  categories: Category[];
-  onComplete: (id: string) => void;
-}) {
+export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pendingQuestion: PendingQuestion; categories: Category[]; onComplete: (id: string) => void }) {
   const t = useTranslations('review.editor');
   const [isPending, startTransition] = useTransition();
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -120,10 +95,7 @@ export function ReviewEditor({
 
   const handleReject = () => {
     startTransition(async () => {
-      const res = await rejectPendingQuestion(
-        pendingQuestion.id,
-        rejectionReason || undefined,
-      );
+      const res = await rejectPendingQuestion(pendingQuestion.id, rejectionReason || undefined);
       if (res.success) {
         setRejectDialogOpen(false);
         setRejectionReason('');
@@ -141,9 +113,7 @@ export function ReviewEditor({
       {/* Header */}
       <div className="px-6 py-3 border-b border-gray-200 bg-white flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">
-            {pendingQuestion.topic}
-          </p>
+          <p className="text-sm font-semibold text-gray-900 truncate">{pendingQuestion.topic}</p>
           <p className="text-xs text-gray-400">
             {t('submitted')}{' '}
             {formatDistanceToNow(new Date(pendingQuestion.createdAt), {
@@ -152,11 +122,7 @@ export function ReviewEditor({
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setRejectDialogOpen(true)}
-          >
+          <Button variant="outline" size="sm" onClick={() => setRejectDialogOpen(true)}>
             {t('reject')}
           </Button>
           <Button size="sm" onClick={handleApprove} disabled={isPending}>
@@ -171,19 +137,13 @@ export function ReviewEditor({
           {pendingQuestion.isDuplicate && (
             <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
               <span className="text-base shrink-0">&#9888;</span>
-              <span>
-                {t('duplicateWarning')}
-              </span>
+              <span>{t('duplicateWarning')}</span>
             </div>
           )}
           {pendingQuestion.aiFeedback && (
             <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                {t('aiFeedback')}
-              </p>
-              <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 whitespace-pre-wrap">
-                {pendingQuestion.aiFeedback}
-              </div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('aiFeedback')}</p>
+              <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 whitespace-pre-wrap">{pendingQuestion.aiFeedback}</div>
             </div>
           )}
         </div>
@@ -194,22 +154,13 @@ export function ReviewEditor({
         {/* Question Text */}
         <div className="space-y-1.5">
           <Label htmlFor="questionText">{t('questionText')}</Label>
-          <Textarea
-            id="questionText"
-            value={questionText}
-            onChange={(e) => setQuestionText(e.target.value)}
-            className="resize-none"
-            rows={3}
-          />
+          <Textarea id="questionText" value={questionText} onChange={(e) => setQuestionText(e.target.value)} className="resize-none" rows={3} />
         </div>
 
         {/* Difficulty */}
         <div className="space-y-1.5">
           <Label>{t('difficultyLevel')}</Label>
-          <Select
-            value={difficultyLevel}
-            onValueChange={(val) => setDifficultyLevel(val as DifficultyLevel)}
-          >
+          <Select value={difficultyLevel} onValueChange={(val) => setDifficultyLevel(val as DifficultyLevel)}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
@@ -224,10 +175,7 @@ export function ReviewEditor({
         {/* Category */}
         <div className="space-y-1.5">
           <Label>{t('category')}</Label>
-          <Select
-            value={categorySlug}
-            onValueChange={(val) => setCategorySlug(val ?? '')}
-          >
+          <Select value={categorySlug} onValueChange={(val) => setCategorySlug(val ?? '')}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
@@ -239,36 +187,16 @@ export function ReviewEditor({
               ))}
             </SelectContent>
           </Select>
-          {selectedCategory ? (
-            <p className="text-xs text-gray-400">{t('slugLabel', { slug: selectedCategory.slug })}</p>
-          ) : (
-            <p className="text-xs text-amber-500">
-              {t('noCategoryMatch', { slug: categorySlug })}
-            </p>
-          )}
+          {selectedCategory ? <p className="text-xs text-gray-400">{t('slugLabel', { slug: selectedCategory.slug })}</p> : <p className="text-xs text-amber-500">{t('noCategoryMatch', { slug: categorySlug })}</p>}
         </div>
 
         {/* Choices */}
         <div className="space-y-2">
-          <Label>
-            {t('choicesLabel')}
-          </Label>
+          <Label>{t('choicesLabel')}</Label>
           {choices.map((choice, idx) => (
             <div key={idx} className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="correctAnswer"
-                title={t('markCorrect')}
-                checked={choice.isCorrect}
-                onChange={() => markCorrect(idx)}
-                className="h-4 w-4 shrink-0"
-              />
-              <Input
-                required
-                placeholder={t('choicePlaceholder', { number: idx + 1 })}
-                value={choice.text}
-                onChange={(e) => updateChoiceText(idx, e.target.value)}
-              />
+              <input type="radio" name="correctAnswer" title={t('markCorrect')} checked={choice.isCorrect} onChange={() => markCorrect(idx)} className="h-4 w-4 shrink-0" />
+              <Input required placeholder={t('choicePlaceholder', { number: idx + 1 })} value={choice.text} onChange={(e) => updateChoiceText(idx, e.target.value)} />
             </div>
           ))}
         </div>
@@ -276,27 +204,13 @@ export function ReviewEditor({
         {/* Hint */}
         <div className="space-y-1.5">
           <Label htmlFor="hintText">{t('hintLabel')}</Label>
-          <Textarea
-            id="hintText"
-            value={hintText}
-            onChange={(e) => setHintText(e.target.value)}
-            className="resize-none"
-            rows={2}
-            placeholder={t('hintPlaceholder')}
-          />
+          <Textarea id="hintText" value={hintText} onChange={(e) => setHintText(e.target.value)} className="resize-none" rows={2} placeholder={t('hintPlaceholder')} />
         </div>
 
         {/* Explanation */}
         <div className="space-y-1.5">
           <Label htmlFor="explanationText">{t('explanationLabel')}</Label>
-          <Textarea
-            id="explanationText"
-            value={explanationText}
-            onChange={(e) => setExplanationText(e.target.value)}
-            className="resize-none"
-            rows={3}
-            placeholder={t('explanationPlaceholder')}
-          />
+          <Textarea id="explanationText" value={explanationText} onChange={(e) => setExplanationText(e.target.value)} className="resize-none" rows={3} placeholder={t('explanationPlaceholder')} />
         </div>
       </div>
 
@@ -305,21 +219,12 @@ export function ReviewEditor({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t('rejectDialog.title')}</DialogTitle>
-            <DialogDescription>
-              {t('rejectDialog.description')}
-            </DialogDescription>
+            <DialogDescription>{t('rejectDialog.description')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-1.5">
             <Label htmlFor="rejectionReason">{t('rejectDialog.reasonLabel')}</Label>
-            <Textarea
-              id="rejectionReason"
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              placeholder={t('rejectDialog.reasonPlaceholder')}
-              className="resize-none"
-              rows={3}
-            />
+            <Textarea id="rejectionReason" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder={t('rejectDialog.reasonPlaceholder')} className="resize-none" rows={3} />
           </div>
 
           <DialogFooter>
@@ -333,11 +238,7 @@ export function ReviewEditor({
             >
               {t('rejectDialog.cancel')}
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleReject}
-              disabled={isPending}
-            >
+            <Button variant="destructive" onClick={handleReject} disabled={isPending}>
               {isPending ? t('rejectDialog.rejecting') : t('rejectDialog.confirmRejection')}
             </Button>
           </DialogFooter>

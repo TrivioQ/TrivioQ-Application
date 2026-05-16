@@ -230,18 +230,18 @@ export default function ActiveDropCard() {
 
   if (loading) {
     return (
-      <div className='rounded-2xl bg-white/5 border border-white/8 p-6 animate-pulse'>
-        <div className='h-4 w-32 bg-white/10 rounded mb-3' />
-        <div className='h-3 w-48 bg-white/5 rounded' />
+      <div className="rounded-2xl bg-white/5 border border-white/8 p-6 animate-pulse">
+        <div className="h-4 w-32 bg-white/10 rounded mb-3" />
+        <div className="h-3 w-48 bg-white/5 rounded" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className='rounded-2xl bg-red-500/10 border border-red-500/20 p-6 flex items-center justify-between'>
-        <p className='text-sm text-red-400'>{error}</p>
-        <button onClick={fetchActiveDrop} className='text-xs text-red-300 hover:text-red-200 underline'>
+      <div className="rounded-2xl bg-red-500/10 border border-red-500/20 p-6 flex items-center justify-between">
+        <p className="text-sm text-red-400">{error}</p>
+        <button onClick={fetchActiveDrop} className="text-xs text-red-300 hover:text-red-200 underline">
           {commonT('retry')}
         </button>
       </div>
@@ -250,25 +250,25 @@ export default function ActiveDropCard() {
 
   if (!drop) {
     return (
-      <div className='rounded-2xl bg-white/5 border border-white/8 overflow-hidden'>
-        <div className='px-6 py-4 border-b border-white/8 flex items-center justify-between'>
+      <div className="rounded-2xl bg-white/5 border border-white/8 overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/8 flex items-center justify-between">
           <div>
-            <p className='text-sm font-semibold text-gray-400 flex items-center gap-2'>
-              <span className='inline-flex h-2 w-2 rounded-full bg-gray-600' />
+            <p className="text-sm font-semibold text-gray-400 flex items-center gap-2">
+              <span className="inline-flex h-2 w-2 rounded-full bg-gray-600" />
               {t('activeDrop')}
             </p>
-            <p className='text-xs text-gray-600 mt-0.5'>{t('noQuestionActive')}</p>
+            <p className="text-xs text-gray-600 mt-0.5">{t('noQuestionActive')}</p>
           </div>
-          <p className='text-lg font-mono font-bold text-gray-600'>--:--</p>
+          <p className="text-lg font-mono font-bold text-gray-600">--:--</p>
         </div>
-        <div className='px-6 py-8 flex flex-col items-center gap-3 text-center'>
-          <span className='text-4xl'>⏳</span>
-          <p className='text-sm font-semibold text-gray-300'>{t('noActiveQuestion')}</p>
-          <p className='text-xs text-gray-500 max-w-xs leading-relaxed'>{t('noActiveDesc')}</p>
-          <button onClick={handleOnDemand} disabled={onDemandLoading} className='mt-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 text-sm text-purple-300 font-medium transition-colors'>
+        <div className="px-6 py-8 flex flex-col items-center gap-3 text-center">
+          <span className="text-4xl">⏳</span>
+          <p className="text-sm font-semibold text-gray-300">{t('noActiveQuestion')}</p>
+          <p className="text-xs text-gray-500 max-w-xs leading-relaxed">{t('noActiveDesc')}</p>
+          <button onClick={handleOnDemand} disabled={onDemandLoading} className="mt-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 text-sm text-purple-300 font-medium transition-colors">
             {onDemandLoading ? t('requesting') : t('requestNextQuestion')}
           </button>
-          {onDemandError && <p className='text-xs text-amber-400 mt-1'>{onDemandError}</p>}
+          {onDemandError && <p className="text-xs text-amber-400 mt-1">{onDemandError}</p>}
         </div>
       </div>
     );
@@ -278,80 +278,82 @@ export default function ActiveDropCard() {
   const timerUrgent = timeLeft !== null && timeLeft <= 60;
 
   return (
-    <div className='rounded-2xl bg-white/5 border border-white/8 overflow-hidden'>
+    <div className="rounded-2xl bg-white/5 border border-white/8 overflow-hidden">
       {/* Header */}
-      <div className='px-6 py-4 border-b border-white/8 flex items-center justify-between'>
+      <div className="px-6 py-4 border-b border-white/8 flex items-center justify-between">
         <div>
-          <p className='text-sm font-semibold text-gray-200 flex items-center gap-2'>
-            <span className='relative flex h-2 w-2'>
-              <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75' />
-              <span className='relative inline-flex rounded-full h-2 w-2 bg-indigo-500' />
+          <p className="text-sm font-semibold text-gray-200 flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
             </span>
             {t('activeDrop')}
           </p>
-          <p className='text-xs text-gray-500 mt-0.5'>{t('answerBeforeTimer')}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t('answerBeforeTimer')}</p>
         </div>
 
         {/* Timer */}
-        <div className='text-right'>
-          {submitResult ? <p className='text-lg font-mono font-bold text-gray-500'>--:--</p> : <p className={`text-lg font-mono font-bold tabular-nums ${isExpired ? 'text-red-400' : timerUrgent ? 'text-orange-400' : 'text-indigo-300'}`}>{timeLeft !== null ? formatTime(timeLeft) : '--:--'}</p>}
+        <div className="text-right">
+          {submitResult ? <p className="text-lg font-mono font-bold text-gray-500">--:--</p> : <p className={`text-lg font-mono font-bold tabular-nums ${isExpired ? 'text-red-400' : timerUrgent ? 'text-orange-400' : 'text-indigo-300'}`}>{timeLeft !== null ? formatTime(timeLeft) : '--:--'}</p>}
           {isExpired && !submitResult && (
-            <div className='flex flex-col items-end gap-1'>
-              <p className='text-[10px] font-bold text-red-400 uppercase tracking-widest'>{t('expired')}</p>
-              <button onClick={handleOnDemand} disabled={onDemandLoading} className='rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1 text-[11px] text-purple-300 font-medium transition-colors'>
+            <div className="flex flex-col items-end gap-1">
+              <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">{t('expired')}</p>
+              <button onClick={handleOnDemand} disabled={onDemandLoading} className="rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1 text-[11px] text-purple-300 font-medium transition-colors">
                 {onDemandLoading ? t('requesting') : t('requestNew')}
               </button>
-              {onDemandError && <p className='text-[10px] text-amber-400 text-right max-w-[160px]'>{onDemandError}</p>}
+              {onDemandError && <p className="text-[10px] text-amber-400 text-right max-w-[160px]">{onDemandError}</p>}
             </div>
           )}
         </div>
       </div>
 
-      <div className='px-6 py-5 space-y-4'>
+      <div className="px-6 py-5 space-y-4">
         {/* Difficulty + category badges */}
-        <div className='flex flex-wrap gap-2'>
+        <div className="flex flex-wrap gap-2">
           <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${DIFF_COLOR[drop.difficulty]}`}>{drop.difficulty}</span>
-          <span className='inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] text-gray-400'>{drop.category}</span>
-          <span className='inline-flex items-center rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-0.5 text-[11px] text-indigo-300'>{drop.pointsValue} {t('pts')}</span>
+          <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] text-gray-400">{drop.category}</span>
+          <span className="inline-flex items-center rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-0.5 text-[11px] text-indigo-300">
+            {drop.pointsValue} {t('pts')}
+          </span>
         </div>
 
         {/* Mystery → Reveal */}
         {!revealed ? (
-          <div className='text-center py-4'>
-            <p className='text-4xl mb-3'>🎁</p>
-            <p className='text-sm text-gray-400 mb-4'>{t('newQuestionWaiting')}</p>
-            <button onClick={handleRevealQuestion} disabled={isExpired || revealQuestionLoading} className='rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors'>
+          <div className="text-center py-4">
+            <p className="text-4xl mb-3">🎁</p>
+            <p className="text-sm text-gray-400 mb-4">{t('newQuestionWaiting')}</p>
+            <button onClick={handleRevealQuestion} disabled={isExpired || revealQuestionLoading} className="rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors">
               {revealQuestionLoading ? t('revealLoading') : t('revealQuestion')}
             </button>
           </div>
         ) : (
           <>
             {/* Question text */}
-            <p className='text-base font-semibold text-white leading-snug'>{drop.questionText}</p>
+            <p className="text-base font-semibold text-white leading-snug">{drop.questionText}</p>
 
             {/* Hint / Reveal Answer row */}
             {!submitResult && !isAnswerKnown && (
-              <div className='flex gap-2'>
+              <div className="flex gap-2">
                 {hintText ? (
-                  <div className='flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2'>
-                    <p className='text-[11px] font-bold text-yellow-400 mb-0.5'>💡 Hint {hintCostDeducted != null ? `(−${hintCostDeducted} ${t('pts')})` : ''}</p>
-                    <p className='text-xs text-yellow-200'>{hintText}</p>
+                  <div className="flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2">
+                    <p className="text-[11px] font-bold text-yellow-400 mb-0.5">💡 Hint {hintCostDeducted != null ? `(−${hintCostDeducted} ${t('pts')})` : ''}</p>
+                    <p className="text-xs text-yellow-200">{hintText}</p>
                   </div>
                 ) : (
-                  <button onClick={handleHint} disabled={hintLoading || isExpired || drop.usedHint} className='flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-yellow-400 transition-colors'>
+                  <button onClick={handleHint} disabled={hintLoading || isExpired || drop.usedHint} className="flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-yellow-400 transition-colors">
                     {drop.usedHint ? t('hintUsed') : hintLoading ? t('hintLoading') : t('hintCost', { pts: drop.hintCost })}
                   </button>
                 )}
-                <button onClick={handleReveal} disabled={revealLoading || isExpired || drop.revealedAnswer || isAnswerKnown} className='flex-1 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-purple-400 transition-colors'>
+                <button onClick={handleReveal} disabled={revealLoading || isExpired || drop.revealedAnswer || isAnswerKnown} className="flex-1 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-purple-400 transition-colors">
                   {drop.revealedAnswer || isAnswerKnown ? t('answerRevealedBtn') : revealLoading ? t('revealLoading') : t('showAnswer')}
                 </button>
               </div>
             )}
 
-            {isAnswerKnown && !submitResult && <div className='rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300 text-center'>{t('answerRevealedNotice')}</div>}
+            {isAnswerKnown && !submitResult && <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300 text-center">{t('answerRevealedNotice')}</div>}
 
             {/* Answer options */}
-            <div className='space-y-2'>
+            <div className="space-y-2">
               {drop.options.map((opt, index) => {
                 const option = typeof opt === 'string' ? opt : opt.text;
                 let cls = 'w-full text-left rounded-xl border px-4 py-3 text-sm font-medium transition-colors ';
@@ -379,35 +381,35 @@ export default function ActiveDropCard() {
 
             {/* Submit button */}
             {!submitResult && !isAnswerKnown && !isExpired && (
-              <button onClick={handleSubmit} disabled={selectedOption === null || submitting} className='w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors'>
+              <button onClick={handleSubmit} disabled={selectedOption === null || submitting} className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors">
                 {submitting ? t('submitting') : t('submitAnswer')}
               </button>
             )}
 
-            {submitting && <p className='text-xs text-center text-gray-500 animate-pulse'>{t('submitting')}</p>}
+            {submitting && <p className="text-xs text-center text-gray-500 animate-pulse">{t('submitting')}</p>}
 
             {/* Result card */}
             {submitResult && (
-              <div className='rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-center space-y-1'>
-                <p className='text-lg font-bold text-white'>{submitResult.revealedAnswer ? t('resultRevealed') : submitResult.isCorrect ? t('resultCorrect') : t('resultIncorrect')}</p>
+              <div className="rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-center space-y-1">
+                <p className="text-lg font-bold text-white">{submitResult.revealedAnswer ? t('resultRevealed') : submitResult.isCorrect ? t('resultCorrect') : t('resultIncorrect')}</p>
                 <p className={`text-sm font-semibold ${submitResult.pointsAwarded > 0 ? 'text-indigo-400' : 'text-gray-500'}`}>{submitResult.pointsAwarded > 0 ? t('pointsAwarded', { pts: submitResult.pointsAwarded }) : t('zeroPoints')}</p>
-                {submitResult.explanation && <p className='text-xs text-gray-400 italic mt-1'>{submitResult.explanation}</p>}
-                <p className='text-xs text-gray-500 mt-2'>{t('streakTotal', { streak: submitResult.newStreak, total: submitResult.newTotalScore.toLocaleString() })}</p>
-                <div className='flex gap-2 mt-3 flex-wrap justify-center'>
+                {submitResult.explanation && <p className="text-xs text-gray-400 italic mt-1">{submitResult.explanation}</p>}
+                <p className="text-xs text-gray-500 mt-2">{t('streakTotal', { streak: submitResult.newStreak, total: submitResult.newTotalScore.toLocaleString() })}</p>
+                <div className="flex gap-2 mt-3 flex-wrap justify-center">
                   <button
                     onClick={() => {
                       resetState();
                       fetchActiveDrop();
                     }}
-                    className='rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 px-4 py-1.5 text-xs text-indigo-300 font-medium transition-colors'
+                    className="rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 px-4 py-1.5 text-xs text-indigo-300 font-medium transition-colors"
                   >
                     {t('checkNextDrop')}
                   </button>
-                  <button onClick={handleOnDemand} disabled={onDemandLoading} className='rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-xs text-purple-300 font-medium transition-colors'>
+                  <button onClick={handleOnDemand} disabled={onDemandLoading} className="rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-xs text-purple-300 font-medium transition-colors">
                     {onDemandLoading ? t('requesting') : t('requestNextQuestion')}
                   </button>
                 </div>
-                {onDemandError && <p className='text-xs text-amber-400 text-center mt-2'>{onDemandError}</p>}
+                {onDemandError && <p className="text-xs text-amber-400 text-center mt-2">{onDemandError}</p>}
               </div>
             )}
           </>

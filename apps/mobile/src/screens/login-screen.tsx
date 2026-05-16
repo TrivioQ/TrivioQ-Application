@@ -58,13 +58,13 @@ export default function LoginScreen() {
 
         <View style={styles.form}>
           <Text style={styles.label}>{t('auth.emailLabel')}</Text>
-          <TextInput style={styles.input} placeholder='email@example.com' placeholderTextColor='#64748b' value={email} onChangeText={setEmail} autoCapitalize='none' keyboardType='email-address' />
+          <TextInput style={styles.input} placeholder="email@example.com" placeholderTextColor="#64748b" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
 
           <Text style={styles.label}>{t('auth.passwordLabel')}</Text>
-          <TextInput style={styles.input} placeholder='••••••••' placeholderTextColor='#64748b' value={password} onChangeText={setPassword} secureTextEntry />
+          <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor="#64748b" value={password} onChangeText={setPassword} secureTextEntry />
 
           <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isPending} activeOpacity={0.8}>
-            {isPending ? <ActivityIndicator color='#fff' /> : <Text style={styles.loginButtonText}>{t('auth.signInButton')}</Text>}
+            {isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.loginButtonText}>{t('auth.signInButton')}</Text>}
           </TouchableOpacity>
 
           <View style={styles.divider}>

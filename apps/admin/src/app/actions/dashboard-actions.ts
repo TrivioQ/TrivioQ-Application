@@ -47,14 +47,11 @@ export async function getDashboardMetrics() {
 
   // Growth: new users this month / total users, expressed as a percentage
   const newUsersThisMonth = totalUsers - usersActiveBeforeThirtyDays;
-  const userGrowthPct =
-    totalUsers > 0 ? (newUsersThisMonth / totalUsers) * 100 : 0;
+  const userGrowthPct = totalUsers > 0 ? (newUsersThisMonth / totalUsers) * 100 : 0;
 
-  const premiumConversionRate =
-    totalUsers > 0 ? (premiumUsers / totalUsers) * 100 : 0;
+  const premiumConversionRate = totalUsers > 0 ? (premiumUsers / totalUsers) * 100 : 0;
 
-  const globalAccuracy =
-    totalAnsweredDrops > 0 ? (correctDrops / totalAnsweredDrops) * 100 : 0;
+  const globalAccuracy = totalAnsweredDrops > 0 ? (correctDrops / totalAnsweredDrops) * 100 : 0;
 
   return {
     totalUsers,

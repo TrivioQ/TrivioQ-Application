@@ -92,13 +92,17 @@ This single command spins up the Next.js web app, the React Native Expo bundler,
 For development purposes, you can use the following utility scripts in the `packages/database` workspace.
 
 ### Mock Data Seeding
+
 To quickly populate your local database with 500+ questions, 100 users, and historical data:
+
 ```bash
 yarn workspace @trivioq/database run seed-mock-data
 ```
 
 ### Granting Admin Privileges
+
 To access the Admin Portal (`apps/admin`), your user must have the `ADMIN` role. Use this script to elevate an existing user:
+
 ```bash
 yarn workspace @trivioq/database run make-admin <email>
 ```

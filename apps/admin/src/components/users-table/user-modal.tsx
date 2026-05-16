@@ -81,19 +81,19 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
             <Label htmlFor="email">{t('email')}</Label>
-            <Input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)} />
+            <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="username">{t('username')}</Label>
-            <Input id="username" required value={username} onChange={e => setUsername(e.target.value)} />
+            <Input id="username" required value={username} onChange={(e) => setUsername(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="displayName">{t('displayName')}</Label>
-            <Input id="displayName" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder={t('displayNamePlaceholder')} />
+            <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={t('displayNamePlaceholder')} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="dateOfBirth">{t('dateOfBirth')}</Label>
-            <Input id="dateOfBirth" type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} />
+            <Input id="dateOfBirth" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>{t('subscriptionTier')}</Label>
@@ -111,16 +111,16 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="activeWindowStart">{t('activeWindowStart')}</Label>
-              <Input id="activeWindowStart" type="time" value={activeWindowStart} onChange={e => setActiveWindowStart(e.target.value)} />
+              <Input id="activeWindowStart" type="time" value={activeWindowStart} onChange={(e) => setActiveWindowStart(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="activeWindowEnd">{t('activeWindowEnd')}</Label>
-              <Input id="activeWindowEnd" type="time" value={activeWindowEnd} onChange={e => setActiveWindowEnd(e.target.value)} />
+              <Input id="activeWindowEnd" type="time" value={activeWindowEnd} onChange={(e) => setActiveWindowEnd(e.target.value)} />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="onDemandTokens">{t('onDemandTokens')}</Label>
-            <Input id="onDemandTokens" type="number" min="0" value={onDemandTokens} onChange={e => setOnDemandTokens(e.target.value)} />
+            <Input id="onDemandTokens" type="number" min="0" value={onDemandTokens} onChange={(e) => setOnDemandTokens(e.target.value)} />
           </div>
           <div className="flex justify-end pt-4">
             <Button type="submit" disabled={isPending}>

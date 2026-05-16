@@ -55,18 +55,15 @@ const pickerClassNames = {
   month_caption: 'flex justify-center items-center h-7 relative overflow-visible',
   caption_label: 'text-sm font-medium',
   nav: 'flex items-center gap-1',
-  button_previous:
-    'absolute left-1 top-[10px] z-[1] h-7 w-7 inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-muted',
-  button_next:
-    'absolute right-1 top-[10px] z-[1] h-7 w-7 inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-muted',
+  button_previous: 'absolute left-1 top-[10px] z-[1] h-7 w-7 inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-muted',
+  button_next: 'absolute right-1 top-[10px] z-[1] h-7 w-7 inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-muted',
   month_grid: 'w-full border-collapse',
   weekdays: 'flex',
   weekday: 'text-muted-foreground w-9 text-center text-[0.8rem] font-normal',
   weeks: 'flex flex-col gap-y-1',
   week: 'flex w-full',
   day: 'h-9 w-9 text-center text-sm p-0 relative',
-  day_button:
-    'h-9 w-9 inline-flex items-center justify-center rounded-md text-sm font-normal hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+  day_button: 'h-9 w-9 inline-flex items-center justify-center rounded-md text-sm font-normal hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
   selected: 'bg-primary text-primary-foreground hover:!bg-primary hover:!text-primary-foreground rounded-md',
   today: 'bg-muted text-foreground',
   outside: 'opacity-40',
@@ -107,7 +104,6 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(schema as any),
     defaultValues: initialValues
       ? {
@@ -129,12 +125,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
   const periodType = useWatch({ control, name: 'periodType' });
   const startDate = useWatch({ control, name: 'startDate' });
 
-  const endDate =
-    startDate && periodType === 'WEEK'
-      ? computeWeekEnd(startDate)
-      : startDate && periodType === 'MONTH'
-      ? computeMonthEnd(startDate)
-      : null;
+  const endDate = startDate && periodType === 'WEEK' ? computeWeekEnd(startDate) : startDate && periodType === 'MONTH' ? computeMonthEnd(startDate) : null;
 
   const onSubmit = async (data: FormValues) => {
     if (!endDate) return;
@@ -143,9 +134,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
     setIsSubmitting(true);
 
     try {
-      const url = isEdit
-        ? `/api/admin/bonus-plans/${initialValues!.id}`
-        : '/api/admin/bonus-plans';
+      const url = isEdit ? `/api/admin/bonus-plans/${initialValues!.id}` : '/api/admin/bonus-plans';
       const method = isEdit ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -163,11 +152,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setApiError(
-          res.status === 409
-            ? t('overlapError')
-            : body.error ?? t('genericError'),
-        );
+        setApiError(res.status === 409 ? t('overlapError') : (body.error ?? t('genericError')));
         return;
       }
 
@@ -185,9 +170,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
       <div className="space-y-1.5">
         <Label htmlFor="title">{t('planTitle')}</Label>
         <Input id="title" placeholder={t('titlePlaceholder')} {...register('title')} />
-        {errors.title && (
-          <p className="text-xs text-destructive">{errors.title.message}</p>
-        )}
+        {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
       </div>
 
       {/* Period Type */}
@@ -229,12 +212,8 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
       <div className="space-y-1.5">
         <Label>
           {t('startDate')}
-          {periodType === 'WEEK' && (
-            <span className="ml-1 text-xs text-muted-foreground">{t('mondaysOnly')}</span>
-          )}
-          {periodType === 'MONTH' && (
-            <span className="ml-1 text-xs text-muted-foreground">{t('firstOfMonth')}</span>
-          )}
+          {periodType === 'WEEK' && <span className="ml-1 text-xs text-muted-foreground">{t('mondaysOnly')}</span>}
+          {periodType === 'MONTH' && <span className="ml-1 text-xs text-muted-foreground">{t('firstOfMonth')}</span>}
         </Label>
 
         <Controller
@@ -242,17 +221,8 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
           name="startDate"
           render={({ field }) => (
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-              <PopoverTrigger
-                type="button"
-                className={cn(
-                  'flex h-8 w-full items-center justify-between rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors',
-                  'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  !field.value && 'text-muted-foreground',
-                )}
-              >
-                <span>
-                  {field.value ? format(field.value, 'PPP') : t('pickDate')}
-                </span>
+              <PopoverTrigger type="button" className={cn('flex h-8 w-full items-center justify-between rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors', 'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', !field.value && 'text-muted-foreground')}>
+                <span>{field.value ? format(field.value, 'PPP') : t('pickDate')}</span>
                 <CalendarIcon className="h-4 w-4 opacity-50" />
               </PopoverTrigger>
 
@@ -264,20 +234,14 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
                     field.onChange(date ?? null);
                     setCalendarOpen(false);
                   }}
-                  disabled={
-                    periodType === 'WEEK'
-                      ? (date: Date) => date.getDay() !== 1 || date < startOfDay(new Date())
-                      : (date: Date) => date.getDate() !== 1 || date < startOfDay(new Date())
-                  }
+                  disabled={periodType === 'WEEK' ? (date: Date) => date.getDay() !== 1 || date < startOfDay(new Date()) : (date: Date) => date.getDate() !== 1 || date < startOfDay(new Date())}
                   classNames={pickerClassNames}
                 />
               </PopoverContent>
             </Popover>
           )}
         />
-        {errors.startDate && (
-          <p className="text-xs text-destructive">{errors.startDate.message}</p>
-        )}
+        {errors.startDate && <p className="text-xs text-destructive">{errors.startDate.message}</p>}
       </div>
 
       {/* Derived End Date (read-only) */}
@@ -300,22 +264,10 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
         <div className="space-y-2">
           {fields.map((field, index) => (
             <div key={field.id} className="flex items-center gap-2">
-              <span className="w-14 shrink-0 text-right text-xs text-muted-foreground">
-                {t('rank', { number: index + 1 })}
-              </span>
-              <Input
-                type="number"
-                min={0}
-                {...register(`payoutValues.${index}.value`, { valueAsNumber: true })}
-                className="h-8"
-              />
+              <span className="w-14 shrink-0 text-right text-xs text-muted-foreground">{t('rank', { number: index + 1 })}</span>
+              <Input type="number" min={0} {...register(`payoutValues.${index}.value`, { valueAsNumber: true })} className="h-8" />
               {fields.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => remove(index)}
-                  className="rounded p-1 text-muted-foreground hover:text-destructive"
-                  aria-label={t('removeRank', { number: index + 1 })}
-                >
+                <button type="button" onClick={() => remove(index)} className="rounded p-1 text-muted-foreground hover:text-destructive" aria-label={t('removeRank', { number: index + 1 })}>
                   <Trash2 className="h-4 w-4" />
                 </button>
               )}
@@ -323,20 +275,10 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
           ))}
         </div>
 
-        {errors.payoutValues && (
-          <p className="text-xs text-destructive">
-            {errors.payoutValues.message ?? t('invalidPayout')}
-          </p>
-        )}
+        {errors.payoutValues && <p className="text-xs text-destructive">{errors.payoutValues.message ?? t('invalidPayout')}</p>}
 
         {fields.length < 10 && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => append({ value: 0 })}
-            className="gap-1.5"
-          >
+          <Button type="button" variant="outline" size="sm" onClick={() => append({ value: 0 })} className="gap-1.5">
             <Plus className="h-3.5 w-3.5" />
             {t('addRank')}
           </Button>
@@ -344,11 +286,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
       </div>
 
       {/* Overlap / API error */}
-      {apiError && (
-        <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
-          {apiError}
-        </div>
-      )}
+      {apiError && <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">{apiError}</div>}
 
       {/* Actions */}
       <div className="flex justify-end gap-2 pt-2">
@@ -358,7 +296,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
           </Button>
         )}
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? (isEdit ? t('saving') : t('creating')) : (isEdit ? t('saveChanges') : t('create'))}
+          {isSubmitting ? (isEdit ? t('saving') : t('creating')) : isEdit ? t('saveChanges') : t('create')}
         </Button>
       </div>
     </form>

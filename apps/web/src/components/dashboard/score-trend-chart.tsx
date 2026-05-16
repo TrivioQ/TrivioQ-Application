@@ -29,15 +29,13 @@ function formatLabel(dateStr: string, mode: 'weekly' | 'monthly', locale: string
 const CustomTooltip = ({ active, payload, label, mode, t }: any) => {
   if (!active || !payload?.length) return null;
   const d = new Date(label);
-  const title = mode === 'monthly'
-    ? d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
-    : `${t('chart.weekOf')} ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
+  const title = mode === 'monthly' ? d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }) : `${t('chart.weekOf')} ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
 
   return (
-    <div className='bg-gray-800 border border-white/10 rounded-xl p-3 text-xs shadow-xl'>
-      <p className='text-gray-400 mb-2 font-medium'>{title}</p>
+    <div className="bg-gray-800 border border-white/10 rounded-xl p-3 text-xs shadow-xl">
+      <p className="text-gray-400 mb-2 font-medium">{title}</p>
       {payload.map((p: any) => (
-        <p key={p.name} style={{ color: p.fill }} className='font-semibold'>
+        <p key={p.name} style={{ color: p.fill }} className="font-semibold">
           {p.name}: {p.value.toLocaleString()} {t('chart.pts')}
         </p>
       ))}
@@ -51,18 +49,18 @@ export function ScoreTrendChart({ data, mode, namespace = 'dashboard' }: Props) 
   const sorted = [...data].sort((a, b) => new Date(a.periodStart).getTime() - new Date(b.periodStart).getTime());
 
   if (sorted.length === 0) {
-    return <div className='flex h-[220px] items-center justify-center text-sm text-gray-500'>{t('chart.noData')}</div>;
+    return <div className="flex h-[220px] items-center justify-center text-sm text-gray-500">{t('chart.noData')}</div>;
   }
 
   return (
-    <ResponsiveContainer width='100%' height={220}>
+    <ResponsiveContainer width="100%" height={220}>
       <BarChart data={sorted} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-        <CartesianGrid strokeDasharray='3 3' stroke='rgba(255,255,255,0.06)' />
-        <XAxis dataKey='periodStart' tick={{ fontSize: 10, fill: '#6b7280' }} tickFormatter={(v) => formatLabel(v, mode, locale)} interval='preserveStartEnd' />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+        <XAxis dataKey="periodStart" tick={{ fontSize: 10, fill: '#6b7280' }} tickFormatter={(v) => formatLabel(v, mode, locale)} interval="preserveStartEnd" />
         <YAxis tick={{ fontSize: 10, fill: '#6b7280' }} allowDecimals={false} width={44} />
         <Tooltip content={<CustomTooltip mode={mode} t={t} />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-        <Bar dataKey='baseScore' name={t('chart.base')} stackId='a' fill='#6366f1' radius={[0, 0, 0, 0]} />
-        <Bar dataKey='bonusScore' name={t('chart.bonus')} stackId='a' fill='#a855f7' radius={[4, 4, 0, 0]} />
+        <Bar dataKey="baseScore" name={t('chart.base')} stackId="a" fill="#6366f1" radius={[0, 0, 0, 0]} />
+        <Bar dataKey="bonusScore" name={t('chart.bonus')} stackId="a" fill="#a855f7" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

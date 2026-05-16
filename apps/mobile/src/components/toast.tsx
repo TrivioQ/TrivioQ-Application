@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useRef, useState, useCallback } from 'react';
-import { Animated, Text, StyleSheet, View } from 'react-native';
+import { Animated, Text, StyleSheet } from 'react-native';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -19,15 +19,18 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const opacity = useRef(new Animated.Value(0)).current;
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const show = useCallback((opts: ToastOptions) => {
-    if (timer.current) clearTimeout(timer.current);
-    setOptions(opts);
-    setVisible(true);
-    Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
-    timer.current = setTimeout(() => {
-      Animated.timing(opacity, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => setVisible(false));
-    }, opts.duration ?? 3000);
-  }, [opacity]);
+  const show = useCallback(
+    (opts: ToastOptions) => {
+      if (timer.current) clearTimeout(timer.current);
+      setOptions(opts);
+      setVisible(true);
+      Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+      timer.current = setTimeout(() => {
+        Animated.timing(opacity, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => setVisible(false));
+      }, opts.duration ?? 3000);
+    },
+    [opacity],
+  );
 
   const bg = options.type === 'error' ? '#ef4444' : options.type === 'success' ? '#22c55e' : '#6366f1';
 

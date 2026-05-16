@@ -51,7 +51,7 @@ router.get('/admin', requireAuth, requireAdmin, async (req: Request, res: Respon
       orderBy: { order: 'asc' },
     });
     res.json(faqs);
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: 'Failed to fetch FAQs for admin' });
   }
 });
@@ -103,7 +103,7 @@ router.delete('/:id', requireAuth, requireAdmin, async (req: Request, res: Respo
   try {
     await prisma.fAQ.delete({ where: { id } });
     res.status(204).send();
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: 'Failed to delete FAQ' });
   }
 });

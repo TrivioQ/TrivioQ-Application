@@ -16,7 +16,7 @@ export type Category = {
   description: string | null;
 };
 
-export function CategoryModal({ category, onOpenChange, open }: { category?: Category | null, onOpenChange?: (open: boolean) => void, open?: boolean }) {
+export function CategoryModal({ category, onOpenChange, open }: { category?: Category | null; onOpenChange?: (open: boolean) => void; open?: boolean }) {
   const t = useTranslations('categories');
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = open !== undefined;
@@ -49,7 +49,12 @@ export function CategoryModal({ category, onOpenChange, open }: { category?: Cat
   const handleNameChange = (val: string) => {
     setName(val);
     if (!category) {
-      setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
+      setSlug(
+        val
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, ''),
+      );
     }
   };
 
@@ -59,9 +64,7 @@ export function CategoryModal({ category, onOpenChange, open }: { category?: Cat
     startTransition(async () => {
       const payload = { name, slug, description: description || undefined };
 
-      const res = category
-        ? await updateCategory(category.id, payload)
-        : await createCategory(payload);
+      const res = category ? await updateCategory(category.id, payload) : await createCategory(payload);
 
       if (res.success) {
         handleOpenChange(false);
@@ -73,11 +76,7 @@ export function CategoryModal({ category, onOpenChange, open }: { category?: Cat
 
   return (
     <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
-      {!isControlled && (
-        <DialogTrigger className={buttonVariants()}>
-          {t('createModal.trigger')}
-        </DialogTrigger>
-      )}
+      {!isControlled && <DialogTrigger className={buttonVariants()}>{t('createModal.trigger')}</DialogTrigger>}
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>{category ? t('editModal.title') : t('createModal.title')}</DialogTitle>
@@ -85,17 +84,17 @@ export function CategoryModal({ category, onOpenChange, open }: { category?: Cat
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
             <Label htmlFor="name">{t('createModal.name')}</Label>
-            <Input id="name" required value={name} onChange={e => handleNameChange(e.target.value)} placeholder={t('createModal.namePlaceholder')} />
+            <Input id="name" required value={name} onChange={(e) => handleNameChange(e.target.value)} placeholder={t('createModal.namePlaceholder')} />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="slug">{t('createModal.slug')}</Label>
-            <Input id="slug" required value={slug} onChange={e => setSlug(e.target.value)} placeholder={t('createModal.slugPlaceholder')} />
+            <Input id="slug" required value={slug} onChange={(e) => setSlug(e.target.value)} placeholder={t('createModal.slugPlaceholder')} />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="description">{t('createModal.description')}</Label>
-            <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder={t('createModal.descriptionPlaceholder')} />
+            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('createModal.descriptionPlaceholder')} />
           </div>
 
           <div className="flex justify-end pt-4">

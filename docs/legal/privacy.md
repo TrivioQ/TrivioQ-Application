@@ -144,4 +144,4 @@ If you have any questions, concerns, or requests regarding this Privacy Policy o
 
 ---
 
-*© 2026 Enatos Tech. All rights reserved.*
+_© 2026 Enatos Tech. All rights reserved._

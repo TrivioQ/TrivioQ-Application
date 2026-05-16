@@ -17,8 +17,8 @@ export default async function PrivacyPage() {
   const doc = await makeServerAPICallV1<LegalDoc>('legal/privacy', { next: { revalidate: 3600 } }).catch(() => null);
 
   return (
-    <main className='min-h-screen bg-slate-950 text-slate-100 py-12 px-4'>
-      <div className='max-w-3xl mx-auto'>{doc ? <article className='prose prose-invert prose-slate max-w-none' dangerouslySetInnerHTML={{ __html: marked(doc.content) }} /> : <p className='text-slate-400 text-center'>{t('privacyUnavailable')}</p>}</div>
+    <main className="min-h-screen bg-slate-950 text-slate-100 py-12 px-4">
+      <div className="max-w-3xl mx-auto">{doc ? <article className="prose prose-invert prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: marked(doc.content) }} /> : <p className="text-slate-400 text-center">{t('privacyUnavailable')}</p>}</div>
     </main>
   );
 }

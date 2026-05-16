@@ -58,7 +58,7 @@ export default function LeaderboardScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size='large' color='#6366f1' />
+        <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
   }

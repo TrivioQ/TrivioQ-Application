@@ -19,17 +19,7 @@ import type { QuestionRow } from './columns';
 
 type EditableChoice = { id: string; text: string; order: number; isCorrect: boolean };
 
-export function QuestionModal({
-  question,
-  categories,
-  open,
-  onOpenChange
-}: {
-  question: QuestionRow;
-  categories: { id: string; name: string }[];
-  open: boolean;
-  onOpenChange: (open: boolean) => void
-}) {
+export function QuestionModal({ question, categories, open, onOpenChange }: { question: QuestionRow; categories: { id: string; name: string }[]; open: boolean; onOpenChange: (open: boolean) => void }) {
   const t = useTranslations('questions.editModal');
   const [isPending, startTransition] = useTransition();
 
@@ -38,7 +28,7 @@ export function QuestionModal({
   const [choices, setChoices] = useState<EditableChoice[]>(question.choices);
   const [hintText, setHintText] = useState(question.hintText || '');
   const [explanationText, setExplanationText] = useState(question.explanationText || '');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(question.categories.map(c => c.id));
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(question.categories.map((c) => c.id));
 
   const [comboboxOpen, setComboboxOpen] = useState(false);
 
@@ -52,28 +42,28 @@ export function QuestionModal({
       setChoices(question.choices);
       setHintText(question.hintText || '');
       setExplanationText(question.explanationText || '');
-      setSelectedCategories(question.categories.map(c => c.id));
+      setSelectedCategories(question.categories.map((c) => c.id));
     }
   }
 
   const markCorrect = (idx: number) => {
-    setChoices(prev => prev.map((c, i) => ({ ...c, isCorrect: i === idx })));
+    setChoices((prev) => prev.map((c, i) => ({ ...c, isCorrect: i === idx })));
   };
 
   const updateChoiceText = (idx: number, text: string) => {
-    setChoices(prev => prev.map((c, i) => i === idx ? { ...c, text } : c));
+    setChoices((prev) => prev.map((c, i) => (i === idx ? { ...c, text } : c)));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedCategories.length === 0) return alert('Select at least one category');
-    if (!choices.some(c => c.isCorrect)) return alert('Select a correct answer');
+    if (!choices.some((c) => c.isCorrect)) return alert('Select a correct answer');
 
     startTransition(async () => {
       const res = await updateQuestion(question.id, {
         questionText,
         difficultyLevel,
-        choices: choices.map(c => ({ text: c.text, isCorrect: c.isCorrect })),
+        choices: choices.map((c) => ({ text: c.text, isCorrect: c.isCorrect })),
         hintText: hintText || undefined,
         explanationText: explanationText || undefined,
         categoryIds: selectedCategories,
@@ -88,9 +78,7 @@ export function QuestionModal({
   };
 
   const toggleCategory = (id: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-    );
+    setSelectedCategories((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
   };
 
   return (
@@ -100,10 +88,9 @@ export function QuestionModal({
           <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-
           <div className="space-y-2">
             <Label htmlFor="question">{t('questionText')}</Label>
-            <Input id="question" required value={questionText} onChange={e => setQuestionText(e.target.value)} />
+            <Input id="question" required value={questionText} onChange={(e) => setQuestionText(e.target.value)} />
           </div>
 
           <div className="space-y-2">
@@ -124,54 +111,28 @@ export function QuestionModal({
             <Label>{t('choicesLabel')}</Label>
             {choices.map((choice, idx) => (
               <div key={choice.id} className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="correctAnswer"
-                  title={t('markCorrect')}
-                  checked={choice.isCorrect}
-                  onChange={() => markCorrect(idx)}
-                  className="h-4 w-4 shrink-0"
-                />
-                <Input
-                  required
-                  placeholder={t('choicePlaceholder', { number: idx + 1 })}
-                  value={choice.text}
-                  onChange={e => updateChoiceText(idx, e.target.value)}
-                />
+                <input type="radio" name="correctAnswer" title={t('markCorrect')} checked={choice.isCorrect} onChange={() => markCorrect(idx)} className="h-4 w-4 shrink-0" />
+                <Input required placeholder={t('choicePlaceholder', { number: idx + 1 })} value={choice.text} onChange={(e) => updateChoiceText(idx, e.target.value)} />
               </div>
             ))}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="hint">{t('hintLabel')}</Label>
-            <Textarea
-              id="hint"
-              value={hintText}
-              onChange={e => setHintText(e.target.value)}
-              placeholder={t('hintPlaceholder')}
-              className="resize-none"
-            />
+            <Textarea id="hint" value={hintText} onChange={(e) => setHintText(e.target.value)} placeholder={t('hintPlaceholder')} className="resize-none" />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="explanation">{t('explanationLabel')}</Label>
-            <Textarea
-              id="explanation"
-              value={explanationText}
-              onChange={e => setExplanationText(e.target.value)}
-              placeholder={t('explanationPlaceholder')}
-              className="resize-none"
-            />
+            <Textarea id="explanation" value={explanationText} onChange={(e) => setExplanationText(e.target.value)} placeholder={t('explanationPlaceholder')} className="resize-none" />
           </div>
 
           <div className="space-y-2">
             <Label>{t('categoriesLabel')}</Label>
             <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
-              <PopoverTrigger className={buttonVariants({ variant: "outline", className: "w-full justify-between" })} role="combobox" aria-expanded={comboboxOpen}>
-                  {selectedCategories.length > 0
-                    ? t('categoriesSelected', { count: selectedCategories.length })
-                    : t('selectCategories')}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              <PopoverTrigger className={buttonVariants({ variant: 'outline', className: 'w-full justify-between' })} role="combobox" aria-expanded={comboboxOpen}>
+                {selectedCategories.length > 0 ? t('categoriesSelected', { count: selectedCategories.length }) : t('selectCategories')}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
                 <Command>
@@ -180,12 +141,8 @@ export function QuestionModal({
                     <CommandEmpty>{t('noCategoryFound')}</CommandEmpty>
                     <CommandGroup>
                       {categories.map((category) => (
-                        <CommandItem
-                          key={category.id}
-                          value={category.id}
-                          onSelect={() => toggleCategory(category.id)}
-                        >
-                          <Check className={cn("mr-2 h-4 w-4", selectedCategories.includes(category.id) ? "opacity-100" : "opacity-0")} />
+                        <CommandItem key={category.id} value={category.id} onSelect={() => toggleCategory(category.id)}>
+                          <Check className={cn('mr-2 h-4 w-4', selectedCategories.includes(category.id) ? 'opacity-100' : 'opacity-0')} />
                           {category.name}
                         </CommandItem>
                       ))}
@@ -195,9 +152,13 @@ export function QuestionModal({
               </PopoverContent>
             </Popover>
             <div className="flex flex-wrap gap-1 mt-2">
-              {selectedCategories.map(id => {
-                const cat = categories.find(c => c.id === id);
-                return cat ? <Badge key={id} variant="secondary">{cat.name}</Badge> : null;
+              {selectedCategories.map((id) => {
+                const cat = categories.find((c) => c.id === id);
+                return cat ? (
+                  <Badge key={id} variant="secondary">
+                    {cat.name}
+                  </Badge>
+                ) : null;
               })}
             </div>
           </div>

@@ -4,7 +4,6 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { env } from 'env';
 
-
 const FIREBASE_SIGN_IN_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword';
 const COOKIE_NAME = 'tq_auth';
 const COOKIE_MAX_AGE_14_DAYS = 60 * 60 * 24 * 14;

@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { Worker, Queue, Job } from 'bullmq';
+import { Worker, Queue } from 'bullmq';
 import Redis from 'ioredis';
 import { prisma } from '@trivioq/database';
 import { getWeekStart } from '../utils/scoring';
@@ -74,7 +74,7 @@ export async function processWeeklyLeaderboard(): Promise<void> {
 
 const leaderboardWorker = new Worker(
   QUEUE_NAME,
-  async (_job: Job) => {
+  async () => {
     await processWeeklyLeaderboard();
   },
   { connection, concurrency: 1 },

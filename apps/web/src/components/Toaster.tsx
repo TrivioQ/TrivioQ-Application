@@ -48,34 +48,34 @@ function NotificationIcon({ type }: { type: Notification['type'] }) {
   switch (type) {
     case 'error':
       return (
-        <svg className={cls} width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-          <circle cx='12' cy='12' r='10' />
-          <line x1='12' y1='8' x2='12' y2='12' />
-          <line x1='12' y1='16' x2='12.01' y2='16' />
+        <svg className={cls} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
       );
     case 'success':
       return (
-        <svg className={cls} width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-          <path d='M22 11.08V12a10 10 0 1 1-5.93-9.14' />
-          <polyline points='22 4 12 14.01 9 11.01' />
+        <svg className={cls} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
         </svg>
       );
     case 'warning':
       return (
-        <svg className={cls} width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-          <path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z' />
-          <line x1='12' y1='9' x2='12' y2='13' />
-          <line x1='12' y1='17' x2='12.01' y2='17' />
+        <svg className={cls} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
       );
     case 'info':
     default:
       return (
-        <svg className={cls} width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-          <circle cx='12' cy='12' r='10' />
-          <line x1='12' y1='16' x2='12' y2='12' />
-          <line x1='12' y1='8' x2='12.01' y2='8' />
+        <svg className={cls} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
         </svg>
       );
   }
@@ -113,8 +113,8 @@ function Toast({ notification }: { notification: Notification }) {
 
   return (
     <div
-      role='alert'
-      aria-live='polite'
+      role="alert"
+      aria-live="polite"
       className={`
         relative w-full max-w-sm overflow-hidden rounded-xl border backdrop-blur-sm
         transition-all duration-300 ease-out
@@ -122,23 +122,23 @@ function Toast({ notification }: { notification: Notification }) {
         ${visible ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}
       `}
     >
-      <div className='flex items-start gap-3 px-4 py-3.5'>
+      <div className="flex items-start gap-3 px-4 py-3.5">
         <NotificationIcon type={notification.type} />
-        <div className='flex-1 min-w-0'>
+        <div className="flex-1 min-w-0">
           {notification.title && <p className={`text-sm font-semibold leading-snug ${s.title}`}>{notification.title}</p>}
           <p className={`text-sm leading-relaxed ${notification.title ? 'mt-0.5 text-gray-400' : s.message}`}>{notification.message}</p>
         </div>
         <button onClick={handleDismiss} aria-label={t('dismissNotification')} className={`shrink-0 transition-colors ${s.close}`}>
-          <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'>
-            <line x1='18' y1='6' x2='6' y2='18' />
-            <line x1='6' y1='6' x2='18' y2='18' />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
 
       {/* Progress bar */}
       {notification.duration && notification.duration > 0 && (
-        <div className='h-0.5 bg-white/5'>
+        <div className="h-0.5 bg-white/5">
           <div ref={progressRef} className={`h-full ${notification.type === 'error' ? 'bg-red-500/50' : notification.type === 'success' ? 'bg-emerald-500/50' : notification.type === 'warning' ? 'bg-amber-500/50' : 'bg-sky-500/50'}`} style={{ width: '100%' }} />
         </div>
       )}
@@ -154,9 +154,9 @@ export function Toaster() {
   const { notifications } = useNotification();
 
   return (
-    <div aria-label='Notifications' className='fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 items-end pointer-events-none'>
+    <div aria-label="Notifications" className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 items-end pointer-events-none">
       {notifications.map((n) => (
-        <div key={n.id} className='pointer-events-auto'>
+        <div key={n.id} className="pointer-events-auto">
           <Toast notification={n} />
         </div>
       ))}

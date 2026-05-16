@@ -1,17 +1,9 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, HeaderContext, CellContext } from '@tanstack/react-table';
 import { MoreHorizontal, Pencil, Trash, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { deleteFAQ } from '@/app/actions/faq-actions';
 import { useState, useTransition } from 'react';
 import { FAQModal } from './faq-modal';
@@ -32,52 +24,38 @@ function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
   return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />;
 }
 
+function HeaderCell({ column, label }: HeaderContext<FAQRow, unknown> & { label: string }) {
+  const t = useTranslations('faqs');
+  return (
+    <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+      {t(label)} <SortIcon sorted={column.getIsSorted()} />
+    </button>
+  );
+}
+
+function StatusCell({ row }: CellContext<FAQRow, unknown>) {
+  const t = useTranslations('common');
+  const active = row.getValue('active') as boolean;
+  return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{active ? t('active') : t('inactive')}</span>;
+}
+
 export const columns: ColumnDef<FAQRow>[] = [
   {
     accessorKey: 'order',
-    header: ({ column }) => {
-      const t = useTranslations('faqs');
-      return (
-        <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
-          {t('columns.order')} <SortIcon sorted={column.getIsSorted()} />
-        </button>
-      );
-    },
+    header: (props) => <HeaderCell {...props} label="columns.order" />,
   },
   {
     accessorKey: 'question',
-    header: ({ column }) => {
-      const t = useTranslations('faqs');
-      return (
-        <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
-          {t('columns.question')} <SortIcon sorted={column.getIsSorted()} />
-        </button>
-      );
-    },
+    header: (props) => <HeaderCell {...props} label="columns.question" />,
     cell: ({ row }) => {
-       const question = row.getValue('question') as string;
-       return <div className="max-w-[300px] truncate font-medium">{question}</div>;
-    }
+      const question = row.getValue('question') as string;
+      return <div className="max-w-[300px] truncate font-medium">{question}</div>;
+    },
   },
   {
     accessorKey: 'active',
-    header: ({ column }) => {
-      const t = useTranslations('faqs');
-      return (
-        <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
-          {t('columns.status')} <SortIcon sorted={column.getIsSorted()} />
-        </button>
-      );
-    },
-    cell: ({ row }) => {
-      const t = useTranslations('common');
-      const active = row.getValue('active') as boolean;
-      return (
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-          {active ? t('active') : t('inactive')}
-        </span>
-      );
-    },
+    header: (props) => <HeaderCell {...props} label="columns.status" />,
+    cell: (props) => <StatusCell {...props} />,
   },
   {
     id: 'actions',
@@ -112,7 +90,7 @@ function FAQActions({ faq }: { faq: FAQRow }) {
     <>
       <FAQModal faq={faq} open={editOpen} onOpenChange={setEditOpen} />
       <DropdownMenu>
-        <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>
+        <DropdownMenuTrigger className={buttonVariants({ variant: 'ghost', className: 'h-8 w-8 p-0' })} disabled={isPending}>
           <span className="sr-only">{t('actions.openMenu')}</span>
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>

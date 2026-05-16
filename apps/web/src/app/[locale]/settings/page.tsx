@@ -30,12 +30,12 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-950 text-white selection:bg-indigo-500 selection:text-white pb-20'>
-      <div className='max-w-3xl mx-auto px-6 py-16 space-y-12'>
+    <div className="min-h-screen bg-gray-950 text-white selection:bg-indigo-500 selection:text-white pb-20">
+      <div className="max-w-3xl mx-auto px-6 py-16 space-y-12">
         {/* ── Header ── */}
         <div>
-          <h1 className='text-4xl font-extrabold tracking-tight text-white'>{t('title')}</h1>
-          <p className='text-gray-400 mt-2'>{t('subtitle')}</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-white">{t('title')}</h1>
+          <p className="text-gray-400 mt-2">{t('subtitle')}</p>
         </div>
 
         <SettingsForm initialUser={user} />

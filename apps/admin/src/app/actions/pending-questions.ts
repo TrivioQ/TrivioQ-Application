@@ -20,10 +20,7 @@ export interface EditQuestionPayload {
 
 export async function getPendingQuestions(filter?: string) {
   try {
-    const where =
-      filter === 'ai-validated'
-        ? { isValidated: true, status: 'PENDING' }
-        : { status: 'PENDING' };
+    const where = filter === 'ai-validated' ? { isValidated: true, status: 'PENDING' } : { status: 'PENDING' };
 
     const questions = await prisma.pendingQuestion.findMany({
       where,
@@ -39,10 +36,7 @@ export async function getPendingQuestions(filter?: string) {
 
 // ── Approve ──────────────────────────────────────────────────────────────────────
 
-export async function approvePendingQuestion(
-  pendingId: string,
-  editedData: EditQuestionPayload,
-) {
+export async function approvePendingQuestion(pendingId: string, editedData: EditQuestionPayload) {
   try {
     const result = await prisma.$transaction(async (tx) => {
       const question = await tx.question.create({
@@ -83,10 +77,7 @@ export async function approvePendingQuestion(
 
 // ── Reject ───────────────────────────────────────────────────────────────────────
 
-export async function rejectPendingQuestion(
-  pendingId: string,
-  reason?: string,
-) {
+export async function rejectPendingQuestion(pendingId: string, reason?: string) {
   try {
     await prisma.pendingQuestion.update({
       where: { id: pendingId },

@@ -14,7 +14,6 @@ export async function AdminGuard({ children }: { children: React.ReactNode }) {
 
   try {
     const upstream = await fetch(new URL('/v1/auth/sync', env.API_URL).toString(), {
-
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

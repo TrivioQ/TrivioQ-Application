@@ -3,15 +3,7 @@
 import { ColumnDef, Column } from '@tanstack/react-table';
 import { MoreHorizontal, Pencil, Trash, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { deleteCategory } from '@/app/actions/category-actions';
 import { useState, useTransition } from 'react';
 import { Category, CategoryModal } from './category-modal';
@@ -115,7 +107,7 @@ function CategoryActions({ category }: { category: CategoryRow }) {
     <>
       <CategoryModal category={category} open={editOpen} onOpenChange={setEditOpen} />
       <DropdownMenu>
-        <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>
+        <DropdownMenuTrigger className={buttonVariants({ variant: 'ghost', className: 'h-8 w-8 p-0' })} disabled={isPending}>
           <span className="sr-only">{t('actions.openMenu')}</span>
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>

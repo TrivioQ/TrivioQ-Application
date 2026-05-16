@@ -30,18 +30,18 @@ export async function getCategories(filters: CategoryFilters = {}) {
         take: pageSize,
         include: {
           _count: {
-            select: { questions: true }
-          }
-        }
-      })
+            select: { questions: true },
+          },
+        },
+      }),
     ]);
-    return { 
-      success: true, 
-      data, 
-      total, 
-      page, 
-      pageSize, 
-      totalPages: Math.max(1, Math.ceil(total / pageSize)) 
+    return {
+      success: true,
+      data,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
     };
   } catch (error) {
     console.error('Failed to fetch categories:', error);

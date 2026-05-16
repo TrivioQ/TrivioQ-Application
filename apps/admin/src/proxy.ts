@@ -3,7 +3,7 @@ import createMiddleware from 'next-intl/middleware';
 
 const intlMiddleware = createMiddleware({
   locales: ['en'],
-  defaultLocale: 'en'
+  defaultLocale: 'en',
 });
 
 export async function proxy(req: NextRequest) {
@@ -14,10 +14,7 @@ export async function proxy(req: NextRequest) {
 
   // 2. Auth check logic
   // Check if route is public (considering locale prefix)
-  const isPublic =
-    pathname.match(/^\/(en)?\/?login/) ||
-    pathname.match(/^\/(en)?\/?403/) ||
-    pathname.startsWith('/api/auth/me');
+  const isPublic = pathname.match(/^\/(en)?\/?login/) || pathname.match(/^\/(en)?\/?403/) || pathname.startsWith('/api/auth/me');
 
   if (isPublic) {
     return response;

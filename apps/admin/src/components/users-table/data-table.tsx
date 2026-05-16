@@ -1,20 +1,8 @@
 'use client';
 
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  ColumnDef,
-} from '@tanstack/react-table';
+import { flexRender, getCoreRowModel, useReactTable, ColumnDef } from '@tanstack/react-table';
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { SearchInput } from '@/components/ui/search-input';
@@ -36,26 +24,14 @@ interface DataTableProps<TData, TValue> {
   searchPlaceholder?: string;
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-  pageCount = 1,
-  currentPage = 1,
-  search = '',
-  total,
-  pageSize = 20,
-  filterSlot,
-  actionSlot,
-  searchPlaceholder,
-}: DataTableProps<TData, TValue>) {
-  "use no memo";
+export function DataTable<TData, TValue>({ columns, data, pageCount = 1, currentPage = 1, search = '', total, pageSize = 20, filterSlot, actionSlot, searchPlaceholder }: DataTableProps<TData, TValue>) {
+  'use no memo';
 
   const t = useTranslations('common');
   const { pushParams, isPending, sorting, handleSortingChange } = useTableParams();
 
   const placeholder = searchPlaceholder ?? t('searchPlaceholder');
 
-  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table API is inherently incompatible with React Compiler memoization
   const table = useReactTable({
     data,
     columns,
@@ -74,12 +50,7 @@ export function DataTable<TData, TValue>({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <SearchInput
-            initialValue={search}
-            onDebouncedChange={(val) => pushParams({ search: val || null, page: '1' })}
-            placeholder={placeholder}
-            className="w-64"
-          />
+          <SearchInput initialValue={search} onDebouncedChange={(val) => pushParams({ search: val || null, page: '1' })} placeholder={placeholder} className="w-64" />
           {filterSlot}
         </div>
         {actionSlot}
@@ -91,11 +62,7 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
+                  <TableHead key={header.id}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</TableHead>
                 ))}
               </TableRow>
             ))}
@@ -105,9 +72,7 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}
                 </TableRow>
               ))
@@ -123,30 +88,16 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-500">
-          {start && end && total
-            ? t('showing', { from: start, to: end, total })
-            : t('pageOf', { current: currentPage, total: Math.max(1, pageCount) })}
-        </div>
+        <div className="text-sm text-gray-500">{start && end && total ? t('showing', { from: start, to: end, total }) : t('pageOf', { current: currentPage, total: Math.max(1, pageCount) })}</div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => pushParams({ page: String(currentPage - 1) })}
-            disabled={currentPage <= 1 || isPending}
-          >
+          <Button variant="outline" size="sm" onClick={() => pushParams({ page: String(currentPage - 1) })} disabled={currentPage <= 1 || isPending}>
             <ChevronLeft className="h-4 w-4" />
             {t('prev')}
           </Button>
           <span className="text-sm text-gray-600 font-medium">
             {currentPage} / {Math.max(1, pageCount)}
           </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => pushParams({ page: String(currentPage + 1) })}
-            disabled={currentPage >= pageCount || isPending}
-          >
+          <Button variant="outline" size="sm" onClick={() => pushParams({ page: String(currentPage + 1) })} disabled={currentPage >= pageCount || isPending}>
             {t('next')}
             <ChevronRight className="h-4 w-4" />
           </Button>

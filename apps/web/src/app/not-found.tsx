@@ -5,7 +5,7 @@ export default function NotFound() {
         <div style={{ textAlign: 'center' }}>
           <h1 style={{ fontSize: '3rem', margin: '0 0 10px 0' }}>404</h1>
           <p style={{ color: '#9ca3af' }}>The page you are looking for does not exist or has been moved.</p>
-          <a href='/' style={{ color: '#6366f1', textDecoration: 'none', fontWeight: 'bold' }}>
+          <a href="/" style={{ color: '#6366f1', textDecoration: 'none', fontWeight: 'bold' }}>
             Go to Homepage →
           </a>
         </div>

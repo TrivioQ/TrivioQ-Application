@@ -26,16 +26,16 @@ export async function getSettings(filters: SettingFilters = {}) {
         orderBy: { [sortBy]: sortOrder },
         skip,
         take: pageSize,
-      })
+      }),
     ]);
-    
-    return { 
-      success: true, 
-      data, 
-      total, 
-      page, 
-      pageSize, 
-      totalPages: Math.max(1, Math.ceil(total / pageSize)) 
+
+    return {
+      success: true,
+      data,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
     };
   } catch (error) {
     console.error('Failed to fetch settings:', error);

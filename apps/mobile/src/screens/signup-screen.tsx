@@ -56,7 +56,7 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps='handled'>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Text style={styles.logoText}>
             Trivio<Text style={styles.logoAccent}>Q</Text>
@@ -66,26 +66,26 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
 
         <View style={styles.form}>
           <Text style={styles.label}>{t('auth.displayNameLabel')}</Text>
-          <TextInput style={styles.input} placeholder={t('auth.displayNamePlaceholder')} placeholderTextColor='#64748b' value={displayName} onChangeText={setDisplayName} />
+          <TextInput style={styles.input} placeholder={t('auth.displayNamePlaceholder')} placeholderTextColor="#64748b" value={displayName} onChangeText={setDisplayName} />
 
           <Text style={styles.label}>{t('auth.usernameLabel')}</Text>
-          <TextInput style={styles.input} placeholder={t('auth.usernamePlaceholder')} placeholderTextColor='#64748b' value={username} onChangeText={(v) => setUsername(v.toLowerCase())} autoCapitalize='none' />
+          <TextInput style={styles.input} placeholder={t('auth.usernamePlaceholder')} placeholderTextColor="#64748b" value={username} onChangeText={(v) => setUsername(v.toLowerCase())} autoCapitalize="none" />
 
           <Text style={styles.label}>{t('auth.emailLabel')}</Text>
-          <TextInput style={styles.input} placeholder='email@example.com' placeholderTextColor='#64748b' value={email} onChangeText={setEmail} autoCapitalize='none' keyboardType='email-address' />
+          <TextInput style={styles.input} placeholder="email@example.com" placeholderTextColor="#64748b" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
 
           <Text style={styles.label}>{t('auth.passwordLabel')}</Text>
-          <TextInput style={styles.input} placeholder='••••••••' placeholderTextColor='#64748b' value={password} onChangeText={setPassword} secureTextEntry />
+          <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor="#64748b" value={password} onChangeText={setPassword} secureTextEntry />
 
           <Text style={styles.label}>{t('auth.dateOfBirthLabel')}</Text>
-          <TextInput style={styles.input} placeholder='YYYY-MM-DD' placeholderTextColor='#64748b' value={dateOfBirth} onChangeText={setDateOfBirth} keyboardType='numbers-and-punctuation' maxLength={10} />
+          <TextInput style={styles.input} placeholder="YYYY-MM-DD" placeholderTextColor="#64748b" value={dateOfBirth} onChangeText={setDateOfBirth} keyboardType="numbers-and-punctuation" maxLength={10} />
           <Text style={styles.hint}>{t('auth.dateOfBirthHint')}</Text>
 
           <Text style={styles.label}>{t('auth.referralCodeLabel')}</Text>
-          <TextInput style={styles.input} placeholder={t('auth.referralCodePlaceholder')} placeholderTextColor='#64748b' value={referralCode} onChangeText={setReferralCode} autoCapitalize='none' />
+          <TextInput style={styles.input} placeholder={t('auth.referralCodePlaceholder')} placeholderTextColor="#64748b" value={referralCode} onChangeText={setReferralCode} autoCapitalize="none" />
 
           <TouchableOpacity style={styles.signupButton} onPress={handleSignup} disabled={isPending} activeOpacity={0.8}>
-            {isPending ? <ActivityIndicator color='#fff' /> : <Text style={styles.signupButtonText}>{t('auth.createButton')}</Text>}
+            {isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.signupButtonText}>{t('auth.createButton')}</Text>}
           </TouchableOpacity>
         </View>
 

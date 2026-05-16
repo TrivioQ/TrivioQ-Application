@@ -20,10 +20,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const parsed = UpdateBonusPlanSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request body', details: parsed.error.format() },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Invalid request body', details: parsed.error.format() }, { status: 400 });
     }
 
     const { title, periodType, rewardType, startDate, endDate, payoutValues } = parsed.data;

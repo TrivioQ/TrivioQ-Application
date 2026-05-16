@@ -78,9 +78,9 @@ function HomeStackNavigator() {
         headerTitleStyle: { fontWeight: '800' },
       }}
     >
-      <HomeStack.Screen name='HomeDashboard' component={HomeDashboard} options={{ title: t('common.brandName') }} />
+      <HomeStack.Screen name="HomeDashboard" component={HomeDashboard} options={{ title: t('common.brandName') }} />
       <HomeStack.Screen
-        name='DropActive'
+        name="DropActive"
         component={DropActive}
         options={{
           title: t('common.activeDrop'),
@@ -106,10 +106,10 @@ function ProfileStackNavigator() {
         headerTitleStyle: { fontWeight: '800' },
       }}
     >
-      <ProfileStack.Screen name='ProfileHome' component={ProfileScreen} options={{ title: t('common.profile') }} />
-      <ProfileStack.Screen name='Subscription' component={SubscriptionScreen} options={{ title: t('common.subscription') }} />
-      <ProfileStack.Screen name='Terms' component={TermsScreen} options={{ title: t('profile.terms') }} />
-      <ProfileStack.Screen name='Privacy' component={PrivacyScreen} options={{ title: t('profile.privacy') }} />
+      <ProfileStack.Screen name="ProfileHome" component={ProfileScreen} options={{ title: t('common.profile') }} />
+      <ProfileStack.Screen name="Subscription" component={SubscriptionScreen} options={{ title: t('common.subscription') }} />
+      <ProfileStack.Screen name="Terms" component={TermsScreen} options={{ title: t('profile.terms') }} />
+      <ProfileStack.Screen name="Privacy" component={PrivacyScreen} options={{ title: t('profile.privacy') }} />
     </ProfileStack.Navigator>
   );
 }
@@ -142,35 +142,35 @@ function MainTabNavigator() {
       }}
     >
       <Tab.Screen
-        name='Home'
+        name="Home"
         component={HomeStackNavigator}
         options={{
           tabBarLabel: t('common.home'),
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon='🏠' focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon="🏠" focused={focused} />,
         }}
       />
       <Tab.Screen
-        name='Leaderboard'
+        name="Leaderboard"
         component={LeaderboardScreen}
         options={{
           tabBarLabel: t('common.leaderboard'),
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon='🏆' focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon="🏆" focused={focused} />,
         }}
       />
       <Tab.Screen
-        name='History'
+        name="History"
         component={HistoryScreen}
         options={{
           tabBarLabel: t('common.history'),
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon='📋' focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon="📋" focused={focused} />,
         }}
       />
       <Tab.Screen
-        name='Profile'
+        name="Profile"
         component={ProfileStackNavigator}
         options={{
           tabBarLabel: t('common.profile'),
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon='👤' focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon="👤" focused={focused} />,
         }}
       />
     </Tab.Navigator>
@@ -182,8 +182,8 @@ const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 function AuthStackNavigator() {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
-      <AuthStack.Screen name='Login' component={LoginScreen} />
-      <AuthStack.Screen name='Signup'>{({ navigation }) => <SignupScreen onNavigateToLogin={() => navigation.navigate('Login')} />}</AuthStack.Screen>
+      <AuthStack.Screen name="Login" component={LoginScreen} />
+      <AuthStack.Screen name="Signup">{({ navigation }) => <SignupScreen onNavigateToLogin={() => navigation.navigate('Login')} />}</AuthStack.Screen>
     </AuthStack.Navigator>
   );
 }
@@ -197,5 +197,5 @@ export function AppNavigator() {
     return null; // Or a splash/loading screen
   }
 
-  return <RootStack.Navigator screenOptions={{ headerShown: false }}>{user ? <RootStack.Screen name='Main' component={MainTabNavigator} /> : <RootStack.Screen name='Auth' component={AuthStackNavigator} />}</RootStack.Navigator>;
+  return <RootStack.Navigator screenOptions={{ headerShown: false }}>{user ? <RootStack.Screen name="Main" component={MainTabNavigator} /> : <RootStack.Screen name="Auth" component={AuthStackNavigator} />}</RootStack.Navigator>;
 }

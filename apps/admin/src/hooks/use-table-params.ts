@@ -10,7 +10,7 @@ export function useTableParams() {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [sorting, setSorting] = useState<SortingState>([]);
-  
+
   const currentParamsStr = searchParams.toString();
   const [prevParamsStr, setPrevParamsStr] = useState(currentParamsStr);
 
@@ -32,7 +32,7 @@ export function useTableParams() {
       }
       startTransition(() => router.push(`${pathname}?${params.toString()}`));
     },
-    [searchParams, pathname, router]
+    [searchParams, pathname, router],
   );
 
   const handleSortingChange = useCallback(
@@ -45,7 +45,7 @@ export function useTableParams() {
         pushParams({ sortBy: null, sortOrder: null, page: '1' });
       }
     },
-    [sorting, pushParams]
+    [sorting, pushParams],
   );
 
   return { pushParams, isPending, sorting, handleSortingChange, searchParams };

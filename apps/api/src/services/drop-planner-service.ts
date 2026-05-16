@@ -20,14 +20,7 @@ const dropsQueue = new Queue<DropsQueuePayload>('drops-queue', { connection });
 function msUntilWindowStart(windowStart: Date, from: Date): number {
   // activeWindowStart is stored as a full DateTime; extract only the time-of-day
   // portion and apply it to today's UTC date so the delay is always relative to now.
-  const todayStart = Date.UTC(
-    from.getUTCFullYear(),
-    from.getUTCMonth(),
-    from.getUTCDate(),
-    windowStart.getUTCHours(),
-    windowStart.getUTCMinutes(),
-    windowStart.getUTCSeconds(),
-  );
+  const todayStart = Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate(), windowStart.getUTCHours(), windowStart.getUTCMinutes(), windowStart.getUTCSeconds());
   const diff = todayStart - from.getTime();
   return Math.max(0, diff);
 }
@@ -36,10 +29,7 @@ export async function scheduleDailyDrops(): Promise<void> {
   const now = new Date();
   console.log('[DropPlanner] scheduleDailyDrops running at', now.toISOString());
 
-  const [freeLimit, premiumLimit] = await Promise.all([
-    getSettingNumber('max_drops_free', 7),
-    getSettingNumber('max_drops_premium', 100),
-  ]);
+  const [freeLimit, premiumLimit] = await Promise.all([getSettingNumber('max_drops_free', 7), getSettingNumber('max_drops_premium', 100)]);
 
   const users = await prisma.user.findMany({
     where: { role: 'USER' },
@@ -79,13 +69,7 @@ export async function scheduleDailyDrops(): Promise<void> {
 
         const scheduledFor = new Date(now.getTime() + delayMs);
 
-        jobs.push(
-          dropsQueue.add(
-            'schedule-drop',
-            { userId: user.id, isMasteryDay, dailyLimit },
-            { delay: delayMs, jobId: `drop-${user.id}-${scheduledFor.getTime()}` },
-          ),
-        );
+        jobs.push(dropsQueue.add('schedule-drop', { userId: user.id, isMasteryDay, dailyLimit }, { delay: delayMs, jobId: `drop-${user.id}-${scheduledFor.getTime()}` }));
       }
 
       await Promise.all(jobs);

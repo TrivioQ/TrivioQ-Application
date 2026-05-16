@@ -8,11 +8,7 @@ import { getTranslations } from 'next-intl/server';
 
 const PAGE_SIZE = 20;
 
-export default async function UsersPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
+export default async function UsersPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const t = await getTranslations('users');
   const params = await searchParams;
   const page = typeof params.page === 'string' ? parseInt(params.page, 10) : 1;
@@ -33,23 +29,10 @@ export default async function UsersPage({
         <p className="text-gray-500 mt-2">{t('description')}</p>
       </div>
 
-      {result.error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-md">
-          {result.error}
-        </div>
-      )}
+      {result.error && <div className="bg-red-50 text-red-600 p-4 rounded-md">{result.error}</div>}
 
       <Suspense>
-        <DataTable
-          columns={columns}
-          data={data}
-          pageCount={totalPages}
-          currentPage={page}
-          search={search}
-          total={total}
-          pageSize={PAGE_SIZE}
-          filterSlot={<TierFilter current={tier} />}
-        />
+        <DataTable columns={columns} data={data} pageCount={totalPages} currentPage={page} search={search} total={total} pageSize={PAGE_SIZE} filterSlot={<TierFilter current={tier} />} />
       </Suspense>
     </div>
   );

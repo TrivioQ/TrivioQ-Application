@@ -8,11 +8,7 @@ import { getTranslations } from 'next-intl/server';
 
 const PAGE_SIZE = 20;
 
-export default async function FAQsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+export default async function FAQsPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const t = await getTranslations('faqs');
   const params = await searchParams;
   const page = typeof params.page === 'string' ? parseInt(params.page, 10) : 1;
@@ -33,23 +29,10 @@ export default async function FAQsPage({
         <p className="text-gray-500 mt-2">{t('description')}</p>
       </div>
 
-      {result.error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-md">{result.error}</div>
-      )}
+      {result.error && <div className="bg-red-50 text-red-600 p-4 rounded-md">{result.error}</div>}
 
       <Suspense>
-        <DataTable
-          columns={columns}
-          data={data}
-          pageCount={totalPages}
-          currentPage={page}
-          search={search}
-          total={total}
-          pageSize={PAGE_SIZE}
-          searchPlaceholder={t('searchPlaceholder')}
-          filterSlot={<FaqStatusFilter current={active} />}
-          actionSlot={<AddFAQButton />}
-        />
+        <DataTable columns={columns} data={data} pageCount={totalPages} currentPage={page} search={search} total={total} pageSize={PAGE_SIZE} searchPlaceholder={t('searchPlaceholder')} filterSlot={<FaqStatusFilter current={active} />} actionSlot={<AddFAQButton />} />
       </Suspense>
     </div>
   );

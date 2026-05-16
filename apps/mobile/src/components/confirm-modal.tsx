@@ -37,7 +37,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   return (
     <ConfirmContext.Provider value={confirm}>
       {children}
-      <Modal visible={open} transparent animationType='fade' onRequestClose={() => handleClose(false)}>
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => handleClose(false)}>
         <View style={styles.overlay}>
           <View style={styles.card}>
             <View style={[styles.accent, options.isDestructive ? styles.accentDestructive : styles.accentDefault]} />

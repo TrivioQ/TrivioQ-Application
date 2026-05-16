@@ -151,4 +151,4 @@ These Terms, together with our Privacy Policy, constitute the entire agreement b
 
 ---
 
-*© 2026 Enatos Tech. All rights reserved.*
+_© 2026 Enatos Tech. All rights reserved._

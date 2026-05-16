@@ -76,7 +76,7 @@ export default function SubscriptionScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size='large' color='#6366f1' />
+        <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
   }
@@ -153,7 +153,7 @@ export default function SubscriptionScreen() {
 
             <TouchableOpacity style={[styles.activateButton, (onDemandTokensAvailable === 0 || activating) && styles.activateButtonDisabled]} onPress={handleActivate} disabled={onDemandTokensAvailable === 0 || activating} activeOpacity={0.8}>
               {activating ? (
-                <ActivityIndicator size='small' color='#fff' />
+                <ActivityIndicator size="small" color="#fff" />
               ) : (
                 <Text style={styles.activateButtonText}>
                   Activate {daysToActivate} Day{daysToActivate !== 1 ? 's' : ''}

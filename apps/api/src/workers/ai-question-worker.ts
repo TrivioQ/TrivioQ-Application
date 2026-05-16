@@ -104,11 +104,7 @@ Return a JSON array of objects with exactly one entry per question, in the same 
   "aiFeedback": "<concise feedback explaining the score>"
 }`;
 
-async function reviewQuestionsForQuality(
-  questions: { suggestedText: string; difficultyLevel: DifficultyLevel; suggestedChoices: any; hint: string; explanation: string }[],
-  topic: string,
-  _categorySlug: string,
-): Promise<AIReviewResult[]> {
+async function reviewQuestionsForQuality(questions: { suggestedText: string; difficultyLevel: DifficultyLevel; suggestedChoices: any; hint: string; explanation: string }[], topic: string): Promise<AIReviewResult[]> {
   console.log(`[AIQuestionWorker] Requesting quality review for ${questions.length} questions on topic="${topic}"`);
   console.log(`[AIQuestionWorker] Quality review system prompt (first 120 chars): ${QUALITY_REVIEW_SYSTEM_PROMPT.slice(0, 120)}...`);
 
@@ -192,7 +188,7 @@ async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promi
   if (uniqueQuestions.length > 0) {
     let qualityReviews: AIReviewResult[];
     try {
-      qualityReviews = await reviewQuestionsForQuality(uniqueQuestions, topic, categorySlug);
+      qualityReviews = await reviewQuestionsForQuality(uniqueQuestions, topic);
     } catch (error) {
       console.error(`[AIQuestionWorker] Quality review failed for topic="${topic}":`, error);
       throw error;
@@ -213,9 +209,7 @@ async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promi
   try {
     await prisma.pendingQuestion.createMany({ data: rows as any });
 
-    console.log(
-      `[AIQuestionWorker] Batch-inserted ${rows.length} PendingQuestions for topic="${topic}" (${duplicateCount} duplicates, ${uniqueQuestions.length} reviewed)`,
-    );
+    console.log(`[AIQuestionWorker] Batch-inserted ${rows.length} PendingQuestions for topic="${topic}" (${duplicateCount} duplicates, ${uniqueQuestions.length} reviewed)`);
   } catch (error) {
     console.error(`[AIQuestionWorker] createMany failed for topic="${topic}":`, error);
     throw error;
@@ -235,8 +229,8 @@ aiQuestionWorker.on('completed', (job) => {
         queueName: QUEUE_NAME,
         jobName: job.name,
         status: 'COMPLETED',
-        payload: job.data,
-        result: job.returnvalue,
+        payload: job.data as any,
+        result: 'Job was successful.',
       },
     })
     .catch((err) => console.error('[AIQuestionWorker] Failed to log completed job:', err));
@@ -251,7 +245,7 @@ aiQuestionWorker.on('failed', (job, err) => {
         queueName: QUEUE_NAME,
         jobName: job?.name ?? 'unknown',
         status: 'FAILED',
-        payload: job?.data ?? {},
+        payload: (job?.data ?? {}) as any,
         result: { message: err.message, stack: err.stack },
       },
     })

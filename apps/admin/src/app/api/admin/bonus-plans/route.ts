@@ -31,10 +31,7 @@ export async function POST(req: NextRequest) {
     const parsed = CreateBonusPlanSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request body', details: parsed.error.format() },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Invalid request body', details: parsed.error.format() }, { status: 400 });
     }
 
     const { title, periodType, rewardType, startDate, endDate, payoutValues } = parsed.data;

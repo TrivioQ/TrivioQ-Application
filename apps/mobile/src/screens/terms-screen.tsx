@@ -20,7 +20,7 @@ export default function TermsScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {loading ? (
-        <ActivityIndicator color='#6366f1' style={styles.loader} />
+        <ActivityIndicator color="#6366f1" style={styles.loader} />
       ) : doc ? (
         <Markdown style={markdownStyles}>{doc.content}</Markdown>
       ) : (

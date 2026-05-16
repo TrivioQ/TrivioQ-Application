@@ -122,7 +122,7 @@ export default function HomeDashboard({ navigation }: any) {
       {/* Active Drop Banner */}
       {dropLoading ? (
         <View style={styles.bannerSkeleton}>
-          <ActivityIndicator size='small' color='#4c669f' />
+          <ActivityIndicator size="small" color="#4c669f" />
           <Text style={styles.skeletonLabel}>{t('home.checkingDrop')}</Text>
         </View>
       ) : activeDrop ? (
@@ -137,7 +137,7 @@ export default function HomeDashboard({ navigation }: any) {
 
       {/* Profile metrics */}
       {profileLoading ? (
-        <ActivityIndicator size='large' color='#0000ff' style={styles.loader} />
+        <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />
       ) : profileError ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{t('home.failedMetrics')}</Text>
@@ -159,10 +159,10 @@ export default function HomeDashboard({ navigation }: any) {
       <View style={styles.buttonContainer}>
         <Button title={t('home.editPreferences')} onPress={() => navigation.navigate('Preferences')} />
         <View style={{ height: 15 }} />
-        <Button title={onDemandMutation.isPending ? t('home.requesting') : t('home.requestNext')} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending} color='#9b59b6' />
+        <Button title={onDemandMutation.isPending ? t('home.requesting') : t('home.requestNext')} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending} color="#9b59b6" />
       </View>
 
-      <Modal visible={isPaywallVisible} animationType='slide' transparent={true}>
+      <Modal visible={isPaywallVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{t('home.paywallTitle')}</Text>

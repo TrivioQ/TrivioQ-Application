@@ -43,8 +43,8 @@ function formatDate(val: Date | string | null) {
 
 const TIER_STYLES: Record<string, string> = {
   PREMIUM: 'bg-amber-100 text-amber-800',
-  PLUS:    'bg-purple-100 text-purple-800',
-  FREE:    'bg-gray-100 text-gray-600',
+  PLUS: 'bg-purple-100 text-purple-800',
+  FREE: 'bg-gray-100 text-gray-600',
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -54,9 +54,9 @@ export function SubscriptionHistoryExplorer() {
 
   const sourceLabels: Record<string, string> = {
     VAULT_ACTIVATION: t('sources.vaultActivation'),
-    ADMIN_GRANT:      t('sources.adminGrant'),
-    PURCHASE:         t('sources.purchase'),
-    LEADERBOARD:      t('sources.leaderboard'),
+    ADMIN_GRANT: t('sources.adminGrant'),
+    PURCHASE: t('sources.purchase'),
+    LEADERBOARD: t('sources.leaderboard'),
   };
 
   const [query, setQuery] = useState('');
@@ -87,7 +87,11 @@ export function SubscriptionHistoryExplorer() {
     setQuery(val);
     setShowDropdown(true);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!val.trim()) { setSuggestions([]); setIsSearching(false); return; }
+    if (!val.trim()) {
+      setSuggestions([]);
+      setIsSearching(false);
+      return;
+    }
     setIsSearching(true);
     debounceRef.current = setTimeout(async () => {
       const result = await searchUsersByUsername(val);
@@ -117,13 +121,7 @@ export function SubscriptionHistoryExplorer() {
     loadHistory(selectedUser.id, next);
   }
 
-  const columnHeaders = [
-    t('columns.tier'),
-    t('columns.source'),
-    t('columns.startedAt'),
-    t('columns.expiresAt'),
-    t('columns.recordedAt'),
-  ];
+  const columnHeaders = [t('columns.tier'), t('columns.source'), t('columns.startedAt'), t('columns.expiresAt'), t('columns.recordedAt')];
 
   return (
     <div className="space-y-6">
@@ -131,37 +129,20 @@ export function SubscriptionHistoryExplorer() {
       <div ref={containerRef} className="relative w-full max-w-md">
         <div className="relative flex items-center">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-          {isSearching && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 animate-spin" />
-          )}
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => handleQueryChange(e.target.value)}
-            onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
-            placeholder={t('searchPlaceholder')}
-            className="w-full pl-9 pr-9 py-2.5 rounded-lg border border-gray-200 bg-white text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 animate-spin" />}
+          <input type="text" value={query} onChange={(e) => handleQueryChange(e.target.value)} onFocus={() => suggestions.length > 0 && setShowDropdown(true)} placeholder={t('searchPlaceholder')} className="w-full pl-9 pr-9 py-2.5 rounded-lg border border-gray-200 bg-white text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
         </div>
 
-        {showDropdown && (query.trim().length > 0) && (
+        {showDropdown && query.trim().length > 0 && (
           <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-            {suggestions.length === 0 && !isSearching && (
-              <p className="px-4 py-3 text-sm text-gray-500">{t('noUsersFound')}</p>
-            )}
+            {suggestions.length === 0 && !isSearching && <p className="px-4 py-3 text-sm text-gray-500">{t('noUsersFound')}</p>}
             {suggestions.map((user) => (
-              <button
-                key={user.id}
-                onMouseDown={() => handleSelect(user)}
-                className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors text-left gap-4"
-              >
+              <button key={user.id} onMouseDown={() => handleSelect(user)} className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors text-left gap-4">
                 <div>
                   <span className="font-medium text-gray-900">{user.username}</span>
                   <span className="ml-2 text-gray-400 text-xs">{user.email}</span>
                 </div>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${TIER_STYLES[user.subscriptionTier] ?? 'bg-gray-100 text-gray-600'}`}>
-                  {user.subscriptionTier}
-                </span>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${TIER_STYLES[user.subscriptionTier] ?? 'bg-gray-100 text-gray-600'}`}>{user.subscriptionTier}</span>
               </button>
             ))}
           </div>
@@ -207,9 +188,7 @@ export function SubscriptionHistoryExplorer() {
                 {history?.data.map((row) => (
                   <tr key={row.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${TIER_STYLES[row.tier] ?? 'bg-gray-100 text-gray-600'}`}>
-                        {row.tier}
-                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${TIER_STYLES[row.tier] ?? 'bg-gray-100 text-gray-600'}`}>{row.tier}</span>
                     </td>
                     <td className="px-4 py-3 text-gray-700">{sourceLabels[row.source] ?? row.source}</td>
                     <td className="px-4 py-3 text-gray-600">{formatDate(row.startedAt)}</td>
@@ -224,11 +203,7 @@ export function SubscriptionHistoryExplorer() {
           {/* ── Pagination ──────────────────────────────────────────────── */}
           {history && (
             <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-500">
-                {history.total > 0
-                  ? t('showing', { from: (page - 1) * history.pageSize + 1, to: Math.min(page * history.pageSize, history.total), total: history.total })
-                  : t('noRecords')}
-              </p>
+              <p className="text-sm text-gray-500">{history.total > 0 ? t('showing', { from: (page - 1) * history.pageSize + 1, to: Math.min(page * history.pageSize, history.total), total: history.total }) : t('noRecords')}</p>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => handlePageChange(page - 1)} disabled={page <= 1 || isLoading}>
                   <ChevronLeft className="h-4 w-4" /> {t('prev')}

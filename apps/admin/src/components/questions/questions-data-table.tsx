@@ -1,21 +1,8 @@
 'use client';
 
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  useReactTable,
-  ColumnDef,
-} from '@tanstack/react-table';
+import { flexRender, getCoreRowModel, getFilteredRowModel, useReactTable, ColumnDef } from '@tanstack/react-table';
 import { useTableParams } from '@/hooks/use-table-params';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { buttonVariants } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -27,13 +14,12 @@ interface Props<TData, TValue> {
 }
 
 export function QuestionsDataTable<TData, TValue>({ columns, result }: Props<TData, TValue>) {
-  "use no memo";
+  'use no memo';
 
   const t = useTranslations('questions');
   const { data, page, totalPages, total, pageSize } = result;
   const { pushParams, isPending, sorting, handleSortingChange } = useTableParams();
 
-  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table API is inherently incompatible with React Compiler memoization
   const table = useReactTable({
     data: data as TData[],
     columns,
@@ -55,11 +41,7 @@ export function QuestionsDataTable<TData, TValue>({ columns, result }: Props<TDa
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
+                  <TableHead key={header.id}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</TableHead>
                 ))}
               </TableRow>
             ))}
@@ -69,9 +51,7 @@ export function QuestionsDataTable<TData, TValue>({ columns, result }: Props<TDa
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}
                 </TableRow>
               ))
@@ -87,27 +67,13 @@ export function QuestionsDataTable<TData, TValue>({ columns, result }: Props<TDa
       </div>
 
       <div className="flex items-center justify-between text-sm text-gray-600">
-        <span>
-          {total === 0 ? t('noResults') : t('showing', { start, end, total })}
-        </span>
+        <span>{total === 0 ? t('noResults') : t('showing', { start, end, total })}</span>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => pushParams({ page: String(page - 1) })}
-            disabled={page <= 1 || isPending}
-            className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
-            aria-label={t('previousPage')}
-          >
+          <button onClick={() => pushParams({ page: String(page - 1) })} disabled={page <= 1 || isPending} className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })} aria-label={t('previousPage')}>
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="font-medium">
-            {t('pageOf', { page, totalPages })}
-          </span>
-          <button
-            onClick={() => pushParams({ page: String(page + 1) })}
-            disabled={page >= totalPages || isPending}
-            className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
-            aria-label={t('nextPage')}
-          >
+          <span className="font-medium">{t('pageOf', { page, totalPages })}</span>
+          <button onClick={() => pushParams({ page: String(page + 1) })} disabled={page >= totalPages || isPending} className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })} aria-label={t('nextPage')}>
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

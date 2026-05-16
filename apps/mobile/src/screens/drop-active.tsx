@@ -170,7 +170,7 @@ export default function DropActive() {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size='large' color='#4c669f' />
+        <ActivityIndicator size="large" color="#4c669f" />
         <Text style={styles.skeletonText}>{t('drop.loading')}</Text>
       </View>
     );
@@ -308,7 +308,7 @@ export default function DropActive() {
             );
           })}
 
-          {submitMutation.isPending && <ActivityIndicator size='small' color='#4c669f' style={{ marginTop: 20 }} />}
+          {submitMutation.isPending && <ActivityIndicator size="small" color="#4c669f" style={{ marginTop: 20 }} />}
 
           {answerResult && (
             <View style={styles.resultContainer}>
@@ -328,7 +328,7 @@ export default function DropActive() {
         </View>
       )}
 
-      <Modal visible={isPaywallVisible} animationType='slide' transparent={true}>
+      <Modal visible={isPaywallVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{t('drop.paywallTitle')}</Text>

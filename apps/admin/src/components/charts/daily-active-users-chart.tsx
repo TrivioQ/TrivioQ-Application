@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { DailyActiveUser } from '@/app/actions/dashboard-actions';
 
 export function DailyActiveUsersChart({ data }: { data: DailyActiveUser[] }) {
@@ -25,11 +17,7 @@ export function DailyActiveUsersChart({ data }: { data: DailyActiveUser[] }) {
           }}
           interval="preserveStartEnd"
         />
-        <YAxis
-          tick={{ fontSize: 11, fill: '#6b7280' }}
-          allowDecimals={false}
-          width={40}
-        />
+        <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} allowDecimals={false} width={40} />
         <Tooltip
           contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
           labelFormatter={(label) => {
@@ -38,14 +26,7 @@ export function DailyActiveUsersChart({ data }: { data: DailyActiveUser[] }) {
           }}
           formatter={(value) => [value, 'Active Users']}
         />
-        <Line
-          type="monotone"
-          dataKey="users"
-          stroke="#6366f1"
-          strokeWidth={2}
-          dot={false}
-          activeDot={{ r: 5, fill: '#6366f1' }}
-        />
+        <Line type="monotone" dataKey="users" stroke="#6366f1" strokeWidth={2} dot={false} activeDot={{ r: 5, fill: '#6366f1' }} />
       </LineChart>
     </ResponsiveContainer>
   );

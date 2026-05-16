@@ -18,17 +18,16 @@ export async function getUsers(filters: UserFilters = {}) {
   const { search, tier, page = 1, pageSize = 20, sortBy = 'lastLogin', sortOrder = 'desc' } = filters;
   try {
     const where = {
-      ...(search ? {
-        OR: [
-          { username: { contains: search, mode: 'insensitive' as const } },
-          { email: { contains: search, mode: 'insensitive' as const } },
-        ]
-      } : {}),
+      ...(search
+        ? {
+            OR: [{ username: { contains: search, mode: 'insensitive' as const } }, { email: { contains: search, mode: 'insensitive' as const } }],
+          }
+        : {}),
       ...(tier ? { subscriptionTier: tier } : {}),
     };
-    
+
     const skip = (page - 1) * pageSize;
-    
+
     const [total, data] = await Promise.all([
       prisma.user.count({ where }),
       prisma.user.findMany({
@@ -36,16 +35,16 @@ export async function getUsers(filters: UserFilters = {}) {
         orderBy: { [sortBy]: sortOrder },
         skip,
         take: pageSize,
-      })
+      }),
     ]);
 
-    return { 
-      success: true, 
-      data, 
-      total, 
-      page, 
-      pageSize, 
-      totalPages: Math.max(1, Math.ceil(total / pageSize)) 
+    return {
+      success: true,
+      data,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
     };
   } catch (error) {
     console.error('Failed to fetch users:', error);
@@ -74,16 +73,19 @@ export async function toggleUserTier(userId: string, currentTier: SubscriptionTi
   }
 }
 
-export async function updateUser(userId: string, data: {
-  email: string;
-  username: string;
-  displayName?: string;
-  dateOfBirth?: string;
-  subscriptionTier: SubscriptionTier;
-  activeWindowStart: string;
-  activeWindowEnd: string;
-  onDemandTokens: number;
-}) {
+export async function updateUser(
+  userId: string,
+  data: {
+    email: string;
+    username: string;
+    displayName?: string;
+    dateOfBirth?: string;
+    subscriptionTier: SubscriptionTier;
+    activeWindowStart: string;
+    activeWindowEnd: string;
+    onDemandTokens: number;
+  },
+) {
   try {
     const now = new Date();
     const existing = await prisma.user.findUnique({ where: { id: userId }, select: { subscriptionTier: true } });
@@ -106,9 +108,11 @@ export async function updateUser(userId: string, data: {
     ];
 
     if (tierChanged) {
-      ops.push(prisma.userSubscriptionHistory.create({
-        data: { userId, tier: data.subscriptionTier, source: 'ADMIN_GRANT', startedAt: now },
-      }));
+      ops.push(
+        prisma.userSubscriptionHistory.create({
+          data: { userId, tier: data.subscriptionTier, source: 'ADMIN_GRANT', startedAt: now },
+        }),
+      );
     }
 
     await prisma.$transaction(ops);

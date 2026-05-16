@@ -40,29 +40,13 @@ export type PaginatedQuestionsResult = {
   totalPages: number;
 };
 
-export async function getQuestions(
-  filters: QuestionFilters = {}
-): Promise<PaginatedQuestionsResult> {
-  const {
-    search,
-    difficulties,
-    categoryIds,
-    page = 1,
-    pageSize = PAGE_SIZE,
-    sortBy = 'id',
-    sortOrder = 'desc',
-  } = filters;
+export async function getQuestions(filters: QuestionFilters = {}): Promise<PaginatedQuestionsResult> {
+  const { search, difficulties, categoryIds, page = 1, pageSize = PAGE_SIZE, sortBy = 'id', sortOrder = 'desc' } = filters;
 
   const where = {
-    ...(search
-      ? { questionText: { contains: search, mode: 'insensitive' as const } }
-      : {}),
-    ...(difficulties && difficulties.length > 0
-      ? { difficultyLevel: { in: difficulties } }
-      : {}),
-    ...(categoryIds && categoryIds.length > 0
-      ? { categories: { some: { id: { in: categoryIds } } } }
-      : {}),
+    ...(search ? { questionText: { contains: search, mode: 'insensitive' as const } } : {}),
+    ...(difficulties && difficulties.length > 0 ? { difficultyLevel: { in: difficulties } } : {}),
+    ...(categoryIds && categoryIds.length > 0 ? { categories: { some: { id: { in: categoryIds } } } } : {}),
   };
 
   const skip = (page - 1) * pageSize;
@@ -113,7 +97,7 @@ export async function getCategories(filters: QuestionCategoryFilters = {}) {
         orderBy: { [sortBy]: sortOrder },
         skip,
         take: pageSize,
-      })
+      }),
     ]);
 
     return {
@@ -122,7 +106,7 @@ export async function getCategories(filters: QuestionCategoryFilters = {}) {
       total,
       page,
       pageSize,
-      totalPages: Math.max(1, Math.ceil(total / pageSize))
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
     };
   } catch (error) {
     console.error('Failed to fetch categories:', error);
@@ -130,14 +114,7 @@ export async function getCategories(filters: QuestionCategoryFilters = {}) {
   }
 }
 
-export async function createQuestion(data: {
-  questionText: string;
-  difficultyLevel: DifficultyLevel;
-  choices: { text: string; isCorrect: boolean }[];
-  categoryIds: string[];
-  explanationText?: string;
-  hintText?: string;
-}) {
+export async function createQuestion(data: { questionText: string; difficultyLevel: DifficultyLevel; choices: { text: string; isCorrect: boolean }[]; categoryIds: string[]; explanationText?: string; hintText?: string }) {
   try {
     const question = await prisma.question.create({
       data: {
@@ -153,7 +130,7 @@ export async function createQuestion(data: {
           })),
         },
         categories: {
-          connect: data.categoryIds.map(id => ({ id })),
+          connect: data.categoryIds.map((id) => ({ id })),
         },
       },
     });
@@ -166,14 +143,17 @@ export async function createQuestion(data: {
   }
 }
 
-export async function updateQuestion(id: string, data: {
-  questionText: string;
-  difficultyLevel: DifficultyLevel;
-  choices: { text: string; isCorrect: boolean }[];
-  categoryIds: string[];
-  explanationText?: string;
-  hintText?: string;
-}) {
+export async function updateQuestion(
+  id: string,
+  data: {
+    questionText: string;
+    difficultyLevel: DifficultyLevel;
+    choices: { text: string; isCorrect: boolean }[];
+    categoryIds: string[];
+    explanationText?: string;
+    hintText?: string;
+  },
+) {
   try {
     const existing = await prisma.question.findUnique({
       where: { id },
@@ -181,9 +161,9 @@ export async function updateQuestion(id: string, data: {
     });
     if (!existing) return { success: false, error: 'Question not found.' };
 
-    const existingIds = existing.categories.map(c => c.id);
-    const toConnect = data.categoryIds.filter(cid => !existingIds.includes(cid));
-    const toDisconnect = existingIds.filter(cid => !data.categoryIds.includes(cid));
+    const existingIds = existing.categories.map((c) => c.id);
+    const toConnect = data.categoryIds.filter((cid) => !existingIds.includes(cid));
+    const toDisconnect = existingIds.filter((cid) => !data.categoryIds.includes(cid));
 
     await prisma.question.update({
       where: { id },
@@ -202,8 +182,8 @@ export async function updateQuestion(id: string, data: {
           })),
         },
         categories: {
-          connect: toConnect.map(cid => ({ id: cid })),
-          disconnect: toDisconnect.map(cid => ({ id: cid })),
+          connect: toConnect.map((cid) => ({ id: cid })),
+          disconnect: toDisconnect.map((cid) => ({ id: cid })),
         },
       },
     });

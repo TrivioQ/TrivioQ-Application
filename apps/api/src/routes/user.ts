@@ -50,7 +50,9 @@ router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
 
     // Strip the window fields before writing to the JSON blob — the DB columns
     // are the authoritative source; storing them twice causes drift.
-    const { activeWindowStart: _s, activeWindowEnd: _e, ...preferencesBlob } = raw;
+    const { activeWindowStart: _activeStart, activeWindowEnd: _activeEnd, ...preferencesBlob } = raw;
+    void _activeStart;
+    void _activeEnd;
     const payload = preferencesBlob as UserPreferences;
 
     // Upsert preferences into the database

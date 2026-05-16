@@ -16,7 +16,6 @@ export async function GET(req: NextRequest) {
 
   try {
     const upstream = await fetch(new URL('/v1/users/me', env.API_URL).toString(), {
-
       method: 'GET',
       headers: {
         Authorization: `Bearer ${idToken}`,
@@ -25,10 +24,13 @@ export async function GET(req: NextRequest) {
 
     if (!upstream.ok) {
       const errorData = await upstream.json().catch(() => ({}));
-      return NextResponse.json({ 
-        error: errorData.error || 'Invalid or expired session',
-        code: errorData.code 
-      }, { status: 401 });
+      return NextResponse.json(
+        {
+          error: errorData.error || 'Invalid or expired session',
+          code: errorData.code,
+        },
+        { status: 401 },
+      );
     }
 
     const user = await upstream.json();

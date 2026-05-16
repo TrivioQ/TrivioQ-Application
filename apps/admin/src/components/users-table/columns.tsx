@@ -3,15 +3,7 @@
 import { ColumnDef, Column } from '@tanstack/react-table';
 import { MoreHorizontal, Pencil, Trash, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { deleteUser, toggleUserTier } from '@/app/actions/user-actions';
 import { SubscriptionTier } from '@trivioq/database';
 import { useState, useTransition } from 'react';
@@ -95,11 +87,7 @@ export const columns: ColumnDef<UserRow>[] = [
     header: ({ column }) => <SubscriptionTierHeader column={column} />,
     cell: ({ row }) => {
       const tier = row.getValue('subscriptionTier') as string;
-      return (
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${tier === 'PREMIUM' ? 'bg-amber-100 text-amber-800' : tier === 'PLUS' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`}>
-          {tier}
-        </span>
-      );
+      return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${tier === 'PREMIUM' ? 'bg-amber-100 text-amber-800' : tier === 'PLUS' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`}>{tier}</span>;
     },
   },
   {
@@ -145,7 +133,7 @@ function UserActions({ user }: { user: UserRow }) {
     <>
       <UserModal user={user} open={editOpen} onOpenChange={setEditOpen} />
       <DropdownMenu>
-        <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>
+        <DropdownMenuTrigger className={buttonVariants({ variant: 'ghost', className: 'h-8 w-8 p-0' })} disabled={isPending}>
           <span className="sr-only">{t('actions.openMenu')}</span>
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>
