@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { makeAPICallV1 } from '@/lib/api';
 import { useNotification } from '@/context/notification-context';
 
@@ -16,9 +17,9 @@ interface SubscriptionData {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string | null): string {
+function formatDate(iso: string | null, locale: string): string {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-US', {
+  return new Date(iso).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -118,6 +119,8 @@ function IconAlertCircle() {
 
 export function SubscriptionSettings() {
   const { success: notifySuccess, error: notifyError } = useNotification();
+  const t = useTranslations('subscription');
+  const locale = useLocale();
 
   const [data, setData] = useState<SubscriptionData | null>(null);
   const [loadingData, setLoadingData] = useState(true);
@@ -150,11 +153,11 @@ export function SubscriptionSettings() {
         method: 'POST',
         body: { daysToActivate: daysToSpend },
       });
-      notifySuccess(`${daysToSpend} premium day${daysToSpend > 1 ? 's' : ''} activated successfully.`, 'Vault Activated');
+      notifySuccess(t('daysActivated', { count: daysToSpend }), t('vaultActivated'));
       setLoadingData(true);
       await fetchStatus();
     } catch (err: unknown) {
-      notifyError(err instanceof Error ? err.message : 'Failed to activate days. Please try again.', 'Error');
+      notifyError(err instanceof Error ? err.message : t('activationFailed'));
     } finally {
       setActivating(false);
     }
@@ -176,7 +179,7 @@ export function SubscriptionSettings() {
         <span className='text-red-400'>
           <IconAlertCircle />
         </span>
-        <p className='text-sm text-red-400'>Failed to load subscription details. Please refresh the page.</p>
+        <p className='text-sm text-red-400'>{t('loadFailed')}</p>
       </section>
     );
   }
@@ -193,26 +196,26 @@ export function SubscriptionSettings() {
       <section className={`rounded-2xl border p-6 space-y-5 ${isAutoRenew ? 'bg-amber-500/5 border-amber-500/20' : isVault ? 'bg-purple-500/5 border-purple-500/20' : 'bg-gray-900/50 border-white/5'}`}>
         <div className='flex items-center justify-between gap-4 flex-wrap'>
           <div>
-            <h3 className='text-lg font-bold text-white'>Current Plan</h3>
-            <p className='text-sm text-gray-400 mt-0.5'>Your active subscription status</p>
+            <h3 className='text-lg font-bold text-white'>{t('currentPlan')}</h3>
+            <p className='text-sm text-gray-400 mt-0.5'>{t('currentPlanDesc')}</p>
           </div>
 
           {isAutoRenew && (
             <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/25'>
               <IconCrown />
-              Premium
+              {t('premium')}
             </span>
           )}
           {isVault && (
             <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25'>
               <IconVault />
-              Plus
+              {t('plus')}
             </span>
           )}
           {isFree && (
             <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/5 text-gray-400 border border-white/10'>
               <IconSparkles />
-              Free
+              {t('free')}
             </span>
           )}
         </div>
@@ -221,7 +224,7 @@ export function SubscriptionSettings() {
           <div className='flex items-center gap-2 text-sm text-amber-300/80'>
             <IconCalendar />
             <span>
-              Next billing date: <span className='font-semibold text-amber-200'>{formatDate(subscriptionExpiresAt)}</span>
+              {t('nextBillingDate')}<span className='font-semibold text-amber-200'>{formatDate(subscriptionExpiresAt, locale)}</span>
             </span>
           </div>
         )}
@@ -229,7 +232,7 @@ export function SubscriptionSettings() {
           <div className='flex items-center gap-2 text-sm text-purple-300/80'>
             <IconCalendar />
             <span>
-              Plus expires: <span className='font-semibold text-purple-200'>{formatDate(subscriptionExpiresAt)}</span>
+              {t('plusExpires')}<span className='font-semibold text-purple-200'>{formatDate(subscriptionExpiresAt, locale)}</span>
             </span>
           </div>
         )}
@@ -237,7 +240,7 @@ export function SubscriptionSettings() {
         {isFree && (
           <button className='inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all'>
             <IconZap />
-            Upgrade to Premium
+            {t('upgradeToPremium')}
           </button>
         )}
       </section>
@@ -246,8 +249,8 @@ export function SubscriptionSettings() {
       <section className='bg-gray-900/50 rounded-2xl border border-white/5 p-6 space-y-5'>
         <div className='flex items-start justify-between gap-4 flex-wrap'>
           <div>
-            <h3 className='text-lg font-bold text-white'>Your Banked Plus Subscription Days</h3>
-            <p className='text-sm text-gray-400 mt-0.5'>Banked Plus days you can activate any time</p>
+            <h3 className='text-lg font-bold text-white'>{t('bankedDaysTitle')}</h3>
+            <p className='text-sm text-gray-400 mt-0.5'>{t('bankedDaysDesc')}</p>
           </div>
           <div className='flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-2'>
             <span className='text-indigo-400'>
@@ -255,9 +258,9 @@ export function SubscriptionSettings() {
             </span>
             <span className='text-2xl font-extrabold text-white tabular-nums'>{onDemandTokensAvailable}</span>
             <span className='text-xs font-semibold text-indigo-400 leading-tight'>
-              banked
+              {t('banked')}
               <br />
-              days
+              {t('days')}
             </span>
           </div>
         </div>
@@ -267,14 +270,14 @@ export function SubscriptionSettings() {
             <span className='text-amber-400'>
               <IconLock />
             </span>
-            <p className='text-sm text-amber-300/90 leading-relaxed'>Your banked days are locked while your subscription is active. They will automatically become available if you ever cancel your recurring plan.</p>
+            <p className='text-sm text-amber-300/90 leading-relaxed'>{t('daysLockedMessage')}</p>
           </div>
         )}
 
         {canActivate && (
           <div className='space-y-4'>
             <div className='space-y-1.5'>
-              <label className='text-xs font-bold uppercase tracking-wider text-gray-500'>Days to activate</label>
+              <label className='text-xs font-bold uppercase tracking-wider text-gray-500'>{t('daysToActivate')}</label>
               <div className='flex items-center gap-3'>
                 <button onClick={() => setDaysToSpend((v) => Math.max(1, v - 1))} disabled={daysToSpend <= 1} className='w-9 h-9 flex items-center justify-center rounded-lg border border-white/10 bg-gray-800 hover:bg-gray-700 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors'>
                   <IconMinus />
@@ -293,7 +296,7 @@ export function SubscriptionSettings() {
                 <button onClick={() => setDaysToSpend((v) => Math.min(onDemandTokensAvailable, v + 1))} disabled={daysToSpend >= onDemandTokensAvailable} className='w-9 h-9 flex items-center justify-center rounded-lg border border-white/10 bg-gray-800 hover:bg-gray-700 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors'>
                   <IconPlus />
                 </button>
-                <span className='text-sm text-gray-500'>of {onDemandTokensAvailable} available</span>
+                <span className='text-sm text-gray-500'>{t('ofAvailable', { n: onDemandTokensAvailable })}</span>
               </div>
             </div>
 
@@ -301,19 +304,19 @@ export function SubscriptionSettings() {
               {activating ? (
                 <>
                   <IconSpinner />
-                  Activating…
+                  {t('activating')}
                 </>
               ) : (
                 <>
                   <IconZap />
-                  Activate {daysToSpend} Day{daysToSpend !== 1 ? 's' : ''}
+                  {t('activateDays', { count: daysToSpend })}
                 </>
               )}
             </button>
           </div>
         )}
 
-        {(isFree || isVault) && onDemandTokensAvailable === 0 && <p className='text-sm text-gray-500 italic'>You have no banked days to activate. Earn more by participating in drops.</p>}
+        {(isFree || isVault) && onDemandTokensAvailable === 0 && <p className='text-sm text-gray-500 italic'>{t('noBankedDays')}</p>}
       </section>
     </div>
   );

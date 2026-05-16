@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface ScorePeriod {
   id: string;
@@ -19,15 +19,15 @@ interface ScoreHistoryTabsProps {
   monthly: ScorePeriod[];
 }
 
-function formatPeriodLabel(period: ScorePeriod): string {
+function formatPeriodLabel(period: ScorePeriod, locale: string): string {
   const start = new Date(period.periodStart);
   if (period.periodType === 'WEEKLY') {
     const end = period.periodEnd ? new Date(period.periodEnd) : null;
-    const s = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const e = end ? end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+    const s = start.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+    const e = end ? end.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
     return `${s} – ${e}`;
   }
-  return start.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  return start.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
 }
 
 function RankBadge({ rank }: { rank: number | null }) {
@@ -41,7 +41,7 @@ function RankBadge({ rank }: { rank: number | null }) {
   return <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${cls}`}>{rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`}</span>;
 }
 
-function HistoryTable({ data, t }: { data: ScorePeriod[]; t: ReturnType<typeof useTranslations<'scoreHistory'>> }) {
+function HistoryTable({ data, t, locale }: { data: ScorePeriod[]; t: ReturnType<typeof useTranslations<'scoreHistory'>>; locale: string }) {
   if (data.length === 0) {
     return (
       <div className='py-20 text-center text-gray-500'>
@@ -66,7 +66,7 @@ function HistoryTable({ data, t }: { data: ScorePeriod[]; t: ReturnType<typeof u
         <tbody className='divide-y divide-white/5'>
           {data.map((row) => (
             <tr key={row.id} className='hover:bg-white/[0.02] transition-colors'>
-              <td className='px-6 py-4 text-sm text-gray-300 font-medium'>{formatPeriodLabel(row)}</td>
+              <td className='px-6 py-4 text-sm text-gray-300 font-medium'>{formatPeriodLabel(row, locale)}</td>
               <td className='px-6 py-4 text-right font-mono text-white'>{row.baseScore.toLocaleString()}</td>
               <td className='px-6 py-4 text-right'>{row.bonusScore > 0 ? <span className='text-green-400 font-bold font-mono'>+{row.bonusScore.toLocaleString()}</span> : <span className='text-gray-600 font-mono'>—</span>}</td>
               <td className='px-6 py-4 text-right'>
@@ -85,6 +85,7 @@ function HistoryTable({ data, t }: { data: ScorePeriod[]; t: ReturnType<typeof u
 
 export function ScoreHistoryTabs({ weekly, monthly }: ScoreHistoryTabsProps) {
   const t = useTranslations('scoreHistory');
+  const locale = useLocale();
   const [activeTab, setActiveTab] = useState<'weekly' | 'monthly'>('weekly');
 
   return (
@@ -97,7 +98,7 @@ export function ScoreHistoryTabs({ weekly, monthly }: ScoreHistoryTabsProps) {
         ))}
       </div>
 
-      <HistoryTable data={activeTab === 'weekly' ? weekly : monthly} t={t} />
+      <HistoryTable data={activeTab === 'weekly' ? weekly : monthly} t={t} locale={locale} />
 
       <p className='text-center text-gray-600 text-xs'>{t('historyNote')}</p>
     </div>

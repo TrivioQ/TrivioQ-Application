@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { updateSetting } from '@/app/actions/setting-actions';
 import { Check, Pencil, X } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 type Setting = {
   key: string;
@@ -15,6 +16,7 @@ type Setting = {
 };
 
 function SettingRow({ setting }: { setting: Setting }) {
+  const t = useTranslations('appSettings');
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(setting.value);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +24,7 @@ function SettingRow({ setting }: { setting: Setting }) {
 
   const handleSave = () => {
     if (setting.dataType === 'number' && isNaN(Number(draft))) {
-      setError('Value must be a number');
+      setError(t('validationError'));
       return;
     }
     setError(null);
@@ -31,7 +33,7 @@ function SettingRow({ setting }: { setting: Setting }) {
       if (result.success) {
         setEditing(false);
       } else {
-        setError(result.error ?? 'Failed to save');
+        setError(result.error ?? t('saveFailed'));
       }
     });
   };
@@ -97,6 +99,7 @@ export default function SettingsEditor({
   currentPage?: number;
   search?: string;
 }) {
+  const t = useTranslations('appSettings');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -123,7 +126,7 @@ export default function SettingsEditor({
     <div className='space-y-4'>
       <div className="flex items-center max-w-sm border rounded-md overflow-hidden bg-white px-2 h-10 border-gray-200 shadow-sm">
         <input
-          placeholder="Search settings..."
+          placeholder={t('searchPlaceholder')}
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -131,7 +134,7 @@ export default function SettingsEditor({
         />
         {searchValue !== search && (
           <button onClick={handleSearch} className="ml-2 px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded">
-            Apply
+            {t('apply')}
           </button>
         )}
       </div>
@@ -140,17 +143,17 @@ export default function SettingsEditor({
         <table className='w-full text-sm'>
           <thead>
             <tr className='border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500'>
-              <th className='py-3 px-6'>Setting</th>
-              <th className='py-3 px-6'>Type</th>
-              <th className='py-3 px-6'>Value</th>
-              <th className='py-3 px-6'>Last Updated</th>
+              <th className='py-3 px-6'>{t('columns.setting')}</th>
+              <th className='py-3 px-6'>{t('columns.type')}</th>
+              <th className='py-3 px-6'>{t('columns.value')}</th>
+              <th className='py-3 px-6'>{t('columns.lastUpdated')}</th>
             </tr>
           </thead>
           <tbody>
             {settings.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center py-8 text-gray-500">
-                  No settings found.
+                  {t('noSettings')}
                 </td>
               </tr>
             ) : (
@@ -164,7 +167,7 @@ export default function SettingsEditor({
 
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-500">
-          Showing page {currentPage} of {Math.max(1, pageCount)}
+          {t('showingPage', { current: currentPage, total: Math.max(1, pageCount) })}
         </div>
         <div className="flex items-center space-x-2">
           <button
@@ -172,14 +175,14 @@ export default function SettingsEditor({
             disabled={currentPage <= 1}
             className="px-3 py-1 border border-gray-200 rounded text-sm disabled:opacity-50 hover:bg-gray-50"
           >
-            Prev
+            {t('prev')}
           </button>
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage >= pageCount}
             className="px-3 py-1 border border-gray-200 rounded text-sm disabled:opacity-50 hover:bg-gray-50"
           >
-            Next
+            {t('next')}
           </button>
         </div>
       </div>

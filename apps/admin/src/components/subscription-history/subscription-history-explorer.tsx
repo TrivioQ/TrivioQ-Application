@@ -4,6 +4,7 @@ import { useState, useTransition, useRef, useEffect, useCallback } from 'react';
 import { Search, ChevronLeft, ChevronRight, Loader2, History } from 'lucide-react';
 import { searchUsersByUsername, getSubscriptionHistory } from '@/app/actions/user-actions';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from 'next-intl';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -46,16 +47,18 @@ const TIER_STYLES: Record<string, string> = {
   FREE:    'bg-gray-100 text-gray-600',
 };
 
-const SOURCE_LABELS: Record<string, string> = {
-  VAULT_ACTIVATION: 'Vault Activation',
-  ADMIN_GRANT:      'Admin Grant',
-  PURCHASE:         'Purchase',
-  LEADERBOARD:      'Leaderboard',
-};
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function SubscriptionHistoryExplorer() {
+  const t = useTranslations('subscriptionHistory');
+
+  const sourceLabels: Record<string, string> = {
+    VAULT_ACTIVATION: t('sources.vaultActivation'),
+    ADMIN_GRANT:      t('sources.adminGrant'),
+    PURCHASE:         t('sources.purchase'),
+    LEADERBOARD:      t('sources.leaderboard'),
+  };
+
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<UserSuggestion[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -114,6 +117,14 @@ export function SubscriptionHistoryExplorer() {
     loadHistory(selectedUser.id, next);
   }
 
+  const columnHeaders = [
+    t('columns.tier'),
+    t('columns.source'),
+    t('columns.startedAt'),
+    t('columns.expiresAt'),
+    t('columns.recordedAt'),
+  ];
+
   return (
     <div className="space-y-6">
       {/* ── Search box ──────────────────────────────────────────────────── */}
@@ -128,7 +139,7 @@ export function SubscriptionHistoryExplorer() {
             value={query}
             onChange={(e) => handleQueryChange(e.target.value)}
             onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
-            placeholder="Search by username…"
+            placeholder={t('searchPlaceholder')}
             className="w-full pl-9 pr-9 py-2.5 rounded-lg border border-gray-200 bg-white text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -136,7 +147,7 @@ export function SubscriptionHistoryExplorer() {
         {showDropdown && (query.trim().length > 0) && (
           <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
             {suggestions.length === 0 && !isSearching && (
-              <p className="px-4 py-3 text-sm text-gray-500">No users found.</p>
+              <p className="px-4 py-3 text-sm text-gray-500">{t('noUsersFound')}</p>
             )}
             {suggestions.map((user) => (
               <button
@@ -161,7 +172,7 @@ export function SubscriptionHistoryExplorer() {
       {!selectedUser && (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
           <History className="h-10 w-10 opacity-40" />
-          <p className="text-sm">Search for a user to view their subscription history.</p>
+          <p className="text-sm">{t('searchPrompt')}</p>
         </div>
       )}
 
@@ -169,7 +180,7 @@ export function SubscriptionHistoryExplorer() {
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold text-gray-800">
-              History for <span className="text-blue-600">@{selectedUser.username}</span>
+              {t('historyFor')} <span className="text-blue-600">@{selectedUser.username}</span>
             </h2>
             {isLoading && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
           </div>
@@ -178,7 +189,7 @@ export function SubscriptionHistoryExplorer() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  {['Tier', 'Source', 'Started At', 'Expires At', 'Recorded At'].map((h) => (
+                  {columnHeaders.map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       {h}
                     </th>
@@ -189,7 +200,7 @@ export function SubscriptionHistoryExplorer() {
                 {history?.data.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-4 py-10 text-center text-gray-400 text-sm">
-                      No subscription history found for this user.
+                      {t('noHistory')}
                     </td>
                   </tr>
                 )}
@@ -200,7 +211,7 @@ export function SubscriptionHistoryExplorer() {
                         {row.tier}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-700">{SOURCE_LABELS[row.source] ?? row.source}</td>
+                    <td className="px-4 py-3 text-gray-700">{sourceLabels[row.source] ?? row.source}</td>
                     <td className="px-4 py-3 text-gray-600">{formatDate(row.startedAt)}</td>
                     <td className="px-4 py-3 text-gray-600">{formatDate(row.expiresAt)}</td>
                     <td className="px-4 py-3 text-gray-400">{formatDate(row.createdAt)}</td>
@@ -215,18 +226,18 @@ export function SubscriptionHistoryExplorer() {
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-500">
                 {history.total > 0
-                  ? `Showing ${(page - 1) * history.pageSize + 1}–${Math.min(page * history.pageSize, history.total)} of ${history.total}`
-                  : '0 records'}
+                  ? t('showing', { from: (page - 1) * history.pageSize + 1, to: Math.min(page * history.pageSize, history.total), total: history.total })
+                  : t('noRecords')}
               </p>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => handlePageChange(page - 1)} disabled={page <= 1 || isLoading}>
-                  <ChevronLeft className="h-4 w-4" /> Prev
+                  <ChevronLeft className="h-4 w-4" /> {t('prev')}
                 </Button>
                 <span className="text-sm text-gray-600 font-medium">
                   {page} / {history.totalPages}
                 </span>
                 <Button variant="outline" size="sm" onClick={() => handlePageChange(page + 1)} disabled={page >= history.totalPages || isLoading}>
-                  Next <ChevronRight className="h-4 w-4" />
+                  {t('next')} <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>

@@ -4,6 +4,7 @@ import { columns } from '@/components/users-table/columns';
 import { DataTable } from '@/components/users-table/data-table';
 import { SubscriptionTier } from '@trivioq/database';
 import { TierFilter } from '@/components/users-table/tier-filter';
+import { getTranslations } from 'next-intl/server';
 
 const PAGE_SIZE = 20;
 
@@ -12,6 +13,7 @@ export default async function UsersPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
+  const t = await getTranslations('users');
   const params = await searchParams;
   const page = typeof params.page === 'string' ? parseInt(params.page, 10) : 1;
   const search = typeof params.search === 'string' ? params.search : undefined;
@@ -27,10 +29,8 @@ export default async function UsersPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Users</h1>
-        <p className="text-gray-500 mt-2">
-          Manage platform users, view their streaks, and modify subscription tiers.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
+        <p className="text-gray-500 mt-2">{t('description')}</p>
       </div>
 
       {result.error && (

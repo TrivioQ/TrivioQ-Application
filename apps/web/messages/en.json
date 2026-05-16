@@ -16,7 +16,39 @@
     "save": "Save",
     "edit": "Edit",
     "delete": "Delete",
-    "back": "Back"
+    "back": "Back",
+    "pts": "pts",
+    "subscription": "Subscription",
+    "upgradeToPremium": "Upgrade to Premium",
+    "activate": "Activate",
+    "activating": "Activating...",
+    "days": "days",
+    "of": "of",
+    "available": "available",
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard",
+    "dismissNotification": "Dismiss notification"
+  },
+  "metadata": {
+    "homeTitle": "TrivioQ",
+    "homeDescription": "Your daily trivia drops",
+    "dashboardTitle": "Dashboard | TrivioQ",
+    "dashboardDescription": "Your personal trivia performance dashboard.",
+    "settingsTitle": "Settings | TrivioQ",
+    "settingsDescription": "Manage your account settings and trivia preferences.",
+    "scoreHistoryTitle": "Score History | TrivioQ",
+    "scoreHistoryDescription": "View your weekly and monthly trivia score history on TrivioQ.",
+    "subscriptionTitle": "Subscription | TrivioQ",
+    "subscriptionDescription": "Manage your TrivioQ subscription and premium vault.",
+    "faqTitle": "FAQ | TrivioQ",
+    "faqDescription": "Frequently asked questions about TrivioQ trivia drops, scoring, and accounts.",
+    "termsTitle": "Terms of Service | TrivioQ",
+    "termsDescription": "TrivioQ Terms of Service -- your rights and responsibilities when using our platform.",
+    "privacyTitle": "Privacy Policy | TrivioQ",
+    "privacyDescription": "TrivioQ Privacy Policy -- how we collect, use, and protect your personal data.",
+    "leaderboardTitle": "Leaderboard | TrivioQ",
+    "leaderboardDescription": "See how you stack up against the best in the world and your friends."
   },
   "nav": {
     "home": "Home",
@@ -31,7 +63,12 @@
     "toggleMobileMenu": "Toggle mobile menu",
     "streak": "streak",
     "streakLabel": "🔥 {streak} streak",
-    "scoreLabel": "⭐ {score}"
+    "scoreLabel": "⭐ {score}",
+    "premiumBadge": "Premium",
+    "logoAlt": "TrivioQ",
+    "brandName": "TrivioQ",
+    "avatarAlt": "avatar",
+    "subscription": "Subscription"
   },
   "footer": {
     "tagline": "Bite-sized trivia drops designed to make you smarter — delivered right to your device throughout the day.",
@@ -42,6 +79,10 @@
     "downloadFree": "Download Free",
     "copyright": "© {year} TrivioQ. All rights reserved.",
     "poweredBy": "Powered by Next.js",
+    "logoAlt": "TrivioQ",
+    "brandName": "TrivioQ",
+    "followOnX": "Follow TrivioQ on X",
+    "followOnInstagram": "Follow TrivioQ on Instagram",
     "links": {
       "home": "Home",
       "leaderboard": "Leaderboard",
@@ -107,7 +148,9 @@
     "dateOfBirthLabel": "Date of Birth",
     "dateOfBirthPlaceholder": "Date of Birth (must be 13+)",
     "referralCodeLabel": "Referral Code",
-    "referralCodePlaceholder": "Referral code (optional)"
+    "referralCodePlaceholder": "Referral code (optional)",
+    "googleButton": "Google",
+    "brandName": "TrivioQ"
   },
   "dashboard": {
     "welcome": "Welcome to TrivioQ!",
@@ -143,7 +186,23 @@
     "answerRevealed": "Answer revealed",
     "pts": "pts",
     "fullScoreHistory": "Full Score History",
-    "leaderboard": "Leaderboard"
+    "leaderboard": "Leaderboard",
+    "yourAnswer": "Your Answer:",
+    "correctAnswer": "Correct Answer:",
+    "diffLabels": {
+      "EASY": "Easy",
+      "MEDIUM": "Medium",
+      "HARD": "Hard"
+    },
+    "chart": {
+      "noData": "No data yet.",
+      "base": "Base",
+      "bonus": "Bonus",
+      "pts": "pts",
+      "weekOf": "Week of",
+      "activeUsers": "Active Users",
+      "questions": "Questions"
+    }
   },
   "activeDrop": {
     "activeDrop": "Active Drop",
@@ -179,7 +238,10 @@
     "failedReveal": "Failed to reveal answer.",
     "failedOnDemand": "Failed to request a new drop.",
     "hintConfirm": "Getting a hint costs {cost} points (30% of this question's value). Continue?",
-    "revealConfirm": "Revealing the answer awards 0 points. This cannot be undone."
+    "revealConfirm": "Revealing the answer awards 0 points. This cannot be undone.",
+    "pts": "pts",
+    "pointsAwarded": "+{pts} pts",
+    "zeroPoints": "0 pts"
   },
   "leaderboard": {
     "title": "Leaderboard",
@@ -264,7 +326,52 @@
     "deleteModalTitle": "Delete Account?",
     "deleteModalMessage": "Are you absolutely sure? This will permanently delete your account, score history, and streak. This action cannot be undone.",
     "deleteConfirmLabel": "Delete Permanently",
-    "deleteCancelLabel": "Keep Account"
+    "deleteCancelLabel": "Keep Account",
+    "validationError": "Difficulty percentages must add up to 100%",
+    "validationErrorTitle": "Validation Error",
+    "preferencesSaved": "Preferences updated successfully",
+    "preferencesSavedTitle": "Settings Saved",
+    "preferencesFailed": "Failed to update preferences",
+    "passwordsDontMatch": "New passwords do not match",
+    "passwordUpdateFailed": "Failed to update password",
+    "passwordUpdated": "Password updated successfully",
+    "passwordUpdatedTitle": "Security",
+    "accountDeleted": "Account deleted. Redirecting...",
+    "accountDeletedTitle": "Goodbye",
+    "deleteAccountFailed": "Failed to delete account",
+    "difficultyLabels": {
+      "EASY": "EASY",
+      "MEDIUM": "MEDIUM",
+      "HARD": "HARD"
+    }
+  },
+  "subscription": {
+    "title": "Subscription",
+    "description": "Manage your plan and activate banked premium days.",
+    "currentPlan": "Current Plan",
+    "currentPlanDesc": "Your active subscription status",
+    "premium": "Premium",
+    "plus": "Plus",
+    "free": "Free",
+    "nextBillingDate": "Next billing date: ",
+    "plusExpires": "Plus expires: ",
+    "upgradeToPremium": "Upgrade to Premium",
+    "bankedDaysTitle": "Your Banked Plus Subscription Days",
+    "bankedDaysDesc": "Banked Plus days you can activate any time",
+    "banked": "banked",
+    "days": "days",
+    "daysLockedMessage": "Banked Premium days are locked. Upgrade to Premium to activate them.",
+    "daysToActivate": "Days to activate",
+    "ofAvailable": "of {n} available",
+    "activating": "Activating...",
+    "activateDays": "Activate {count} Day",
+    "activateDays_plural": "Activate {count} Days",
+    "noBankedDays": "You have no banked days to activate. Earn them by placing in the weekly or monthly leaderboard top 10.",
+    "vaultActivated": "Vault Activated",
+    "daysActivated": "{count} premium day activated successfully.",
+    "daysActivated_plural": "{count} premium days activated successfully.",
+    "activationFailed": "Failed to activate days. Please try again.",
+    "loadFailed": "Failed to load subscription details. Please refresh the page."
   },
   "faq": {
     "title": "Frequently Asked Questions",
@@ -278,5 +385,11 @@
     "termsUnavailable": "Terms of Service are currently unavailable. Please try again later.",
     "backToTrivioQ": "← Back to TrivioQ",
     "privacyUnavailable": "Privacy Policy is currently unavailable. Please try again later."
+  },
+  "errors": {
+    "sessionExpired": "Session Expired",
+    "unexpectedError": "An unexpected error occurred.",
+    "authenticationFailed": "Authentication failed",
+    "requestFailed": "Request failed with status {status}"
   }
 }

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useTranslations } from 'next-intl';
 import { type BonusPlanInitialValues } from './bonus-plan-form';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -47,6 +48,7 @@ interface BonusPlanListProps {
 }
 
 export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListProps) {
+  const t = useTranslations('bonusPlans');
   const confirm = useConfirm();
   const [plans, setPlans] = useState<BonusPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,20 +68,20 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
         const data: BonusPlan[] = await res.json();
         if (!cancelled) setPlans(data);
       } catch {
-        if (!cancelled) setError('Could not load bonus plans. Please refresh.');
+        if (!cancelled) setError(t('loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
 
     return () => { cancelled = true; };
-  }, [refreshKey]);
+  }, [refreshKey, t]);
 
   const handleDelete = async (plan: BonusPlan) => {
     const confirmed = await confirm({
-      title: 'Delete Bonus Plan',
-      message: `Are you sure you want to delete "${plan.title}"? This action cannot be undone.`,
-      confirmLabel: 'Delete',
+      title: t('deleteConfirm.title'),
+      message: t('deleteConfirm.message', { title: plan.title }),
+      confirmLabel: t('deleteConfirm.confirmLabel'),
       isDestructive: true,
     });
     if (!confirmed) return;
@@ -94,7 +96,7 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
   };
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground py-6 text-center">Loading bonus plans…</p>;
+    return <p className="text-sm text-muted-foreground py-6 text-center">{t('loading')}</p>;
   }
 
   if (error) {
@@ -105,7 +107,7 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center text-muted-foreground">
         <Trophy className="h-10 w-10 opacity-30" />
-        <p className="text-sm">No bonus plans yet. Create one to get started.</p>
+        <p className="text-sm">{t('empty')}</p>
       </div>
     );
   }
@@ -114,6 +116,7 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
     <div className="space-y-3">
       {plans.map((plan) => {
         const status = getPlanStatus(plan);
+        const statusLabel = t(status.toLowerCase() as 'active' | 'pending' | 'expired');
         const isExpired = status === 'Expired';
 
         return (
@@ -123,11 +126,11 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
                 <div className="space-y-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <CardTitle className="text-sm font-semibold">{plan.title}</CardTitle>
-                    <Badge variant={statusVariant[status]}>{status}</Badge>
+                    <Badge variant={statusVariant[status]}>{statusLabel}</Badge>
                   </div>
                   <CardDescription className="text-xs">
-                    {plan.periodType === 'WEEK' ? 'Weekly' : 'Monthly'} ·{' '}
-                    {plan.rewardType === 'POINTS' ? 'Points' : 'Premium Days'} ·{' '}
+                    {plan.periodType === 'WEEK' ? t('weekly') : t('monthly')} ·{' '}
+                    {plan.rewardType === 'POINTS' ? t('points') : t('premiumDays')} ·{' '}
                     {format(new Date(plan.startDate), 'MMM d, yyyy')} –{' '}
                     {format(new Date(plan.endDate), 'MMM d, yyyy')}
                   </CardDescription>
@@ -139,7 +142,7 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0"
-                      aria-label="Edit bonus plan"
+                      aria-label={t('editAriaLabel')}
                       onClick={() =>
                         onEdit({
                           id: plan.id,
@@ -157,7 +160,7 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                      aria-label="Delete bonus plan"
+                      aria-label={t('deleteAriaLabel')}
                       onClick={() => handleDelete(plan)}
                     >
                       <Trash2 className="h-4 w-4" />

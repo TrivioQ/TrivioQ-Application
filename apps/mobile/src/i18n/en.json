@@ -7,7 +7,10 @@
     "activeDrop": "Active Drop",
     "retry": "Retry",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "brandName": "TrivioQ",
+    "subscription": "Subscription",
+    "loading": "Loading..."
   },
   "home": {
     "welcome": "Welcome to TrivioQ!",
@@ -55,13 +58,18 @@
     "points": "+{{count}} points",
     "zeroPoints": "0 points",
     "shareButton": "Share to Social",
+    "shareMessage": "I just hit a {{streak}} streak on TrivioQ! Can you beat my score?",
     "requestNext": "Request Next Question",
     "requesting": "Requesting...",
     "expired": "EXPIRED",
+    "revealLoading": "...",
+    "networkError": "Network response was not ok",
     "paywallTitle": "Upgrade to Premium",
     "paywallBody": "On-demand questions are a Premium feature. Upgrade to get up to 100 drops per day and request questions instantly, anytime.",
     "paywallCta": "View Premium Plans",
-    "paywallDismiss": "Maybe later"
+    "paywallDismiss": "Maybe later",
+    "errorFetchingHint": "Failed to get hint",
+    "errorRevealingAnswer": "Failed to reveal answer"
   },
   "profile": {
     "streak": "Day Streak",

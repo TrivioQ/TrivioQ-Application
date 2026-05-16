@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslations } from 'next-intl';
 
 interface FAQ {
   id: string;
@@ -29,8 +30,11 @@ interface FAQModalProps {
 }
 
 export function FAQModal({ faq, open, onOpenChange }: FAQModalProps) {
+  const t = useTranslations('faqs');
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  const modalKeys = faq ? 'editModal' as const : 'createModal' as const;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -42,7 +46,7 @@ export function FAQModal({ faq, open, onOpenChange }: FAQModalProps) {
     const active = formData.get('active') === 'on';
 
     startTransition(async () => {
-      const res = faq 
+      const res = faq
         ? await updateFAQ(faq.id, { question, answer, order, active })
         : await createFAQ({ question, answer, order, active });
 
@@ -58,7 +62,7 @@ export function FAQModal({ faq, open, onOpenChange }: FAQModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{faq ? 'Edit FAQ' : 'Add New FAQ'}</DialogTitle>
+          <DialogTitle>{t(`${modalKeys}.title`)}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           {error && (
@@ -67,29 +71,29 @@ export function FAQModal({ faq, open, onOpenChange }: FAQModalProps) {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="question">Question</Label>
+            <Label htmlFor="question">{t(`${modalKeys}.question`)}</Label>
             <Input
               id="question"
               name="question"
               defaultValue={faq?.question}
-              placeholder="e.g. How do I earn points?"
+              placeholder={t(`${modalKeys}.questionPlaceholder`)}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="answer">Answer</Label>
+            <Label htmlFor="answer">{t(`${modalKeys}.answer`)}</Label>
             <Textarea
               id="answer"
               name="answer"
               defaultValue={faq?.answer}
-              placeholder="The answer text..."
+              placeholder={t(`${modalKeys}.answerPlaceholder`)}
               className="min-h-[100px]"
               required
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="order">Display Order</Label>
+              <Label htmlFor="order">{t(`${modalKeys}.displayOrder`)}</Label>
               <Input
                 id="order"
                 name="order"
@@ -106,15 +110,15 @@ export function FAQModal({ faq, open, onOpenChange }: FAQModalProps) {
                 defaultChecked={faq?.active ?? true}
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
               />
-              <Label htmlFor="active">Active</Label>
+              <Label htmlFor="active">{t(`${modalKeys}.active`)}</Label>
             </div>
           </div>
           <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t(`${modalKeys}.cancel`)}
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving...' : 'Save FAQ'}
+              {isPending ? t(`${modalKeys}.saving`) : t(`${modalKeys}.saveFAQ`)}
             </Button>
           </DialogFooter>
         </form>

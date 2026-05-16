@@ -1,6 +1,6 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, Column } from '@tanstack/react-table';
 import { MoreHorizontal, Pencil, Trash, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import {
@@ -17,6 +17,7 @@ import { SubscriptionTier } from '@trivioq/database';
 import { useState, useTransition } from 'react';
 import { UserModal } from './user-modal';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useTranslations } from 'next-intl';
 
 // Using a partial User type since we don't need everything
 export type UserRow = {
@@ -38,26 +39,51 @@ function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
   return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />;
 }
 
+function SortableColumnHeader({ column, children }: { column: Column<UserRow, unknown>; children: React.ReactNode }) {
+  return (
+    <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+      {children} <SortIcon sorted={column.getIsSorted()} />
+    </button>
+  );
+}
+
+function UsernameHeader({ column }: { column: Column<UserRow, unknown> }) {
+  const t = useTranslations('users');
+  return <SortableColumnHeader column={column}>{t('columns.username')}</SortableColumnHeader>;
+}
+
+function EmailHeader({ column }: { column: Column<UserRow, unknown> }) {
+  const t = useTranslations('users');
+  return <SortableColumnHeader column={column}>{t('columns.email')}</SortableColumnHeader>;
+}
+
+function DateOfBirthHeader() {
+  const t = useTranslations('users');
+  return <>{t('columns.dateOfBirth')}</>;
+}
+
+function SubscriptionTierHeader({ column }: { column: Column<UserRow, unknown> }) {
+  const t = useTranslations('users');
+  return <SortableColumnHeader column={column}>{t('columns.subscriptionTier')}</SortableColumnHeader>;
+}
+
+function CurrentStreakHeader({ column }: { column: Column<UserRow, unknown> }) {
+  const t = useTranslations('users');
+  return <SortableColumnHeader column={column}>{t('columns.currentStreak')}</SortableColumnHeader>;
+}
+
 export const columns: ColumnDef<UserRow>[] = [
   {
     accessorKey: 'username',
-    header: ({ column }) => (
-      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
-        Username <SortIcon sorted={column.getIsSorted()} />
-      </button>
-    ),
+    header: ({ column }) => <UsernameHeader column={column} />,
   },
   {
     accessorKey: 'email',
-    header: ({ column }) => (
-      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
-        Email <SortIcon sorted={column.getIsSorted()} />
-      </button>
-    ),
+    header: ({ column }) => <EmailHeader column={column} />,
   },
   {
     accessorKey: 'dateOfBirth',
-    header: 'Date of Birth',
+    header: () => <DateOfBirthHeader />,
     cell: ({ row }) => {
       const dob = row.getValue('dateOfBirth') as Date | null | undefined;
       if (!dob) return <span className="text-gray-400">—</span>;
@@ -66,11 +92,7 @@ export const columns: ColumnDef<UserRow>[] = [
   },
   {
     accessorKey: 'subscriptionTier',
-    header: ({ column }) => (
-      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
-        Subscription Tier <SortIcon sorted={column.getIsSorted()} />
-      </button>
-    ),
+    header: ({ column }) => <SubscriptionTierHeader column={column} />,
     cell: ({ row }) => {
       const tier = row.getValue('subscriptionTier') as string;
       return (
@@ -82,11 +104,7 @@ export const columns: ColumnDef<UserRow>[] = [
   },
   {
     accessorKey: 'currentStreak',
-    header: ({ column }) => (
-      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
-        Current Streak <SortIcon sorted={column.getIsSorted()} />
-      </button>
-    ),
+    header: ({ column }) => <CurrentStreakHeader column={column} />,
   },
   {
     id: 'actions',
@@ -98,6 +116,7 @@ export const columns: ColumnDef<UserRow>[] = [
 ];
 
 function UserActions({ user }: { user: UserRow }) {
+  const t = useTranslations('users');
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
   const confirm = useConfirm();
@@ -110,9 +129,9 @@ function UserActions({ user }: { user: UserRow }) {
 
   const handleDelete = async () => {
     const ok = await confirm({
-      title: `Delete "${user.username}"?`,
-      message: 'This action cannot be undone.',
-      confirmLabel: 'Delete User',
+      title: t('deleteConfirm.title', { username: user.username }),
+      message: t('deleteConfirm.message'),
+      confirmLabel: t('deleteConfirm.confirmLabel'),
       isDestructive: true,
     });
     if (!ok) return;
@@ -127,7 +146,7 @@ function UserActions({ user }: { user: UserRow }) {
       <UserModal user={user} open={editOpen} onOpenChange={setEditOpen} />
       <DropdownMenu>
         <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>
-          <span className="sr-only">Open menu</span>
+          <span className="sr-only">{t('actions.openMenu')}</span>
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -135,13 +154,13 @@ function UserActions({ user }: { user: UserRow }) {
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setEditOpen(true)} className="cursor-pointer">
-              <Pencil className="mr-2 h-4 w-4" /> Edit User
+              <Pencil className="mr-2 h-4 w-4" /> {t('actions.editUser')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleToggleTier} disabled={isPending}>
-              {user.subscriptionTier === 'FREE' ? 'Upgrade to Premium' : 'Downgrade to Free'}
+              {user.subscriptionTier === 'FREE' ? t('actions.upgradeToPremium') : t('actions.downgradeToFree')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-red-600 focus:text-red-600">
-              <Trash className="mr-2 h-4 w-4" /> Delete User
+              <Trash className="mr-2 h-4 w-4" /> {t('actions.deleteUser')}
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>

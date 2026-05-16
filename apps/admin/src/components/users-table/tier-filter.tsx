@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { SubscriptionTier } from '@trivioq/database';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -9,6 +10,7 @@ import { cn } from '@/lib/utils';
 const TIERS: SubscriptionTier[] = ['FREE', 'PREMIUM'];
 
 export function TierFilter({ current }: { current?: SubscriptionTier }) {
+  const t = useTranslations('users.tierFilter');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -34,7 +36,7 @@ export function TierFilter({ current }: { current?: SubscriptionTier }) {
           !current && 'bg-gray-100 font-semibold'
         )}
       >
-        All
+        {t('all')}
       </button>
       {TIERS.map((tier) => (
         <button
@@ -45,7 +47,7 @@ export function TierFilter({ current }: { current?: SubscriptionTier }) {
             current === tier && 'bg-gray-100 font-semibold'
           )}
         >
-          {tier === 'PREMIUM' ? 'Premium' : 'Free'}
+          {tier === 'PREMIUM' ? t('premium') : t('free')}
         </button>
       ))}
     </div>

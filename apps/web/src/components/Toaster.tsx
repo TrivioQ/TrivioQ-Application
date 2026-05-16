@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Notification, useNotification } from '../context/notification-context';
 
 // ---------------------------------------------------------------------------
@@ -85,6 +86,7 @@ function NotificationIcon({ type }: { type: Notification['type'] }) {
 // ---------------------------------------------------------------------------
 
 function Toast({ notification }: { notification: Notification }) {
+  const t = useTranslations('common');
   const { dismiss } = useNotification();
   const [visible, setVisible] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
@@ -126,7 +128,7 @@ function Toast({ notification }: { notification: Notification }) {
           {notification.title && <p className={`text-sm font-semibold leading-snug ${s.title}`}>{notification.title}</p>}
           <p className={`text-sm leading-relaxed ${notification.title ? 'mt-0.5 text-gray-400' : s.message}`}>{notification.message}</p>
         </div>
-        <button onClick={handleDismiss} aria-label='Dismiss notification' className={`shrink-0 transition-colors ${s.close}`}>
+        <button onClick={handleDismiss} aria-label={t('dismissNotification')} className={`shrink-0 transition-colors ${s.close}`}>
           <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'>
             <line x1='18' y1='6' x2='6' y2='18' />
             <line x1='6' y1='6' x2='18' y2='18' />

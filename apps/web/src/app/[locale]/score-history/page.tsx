@@ -4,10 +4,13 @@ import { makeServerAPICallV1 } from '@/lib/api-server';
 import { ScoreHistoryTabs } from '@/components/score-history-tabs';
 import { cookies } from 'next/headers';
 
-export const metadata = {
-  title: 'Score History | TrivioQ',
-  description: 'View your weekly and monthly trivia score history on TrivioQ.',
-};
+export async function generateMetadata() {
+  const t = await getTranslations('metadata');
+  return {
+    title: t('scoreHistoryTitle'),
+    description: t('scoreHistoryDescription'),
+  };
+}
 
 interface ScorePeriod {
   id: string;

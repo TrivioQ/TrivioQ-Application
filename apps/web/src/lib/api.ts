@@ -66,7 +66,8 @@ export async function makeAPICall<T = unknown>(path: string, { body, headers, ..
     // Auto-logout if token is expired
     if (response.status === 401 && errorData.code === 'auth/id-token-expired') {
       if (typeof window !== 'undefined') {
-        window.location.href = '/en/login?error=Session Expired';
+        const locale = window.location.pathname.split('/')[1] || 'en';
+        window.location.href = `/${locale}/login?error=Session Expired`;
       }
     }
 

@@ -5,6 +5,7 @@ import { CreateQuestionModal } from '@/components/questions/create-question-moda
 import { QuestionFilterBar } from '@/components/questions/question-filter-bar';
 import { QuestionsDataTable } from '@/components/questions/questions-data-table';
 import { DifficultyLevel } from '@trivioq/database';
+import { getTranslations } from 'next-intl/server';
 
 type SearchParams = {
   page?: string;
@@ -20,6 +21,7 @@ export default async function QuestionsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  const t = await getTranslations('questions');
   const sp = await searchParams;
 
   const page = Math.max(1, parseInt(sp.page ?? '1', 10));
@@ -47,10 +49,8 @@ export default async function QuestionsPage({
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Questions</h1>
-          <p className="text-gray-500 mt-2">
-            Manage your trivia database. Filter by category, difficulty, or search text.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
+          <p className="text-gray-500 mt-2">{t('description')}</p>
         </div>
         <CreateQuestionModal categories={categories} />
       </div>

@@ -4,6 +4,7 @@ import { columns } from '@/components/faqs-table/columns';
 import { DataTable } from '@/components/users-table/data-table';
 import { FaqStatusFilter } from '@/components/faqs-table/faq-status-filter';
 import { AddFAQButton } from '@/components/faqs-table/add-faq-button';
+import { getTranslations } from 'next-intl/server';
 
 const PAGE_SIZE = 20;
 
@@ -12,6 +13,7 @@ export default async function FAQsPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const t = await getTranslations('faqs');
   const params = await searchParams;
   const page = typeof params.page === 'string' ? parseInt(params.page, 10) : 1;
   const search = typeof params.search === 'string' ? params.search : undefined;
@@ -27,10 +29,8 @@ export default async function FAQsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">FAQs</h1>
-        <p className="text-gray-500 mt-2">
-          Manage the frequently asked questions displayed in the web application.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
+        <p className="text-gray-500 mt-2">{t('description')}</p>
       </div>
 
       {result.error && (
@@ -46,7 +46,7 @@ export default async function FAQsPage({
           search={search}
           total={total}
           pageSize={PAGE_SIZE}
-          searchPlaceholder="Search FAQs…"
+          searchPlaceholder={t('searchPlaceholder')}
           filterSlot={<FaqStatusFilter current={active} />}
           actionSlot={<AddFAQButton />}
         />

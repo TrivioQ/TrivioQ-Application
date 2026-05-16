@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getPendingQuestions } from '@/app/actions/pending-questions';
 import { getCategories } from '@/app/actions/question-actions';
 import { ContentReviewPanel } from './content-review-panel';
+import { getTranslations } from 'next-intl/server';
 
 export default async function ContentReviewPage({
   searchParams,
@@ -9,6 +10,7 @@ export default async function ContentReviewPage({
   searchParams: Promise<{ filter?: string }>;
 }) {
   const { filter } = await searchParams;
+  const t = await getTranslations('review');
 
   const [questionsResult, categoriesResult] = await Promise.all([
     getPendingQuestions(filter),
@@ -22,10 +24,8 @@ export default async function ContentReviewPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Content Review</h1>
-        <p className="text-gray-500 mt-2">
-          Review and approve AI-generated trivia questions before they enter the live database.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
+        <p className="text-gray-500 mt-2">{t('description')}</p>
       </div>
 
       {/* Filter Tabs */}
@@ -38,7 +38,7 @@ export default async function ContentReviewPage({
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          Unvalidated
+          {t('filters.unvalidated')}
         </Link>
         <Link
           href="?filter=ai-validated"
@@ -48,7 +48,7 @@ export default async function ContentReviewPage({
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          AI Validated
+          {t('filters.aiValidated')}
         </Link>
       </div>
 

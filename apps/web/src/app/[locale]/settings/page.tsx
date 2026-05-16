@@ -4,10 +4,13 @@ import { getTranslations } from 'next-intl/server';
 import { makeServerAPICallV1 } from '@/lib/api-server';
 import { SettingsForm } from './settings-form';
 
-export const metadata = {
-  title: 'Settings | TrivioQ',
-  description: 'Manage your account settings and trivia preferences.',
-};
+export async function generateMetadata() {
+  const t = await getTranslations('metadata');
+  return {
+    title: t('settingsTitle'),
+    description: t('settingsDescription'),
+  };
+}
 
 export default async function SettingsPage() {
   const t = await getTranslations('settings');

@@ -1,16 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ReviewEditor } from './review-editor';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-
-function scoreBadge(score: number | null) {
-  if (score == null) return null;
-  if (score > 80) return { className: 'bg-green-100 text-green-800', label: `High (${score})` };
-  if (score >= 50) return { className: 'bg-yellow-100 text-yellow-800', label: `Medium (${score})` };
-  return { className: 'bg-red-100 text-red-800', label: `Low (${score})` };
-}
 
 interface PendingQuestion {
   id: string;
@@ -42,6 +36,7 @@ export function ContentReviewPanel({
   questions: PendingQuestion[];
   categories: Category[];
 }) {
+  const t = useTranslations('review');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pendingQuestions, setPendingQuestions] = useState(questions);
 
@@ -52,13 +47,20 @@ export function ContentReviewPanel({
     setSelectedId(null);
   };
 
+  function scoreBadge(score: number | null) {
+    if (score == null) return null;
+    if (score > 80) return { className: 'bg-green-100 text-green-800', label: t('scoreBadge.high', { score }) };
+    if (score >= 50) return { className: 'bg-yellow-100 text-yellow-800', label: t('scoreBadge.medium', { score }) };
+    return { className: 'bg-red-100 text-red-800', label: t('scoreBadge.low', { score }) };
+  }
+
   return (
     <div className="flex gap-0 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden min-h-[600px]">
       {/* ── Left: Question List ── */}
       <aside className="w-80 flex-shrink-0 border-r border-gray-200 bg-gray-50/50 flex flex-col">
         <div className="px-4 py-3 border-b border-gray-200 bg-white">
           <p className="text-sm font-semibold text-gray-700">
-            Pending Questions
+            {t('pendingQuestions')}
             <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
               {pendingQuestions.length}
             </span>
@@ -67,7 +69,7 @@ export function ContentReviewPanel({
 
         {pendingQuestions.length === 0 ? (
           <div className="flex-1 flex items-center justify-center p-6 text-sm text-gray-400">
-            No pending questions to review.
+            {t('noPending')}
           </div>
         ) : (
           <ul className="flex-1 overflow-y-auto divide-y divide-gray-100">
@@ -95,7 +97,7 @@ export function ContentReviewPanel({
                   <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                     {q.isDuplicate && (
                       <Badge variant="destructive" className="text-[10px]">
-                        DUPLICATE
+                        {t('duplicateBadge')}
                       </Badge>
                     )}
                     {q.aiQualityScore != null && scoreBadge(q.aiQualityScore) != null && (
@@ -135,7 +137,7 @@ export function ContentReviewPanel({
           />
         ) : (
           <div className="flex-1 flex items-center justify-center text-sm text-gray-400">
-            Select a question from the list to review.
+            {t('selectPrompt')}
           </div>
         )}
       </main>

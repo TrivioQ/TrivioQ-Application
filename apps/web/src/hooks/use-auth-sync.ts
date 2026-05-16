@@ -2,6 +2,7 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useNotification } from '../context/notification-context';
 import { useAuth } from '../context/auth-provider';
 import { makeAPICall } from '../lib/api';
@@ -23,6 +24,7 @@ export function useAuthSync({ onSuccess, onError }: AuthSyncOptions = {}) {
   const { error: notifyError } = useNotification();
   const { refreshUser } = useAuth();
   const router = useRouter();
+  const t = useTranslations('errors');
 
   const handleSuccess = async () => {
     await refreshUser();
@@ -31,8 +33,8 @@ export function useAuthSync({ onSuccess, onError }: AuthSyncOptions = {}) {
   };
 
   const handleError = (err: any) => {
-    const msg = err?.message || 'An unexpected error occurred.';
-    notifyError(msg, 'Authentication failed');
+    const msg = err?.message || t('unexpectedError');
+    notifyError(msg, t('authenticationFailed'));
     onError?.(msg);
   };
 

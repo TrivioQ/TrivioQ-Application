@@ -245,6 +245,21 @@ model LegalDocument {
   updatedBy String?  // admin email who last saved
 }
 
+// Permanent history of background worker (BullMQ) job executions.
+model JobLog {
+  id        String   @id @default(uuid())
+  jobId     String
+  queueName String
+  jobName   String
+  status    String
+  payload   Json
+  result    Json?
+  createdAt DateTime @default(now())
+
+  @@index([queueName, createdAt(sort: Desc)])
+  @@index([jobId])
+}
+
 // Append-only audit log of every subscription tier change per user.
 model UserSubscriptionHistory {
   id        String             @id @default(uuid())

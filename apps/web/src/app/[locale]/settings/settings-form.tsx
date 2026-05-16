@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useNotification } from '@/context/notification-context';
 import { makeAPICallV1 } from '@/lib/api';
 import { useAuth } from '@/context/auth-provider';
@@ -24,6 +24,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
   const { user } = useAuth();
   const { success: notifySuccess, error: notifyError, info: notifyInfo } = useNotification();
   const t = useTranslations('settings');
+  const locale = useLocale();
   const [isPending, setIsPending] = useState(false);
   const confirm = useConfirm();
 
@@ -49,7 +50,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
 
     const total = Object.values(difficulty).reduce((a, b) => a + b, 0);
     if (Math.abs(total - 100) > 0.1) {
-      return notifyError('Difficulty percentages must add up to 100%', 'Validation Error');
+      return notifyError(t('validationError'), t('validationErrorTitle'));
     }
 
     setIsPending(true);
@@ -68,10 +69,10 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
           categoryPercentages: { General: 1.0 },
         },
       });
-      notifySuccess('Preferences updated successfully', 'Settings Saved');
+      notifySuccess(t('preferencesSaved'), t('preferencesSavedTitle'));
       router.refresh();
     } catch (err: any) {
-      notifyError(err.message || 'Failed to update preferences', 'Error');
+      notifyError(err.message || t('preferencesFailed'));
     } finally {
       setIsPending(false);
     }
@@ -81,7 +82,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
     e.preventDefault();
     if (!user) return;
     if (newPassword !== confirmPassword) {
-      return notifyError('New passwords do not match', 'Error');
+      return notifyError(t('passwordsDontMatch'));
     }
 
     setIsPending(true);
@@ -93,14 +94,14 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to update password');
+      if (!res.ok) throw new Error(data.message || t('passwordUpdateFailed'));
 
-      notifySuccess('Password updated successfully', 'Security');
+      notifySuccess(t('passwordUpdated'), t('passwordUpdatedTitle'));
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
-      notifyError(err.message || 'Failed to update password', 'Error');
+      notifyError(err.message || t('passwordUpdateFailed'));
     } finally {
       setIsPending(false);
     }
@@ -121,10 +122,10 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
       await makeAPICallV1('auth', { method: 'DELETE' });
 
       // 2. Local cleanup is handled by redirecting or signing out
-      notifyInfo('Account deleted. Redirecting...', 'Goodbye');
+      notifyInfo(t('accountDeleted'), t('accountDeletedTitle'));
       window.location.href = '/';
     } catch (err: any) {
-      notifyError(err.message || 'Failed to delete account', 'Error');
+      notifyError(err.message || t('deleteAccountFailed'));
     } finally {
       setIsPending(false);
     }
@@ -147,7 +148,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
         {initialUser.dateOfBirth && (
           <div className='space-y-2'>
             <label className='text-xs font-bold uppercase tracking-wider text-gray-500'>{t('dateOfBirthLabel')}</label>
-            <div className='w-full bg-gray-800/60 border border-white/5 rounded-xl px-4 py-3 text-gray-400 text-sm select-none cursor-not-allowed'>{new Date(initialUser.dateOfBirth).toLocaleDateString()}</div>
+            <div className='w-full bg-gray-800/60 border border-white/5 rounded-xl px-4 py-3 text-gray-400 text-sm select-none cursor-not-allowed'>{new Date(initialUser.dateOfBirth).toLocaleDateString(locale)}</div>
             <p className='text-xs text-gray-600'>{t('dateOfBirthReadOnly')}</p>
           </div>
         )}
@@ -188,9 +189,9 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
         </div>
 
         <div className='space-y-4'>
-          {['EASY', 'MEDIUM', 'HARD'].map((level) => (
+          {(['EASY', 'MEDIUM', 'HARD'] as const).map((level) => (
             <div key={level} className='flex items-center gap-4'>
-              <label className='w-20 text-sm font-bold text-gray-400'>{level}</label>
+              <label className='w-20 text-sm font-bold text-gray-400'>{t(`difficultyLabels.${level}`)}</label>
               <input type='range' min='0' max='100' step='5' value={difficulty[level] || 0} onChange={(e) => setDifficulty({ ...difficulty, [level]: parseInt(e.target.value) })} className='flex-1 h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-indigo-500' />
               <span className='w-12 text-right text-sm font-mono font-bold text-white'>{difficulty[level] || 0}%</span>
             </div>

@@ -14,6 +14,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslations } from 'next-intl';
 
 const DEFAULT_CHOICES = () => [
   { text: '', isCorrect: true },
@@ -23,6 +24,7 @@ const DEFAULT_CHOICES = () => [
 ];
 
 export function CreateQuestionModal({ categories }: { categories: { id: string; name: string }[] }) {
+  const t = useTranslations('questions.createModal');
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -79,48 +81,48 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger className={buttonVariants()}>
-        Create Question
+        {t('trigger')}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Question</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
 
           <div className="space-y-2">
-            <Label htmlFor="question">Question Text</Label>
+            <Label htmlFor="question">{t('questionText')}</Label>
             <Input id="question" required value={questionText} onChange={e => setQuestionText(e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label>Difficulty</Label>
+            <Label>{t('difficulty')}</Label>
             <Select value={difficultyLevel} onValueChange={(val) => setDifficultyLevel(val as DifficultyLevel)}>
               <SelectTrigger>
-                <SelectValue placeholder="Select difficulty" />
+                <SelectValue placeholder={t('selectDifficulty')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="EASY">Easy</SelectItem>
-                <SelectItem value="MEDIUM">Medium</SelectItem>
-                <SelectItem value="HARD">Hard</SelectItem>
+                <SelectItem value="EASY">{t('easy')}</SelectItem>
+                <SelectItem value="MEDIUM">{t('medium')}</SelectItem>
+                <SelectItem value="HARD">{t('hard')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-3">
-            <Label>Choices — select the radio button to mark the correct answer</Label>
+            <Label>{t('choicesLabel')}</Label>
             {choices.map((choice, idx) => (
               <div key={idx} className="flex items-center gap-2">
                 <input
                   type="radio"
                   name="correctAnswer"
-                  title="Mark as correct answer"
+                  title={t('markCorrect')}
                   checked={choice.isCorrect}
                   onChange={() => markCorrect(idx)}
                   className="h-4 w-4 shrink-0"
                 />
                 <Input
                   required
-                  placeholder={`Choice ${idx + 1}`}
+                  placeholder={t('choicePlaceholder', { number: idx + 1 })}
                   value={choice.text}
                   onChange={e => updateChoiceText(idx, e.target.value)}
                 />
@@ -129,41 +131,41 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="hint">Hint (Optional — costs points to reveal)</Label>
+            <Label htmlFor="hint">{t('hintLabel')}</Label>
             <Textarea
               id="hint"
               value={hintText}
               onChange={e => setHintText(e.target.value)}
-              placeholder="A clue to help users narrow down the answer..."
+              placeholder={t('hintPlaceholder')}
               className="resize-none"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="explanation">Explanation (Optional — shown after answer)</Label>
+            <Label htmlFor="explanation">{t('explanationLabel')}</Label>
             <Textarea
               id="explanation"
               value={explanationText}
               onChange={e => setExplanationText(e.target.value)}
-              placeholder="Explain why the answer is correct..."
+              placeholder={t('explanationPlaceholder')}
               className="resize-none"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Categories</Label>
+            <Label>{t('categoriesLabel')}</Label>
             <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
               <PopoverTrigger className={buttonVariants({ variant: "outline", className: "w-full justify-between" })} role="combobox" aria-expanded={comboboxOpen}>
                   {selectedCategories.length > 0
-                    ? `${selectedCategories.length} categories selected`
-                    : "Select categories..."}
+                    ? t('categoriesSelected', { count: selectedCategories.length })
+                    : t('selectCategories')}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
                 <Command>
-                  <CommandInput placeholder="Search category..." />
+                  <CommandInput placeholder={t('searchCategory')} />
                   <CommandList>
-                    <CommandEmpty>No category found.</CommandEmpty>
+                    <CommandEmpty>{t('noCategoryFound')}</CommandEmpty>
                     <CommandGroup>
                       {categories.map((category) => (
                         <CommandItem
@@ -190,7 +192,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
 
           <div className="flex justify-end pt-4">
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving...' : 'Save Question'}
+              {isPending ? t('saving') : t('saveQuestion')}
             </Button>
           </div>
         </form>

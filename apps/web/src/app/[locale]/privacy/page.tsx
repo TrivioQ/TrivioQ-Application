@@ -2,10 +2,13 @@ import { marked } from 'marked';
 import { makeServerAPICallV1 } from '@/lib/api-server';
 import { getTranslations } from 'next-intl/server';
 
-export const metadata = {
-  title: 'Privacy Policy | TrivioQ',
-  description: 'TrivioQ Privacy Policy — how we collect, use, and protect your personal data.',
-};
+export async function generateMetadata() {
+  const t = await getTranslations('metadata');
+  return {
+    title: t('privacyTitle'),
+    description: t('privacyDescription'),
+  };
+}
 
 type LegalDoc = { title: string; content: string; version: string; updatedAt: string };
 

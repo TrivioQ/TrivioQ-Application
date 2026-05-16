@@ -79,12 +79,12 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
   );
 }
 
-function UserAvatar({ profilePicture, displayName, email, isPremium }: { profilePicture: string | null; displayName: string | null; email: string; isPremium: boolean }) {
+function UserAvatar({ profilePicture, displayName, email, isPremium, avatarAlt, premiumBadge }: { profilePicture: string | null; displayName: string | null; email: string; isPremium: boolean; avatarAlt: string; premiumBadge: string }) {
   return (
     <div className='relative'>
-      {profilePicture ? <img src={profilePicture} alt='avatar' className='w-8 h-8 rounded-full object-cover ring-2 ring-indigo-500/60' /> : <div className='w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold ring-2 ring-indigo-500/60'>{getInitials(displayName, email)}</div>}
+      {profilePicture ? <img src={profilePicture} alt={avatarAlt} className='w-8 h-8 rounded-full object-cover ring-2 ring-indigo-500/60' /> : <div className='w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold ring-2 ring-indigo-500/60'>{getInitials(displayName, email)}</div>}
       {isPremium && (
-        <span className='absolute -top-1.5 -right-[0.175rem] leading-none select-none text-yellow-400' title='Premium'>
+        <span className='absolute -top-1.5 -right-[0.175rem] leading-none select-none text-yellow-400' title={premiumBadge}>
           <CrownIcon className='w-3.5 h-3.5 drop-shadow-[0_0_5px_rgba(250,204,21,0.6)]' />
         </span>
       )}
@@ -157,8 +157,8 @@ export function Navbar() {
         <nav className='mx-auto max-w-7xl px-6 lg:px-8 h-16 flex items-center justify-between gap-6'>
           {/* ── Logo ── */}
           <Link href='/' className='flex items-center gap-2 group shrink-0'>
-            <img src='/logo.png' alt='TrivioQ' className='w-8 h-8' />
-            <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-orange-100 transition-colors'>TrivioQ</span>
+            <img src='/logo.png' alt={t('logoAlt')} className='w-8 h-8' />
+            <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-orange-100 transition-colors'>{t('brandName')}</span>
           </Link>
 
           {/* ── Center links (desktop) ── */}
@@ -191,7 +191,7 @@ export function Navbar() {
                 {/* Avatar + dropdown */}
                 <div className='relative' ref={dropdownRef}>
                   <button id='user-avatar-btn' onClick={() => setDropdownOpen((o) => !o)} className='flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400' aria-label={t('userMenu')} aria-expanded={dropdownOpen}>
-                    <UserAvatar profilePicture={profile?.profilePicture ?? null} displayName={profile?.displayName ?? null} email={user.email ?? ''} isPremium={profile?.subscriptionTier === 'PREMIUM' || profile?.subscriptionTier === 'PLUS'} />
+                    <UserAvatar profilePicture={profile?.profilePicture ?? null} displayName={profile?.displayName ?? null} email={user.email ?? ''} isPremium={profile?.subscriptionTier === 'PREMIUM' || profile?.subscriptionTier === 'PLUS'} avatarAlt={t('avatarAlt')} premiumBadge={t('premiumBadge')} />
                     <motion.svg animate={{ rotate: dropdownOpen ? 180 : 0 }} transition={{ duration: 0.2 }} className='w-4 h-4 text-gray-400 hidden sm:block' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
                       <path strokeLinecap='round' strokeLinejoin='round' d='M19 9l-7 7-7-7' />
                     </motion.svg>
@@ -216,7 +216,7 @@ export function Navbar() {
                         {/* Menu items */}
                         {[
                           { label: t('settings'), href: '/settings', icon: '⚙️' },
-                          { label: 'Subscription', href: '/subscription', icon: <CrownIcon className='w-4 h-4 text-yellow-500' /> },
+                          { label: t('subscription'), href: '/subscription', icon: <CrownIcon className='w-4 h-4 text-yellow-500' /> },
                         ].map((item) => (
                           <Link key={item.href} href={item.href} onClick={() => setDropdownOpen(false)} className='flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors'>
                             <span className='flex shrink-0'>{item.icon}</span>
@@ -269,8 +269,8 @@ export function Navbar() {
               {/* Header */}
               <div className='flex items-center justify-between px-6 h-16 border-b border-white/10'>
                 <Link href='/' onClick={() => setMobileOpen(false)} className='flex items-center gap-2'>
-                  <img src='/logo.svg' alt='TrivioQ' className='w-7 h-7' />
-                  <span className='font-extrabold text-lg text-white'>TrivioQ</span>
+                  <img src='/logo.svg' alt={t('logoAlt')} className='w-7 h-7' />
+                  <span className='font-extrabold text-lg text-white'>{t('brandName')}</span>
                 </Link>
                 <button onClick={() => setMobileOpen(false)} className='w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors' aria-label={t('closeMenu')}>
                   ✕
@@ -307,7 +307,7 @@ export function Navbar() {
                     {/* Profile items */}
                     {[
                       { label: t('settings'), href: '/settings', icon: '⚙️' },
-                      { label: 'Subscription', href: '/subscription', icon: <CrownIcon className='w-5 h-5 text-yellow-500' /> },
+                      { label: t('subscription'), href: '/subscription', icon: <CrownIcon className='w-5 h-5 text-yellow-500' /> },
                     ].map((item) => (
                       <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className='flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors'>
                         <span className='flex shrink-0'>{item.icon}</span>

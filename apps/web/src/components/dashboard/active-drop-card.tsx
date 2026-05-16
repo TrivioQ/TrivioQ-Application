@@ -47,6 +47,7 @@ function formatTime(seconds: number) {
 
 export default function ActiveDropCard() {
   const t = useTranslations('activeDrop');
+  const commonT = useTranslations('common');
   const queryClient = useQueryClient();
   const [drop, setDrop] = useState<ActiveDrop | null>(null);
   const [loading, setLoading] = useState(true);
@@ -241,7 +242,7 @@ export default function ActiveDropCard() {
       <div className='rounded-2xl bg-red-500/10 border border-red-500/20 p-6 flex items-center justify-between'>
         <p className='text-sm text-red-400'>{error}</p>
         <button onClick={fetchActiveDrop} className='text-xs text-red-300 hover:text-red-200 underline'>
-          Retry
+          {commonT('retry')}
         </button>
       </div>
     );
@@ -311,7 +312,7 @@ export default function ActiveDropCard() {
         <div className='flex flex-wrap gap-2'>
           <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${DIFF_COLOR[drop.difficulty]}`}>{drop.difficulty}</span>
           <span className='inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] text-gray-400'>{drop.category}</span>
-          <span className='inline-flex items-center rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-0.5 text-[11px] text-indigo-300'>{drop.pointsValue} pts</span>
+          <span className='inline-flex items-center rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-0.5 text-[11px] text-indigo-300'>{drop.pointsValue} {t('pts')}</span>
         </div>
 
         {/* Mystery → Reveal */}
@@ -320,7 +321,7 @@ export default function ActiveDropCard() {
             <p className='text-4xl mb-3'>🎁</p>
             <p className='text-sm text-gray-400 mb-4'>{t('newQuestionWaiting')}</p>
             <button onClick={handleRevealQuestion} disabled={isExpired || revealQuestionLoading} className='rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors'>
-              {revealQuestionLoading ? '...' : t('revealQuestion')}
+              {revealQuestionLoading ? t('revealLoading') : t('revealQuestion')}
             </button>
           </div>
         ) : (
@@ -333,7 +334,7 @@ export default function ActiveDropCard() {
               <div className='flex gap-2'>
                 {hintText ? (
                   <div className='flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2'>
-                    <p className='text-[11px] font-bold text-yellow-400 mb-0.5'>💡 Hint {hintCostDeducted != null ? `(−${hintCostDeducted} pts)` : ''}</p>
+                    <p className='text-[11px] font-bold text-yellow-400 mb-0.5'>💡 Hint {hintCostDeducted != null ? `(−${hintCostDeducted} ${t('pts')})` : ''}</p>
                     <p className='text-xs text-yellow-200'>{hintText}</p>
                   </div>
                 ) : (
@@ -389,7 +390,7 @@ export default function ActiveDropCard() {
             {submitResult && (
               <div className='rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-center space-y-1'>
                 <p className='text-lg font-bold text-white'>{submitResult.revealedAnswer ? t('resultRevealed') : submitResult.isCorrect ? t('resultCorrect') : t('resultIncorrect')}</p>
-                <p className={`text-sm font-semibold ${submitResult.pointsAwarded > 0 ? 'text-indigo-400' : 'text-gray-500'}`}>{submitResult.pointsAwarded > 0 ? `+${submitResult.pointsAwarded} pts` : '0 pts'}</p>
+                <p className={`text-sm font-semibold ${submitResult.pointsAwarded > 0 ? 'text-indigo-400' : 'text-gray-500'}`}>{submitResult.pointsAwarded > 0 ? t('pointsAwarded', { pts: submitResult.pointsAwarded }) : t('zeroPoints')}</p>
                 {submitResult.explanation && <p className='text-xs text-gray-400 italic mt-1'>{submitResult.explanation}</p>}
                 <p className='text-xs text-gray-500 mt-2'>{t('streakTotal', { streak: submitResult.newStreak, total: submitResult.newTotalScore.toLocaleString() })}</p>
                 <div className='flex gap-2 mt-3 flex-wrap justify-center'>

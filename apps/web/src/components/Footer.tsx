@@ -55,17 +55,17 @@ export async function Footer() {
           {/* Brand column */}
           <div className='sm:col-span-2 lg:col-span-1'>
             <Link href='/' className='flex items-center gap-2 group w-fit'>
-              <img src='/logo.png' alt='TrivioQ' className='w-8 h-8' />
-              <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-orange-100 transition-colors'>TrivioQ</span>
+              <img src='/logo.png' alt={t('logoAlt')} className='w-8 h-8' />
+              <span className='font-extrabold text-xl tracking-tight text-white group-hover:text-orange-100 transition-colors'>{t('brandName')}</span>
             </Link>
             <p className='mt-4 text-sm leading-relaxed text-gray-400 max-w-xs'>{t('tagline')}</p>
 
             {/* Socials */}
             <div className='mt-6 flex gap-4'>
-              <a href='https://x.com' target='_blank' rel='noopener noreferrer' aria-label='Follow TrivioQ on X' className='group flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200'>
+              <a href='https://x.com' target='_blank' rel='noopener noreferrer' aria-label={t('followOnX')} className='group flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200'>
                 <XIcon className='h-4 w-4' />
               </a>
-              <a href='https://instagram.com' target='_blank' rel='noopener noreferrer' aria-label='Follow TrivioQ on Instagram' className='group flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200'>
+              <a href='https://instagram.com' target='_blank' rel='noopener noreferrer' aria-label={t('followOnInstagram')} className='group flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200'>
                 <InstagramIcon className='h-4 w-4' />
               </a>
             </div>

@@ -47,6 +47,8 @@ export async function makeServerAPICall<T = unknown>(path: string, { body, heade
       } catch {
         // Ignored if called outside of request context
       }
+      // Use a default locale of 'en' — the middleware will redirect to the
+      // user's preferred locale when the login page renders.
       redirect('/en/login?error=Session Expired');
     }
 

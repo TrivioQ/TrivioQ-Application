@@ -12,10 +12,12 @@ import {
 } from '@/components/ui/dialog';
 import { BonusPlanForm, type BonusPlanInitialValues } from '@/components/bonus-plans/bonus-plan-form';
 import { BonusPlanList } from '@/components/bonus-plans/bonus-plan-list';
+import { useTranslations } from 'next-intl';
 
 type FormMode = { type: 'create' } | { type: 'edit'; plan: BonusPlanInitialValues } | null;
 
 export default function BonusPlansPage() {
+  const t = useTranslations('bonusPlans');
   const [formMode, setFormMode] = useState<FormMode>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -33,15 +35,15 @@ export default function BonusPlansPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Bonus Plans</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
           <p className="mt-2 text-gray-500">
-            Create weekly or monthly bonus plans to reward top-ranked players with points or premium days.
+            {t('description')}
           </p>
         </div>
 
         <Button onClick={() => setFormMode({ type: 'create' })} className="gap-2 shrink-0">
           <Plus className="h-4 w-4" />
-          Create
+          {t('create')}
         </Button>
       </div>
 
@@ -50,13 +52,13 @@ export default function BonusPlansPage() {
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {formMode?.type === 'edit' ? 'Edit Bonus Plan' : 'New Bonus Plan'}
+              {formMode?.type === 'edit' ? t('editPlan') : t('newPlan')}
             </DialogTitle>
             <DialogDescription>
-              Configure the period, reward type, and payout values for each rank.
+              {t('formDescription')}
             </DialogDescription>
           </DialogHeader>
-          
+
           {isFormOpen && (
             <div className="mt-4">
               <BonusPlanForm

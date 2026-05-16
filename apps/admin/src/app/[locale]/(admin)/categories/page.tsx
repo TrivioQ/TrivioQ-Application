@@ -3,6 +3,7 @@ import { getCategories } from '@/app/actions/category-actions';
 import { columns } from '@/components/categories/columns';
 import { DataTable } from '@/components/users-table/data-table';
 import { CategoryModal } from '@/components/categories/category-modal';
+import { getTranslations } from 'next-intl/server';
 
 const PAGE_SIZE = 20;
 
@@ -11,6 +12,7 @@ export default async function CategoriesPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
+  const t = await getTranslations('categories');
   const params = await searchParams;
   const page = typeof params.page === 'string' ? parseInt(params.page, 10) : 1;
   const search = typeof params.search === 'string' ? params.search : undefined;
@@ -25,10 +27,8 @@ export default async function CategoriesPage({
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Categories</h1>
-          <p className="text-gray-500 mt-2">
-            Manage your trivia categories. Categories organize questions across the application.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
+          <p className="text-gray-500 mt-2">{t('description')}</p>
         </div>
         <CategoryModal />
       </div>

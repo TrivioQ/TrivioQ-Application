@@ -78,7 +78,7 @@ function HomeStackNavigator() {
         headerTitleStyle: { fontWeight: '800' },
       }}
     >
-      <HomeStack.Screen name='HomeDashboard' component={HomeDashboard} options={{ title: 'TrivioQ' }} />
+      <HomeStack.Screen name='HomeDashboard' component={HomeDashboard} options={{ title: t('common.brandName') }} />
       <HomeStack.Screen
         name='DropActive'
         component={DropActive}
@@ -107,7 +107,7 @@ function ProfileStackNavigator() {
       }}
     >
       <ProfileStack.Screen name='ProfileHome' component={ProfileScreen} options={{ title: t('common.profile') }} />
-      <ProfileStack.Screen name='Subscription' component={SubscriptionScreen} options={{ title: 'Subscription' }} />
+      <ProfileStack.Screen name='Subscription' component={SubscriptionScreen} options={{ title: t('common.subscription') }} />
       <ProfileStack.Screen name='Terms' component={TermsScreen} options={{ title: t('profile.terms') }} />
       <ProfileStack.Screen name='Privacy' component={PrivacyScreen} options={{ title: t('profile.privacy') }} />
     </ProfileStack.Navigator>

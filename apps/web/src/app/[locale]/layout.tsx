@@ -1,10 +1,9 @@
-import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { Providers } from '@/components/providers';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, getTranslations } from 'next-intl/server';
 import '../globals.css';
 
 const poppins = Poppins({
@@ -12,13 +11,16 @@ const poppins = Poppins({
   weight: ['400', '500', '600', '700', '800', '900'],
 });
 
-export const metadata: Metadata = {
-  title: 'TrivioQ',
-  description: 'Your daily trivia drops',
-  icons: {
-    icon: '/favicon.png',
-  },
-};
+export async function generateMetadata() {
+  const t = await getTranslations('metadata');
+  return {
+    title: t('homeTitle'),
+    description: t('homeDescription'),
+    icons: {
+      icon: '/favicon.png',
+    },
+  };
+}
 
 export default async function RootLayout({ children, params: { locale } }: { children: React.ReactNode; params: { locale: string } }) {
   const messages = await getMessages();

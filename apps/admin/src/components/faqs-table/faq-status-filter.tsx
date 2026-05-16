@@ -3,15 +3,17 @@
 import { useTableParams } from '@/hooks/use-table-params';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-
-const OPTIONS = [
-  { label: 'All', value: undefined },
-  { label: 'Active', value: true },
-  { label: 'Inactive', value: false },
-] as const;
+import { useTranslations } from 'next-intl';
 
 export function FaqStatusFilter({ current }: { current?: boolean }) {
+  const t = useTranslations('faqs.statusFilter');
   const { pushParams } = useTableParams();
+
+  const OPTIONS = [
+    { label: t('all'), value: undefined },
+    { label: t('active'), value: true },
+    { label: t('inactive'), value: false },
+  ] as const;
 
   const set = (val: boolean | undefined) =>
     pushParams({ active: val === undefined ? null : String(val), page: '1' });

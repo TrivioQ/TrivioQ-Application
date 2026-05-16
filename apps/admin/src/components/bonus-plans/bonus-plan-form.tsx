@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -93,6 +94,7 @@ interface BonusPlanFormProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanFormProps) {
+  const t = useTranslations('bonusPlans.form');
   const isEdit = !!initialValues;
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -163,15 +165,15 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
         const body = await res.json().catch(() => ({}));
         setApiError(
           res.status === 409
-            ? 'A bonus plan already exists for this period. Adjust the dates or remove the conflicting plan.'
-            : body.error ?? 'Something went wrong. Please try again.',
+            ? t('overlapError')
+            : body.error ?? t('genericError'),
         );
         return;
       }
 
       onSuccess?.();
     } catch {
-      setApiError('Network error. Please check your connection and try again.');
+      setApiError(t('networkError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -181,8 +183,8 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Title */}
       <div className="space-y-1.5">
-        <Label htmlFor="title">Plan Title</Label>
-        <Input id="title" placeholder="e.g. Week 24 Bonus" {...register('title')} />
+        <Label htmlFor="title">{t('planTitle')}</Label>
+        <Input id="title" placeholder={t('titlePlaceholder')} {...register('title')} />
         {errors.title && (
           <p className="text-xs text-destructive">{errors.title.message}</p>
         )}
@@ -190,7 +192,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
 
       {/* Period Type */}
       <div className="space-y-1.5">
-        <Label>Period Type</Label>
+        <Label>{t('periodType')}</Label>
         <div className="flex gap-4">
           {(['WEEK', 'MONTH'] as const).map((type) => (
             <label key={type} className="flex items-center gap-2 cursor-pointer">
@@ -204,7 +206,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
                   setValue('startDate', undefined as unknown as Date);
                 }}
               />
-              <span className="text-sm">{type === 'WEEK' ? 'Weekly' : 'Monthly'}</span>
+              <span className="text-sm">{type === 'WEEK' ? t('weekly') : t('monthly')}</span>
             </label>
           ))}
         </div>
@@ -212,12 +214,12 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
 
       {/* Reward Type */}
       <div className="space-y-1.5">
-        <Label>Reward Type</Label>
+        <Label>{t('rewardType')}</Label>
         <div className="flex gap-4">
           {(['POINTS', 'PREMIUM_DAYS'] as const).map((type) => (
             <label key={type} className="flex items-center gap-2 cursor-pointer">
               <input type="radio" value={type} className="h-4 w-4" {...register('rewardType')} />
-              <span className="text-sm">{type === 'POINTS' ? 'Points' : 'Premium Days (Tokens)'}</span>
+              <span className="text-sm">{type === 'POINTS' ? t('points') : t('premiumDays')}</span>
             </label>
           ))}
         </div>
@@ -226,12 +228,12 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
       {/* Start Date */}
       <div className="space-y-1.5">
         <Label>
-          Start Date
+          {t('startDate')}
           {periodType === 'WEEK' && (
-            <span className="ml-1 text-xs text-muted-foreground">(Mondays only)</span>
+            <span className="ml-1 text-xs text-muted-foreground">{t('mondaysOnly')}</span>
           )}
           {periodType === 'MONTH' && (
-            <span className="ml-1 text-xs text-muted-foreground">(First of the month only)</span>
+            <span className="ml-1 text-xs text-muted-foreground">{t('firstOfMonth')}</span>
           )}
         </Label>
 
@@ -249,7 +251,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
                 )}
               >
                 <span>
-                  {field.value ? format(field.value, 'PPP') : 'Pick a date'}
+                  {field.value ? format(field.value, 'PPP') : t('pickDate')}
                 </span>
                 <CalendarIcon className="h-4 w-4 opacity-50" />
               </PopoverTrigger>
@@ -281,9 +283,9 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
       {/* Derived End Date (read-only) */}
       {endDate && (
         <div className="space-y-1.5">
-          <Label>End Date (auto-calculated)</Label>
+          <Label>{t('endDateAuto')}</Label>
           <div className="flex h-8 items-center rounded-lg border border-input bg-muted px-2.5 text-sm text-muted-foreground">
-            {format(endDate, 'PPP')} at 23:59 UTC
+            {format(endDate, 'PPP')} {t('endDateSuffix')}
           </div>
         </div>
       )}
@@ -291,15 +293,15 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
       {/* Payout Values */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label>Payout Values</Label>
-          <span className="text-xs text-muted-foreground">{fields.length} / 10 ranks</span>
+          <Label>{t('payoutValues')}</Label>
+          <span className="text-xs text-muted-foreground">{t('ranksCount', { count: fields.length })}</span>
         </div>
 
         <div className="space-y-2">
           {fields.map((field, index) => (
             <div key={field.id} className="flex items-center gap-2">
               <span className="w-14 shrink-0 text-right text-xs text-muted-foreground">
-                Rank {index + 1}
+                {t('rank', { number: index + 1 })}
               </span>
               <Input
                 type="number"
@@ -312,7 +314,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
                   type="button"
                   onClick={() => remove(index)}
                   className="rounded p-1 text-muted-foreground hover:text-destructive"
-                  aria-label={`Remove rank ${index + 1}`}
+                  aria-label={t('removeRank', { number: index + 1 })}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -323,7 +325,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
 
         {errors.payoutValues && (
           <p className="text-xs text-destructive">
-            {errors.payoutValues.message ?? 'Invalid payout values'}
+            {errors.payoutValues.message ?? t('invalidPayout')}
           </p>
         )}
 
@@ -336,7 +338,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
             className="gap-1.5"
           >
             <Plus className="h-3.5 w-3.5" />
-            Add Rank
+            {t('addRank')}
           </Button>
         )}
       </div>
@@ -352,11 +354,11 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
       <div className="flex justify-end gap-2 pt-2">
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {t('cancel')}
           </Button>
         )}
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? (isEdit ? 'Saving…' : 'Creating…') : (isEdit ? 'Save Changes' : 'Create Bonus Plan')}
+          {isSubmitting ? (isEdit ? t('saving') : t('creating')) : (isEdit ? t('saveChanges') : t('create'))}
         </Button>
       </div>
     </form>

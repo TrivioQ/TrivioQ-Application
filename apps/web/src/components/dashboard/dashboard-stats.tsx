@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { makeAPICallV1 } from '../../lib/api';
 import { ScoreTrendChart, ScorePeriod } from './score-trend-chart';
 
@@ -38,16 +38,15 @@ interface RecentDrop {
   };
 }
 
-const DIFF_LABEL: Record<string, string> = { EASY: 'Easy', MEDIUM: 'Medium', HARD: 'Hard' };
 const DIFF_COLOR: Record<string, string> = {
   EASY: 'text-green-400 bg-green-400/10',
   MEDIUM: 'text-yellow-400 bg-yellow-400/10',
   HARD: 'text-red-400 bg-red-400/10',
 };
 
-function formatDate(iso: string | null) {
+function formatDate(iso: string | null, locale: string) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-US', {
+  return new Date(iso).toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -67,6 +66,7 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
 
 export function DashboardStats() {
   const t = useTranslations('dashboard');
+  const locale = useLocale();
 
   const { data: profile } = useQuery<UserProfile>({
     queryKey: ['userProfile'],
@@ -118,12 +118,12 @@ export function DashboardStats() {
         <div className='rounded-2xl bg-white/5 border border-white/8 p-6'>
           <p className='text-sm font-semibold text-gray-300 mb-1'>{t('weeklyTrendTitle')}</p>
           <p className='text-xs text-gray-500 mb-4'>{t('weeklyTrendSubtitle')}</p>
-          <ScoreTrendChart data={weekly} mode='weekly' />
+          <ScoreTrendChart data={weekly} mode='weekly' namespace='dashboard' />
         </div>
         <div className='rounded-2xl bg-white/5 border border-white/8 p-6'>
           <p className='text-sm font-semibold text-gray-300 mb-1'>{t('monthlyTrendTitle')}</p>
           <p className='text-xs text-gray-500 mb-4'>{t('monthlyTrendSubtitle')}</p>
-          <ScoreTrendChart data={monthly} mode='monthly' />
+          <ScoreTrendChart data={monthly} mode='monthly' namespace='dashboard' />
         </div>
       </div>
 
@@ -151,7 +151,7 @@ export function DashboardStats() {
                 <div key={drop.id} className='px-6 py-4 flex items-start gap-4'>
                   <div className='mt-0.5 shrink-0'>
                     {drop.revealedAnswer ? (
-                      <span className='text-lg' title='Answer revealed'>
+                      <span className='text-lg' title={t('answerRevealed')}>
                         👁
                       </span>
                     ) : drop.wasCorrect ? (
@@ -168,7 +168,7 @@ export function DashboardStats() {
                   <div className='flex-1 min-w-0'>
                     <p className='text-sm text-gray-200 truncate'>{drop.question.questionText}</p>
                     <div className='flex flex-wrap items-center gap-2 mt-1.5'>
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${DIFF_COLOR[drop.question.difficultyLevel]}`}>{DIFF_LABEL[drop.question.difficultyLevel]}</span>
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${DIFF_COLOR[drop.question.difficultyLevel]}`}>{t(`diffLabels.${drop.question.difficultyLevel}`)}</span>
                       {drop.question.categories.slice(0, 2).map((c) => (
                         <span key={c.name} className='text-[11px] text-gray-500 bg-white/5 rounded-full px-2 py-0.5'>
                           {c.name}
@@ -180,18 +180,18 @@ export function DashboardStats() {
                     {selectedText != null && (
                       <div className='mt-2 space-y-0.5'>
                         <p className='text-[11px]'>
-                          <span className='text-gray-500'>Your answer: </span>
+                          <span className='text-gray-500'>{t('yourAnswer')} </span>
                           <span className={drop.wasCorrect ? 'text-green-400' : 'text-red-400'}>{selectedText}</span>
                         </p>
                         {!drop.wasCorrect && (
                           <p className='text-[11px]'>
-                            <span className='text-gray-500'>Correct answer: </span>
+                            <span className='text-gray-500'>{t('correctAnswer')} </span>
                             <span className='text-green-400'>{correctText}</span>
                           </p>
                         )}
                       </div>
                     )}
-                    <p className='text-[11px] text-gray-600 mt-1'>{formatDate(drop.answeredAt)}</p>
+                    <p className='text-[11px] text-gray-600 mt-1'>{formatDate(drop.answeredAt, locale)}</p>
                   </div>
 
                   <div className='shrink-0 text-right'>

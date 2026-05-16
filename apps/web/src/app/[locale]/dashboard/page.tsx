@@ -5,10 +5,13 @@ import { makeServerAPICallV1 } from '@/lib/api-server';
 import ActiveDropCard from '@/components/dashboard/active-drop-card';
 import { DashboardStats } from '@/components/dashboard/dashboard-stats';
 
-export const metadata = {
-  title: 'Dashboard | TrivioQ',
-  description: 'Your personal trivia performance dashboard.',
-};
+export async function generateMetadata() {
+  const t = await getTranslations('metadata');
+  return {
+    title: t('dashboardTitle'),
+    description: t('dashboardDescription'),
+  };
+}
 
 interface UserProfile {
   id: string;

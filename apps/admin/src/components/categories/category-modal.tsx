@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { createCategory, updateCategory } from '@/app/actions/category-actions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -16,10 +17,11 @@ export type Category = {
 };
 
 export function CategoryModal({ category, onOpenChange, open }: { category?: Category | null, onOpenChange?: (open: boolean) => void, open?: boolean }) {
+  const t = useTranslations('categories');
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = open !== undefined;
   const dialogOpen = isControlled ? open : internalOpen;
-  
+
   const [isPending, startTransition] = useTransition();
 
   const [name, setName] = useState('');
@@ -56,8 +58,8 @@ export function CategoryModal({ category, onOpenChange, open }: { category?: Cat
 
     startTransition(async () => {
       const payload = { name, slug, description: description || undefined };
-      
-      const res = category 
+
+      const res = category
         ? await updateCategory(category.id, payload)
         : await createCategory(payload);
 
@@ -73,32 +75,32 @@ export function CategoryModal({ category, onOpenChange, open }: { category?: Cat
     <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
       {!isControlled && (
         <DialogTrigger className={buttonVariants()}>
-          Create Category
+          {t('createModal.trigger')}
         </DialogTrigger>
       )}
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{category ? 'Edit Category' : 'Add New Category'}</DialogTitle>
+          <DialogTitle>{category ? t('editModal.title') : t('createModal.title')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" required value={name} onChange={e => handleNameChange(e.target.value)} placeholder="e.g. Science" />
+            <Label htmlFor="name">{t('createModal.name')}</Label>
+            <Input id="name" required value={name} onChange={e => handleNameChange(e.target.value)} placeholder={t('createModal.namePlaceholder')} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="slug">Slug (Unique)</Label>
-            <Input id="slug" required value={slug} onChange={e => setSlug(e.target.value)} placeholder="e.g. science" />
+            <Label htmlFor="slug">{t('createModal.slug')}</Label>
+            <Input id="slug" required value={slug} onChange={e => setSlug(e.target.value)} placeholder={t('createModal.slugPlaceholder')} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
-            <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Brief explanation..." />
+            <Label htmlFor="description">{t('createModal.description')}</Label>
+            <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder={t('createModal.descriptionPlaceholder')} />
           </div>
 
           <div className="flex justify-end pt-4">
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving...' : 'Save Category'}
+              {isPending ? t('createModal.saving') : t('createModal.saveCategory')}
             </Button>
           </div>
         </form>

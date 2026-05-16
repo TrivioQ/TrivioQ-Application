@@ -1,11 +1,13 @@
 import { getTranslations } from 'next-intl/server';
 import { makeServerAPICallV1 } from '@/lib/api-server';
-import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'FAQ | TrivioQ',
-  description: 'Frequently asked questions about TrivioQ trivia drops, scoring, and accounts.',
-};
+export async function generateMetadata() {
+  const t = await getTranslations('metadata');
+  return {
+    title: t('faqTitle'),
+    description: t('faqDescription'),
+  };
+}
 
 interface FAQItem {
   id: string;

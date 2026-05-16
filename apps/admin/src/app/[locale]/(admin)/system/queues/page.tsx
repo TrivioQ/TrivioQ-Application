@@ -1,15 +1,16 @@
 import { env } from 'env';
+import { getTranslations } from 'next-intl/server';
 
-export default function QueuesPage() {
+export default async function QueuesPage() {
+  const t = await getTranslations('system.queues');
   const apiUrl = env.API_URL;
-
 
   return (
     <div className="-m-8 h-screen">
       <iframe
         src={`${apiUrl}/admin/queues`}
         className="h-full w-full border-0"
-        title="Bull-Board Queue Monitor"
+        title={t('title')}
       />
     </div>
   );

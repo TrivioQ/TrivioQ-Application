@@ -63,7 +63,7 @@ export default function DropActive() {
         return response.data as QuestionDropPayload;
       } catch (error: any) {
         if (error.response?.status === 404) return null;
-        throw new Error('Network response was not ok');
+        throw new Error(t('drop.networkError'));
       }
     },
   });
@@ -223,7 +223,7 @@ export default function DropActive() {
     if (!answerResult) return;
     try {
       await Share.share({
-        message: `I just hit a ${answerResult.newStreak} streak on TrivioQ! Can you beat my score?`,
+        message: t('drop.shareMessage', { streak: answerResult.newStreak }),
       });
     } catch (error: any) {
       console.error(error.message);
@@ -247,7 +247,7 @@ export default function DropActive() {
           <Text style={styles.badgeDetail}>{t('drop.worth', { value: data.pointsValue })}</Text>
 
           <TouchableOpacity style={[styles.revealButton, (isExpired || revealQuestionMutation.isPending) && styles.disabledButton]} onPress={() => revealQuestionMutation.mutate()} disabled={isExpired || revealQuestionMutation.isPending}>
-            <Text style={styles.revealButtonText}>{revealQuestionMutation.isPending ? '...' : t('drop.revealQuestion')}</Text>
+            <Text style={styles.revealButtonText}>{revealQuestionMutation.isPending ? t('drop.revealLoading') : t('drop.revealQuestion')}</Text>
           </TouchableOpacity>
         </View>
       ) : (

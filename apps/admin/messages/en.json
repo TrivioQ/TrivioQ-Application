@@ -11,7 +11,22 @@
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete",
-    "create": "Create"
+    "create": "Create",
+    "previous": "Previous",
+    "next": "Next",
+    "prev": "Prev",
+    "actions": "Actions",
+    "none": "None",
+    "all": "All",
+    "active": "Active",
+    "inactive": "Inactive",
+    "loading": "Loading…",
+    "saving": "Saving...",
+    "noResults": "No results.",
+    "confirm": "Confirm",
+    "searchPlaceholder": "Search…",
+    "showing": "Showing {from}–{to} of {total}",
+    "pageOf": "Page {current} of {total}"
   },
   "dashboard": {
     "title": "Admin Dashboard",
@@ -35,6 +50,452 @@
       "title": "Category Popularity",
       "description": "Top 10 categories by number of assigned questions",
       "empty": "No categories with questions yet."
+    }
+  },
+  "layout": {
+    "brand": "TrivioQ",
+    "adminBadge": "Admin",
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "questions": "Questions",
+      "reviewQuestions": "Review Questions",
+      "categories": "Categories",
+      "faqs": "FAQs",
+      "bonusPlans": "Bonus Plans",
+      "appSettings": "App Settings",
+      "subscriptionHistory": "Sub. History",
+      "logout": "Logout"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage platform users, view their streaks, and modify subscription tiers.",
+    "columns": {
+      "username": "Username",
+      "email": "Email",
+      "dateOfBirth": "Date of Birth",
+      "subscriptionTier": "Subscription Tier",
+      "currentStreak": "Current Streak"
+    },
+    "actions": {
+      "openMenu": "Open menu",
+      "editUser": "Edit User",
+      "deleteUser": "Delete User",
+      "upgradeToPremium": "Upgrade to Premium",
+      "downgradeToFree": "Downgrade to Free"
+    },
+    "deleteConfirm": {
+      "title": "Delete \"{username}\"?",
+      "message": "This action cannot be undone.",
+      "confirmLabel": "Delete User"
+    },
+    "editModal": {
+      "title": "Edit User",
+      "email": "Email",
+      "username": "Username",
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "Optional",
+      "dateOfBirth": "Date of Birth",
+      "subscriptionTier": "Subscription Tier",
+      "activeWindowStart": "Active Window Start",
+      "activeWindowEnd": "Active Window End",
+      "onDemandTokens": "On-Demand Tokens",
+      "free": "Free",
+      "premium": "Premium",
+      "plus": "Plus",
+      "saveChanges": "Save Changes",
+      "saving": "Saving..."
+    },
+    "tierFilter": {
+      "all": "All",
+      "free": "Free",
+      "premium": "Premium"
+    }
+  },
+  "questions": {
+    "title": "Questions",
+    "description": "Manage your trivia database. Filter by category, difficulty, or search text.",
+    "columns": {
+      "question": "Question",
+      "difficulty": "Difficulty",
+      "categories": "Categories"
+    },
+    "empty": "No questions match your filters.",
+    "noResults": "No results",
+    "showing": "Showing {start}–{end} of {total} questions",
+    "pageOf": "Page {page} of {totalPages}",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "filters": {
+      "difficulty": "Difficulty",
+      "categories": "Categories",
+      "searchCategory": "Search category…",
+      "noCategoryFound": "No category found.",
+      "clearFilters": "Clear filters",
+      "searchQuestionText": "Search question text…"
+    },
+    "actions": {
+      "openMenu": "Open menu",
+      "editQuestion": "Edit Question",
+      "deleteQuestion": "Delete Question"
+    },
+    "deleteConfirm": {
+      "title": "Delete Question?",
+      "message": "Are you sure you want to delete this question? This action cannot be undone.",
+      "confirmLabel": "Delete Question"
+    },
+    "createModal": {
+      "title": "Add New Question",
+      "trigger": "Create Question",
+      "questionText": "Question Text",
+      "difficulty": "Difficulty",
+      "selectDifficulty": "Select difficulty",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "choicesLabel": "Choices — select the radio button to mark the correct answer",
+      "markCorrect": "Mark as correct answer",
+      "choicePlaceholder": "Choice {number}",
+      "hintLabel": "Hint (Optional — costs points to reveal)",
+      "hintPlaceholder": "A clue to help users narrow down the answer...",
+      "explanationLabel": "Explanation (Optional — shown after answer)",
+      "explanationPlaceholder": "Explain why the answer is correct...",
+      "categoriesLabel": "Categories",
+      "selectCategories": "Select categories...",
+      "categoriesSelected": "{count} categories selected",
+      "searchCategory": "Search category...",
+      "noCategoryFound": "No category found.",
+      "saveQuestion": "Save Question",
+      "saving": "Saving..."
+    },
+    "editModal": {
+      "title": "Edit Question",
+      "questionText": "Question Text",
+      "difficulty": "Difficulty",
+      "selectDifficulty": "Select difficulty",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "choicesLabel": "Choices — select the radio button to mark the correct answer",
+      "markCorrect": "Mark as correct answer",
+      "choicePlaceholder": "Choice {number}",
+      "hintLabel": "Hint (Optional — costs points to reveal)",
+      "hintPlaceholder": "A clue to help users narrow down the answer...",
+      "explanationLabel": "Explanation (Optional — shown after answer)",
+      "explanationPlaceholder": "Explain why the answer is correct...",
+      "categoriesLabel": "Categories",
+      "selectCategories": "Select categories...",
+      "categoriesSelected": "{count} categories selected",
+      "searchCategory": "Search category...",
+      "noCategoryFound": "No category found.",
+      "saveChanges": "Save Changes",
+      "saving": "Saving..."
+    }
+  },
+  "review": {
+    "title": "Content Review",
+    "description": "Review and approve AI-generated trivia questions before they enter the live database.",
+    "filters": {
+      "unvalidated": "Unvalidated",
+      "aiValidated": "AI Validated"
+    },
+    "pendingQuestions": "Pending Questions",
+    "noPending": "No pending questions to review.",
+    "selectPrompt": "Select a question from the list to review.",
+    "duplicateBadge": "DUPLICATE",
+    "scoreBadge": {
+      "high": "High ({score})",
+      "medium": "Medium ({score})",
+      "low": "Low ({score})"
+    },
+    "editor": {
+      "submitted": "Submitted",
+      "duplicateWarning": "DUPLICATE DETECTED — This question appears to be a duplicate of an existing question. Review carefully before approving.",
+      "aiFeedback": "AI Feedback",
+      "questionText": "Question Text",
+      "difficultyLevel": "Difficulty Level",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "category": "Category",
+      "slugLabel": "Slug: {slug}",
+      "noCategoryMatch": "No existing category matches \"{slug}\" — the category slug must match an existing category.",
+      "choicesLabel": "Choices — select the radio button to mark the correct answer",
+      "markCorrect": "Mark as correct answer",
+      "choicePlaceholder": "Choice {number}",
+      "hintLabel": "Hint (Optional)",
+      "hintPlaceholder": "A clue to help users narrow down the answer...",
+      "explanationLabel": "Explanation (Optional)",
+      "explanationPlaceholder": "Explain why the answer is correct...",
+      "reject": "Reject",
+      "approve": "Approve & Publish",
+      "publishing": "Publishing...",
+      "rejectDialog": {
+        "title": "Reject Question",
+        "description": "Optionally provide a reason for rejecting this question. This will be saved and can help the content team improve future submissions.",
+        "reasonLabel": "Rejection Reason",
+        "reasonPlaceholder": "e.g., inaccurate content, poorly worded, duplicate question...",
+        "cancel": "Cancel",
+        "confirmRejection": "Confirm Rejection",
+        "rejecting": "Rejecting..."
+      }
+    }
+  },
+  "categories": {
+    "title": "Categories",
+    "description": "Manage your trivia categories. Categories organize questions across the application.",
+    "columns": {
+      "name": "Name",
+      "slug": "Slug",
+      "description": "Description",
+      "questions": "Questions",
+      "none": "None"
+    },
+    "actions": {
+      "openMenu": "Open menu",
+      "editCategory": "Edit Category",
+      "deleteCategory": "Delete Category"
+    },
+    "deleteConfirm": {
+      "title": "Delete \"{name}\"?",
+      "message": "Questions in this category will not be deleted, but will be removed from this category.",
+      "confirmLabel": "Delete Category"
+    },
+    "createModal": {
+      "trigger": "Create Category",
+      "title": "Add New Category",
+      "name": "Name",
+      "namePlaceholder": "e.g. Science",
+      "slug": "Slug (Unique)",
+      "slugPlaceholder": "e.g. science",
+      "description": "Description (Optional)",
+      "descriptionPlaceholder": "Brief explanation...",
+      "saveCategory": "Save Category",
+      "saving": "Saving..."
+    },
+    "editModal": {
+      "title": "Edit Category",
+      "name": "Name",
+      "namePlaceholder": "e.g. Science",
+      "slug": "Slug (Unique)",
+      "slugPlaceholder": "e.g. science",
+      "description": "Description (Optional)",
+      "descriptionPlaceholder": "Brief explanation...",
+      "saveCategory": "Save Category",
+      "saving": "Saving..."
+    }
+  },
+  "faqs": {
+    "title": "FAQs",
+    "description": "Manage the frequently asked questions displayed in the web application.",
+    "searchPlaceholder": "Search FAQs…",
+    "columns": {
+      "order": "Order",
+      "question": "Question",
+      "status": "Status"
+    },
+    "actions": {
+      "openMenu": "Open menu",
+      "editFAQ": "Edit FAQ",
+      "deleteFAQ": "Delete FAQ"
+    },
+    "addButton": "Add FAQ",
+    "deleteConfirm": {
+      "title": "Delete FAQ",
+      "message": "Are you sure you want to delete this FAQ? This action cannot be undone.",
+      "confirmLabel": "Delete"
+    },
+    "statusFilter": {
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "createModal": {
+      "title": "Add New FAQ",
+      "question": "Question",
+      "questionPlaceholder": "e.g. How do I earn points?",
+      "answer": "Answer",
+      "answerPlaceholder": "The answer text...",
+      "displayOrder": "Display Order",
+      "active": "Active",
+      "cancel": "Cancel",
+      "saveFAQ": "Save FAQ",
+      "saving": "Saving..."
+    },
+    "editModal": {
+      "title": "Edit FAQ",
+      "question": "Question",
+      "questionPlaceholder": "e.g. How do I earn points?",
+      "answer": "Answer",
+      "answerPlaceholder": "The answer text...",
+      "displayOrder": "Display Order",
+      "active": "Active",
+      "cancel": "Cancel",
+      "saveFAQ": "Save FAQ",
+      "saving": "Saving..."
+    }
+  },
+  "bonusPlans": {
+    "title": "Bonus Plans",
+    "description": "Create weekly or monthly bonus plans to reward top-ranked players with points or premium days.",
+    "create": "Create",
+    "newPlan": "New Bonus Plan",
+    "editPlan": "Edit Bonus Plan",
+    "formDescription": "Configure the period, reward type, and payout values for each rank.",
+    "active": "Active",
+    "pending": "Pending",
+    "expired": "Expired",
+    "empty": "No bonus plans yet. Create one to get started.",
+    "loading": "Loading bonus plans…",
+    "loadError": "Could not load bonus plans. Please refresh.",
+    "editAriaLabel": "Edit bonus plan",
+    "deleteAriaLabel": "Delete bonus plan",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "points": "Points",
+    "premiumDays": "Premium Days",
+    "deleteConfirm": {
+      "title": "Delete Bonus Plan",
+      "message": "Are you sure you want to delete \"{title}\"? This action cannot be undone.",
+      "confirmLabel": "Delete"
+    },
+    "form": {
+      "planTitle": "Plan Title",
+      "titlePlaceholder": "e.g. Week 24 Bonus",
+      "periodType": "Period Type",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "rewardType": "Reward Type",
+      "points": "Points",
+      "premiumDays": "Premium Days (Tokens)",
+      "startDate": "Start Date",
+      "mondaysOnly": "(Mondays only)",
+      "firstOfMonth": "(First of the month only)",
+      "pickDate": "Pick a date",
+      "endDateAuto": "End Date (auto-calculated)",
+      "endDateSuffix": "at 23:59 UTC",
+      "payoutValues": "Payout Values",
+      "ranksCount": "{count} / 10 ranks",
+      "rank": "Rank {number}",
+      "removeRank": "Remove rank {number}",
+      "addRank": "Add Rank",
+      "invalidPayout": "Invalid payout values",
+      "cancel": "Cancel",
+      "create": "Create Bonus Plan",
+      "creating": "Creating…",
+      "saveChanges": "Save Changes",
+      "saving": "Saving…",
+      "overlapError": "A bonus plan already exists for this period. Adjust the dates or remove the conflicting plan.",
+      "genericError": "Something went wrong. Please try again.",
+      "networkError": "Network error. Please check your connection and try again."
+    }
+  },
+  "appSettings": {
+    "title": "App Settings",
+    "description": "Manage application-wide configuration. Changes take effect within 60 seconds.",
+    "searchPlaceholder": "Search settings...",
+    "apply": "Apply",
+    "columns": {
+      "setting": "Setting",
+      "type": "Type",
+      "value": "Value",
+      "lastUpdated": "Last Updated"
+    },
+    "noSettings": "No settings found.",
+    "showingPage": "Showing page {current} of {total}",
+    "prev": "Prev",
+    "next": "Next",
+    "validationError": "Value must be a number",
+    "saveFailed": "Failed to save"
+  },
+  "subscriptionHistory": {
+    "title": "Subscription History",
+    "description": "Search for a user to view their full subscription tier change history.",
+    "searchPlaceholder": "Search by username…",
+    "noUsersFound": "No users found.",
+    "searchPrompt": "Search for a user to view their subscription history.",
+    "historyFor": "History for",
+    "columns": {
+      "tier": "Tier",
+      "source": "Source",
+      "startedAt": "Started At",
+      "expiresAt": "Expires At",
+      "recordedAt": "Recorded At"
+    },
+    "noHistory": "No subscription history found for this user.",
+    "sources": {
+      "vaultActivation": "Vault Activation",
+      "adminGrant": "Admin Grant",
+      "purchase": "Purchase",
+      "leaderboard": "Leaderboard"
+    },
+    "showing": "Showing {from}–{to} of {total}",
+    "noRecords": "0 records",
+    "prev": "Prev",
+    "next": "Next"
+  },
+  "system": {
+    "jobLogs": {
+      "title": "Job Logs",
+      "description": "Permanent history of background worker executions across all queues.",
+      "columns": {
+        "timestamp": "Timestamp",
+        "queue": "Queue",
+        "jobId": "Job ID",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "empty": "No job logs found.",
+      "completed": "COMPLETED",
+      "viewDetails": "View Details",
+      "previous": "Previous",
+      "next": "Next",
+      "showing": "Showing {from}–{to} of {totalCount}",
+      "modal": {
+        "title": "Job Details",
+        "jobId": "Job ID",
+        "payload": "Payload",
+        "result": "Result"
+      }
+    },
+    "queues": {
+      "title": "Bull-Board Queue Monitor"
+    }
+  },
+  "auth": {
+    "brand": "TrivioQ",
+    "adminBadge": "Admin",
+    "portalBadge": "Administration Portal",
+    "headline": "Manage your platform",
+    "headlineHighlight": "with confidence.",
+    "subtitle": "A centralised hub for overseeing users, content, and platform settings — all in one place.",
+    "features": {
+      "dashboard": "Real-time dashboard & analytics",
+      "users": "Full user management & roles",
+      "questions": "Question bank with difficulty control",
+      "categories": "Category & content organisation"
+    },
+    "securityNotice": "Access is restricted to authorised administrators only.",
+    "welcomeBack": "Welcome back",
+    "signInPrompt": "Sign in to access the administrator dashboard.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "admin@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "keepMeLoggedIn": "Keep me logged in",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "restrictedAccess": "Restricted access — administrators only.",
+    "unauthorizedNote": "You must be an Admin to access this area.",
+    "logoAlt": "TrivioQ Admin"
+  },
+  "errors": {
+    "forbidden": {
+      "code": "403",
+      "title": "Access Denied",
+      "message": "You don't have the required administrative permissions to access this area.",
+      "returnHome": "Return to Dashboard"
     }
   }
 }

@@ -2,10 +2,13 @@ import { marked } from 'marked';
 import { makeServerAPICallV1 } from '@/lib/api-server';
 import { getTranslations } from 'next-intl/server';
 
-export const metadata = {
-  title: 'Terms of Service | TrivioQ',
-  description: 'TrivioQ Terms of Service — your rights and responsibilities when using our platform.',
-};
+export async function generateMetadata() {
+  const t = await getTranslations('metadata');
+  return {
+    title: t('termsTitle'),
+    description: t('termsDescription'),
+  };
+}
 
 type LegalDoc = { title: string; content: string; version: string; updatedAt: string };
 

@@ -228,10 +228,34 @@ const aiQuestionWorker = new Worker<AiQuestionJobPayload>(QUEUE_NAME, handleAiQu
 
 aiQuestionWorker.on('completed', (job) => {
   console.log(`[AIQuestionWorker] Job ${job.id} completed`);
+  prisma.jobLog
+    .create({
+      data: {
+        jobId: job.id ?? 'unknown',
+        queueName: QUEUE_NAME,
+        jobName: job.name,
+        status: 'COMPLETED',
+        payload: job.data,
+        result: job.returnvalue,
+      },
+    })
+    .catch((err) => console.error('[AIQuestionWorker] Failed to log completed job:', err));
 });
 
 aiQuestionWorker.on('failed', (job, err) => {
   console.error(`[AIQuestionWorker] Job ${job?.id} failed:`, err);
+  prisma.jobLog
+    .create({
+      data: {
+        jobId: job?.id ?? 'unknown',
+        queueName: QUEUE_NAME,
+        jobName: job?.name ?? 'unknown',
+        status: 'FAILED',
+        payload: job?.data ?? {},
+        result: { message: err.message, stack: err.stack },
+      },
+    })
+    .catch((dbErr) => console.error('[AIQuestionWorker] Failed to log failed job:', dbErr));
 });
 
 // ── Init ─────────────────────────────────────────────────────────────────────────

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/table';
 import { buttonVariants } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { PaginatedQuestionsResult } from '@/app/actions/question-actions';
 
 interface Props<TData, TValue> {
@@ -28,6 +29,7 @@ interface Props<TData, TValue> {
 export function QuestionsDataTable<TData, TValue>({ columns, result }: Props<TData, TValue>) {
   "use no memo";
 
+  const t = useTranslations('questions');
   const { data, page, totalPages, total, pageSize } = result;
   const { pushParams, isPending, sorting, handleSortingChange } = useTableParams();
 
@@ -76,7 +78,7 @@ export function QuestionsDataTable<TData, TValue>({ columns, result }: Props<TDa
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500">
-                  No questions match your filters.
+                  {t('empty')}
                 </TableCell>
               </TableRow>
             )}
@@ -86,25 +88,25 @@ export function QuestionsDataTable<TData, TValue>({ columns, result }: Props<TDa
 
       <div className="flex items-center justify-between text-sm text-gray-600">
         <span>
-          {total === 0 ? 'No results' : `Showing ${start}–${end} of ${total} questions`}
+          {total === 0 ? t('noResults') : t('showing', { start, end, total })}
         </span>
         <div className="flex items-center gap-2">
           <button
             onClick={() => pushParams({ page: String(page - 1) })}
             disabled={page <= 1 || isPending}
             className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
-            aria-label="Previous page"
+            aria-label={t('previousPage')}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <span className="font-medium">
-            Page {page} of {totalPages}
+            {t('pageOf', { page, totalPages })}
           </span>
           <button
             onClick={() => pushParams({ page: String(page + 1) })}
             disabled={page >= totalPages || isPending}
             className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
-            aria-label="Next page"
+            aria-label={t('nextPage')}
           >
             <ChevronRight className="h-4 w-4" />
           </button>

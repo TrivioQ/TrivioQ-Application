@@ -16,6 +16,7 @@ import { deleteFAQ } from '@/app/actions/faq-actions';
 import { useState, useTransition } from 'react';
 import { FAQModal } from './faq-modal';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useTranslations } from 'next-intl';
 
 export type FAQRow = {
   id: string;
@@ -34,19 +35,25 @@ function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
 export const columns: ColumnDef<FAQRow>[] = [
   {
     accessorKey: 'order',
-    header: ({ column }) => (
-      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
-        Order <SortIcon sorted={column.getIsSorted()} />
-      </button>
-    ),
+    header: ({ column }) => {
+      const t = useTranslations('faqs');
+      return (
+        <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+          {t('columns.order')} <SortIcon sorted={column.getIsSorted()} />
+        </button>
+      );
+    },
   },
   {
     accessorKey: 'question',
-    header: ({ column }) => (
-      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
-        Question <SortIcon sorted={column.getIsSorted()} />
-      </button>
-    ),
+    header: ({ column }) => {
+      const t = useTranslations('faqs');
+      return (
+        <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+          {t('columns.question')} <SortIcon sorted={column.getIsSorted()} />
+        </button>
+      );
+    },
     cell: ({ row }) => {
        const question = row.getValue('question') as string;
        return <div className="max-w-[300px] truncate font-medium">{question}</div>;
@@ -54,16 +61,20 @@ export const columns: ColumnDef<FAQRow>[] = [
   },
   {
     accessorKey: 'active',
-    header: ({ column }) => (
-      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
-        Status <SortIcon sorted={column.getIsSorted()} />
-      </button>
-    ),
+    header: ({ column }) => {
+      const t = useTranslations('faqs');
+      return (
+        <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+          {t('columns.status')} <SortIcon sorted={column.getIsSorted()} />
+        </button>
+      );
+    },
     cell: ({ row }) => {
+      const t = useTranslations('common');
       const active = row.getValue('active') as boolean;
       return (
         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-          {active ? 'Active' : 'Inactive'}
+          {active ? t('active') : t('inactive')}
         </span>
       );
     },
@@ -78,15 +89,16 @@ export const columns: ColumnDef<FAQRow>[] = [
 ];
 
 function FAQActions({ faq }: { faq: FAQRow }) {
+  const t = useTranslations('faqs');
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
   const confirm = useConfirm();
 
   const handleDelete = async () => {
     const ok = await confirm({
-      title: 'Delete FAQ',
-      message: 'Are you sure you want to delete this FAQ? This action cannot be undone.',
-      confirmLabel: 'Delete',
+      title: t('deleteConfirm.title'),
+      message: t('deleteConfirm.message'),
+      confirmLabel: t('deleteConfirm.confirmLabel'),
       isDestructive: true,
     });
     if (!ok) return;
@@ -101,7 +113,7 @@ function FAQActions({ faq }: { faq: FAQRow }) {
       <FAQModal faq={faq} open={editOpen} onOpenChange={setEditOpen} />
       <DropdownMenu>
         <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>
-          <span className="sr-only">Open menu</span>
+          <span className="sr-only">{t('actions.openMenu')}</span>
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -109,10 +121,10 @@ function FAQActions({ faq }: { faq: FAQRow }) {
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setEditOpen(true)} className="cursor-pointer">
-              <Pencil className="mr-2 h-4 w-4" /> Edit FAQ
+              <Pencil className="mr-2 h-4 w-4" /> {t('actions.editFAQ')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-red-600 focus:text-red-600">
-              <Trash className="mr-2 h-4 w-4" /> Delete FAQ
+              <Trash className="mr-2 h-4 w-4" /> {t('actions.deleteFAQ')}
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>

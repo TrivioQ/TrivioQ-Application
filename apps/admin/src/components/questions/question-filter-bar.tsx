@@ -2,6 +2,7 @@
 
 import { useCallback, useTransition } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SearchInput } from '@/components/ui/search-input';
@@ -27,6 +28,7 @@ const DIFFICULTIES: DifficultyLevel[] = ['EASY', 'MEDIUM', 'HARD'];
 type Category = { id: string; name: string };
 
 export function QuestionFilterBar({ categories }: { categories: Category[] }) {
+  const t = useTranslations('questions.filters');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -69,14 +71,14 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
         <SearchInput
           initialValue={search}
           onDebouncedChange={(val) => push({ search: val || undefined })}
-          placeholder="Search question text…"
+          placeholder={t('searchQuestionText')}
           className="w-64 h-9"
         />
 
         {/* Difficulty multi-select */}
         <Popover>
           <PopoverTrigger className={buttonVariants({ variant: 'outline', className: 'h-9 gap-2' })}>
-            Difficulty
+            {t('difficulty')}
             {difficulties.length > 0 && (
               <Badge className="ml-1 rounded-full px-1.5 py-0 text-xs bg-indigo-600 text-white hover:bg-indigo-600">
                 {difficulties.length}
@@ -103,7 +105,7 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
         {/* Category multi-select */}
         <Popover>
           <PopoverTrigger className={buttonVariants({ variant: 'outline', className: 'h-9 gap-2' })}>
-            Categories
+            {t('categories')}
             {categoryNames.length > 0 && (
               <Badge className="ml-1 rounded-full px-1.5 py-0 text-xs bg-indigo-600 text-white hover:bg-indigo-600">
                 {categoryNames.length}
@@ -113,9 +115,9 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
           </PopoverTrigger>
           <PopoverContent className="w-56 p-0">
             <Command>
-              <CommandInput placeholder="Search category…" />
+              <CommandInput placeholder={t('searchCategory')} />
               <CommandList>
-                <CommandEmpty>No category found.</CommandEmpty>
+                <CommandEmpty>{t('noCategoryFound')}</CommandEmpty>
                 <CommandGroup>
                   {categories.map((c) => (
                     <CommandItem key={c.id} onSelect={() => toggleCategory(c.name)}>
@@ -135,7 +137,7 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
             className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 transition-colors"
           >
             <X className="h-3.5 w-3.5" />
-            Clear filters
+            {t('clearFilters')}
           </button>
         )}
       </div>

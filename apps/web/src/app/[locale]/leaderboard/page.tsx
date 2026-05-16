@@ -6,6 +6,14 @@ import { LeaderboardTabs } from '@/components/leaderboard-tabs';
 
 export const revalidate = 60; // Revalidate the leaderboard every 60 seconds
 
+export async function generateMetadata() {
+  const t = await getTranslations('metadata');
+  return {
+    title: t('leaderboardTitle'),
+    description: t('leaderboardDescription'),
+  };
+}
+
 interface LeaderboardUser {
   id: string;
   username: string;

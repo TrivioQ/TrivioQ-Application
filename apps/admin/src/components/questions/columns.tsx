@@ -18,6 +18,7 @@ import { deleteQuestion, getCategories } from '@/app/actions/question-actions';
 import { useState, useTransition, useEffect } from 'react';
 import { QuestionModal } from './question-modal';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useTranslations } from 'next-intl';
 
 export type QuestionRow = {
   id: string;
@@ -38,11 +39,14 @@ function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
 export const columns: ColumnDef<QuestionRow>[] = [
   {
     accessorKey: 'questionText',
-    header: ({ column }) => (
-      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
-        Question <SortIcon sorted={column.getIsSorted()} />
-      </button>
-    ),
+    header: ({ column }) => {
+      const t = useTranslations('questions');
+      return (
+        <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+          {t('columns.question')} <SortIcon sorted={column.getIsSorted()} />
+        </button>
+      );
+    },
     cell: ({ row }) => {
       const text = row.getValue('questionText') as string;
       return <div className="max-w-[400px] truncate" title={text}>{text}</div>;
@@ -50,11 +54,14 @@ export const columns: ColumnDef<QuestionRow>[] = [
   },
   {
     accessorKey: 'difficultyLevel',
-    header: ({ column }) => (
-      <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
-        Difficulty <SortIcon sorted={column.getIsSorted()} />
-      </button>
-    ),
+    header: ({ column }) => {
+      const t = useTranslations('questions');
+      return (
+        <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+          {t('columns.difficulty')} <SortIcon sorted={column.getIsSorted()} />
+        </button>
+      );
+    },
     cell: ({ row }) => {
       const diff = row.getValue('difficultyLevel') as string;
       const colors: Record<string, string> = {
@@ -67,10 +74,14 @@ export const columns: ColumnDef<QuestionRow>[] = [
   },
   {
     accessorKey: 'categories',
-    header: 'Categories',
+    header: () => {
+      const t = useTranslations('questions');
+      return <>{t('columns.categories')}</>;
+    },
     cell: ({ row }) => {
+      const t = useTranslations('common');
       const categories = row.original.categories;
-      if (!categories || categories.length === 0) return <span className="text-gray-400">None</span>;
+      if (!categories || categories.length === 0) return <span className="text-gray-400">{t('none')}</span>;
       return (
         <div className="flex flex-wrap gap-1">
           {categories.map((c) => (
@@ -89,6 +100,7 @@ export const columns: ColumnDef<QuestionRow>[] = [
 ];
 
 function QuestionActions({ question }: { question: QuestionRow }) {
+  const t = useTranslations('questions');
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
@@ -104,9 +116,9 @@ function QuestionActions({ question }: { question: QuestionRow }) {
 
   const handleDelete = async () => {
     const ok = await confirm({
-      title: 'Delete Question?',
-      message: 'Are you sure you want to delete this question? This action cannot be undone.',
-      confirmLabel: 'Delete Question',
+      title: t('deleteConfirm.title'),
+      message: t('deleteConfirm.message'),
+      confirmLabel: t('deleteConfirm.confirmLabel'),
       isDestructive: true,
     });
     if (!ok) return;
@@ -126,7 +138,7 @@ function QuestionActions({ question }: { question: QuestionRow }) {
       />
       <DropdownMenu>
         <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "h-8 w-8 p-0" })} disabled={isPending}>
-          <span className="sr-only">Open menu</span>
+          <span className="sr-only">{t('actions.openMenu')}</span>
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -134,10 +146,10 @@ function QuestionActions({ question }: { question: QuestionRow }) {
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setEditOpen(true)} className="cursor-pointer">
-              <Pencil className="mr-2 h-4 w-4" /> Edit Question
+              <Pencil className="mr-2 h-4 w-4" /> {t('actions.editQuestion')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-red-600 focus:text-red-600">
-              <Trash className="mr-2 h-4 w-4" /> Delete Question
+              <Trash className="mr-2 h-4 w-4" /> {t('actions.deleteQuestion')}
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>

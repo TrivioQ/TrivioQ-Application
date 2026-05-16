@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { SearchInput } from '@/components/ui/search-input';
 import { useTableParams } from '@/hooks/use-table-params';
+import { useTranslations } from 'next-intl';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -45,11 +46,14 @@ export function DataTable<TData, TValue>({
   pageSize = 20,
   filterSlot,
   actionSlot,
-  searchPlaceholder = 'Search…',
+  searchPlaceholder,
 }: DataTableProps<TData, TValue>) {
   "use no memo";
 
+  const t = useTranslations('common');
   const { pushParams, isPending, sorting, handleSortingChange } = useTableParams();
+
+  const placeholder = searchPlaceholder ?? t('searchPlaceholder');
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table API is inherently incompatible with React Compiler memoization
   const table = useReactTable({
@@ -73,7 +77,7 @@ export function DataTable<TData, TValue>({
           <SearchInput
             initialValue={search}
             onDebouncedChange={(val) => pushParams({ search: val || null, page: '1' })}
-            placeholder={searchPlaceholder}
+            placeholder={placeholder}
             className="w-64"
           />
           {filterSlot}
@@ -110,7 +114,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500">
-                  No results.
+                  {t('noResults')}
                 </TableCell>
               </TableRow>
             )}
@@ -121,8 +125,8 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-500">
           {start && end && total
-            ? `Showing ${start}–${end} of ${total}`
-            : `Page ${currentPage} of ${Math.max(1, pageCount)}`}
+            ? t('showing', { from: start, to: end, total })
+            : t('pageOf', { current: currentPage, total: Math.max(1, pageCount) })}
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -132,7 +136,7 @@ export function DataTable<TData, TValue>({
             disabled={currentPage <= 1 || isPending}
           >
             <ChevronLeft className="h-4 w-4" />
-            Prev
+            {t('prev')}
           </Button>
           <span className="text-sm text-gray-600 font-medium">
             {currentPage} / {Math.max(1, pageCount)}
@@ -143,7 +147,7 @@ export function DataTable<TData, TValue>({
             onClick={() => pushParams({ page: String(currentPage + 1) })}
             disabled={currentPage >= pageCount || isPending}
           >
-            Next
+            {t('next')}
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
