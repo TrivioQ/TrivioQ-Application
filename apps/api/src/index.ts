@@ -1,3 +1,29 @@
+import './config/env';
+import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
+import { expressIntegration } from '@sentry/node';
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  integrations: [expressIntegration(), nodeProfilingIntegration()],
+  sendDefaultPii: false,
+  beforeSend(event) {
+    const sensitiveKeys = ['email', 'firebaseUid', 'password'];
+    function scrub(obj: unknown) {
+      if (!obj || typeof obj !== 'object') return;
+      for (const key of Object.keys(obj as Record<string, unknown>)) {
+        if (sensitiveKeys.includes(key)) {
+          (obj as Record<string, unknown>)[key] = '[Filtered]';
+        } else {
+          scrub((obj as Record<string, unknown>)[key]);
+        }
+      }
+    }
+    scrub(event);
+    return event;
+  },
+});
+
 import express, { Request, Response } from 'express';
 process.env.TZ = 'UTC';
 import { prisma } from '@trivioq/database';
@@ -51,6 +77,8 @@ app.get('/v1/info', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+Sentry.setupExpressErrorHandler(app);
 
 initLeaderboardWorker();
 initAIQuestionWorker();

@@ -1,3 +1,6 @@
+-- CreateExtension
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN');
 
@@ -177,6 +180,10 @@ CREATE TABLE "PendingQuestion" (
     "explanation" TEXT,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
     "rejectionReason" TEXT,
+    "isValidated" BOOLEAN NOT NULL DEFAULT false,
+    "isDuplicate" BOOLEAN NOT NULL DEFAULT false,
+    "aiQualityScore" INTEGER,
+    "aiFeedback" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -207,6 +214,32 @@ CREATE TABLE "LegalDocument" (
     "updatedBy" TEXT,
 
     CONSTRAINT "LegalDocument_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "JobLog" (
+    "id" TEXT NOT NULL,
+    "jobId" TEXT NOT NULL,
+    "queueName" TEXT NOT NULL,
+    "jobName" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "payload" JSONB NOT NULL,
+    "result" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "JobLog_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SystemLog" (
+    "id" TEXT NOT NULL,
+    "level" TEXT NOT NULL,
+    "source" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "SystemLog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -257,6 +290,12 @@ CREATE INDEX "BonusPlan_startDate_endDate_idx" ON "BonusPlan"("startDate", "endD
 
 -- CreateIndex
 CREATE UNIQUE INDEX "LegalDocument_slug_key" ON "LegalDocument"("slug");
+
+-- CreateIndex
+CREATE INDEX "JobLog_queueName_createdAt_idx" ON "JobLog"("queueName", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "JobLog_jobId_idx" ON "JobLog"("jobId");
 
 -- CreateIndex
 CREATE INDEX "UserSubscriptionHistory_userId_createdAt_idx" ON "UserSubscriptionHistory"("userId", "createdAt" DESC);

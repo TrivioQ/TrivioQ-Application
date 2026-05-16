@@ -8,6 +8,15 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
-    }
+    },
+    "plugins": [
+      [
+        "@sentry/react-native",
+        {
+          "url": "https://sentry.io/",
+          "authToken": "SENTRY_AUTH_TOKEN"
+        }
+      ]
+    ]
   }
 }

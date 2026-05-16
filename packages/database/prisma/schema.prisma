@@ -260,6 +260,15 @@ model JobLog {
   @@index([jobId])
 }
 
+model SystemLog {
+  id        String   @id @default(uuid())
+  level     String
+  source    String
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
 // Append-only audit log of every subscription tier change per user.
 model UserSubscriptionHistory {
   id        String             @id @default(uuid())

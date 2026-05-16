@@ -1,3 +1,4 @@
+import { withSentryConfig } from '@sentry/nextjs';
 import createNextIntlPlugin from 'next-intl/plugin';
 import "./env.mjs";
 
@@ -8,4 +9,8 @@ const nextConfig = {
   transpilePackages: ["@trivioq/shared-types"],
 };
 
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
+});

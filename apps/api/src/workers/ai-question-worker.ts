@@ -4,6 +4,7 @@ import { prisma, DifficultyLevel } from '@trivioq/database';
 import type { SuggestedChoice } from '@trivioq/shared-types';
 import { shuffleArray } from '../utils/shuffle';
 import { checkIsDuplicate } from '../utils/checkIsDuplicate';
+import { reportError } from '../utils/errorReporter';
 
 const QUEUE_NAME = 'ai-question-generation';
 
@@ -144,7 +145,7 @@ async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promi
       }),
     );
   } catch (error) {
-    console.error(`[AIQuestionWorker] LLM generation failed for topic="${topic}":`, error);
+    reportError(error instanceof Error ? error : new Error(String(error)), { topic, categorySlug, phase: 'llm-generation' });
     throw error;
   }
 
@@ -190,7 +191,7 @@ async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promi
     try {
       qualityReviews = await reviewQuestionsForQuality(uniqueQuestions, topic);
     } catch (error) {
-      console.error(`[AIQuestionWorker] Quality review failed for topic="${topic}":`, error);
+      reportError(error instanceof Error ? error : new Error(String(error)), { topic, categorySlug, phase: 'quality-review' });
       throw error;
     }
 
@@ -211,7 +212,7 @@ async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promi
 
     console.log(`[AIQuestionWorker] Batch-inserted ${rows.length} PendingQuestions for topic="${topic}" (${duplicateCount} duplicates, ${uniqueQuestions.length} reviewed)`);
   } catch (error) {
-    console.error(`[AIQuestionWorker] createMany failed for topic="${topic}":`, error);
+    reportError(error instanceof Error ? error : new Error(String(error)), { topic, categorySlug, phase: 'batch-insert' });
     throw error;
   }
 }
@@ -237,7 +238,7 @@ aiQuestionWorker.on('completed', (job) => {
 });
 
 aiQuestionWorker.on('failed', (job, err) => {
-  console.error(`[AIQuestionWorker] Job ${job?.id} failed:`, err);
+  reportError(err, { jobId: job?.id, queueName: QUEUE_NAME, jobName: job?.name });
   prisma.jobLog
     .create({
       data: {

@@ -1,3 +1,12 @@
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  sendDefaultPii: false,
+  enableNativeCrashHandling: true,
+  patchGlobalPromise: true,
+});
+
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
@@ -69,7 +78,7 @@ const linking: LinkingOptions<RootStackParamList> = {
   },
 };
 
-export default function App() {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -84,3 +93,5 @@ export default function App() {
     </QueryClientProvider>
   );
 }
+
+export default Sentry.wrap(App);

@@ -12,6 +12,7 @@ const envSchema = z.object({
   REDIS_PORT: z.coerce.number().default(6379),
   FIREBASE_SERVICE_ACCOUNT: z.string().optional(),
   FIREBASE_SERVICE_ACCOUNT_PATH: z.string().optional(),
+  SENTRY_DSN: z.string().optional(),
 });
 
 // Parse and validate process.env
