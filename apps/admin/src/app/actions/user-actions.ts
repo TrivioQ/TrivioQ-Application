@@ -81,6 +81,7 @@ export async function updateUser(
     displayName?: string;
     dateOfBirth?: string;
     subscriptionTier: SubscriptionTier;
+    subscriptionExpiresAt?: string;
     activeWindowStart: string;
     activeWindowEnd: string;
     onDemandTokens: number;
@@ -100,6 +101,7 @@ export async function updateUser(
           displayName: data.displayName,
           dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
           subscriptionTier: data.subscriptionTier,
+          subscriptionExpiresAt: data.subscriptionTier === 'FREE' ? null : (data.subscriptionExpiresAt ? new Date(data.subscriptionExpiresAt) : undefined),
           activeWindowStart: new Date(data.activeWindowStart),
           activeWindowEnd: new Date(data.activeWindowEnd),
           onDemandTokens: data.onDemandTokens,

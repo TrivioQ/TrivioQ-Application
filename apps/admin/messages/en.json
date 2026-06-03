@@ -81,9 +81,7 @@
     "actions": {
       "openMenu": "Open menu",
       "editUser": "Edit User",
-      "deleteUser": "Delete User",
-      "upgradeToPremium": "Upgrade to Premium",
-      "downgradeToFree": "Downgrade to Free"
+      "deleteUser": "Delete User"
     },
     "deleteConfirm": {
       "title": "Delete \"{username}\"?",
@@ -104,6 +102,8 @@
       "free": "Free",
       "premium": "Premium",
       "plus": "Plus",
+      "subscriptionExpiresAt": "Subscription Expiry Date",
+      "expiryDateRequired": "Expiry date is mandatory for Premium and Plus plans.",
       "saveChanges": "Save Changes",
       "saving": "Saving..."
     },

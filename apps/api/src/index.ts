@@ -1,4 +1,4 @@
-import './config/env';
+import './config/env'; // Trigger dev server reload after sync fallback update
 import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import { expressIntegration } from '@sentry/node';

@@ -29,6 +29,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     const firebaseData = await firebaseRes.json();
 
     if (!firebaseRes.ok) {
+      console.log('[loginAction] Firebase auth failed:', firebaseData);
       const code = firebaseData?.error?.message ?? '';
       if (code === 'EMAIL_NOT_FOUND' || code === 'INVALID_PASSWORD' || code === 'INVALID_LOGIN_CREDENTIALS') {
         return { error: 'Invalid email or password.' };
@@ -46,6 +47,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
 
   const apiUrl = env.API_URL;
   try {
+    console.log('[loginAction] Sending sync request to backend API:', `${apiUrl}/v1/auth/sync`);
     const upstream = await fetch(`${apiUrl}/v1/auth/sync`, {
       method: 'POST',
       headers: {
@@ -56,12 +58,16 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     });
 
     if (!upstream.ok) {
+      const errorText = await upstream.text();
+      console.error('[loginAction] Backend sync failed with status:', upstream.status, errorText);
       return { error: 'Authentication service unavailable.' };
     }
 
     const user = await upstream.json();
+    console.log('[loginAction] Backend sync user response:', user);
 
     if (!user || user.role !== 'ADMIN') {
+      console.warn('[loginAction] Access denied - user is not ADMIN:', user);
       return { error: 'Access denied. Administrator privileges required.' };
     }
   } catch (err: unknown) {

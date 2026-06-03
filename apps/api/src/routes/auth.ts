@@ -33,33 +33,62 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
     }
 
     // ── Brand new user — validate and persist with username + displayName ─────
+    let username: string;
+    let dob: Date;
+    let displayName: string;
+
     if (!requestedUsername) {
-      return res.status(400).json({ error: 'Username is required for new accounts.' });
-    }
+      // Fallback/deadlock resolution: If a user exists in Firebase but not in Postgres,
+      // and they are trying to log in (not sign up), auto-generate username from email.
+      const emailPrefix = email
+        .split('@')[0]
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '_');
+      let candidateUsername = emailPrefix;
+      if (candidateUsername.length < 3) {
+        candidateUsername = candidateUsername + '_tq';
+      }
+      candidateUsername = candidateUsername.substring(0, 30);
 
-    const username = requestedUsername.toLowerCase().trim();
+      // Verify uniqueness
+      let conflict = await prisma.user.findUnique({ where: { username: candidateUsername } });
+      let counter = 1;
+      while (conflict) {
+        candidateUsername = `${emailPrefix.substring(0, 25)}_${counter}`;
+        conflict = await prisma.user.findUnique({ where: { username: candidateUsername } });
+        counter++;
+      }
+      username = candidateUsername;
+      displayName = requestedDisplayName?.trim() || email.split('@')[0];
+      // Default DOB to 18 years ago
+      dob = new Date(now.getFullYear() - 18, now.getMonth(), now.getDate());
+    } else {
+      username = requestedUsername.toLowerCase().trim();
 
-    if (username.length < 3 || username.length > 30) {
-      return res.status(400).json({ error: 'Username must be between 3 and 30 characters.' });
-    }
+      if (username.length < 3 || username.length > 30) {
+        return res.status(400).json({ error: 'Username must be between 3 and 30 characters.' });
+      }
 
-    if (!/^[a-z0-9_]+$/.test(username)) {
-      return res.status(400).json({ error: 'Username may only contain lowercase letters, numbers, and underscores.' });
-    }
+      if (!/^[a-z0-9_]+$/.test(username)) {
+        return res.status(400).json({ error: 'Username may only contain lowercase letters, numbers, and underscores.' });
+      }
 
-    // ── Validate date of birth (must be at least 13 years old) ───────────────
-    if (!requestedDob) {
-      return res.status(400).json({ error: 'Date of birth is required.' });
-    }
+      // ── Validate date of birth (must be at least 13 years old) ───────────────
+      if (!requestedDob) {
+        return res.status(400).json({ error: 'Date of birth is required.' });
+      }
 
-    const dob = new Date(requestedDob);
-    if (isNaN(dob.getTime())) {
-      return res.status(400).json({ error: 'Invalid date of birth.' });
-    }
+      const parsedDob = new Date(requestedDob);
+      if (isNaN(parsedDob.getTime())) {
+        return res.status(400).json({ error: 'Invalid date of birth.' });
+      }
 
-    const minAgeDate = new Date(now.getFullYear() - 13, now.getMonth(), now.getDate());
-    if (dob > minAgeDate) {
-      return res.status(400).json({ error: 'You must be at least 13 years old to create an account.' });
+      const minAgeDate = new Date(now.getFullYear() - 13, now.getMonth(), now.getDate());
+      if (parsedDob > minAgeDate) {
+        return res.status(400).json({ error: 'You must be at least 13 years old to create an account.' });
+      }
+      dob = parsedDob;
+      displayName = requestedDisplayName?.trim() || username;
     }
 
     // ── Check username uniqueness ─────────────────────────────────────────────
@@ -92,7 +121,7 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
           firebaseUid,
           email,
           username,
-          displayName: requestedDisplayName?.trim() || username,
+          displayName,
           dateOfBirth: dob,
           currentStreak: 0,
           cumulativeScore: 0,

@@ -32,6 +32,7 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
   const [displayName, setDisplayName] = useState(user.displayName ?? '');
   const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '');
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>(user.subscriptionTier);
+  const [subscriptionExpiresAt, setSubscriptionExpiresAt] = useState(user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt).toISOString().split('T')[0] : '');
   const [activeWindowStart, setActiveWindowStart] = useState(toTimeString(user.activeWindowStart));
   const [activeWindowEnd, setActiveWindowEnd] = useState(toTimeString(user.activeWindowEnd));
   const [onDemandTokens, setOnDemandTokens] = useState(String(user.onDemandTokens));
@@ -45,6 +46,7 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
       setDisplayName(user.displayName ?? '');
       setDateOfBirth(user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '');
       setSubscriptionTier(user.subscriptionTier);
+      setSubscriptionExpiresAt(user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt).toISOString().split('T')[0] : '');
       setActiveWindowStart(toTimeString(user.activeWindowStart));
       setActiveWindowEnd(toTimeString(user.activeWindowEnd));
       setOnDemandTokens(String(user.onDemandTokens));
@@ -53,6 +55,11 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if ((subscriptionTier === 'PREMIUM' || subscriptionTier === 'PLUS') && !subscriptionExpiresAt) {
+      alert(t('expiryDateRequired'));
+      return;
+    }
+    
     startTransition(async () => {
       const res = await updateUser(user.id, {
         email,
@@ -60,6 +67,7 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
         displayName: displayName || undefined,
         dateOfBirth: dateOfBirth || undefined,
         subscriptionTier,
+        subscriptionExpiresAt: subscriptionExpiresAt || undefined,
         activeWindowStart: activeWindowStart ? timeToDateTime(activeWindowStart) : new Date().toISOString(),
         activeWindowEnd: activeWindowEnd ? timeToDateTime(activeWindowEnd) : new Date().toISOString(),
         onDemandTokens: parseInt(onDemandTokens, 10) || 0,
@@ -108,6 +116,15 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
               </SelectContent>
             </Select>
           </div>
+          {subscriptionTier !== 'FREE' && (
+            <div className="space-y-2">
+              <Label htmlFor="subscriptionExpiresAt">
+                {t('subscriptionExpiresAt')}
+                {(subscriptionTier === 'PREMIUM' || subscriptionTier === 'PLUS') && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+              <Input id="subscriptionExpiresAt" type="date" required={subscriptionTier === 'PREMIUM' || subscriptionTier === 'PLUS'} value={subscriptionExpiresAt} onChange={(e) => setSubscriptionExpiresAt(e.target.value)} />
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="activeWindowStart">{t('activeWindowStart')}</Label>

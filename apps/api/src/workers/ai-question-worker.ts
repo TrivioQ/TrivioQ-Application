@@ -5,6 +5,7 @@ import type { SuggestedChoice } from '@trivioq/shared-types';
 import { shuffleArray } from '../utils/shuffle';
 import { checkIsDuplicate } from '../utils/checkIsDuplicate';
 import { reportError } from '../utils/errorReporter';
+import { GoogleGenAI } from '@google/genai';
 
 const QUEUE_NAME = 'ai-question-generation';
 
@@ -39,7 +40,10 @@ export const aiQuestionQueue = new Queue<AiQuestionJobPayload>(QUEUE_NAME, {
   connection,
 });
 
-// ── Placeholder LLM call ─────────────────────────────────────────────────────────
+// Initialize Gemini API client
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+// ── Gemini AI / Prompt ─────────────────────────────────────────────────────────
 
 const SYSTEM_PROMPT = `You are an expert trivia writer. Generate exactly 10 [INSERT_DIFFICULTY] trivia questions about [INSERT_TOPIC].
 
@@ -70,31 +74,20 @@ async function generateTriviaQuestions(topic: string, categorySlug: string, diff
   console.log(`[AIQuestionWorker] Generating 10 ${difficulty} questions for topic="${topic}" category="${categorySlug}"`);
   console.log(`[AIQuestionWorker] System prompt (first 120 chars): ${systemPrompt.slice(0, 120)}...`);
 
-  // TODO: Replace with actual OpenAI / Vertex AI API call using systemPrompt
-  // const response = await openai.chat.completions.create({
-  //   model: 'gpt-4o',
-  //   messages: [
-  //     { role: 'system', content: systemPrompt },
-  //     { role: 'user', content: `Topic: ${topic}, Category: ${categorySlug}` },
-  //   ],
-  //   response_format: { type: 'json_object' },
-  // });
-  // return JSON.parse(response.choices[0].message.content);
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-pro',
+    contents: `Topic: ${topic}, Category: ${categorySlug}`,
+    config: {
+      systemInstruction: systemPrompt,
+      responseMimeType: 'application/json',
+    },
+  });
 
-  // Simulate LLM latency
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  if (!response.text) {
+    throw new Error('Gemini API did not return text content for question generation.');
+  }
 
-  return Array.from({ length: 10 }, (_, i) => ({
-    questionText: `[${difficulty}] What is a notable fact about ${topic}? (Q${i + 1})`,
-    choices: [
-      { text: `Option A for ${topic}`, order: 0, isCorrect: true },
-      { text: `Option B for ${topic}`, order: 1, isCorrect: false },
-      { text: `Option C for ${topic}`, order: 2, isCorrect: false },
-      { text: `Option D for ${topic}`, order: 3, isCorrect: false },
-    ],
-    hint: `Think about the defining characteristics of ${topic}.`,
-    explanation: `${topic} is known for this notable fact, which distinguishes it from related concepts in ${categorySlug}.`,
-  }));
+  return JSON.parse(response.text);
 }
 
 const QUALITY_REVIEW_SYSTEM_PROMPT = `You are a trivia quality reviewer. Evaluate the following list of trivia questions for difficulty accuracy, distractor plausibility, and overall quality.
@@ -109,23 +102,20 @@ async function reviewQuestionsForQuality(questions: { suggestedText: string; dif
   console.log(`[AIQuestionWorker] Requesting quality review for ${questions.length} questions on topic="${topic}"`);
   console.log(`[AIQuestionWorker] Quality review system prompt (first 120 chars): ${QUALITY_REVIEW_SYSTEM_PROMPT.slice(0, 120)}...`);
 
-  // TODO: Replace with actual OpenAI / Vertex AI API call
-  // const response = await openai.chat.completions.create({
-  //   model: 'gpt-4o',
-  //   messages: [
-  //     { role: 'system', content: QUALITY_REVIEW_SYSTEM_PROMPT },
-  //     { role: 'user', content: JSON.stringify(questions) },
-  //   ],
-  //   response_format: { type: 'json_object' },
-  // });
-  // return JSON.parse(response.choices[0].message.content);
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-pro',
+    contents: JSON.stringify(questions),
+    config: {
+      systemInstruction: QUALITY_REVIEW_SYSTEM_PROMPT,
+      responseMimeType: 'application/json',
+    },
+  });
 
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  if (!response.text) {
+    throw new Error('Gemini API did not return text content for quality review.');
+  }
 
-  return questions.map(() => ({
-    aiQualityScore: 80,
-    aiFeedback: 'Placeholder quality review — needs actual LLM integration.',
-  }));
+  return JSON.parse(response.text);
 }
 
 // ── Job handler ──────────────────────────────────────────────────────────────────

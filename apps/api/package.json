@@ -16,6 +16,7 @@
     "@bull-board/api": "^7.1.5",
     "@bull-board/express": "^7.1.5",
     "@bull-board/ui": "^7.1.5",
+    "@google/genai": "^2.7.0",
     "@sentry/node": "^10.53.1",
     "@sentry/profiling-node": "^10.53.1",
     "@trivioq/database": "workspace:*",

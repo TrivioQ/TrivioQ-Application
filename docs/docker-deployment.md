@@ -162,6 +162,7 @@ PORT=3013
 REDIS_HOST=redis
 REDIS_PORT=6379
 FIREBASE_SERVICE_ACCOUNT_PATH=/secrets/firebase-service-account.json
+GEMINI_API_KEY=                 # ← from Google AI Studio
 ENABLE_SENTRY=false
 SENTRY_DSN=                     # optional
 ```
@@ -351,6 +352,20 @@ docker compose exec postgres pg_dump -U trivioq trivioq > backup_$(date +%Y%m%d_
 # Restore from backup
 docker compose exec -T postgres psql -U trivioq trivioq < backup_YYYYMMDD_HHMMSS.sql
 ```
+
+> [!WARNING]
+> **PendingQuestion Table Protection:**
+> The `PendingQuestion` table has a database-level trigger that blocks all `DELETE` and `TRUNCATE` operations to prevent accidental data loss.
+>
+> **How to bypass for manual admin overrides:**
+> 1. If you connect to PostgreSQL as the `postgres` superuser, the trigger is automatically bypassed.
+> 2. If you are connected as the application user (`trivioq`), you must explicitly disable the trigger in your current SQL session before executing any `DELETE` or `TRUNCATE` query:
+>    ```sql
+>    SET myapp.bypass_pending_question_trigger = 'true';
+>    -- Now you can run DELETE / TRUNCATE
+>    DELETE FROM "PendingQuestion" WHERE id = 'some-id';
+>    ```
+
 
 ### Redis operations
 

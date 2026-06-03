@@ -48,6 +48,8 @@ async function main() {
       async (tx) => {
         // 0. Cleanup existing data
         console.log('🧹 Stage 0: Clearing existing data...');
+        // NOTE: PendingQuestion table must NOT be deleted/cleared here,
+        // as they represent history of AI-generated questions and should persist.
         // Deleting in order to respect foreign key constraints
         await tx.userDrop.deleteMany();
         await tx.userScore.deleteMany();

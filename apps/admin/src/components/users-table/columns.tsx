@@ -4,7 +4,7 @@ import { ColumnDef, Column } from '@tanstack/react-table';
 import { MoreHorizontal, Pencil, Trash, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { deleteUser, toggleUserTier } from '@/app/actions/user-actions';
+import { deleteUser } from '@/app/actions/user-actions';
 import { SubscriptionTier } from '@trivioq/database';
 import { useState, useTransition } from 'react';
 import { UserModal } from './user-modal';
@@ -19,6 +19,7 @@ export type UserRow = {
   email: string;
   dateOfBirth?: Date | null;
   subscriptionTier: SubscriptionTier;
+  subscriptionExpiresAt?: Date | null;
   currentStreak: number;
   activeWindowStart: Date;
   activeWindowEnd: Date;
@@ -109,12 +110,6 @@ function UserActions({ user }: { user: UserRow }) {
   const [editOpen, setEditOpen] = useState(false);
   const confirm = useConfirm();
 
-  const handleToggleTier = () => {
-    startTransition(async () => {
-      await toggleUserTier(user.id, user.subscriptionTier);
-    });
-  };
-
   const handleDelete = async () => {
     const ok = await confirm({
       title: t('deleteConfirm.title', { username: user.username }),
@@ -144,9 +139,7 @@ function UserActions({ user }: { user: UserRow }) {
             <DropdownMenuItem onClick={() => setEditOpen(true)} className="cursor-pointer">
               <Pencil className="mr-2 h-4 w-4" /> {t('actions.editUser')}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleToggleTier} disabled={isPending}>
-              {user.subscriptionTier === 'FREE' ? t('actions.upgradeToPremium') : t('actions.downgradeToFree')}
-            </DropdownMenuItem>
+
             <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-red-600 focus:text-red-600">
               <Trash className="mr-2 h-4 w-4" /> {t('actions.deleteUser')}
             </DropdownMenuItem>

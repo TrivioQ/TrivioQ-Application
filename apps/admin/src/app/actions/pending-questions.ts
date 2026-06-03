@@ -58,6 +58,8 @@ export async function approvePendingQuestion(pendingId: string, editedData: Edit
         },
       });
 
+      // NOTE: We only update the status to 'APPROVED'. Pending questions are NEVER deleted
+      // from the database, ensuring we maintain a full history/audit trail of AI generations.
       await tx.pendingQuestion.update({
         where: { id: pendingId },
         data: { status: 'APPROVED' },
@@ -79,6 +81,8 @@ export async function approvePendingQuestion(pendingId: string, editedData: Edit
 
 export async function rejectPendingQuestion(pendingId: string, reason?: string) {
   try {
+    // NOTE: We only update the status to 'REJECTED'. Pending questions are NEVER deleted
+    // from the database, ensuring we maintain a full history/audit trail of AI generations.
     await prisma.pendingQuestion.update({
       where: { id: pendingId },
       data: {
