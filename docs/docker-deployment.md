@@ -64,7 +64,11 @@ AutomationServer (192.168.0.101)
     ├── postgres:5432     ← PostgreSQL 16-alpine  (persistent volume)
     ├── redis:6379        ← Redis 7-alpine         (persistent volume)
     ├── migrate           ← One-shot Prisma migrate runner (exits on success)
-    ├── api:3013          ← Express REST API + BullMQ workers
+    ├── api:3013          ← Express REST API
+    ├── worker-cron       ← Background cron worker (bonuses, drop planner)
+    ├── worker-scheduler  ← Advanced drop scheduler
+    ├── worker-dispatcher ← Push notification dispatcher
+    ├── worker-drop       ← Trivia drop processor
     ├── web:3011          ← Next.js 14 user-facing app
     └── admin:3012        ← Next.js 16 admin dashboard
 ```
@@ -73,8 +77,8 @@ AutomationServer (192.168.0.101)
 
 ```
 postgres (healthy) ──┐
-                     ├──► migrate (completed) ──► api (healthy) ──► web
-redis    (healthy) ──┘                        └──► admin
+                     ├──► migrate (completed) ──► api (healthy) ──► web, admin
+redis    (healthy) ──┘                                          └──► workers (cron, scheduler, dispatcher, drop)
 ```
 
 The API will **not** start until:
@@ -276,12 +280,16 @@ Run these checks after the first deploy or after any update:
 docker compose ps
 
 # Expected output:
-# trivioq-postgres  running (healthy)
-# trivioq-redis     running (healthy)
-# trivioq-migrate   exited (0)          ← intentional: one-shot
-# trivioq-api       running (healthy)
-# trivioq-web       running (healthy)
-# trivioq-admin     running (healthy)
+# trivioq-postgres           running (healthy)
+# trivioq-redis              running (healthy)
+# trivioq-migrate            exited (0)          ← intentional: one-shot
+# trivioq-api                running (healthy)
+# trivioq-worker-cron        running
+# trivioq-worker-scheduler   running
+# trivioq-worker-dispatcher  running
+# trivioq-worker-drop        running
+# trivioq-web                running (healthy)
+# trivioq-admin              running (healthy)
 
 # API health endpoint (also tests database connectivity)
 curl http://192.168.0.101:3013/health

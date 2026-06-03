@@ -6,6 +6,10 @@
     "build": "tsc",
     "dev": "ts-node-dev src/index.ts",
     "start": "node dist/index.js",
+    "start:cron": "node dist/cron.js",
+    "start:scheduler": "node dist/workers/scheduler.js",
+    "start:dispatcher": "node dist/workers/dispatcher.js",
+    "start:drop-worker": "node dist/workers/drop-worker.js",
     "clean": "rm -rf dist"
   },
   "dependencies": {

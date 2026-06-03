@@ -160,6 +160,98 @@ services:
     logging: *default-logging
 
   # -------------------------------------------------------------------------
+  # Worker: General Cron (Weekly/Monthly bonuses, drop planner)
+  # -------------------------------------------------------------------------
+  worker-cron:
+    image: trivioq-api:latest
+    container_name: trivioq-worker-cron
+    restart: unless-stopped
+    env_file:
+      - apps/api/.env           # copy from .env.docker.example; fill all values
+    environment:
+      NODE_ENV:      production
+      DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      REDIS_URL:     redis://redis:6379
+    volumes:
+      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+    networks:
+      - trivioq-network
+    depends_on:
+      api:
+        condition: service_healthy
+    command: ["node", "dist/cron.js"]
+    logging: *default-logging
+
+  # -------------------------------------------------------------------------
+  # Worker: Advanced Drop Scheduler
+  # -------------------------------------------------------------------------
+  worker-scheduler:
+    image: trivioq-api:latest
+    container_name: trivioq-worker-scheduler
+    restart: unless-stopped
+    env_file:
+      - apps/api/.env           # copy from .env.docker.example; fill all values
+    environment:
+      NODE_ENV:      production
+      DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      REDIS_URL:     redis://redis:6379
+    volumes:
+      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+    networks:
+      - trivioq-network
+    depends_on:
+      api:
+        condition: service_healthy
+    command: ["node", "dist/workers/scheduler.js"]
+    logging: *default-logging
+
+  # -------------------------------------------------------------------------
+  # Worker: Push Notification Dispatcher
+  # -------------------------------------------------------------------------
+  worker-dispatcher:
+    image: trivioq-api:latest
+    container_name: trivioq-worker-dispatcher
+    restart: unless-stopped
+    env_file:
+      - apps/api/.env           # copy from .env.docker.example; fill all values
+    environment:
+      NODE_ENV:      production
+      DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      REDIS_URL:     redis://redis:6379
+    volumes:
+      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+    networks:
+      - trivioq-network
+    depends_on:
+      api:
+        condition: service_healthy
+    command: ["node", "dist/workers/dispatcher.js"]
+    logging: *default-logging
+
+  # -------------------------------------------------------------------------
+  # Worker: Trivia Drop Processor
+  # -------------------------------------------------------------------------
+  worker-drop:
+    image: trivioq-api:latest
+    container_name: trivioq-worker-drop
+    restart: unless-stopped
+    env_file:
+      - apps/api/.env           # copy from .env.docker.example; fill all values
+    environment:
+      NODE_ENV:      production
+      DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      REDIS_URL:     redis://redis:6379
+    volumes:
+      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+    networks:
+      - trivioq-network
+    depends_on:
+      api:
+        condition: service_healthy
+    command: ["node", "dist/workers/drop-worker.js"]
+    logging: *default-logging
+
+  # -------------------------------------------------------------------------
   # Web — Next.js 14 user-facing application
   # -------------------------------------------------------------------------
   web:
