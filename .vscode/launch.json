@@ -53,6 +53,12 @@
       "request": "launch",
       "url": "http://localhost:3012/en",
       "webRoot": "${workspaceFolder}/apps/admin"
+    },
+    {
+      "name": "Debug Mobile App (Expo)",
+      "type": "expo",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/mobile"
     }
   ],
   "compounds": [
@@ -71,6 +77,10 @@
     {
       "name": "Debug (API + Admin)",
       "configurations": ["Debug API", "Debug Admin (Server)"]
+    },
+    {
+      "name": "Debug (API + Mobile)",
+      "configurations": ["Debug API", "Debug Mobile App (Expo)"]
     }
   ]
 }
