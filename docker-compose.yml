@@ -1,23 +1,230 @@
+# =============================================================================
+# TrivioQ — Docker Compose
+# =============================================================================
+# Beta target: AutomationServer @ 192.168.0.101
+#
+# Services:
+#   postgres  — PostgreSQL 16 (persistent data volume)
+#   redis     — Redis 7 (persistent data volume)
+#   migrate   — One-shot Prisma migration runner (exits after completion)
+#   api       — Express REST API + BullMQ workers  (port 3013)
+#   web       — Next.js 14 user-facing app         (port 3011)
+#   admin     — Next.js 16 admin dashboard         (port 3012)
+#
+# Usage (AutomationServer):
+#   docker compose up -d
+#   docker compose logs -f
+#   docker compose ps
+# =============================================================================
+
+name: trivioq
+
+# ---------------------------------------------------------------------------
+# Shared network — all services communicate over this internal bridge
+# ---------------------------------------------------------------------------
+networks:
+  trivioq-network:
+    driver: bridge
+
+# ---------------------------------------------------------------------------
+# Volumes — persistent data survives container restarts
+# ---------------------------------------------------------------------------
+volumes:
+  trivioq_postgres_data:
+  trivioq_redis_data:
+
+# ---------------------------------------------------------------------------
+# Reusable YAML anchors
+# ---------------------------------------------------------------------------
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+# ===========================================================================
+# SERVICES
+# ===========================================================================
 services:
+
+  # -------------------------------------------------------------------------
+  # PostgreSQL 16
+  # -------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
     container_name: trivioq-postgres
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: trivioq
+      POSTGRES_USER:     ${POSTGRES_USER:-trivioq}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB:       ${POSTGRES_DB:-trivioq}
     ports:
       - "5432:5432"
     volumes:
       - trivioq_postgres_data:/var/lib/postgresql/data
+    networks:
+      - trivioq-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trivioq} -d ${POSTGRES_DB:-trivioq}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    logging: *default-logging
 
+  # -------------------------------------------------------------------------
+  # Redis 7
+  # -------------------------------------------------------------------------
   redis:
     image: redis:7-alpine
     container_name: trivioq-redis
-    restart: always
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
       - "6379:6379"
+    volumes:
+      - trivioq_redis_data:/data
+    networks:
+      - trivioq-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging: *default-logging
 
-volumes:
-  trivioq_postgres_data:
+  # -------------------------------------------------------------------------
+  # Prisma Migrate — one-shot service that runs migrations then exits
+  # The API will only start after this service completes successfully.
+  # -------------------------------------------------------------------------
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: builder           # reuse the builder stage — Prisma CLI is present
+    container_name: trivioq-migrate
+    restart: "no"               # exits after running — intentional
+    command: >
+      sh -c "
+        cd /app/packages/database &&
+        npx prisma migrate deploy
+      "
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+    networks:
+      - trivioq-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *default-logging
+
+  # -------------------------------------------------------------------------
+  # API — Express REST API + BullMQ background workers
+  # -------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: runner
+    image: trivioq-api:latest
+    container_name: trivioq-api
+    restart: unless-stopped
+    env_file:
+      - apps/api/.env           # copy from .env.docker.example; fill all values
+    environment:
+      NODE_ENV:      production
+      DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      REDIS_HOST:    redis
+      REDIS_PORT:    6379
+    ports:
+      - "3013:3013"
+    volumes:
+      # Firebase service account injected at runtime — never baked into the image
+      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+    networks:
+      - trivioq-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3013/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging: *default-logging
+
+  # -------------------------------------------------------------------------
+  # Web — Next.js 14 user-facing application
+  # -------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: runner
+    image: trivioq-web:latest
+    container_name: trivioq-web
+    restart: unless-stopped
+    env_file:
+      - apps/web/.env           # copy from .env.docker.example; fill all values
+    environment:
+      NODE_ENV: production
+      PORT:     3011
+      HOSTNAME: "0.0.0.0"
+      # Internal service URL (container-to-container, not localhost)
+      API_URL:  http://api:3013
+    ports:
+      - "3011:3011"
+    networks:
+      - trivioq-network
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3011/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging: *default-logging
+
+  # -------------------------------------------------------------------------
+  # Admin — Next.js 16 admin dashboard
+  # -------------------------------------------------------------------------
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+      target: runner
+    image: trivioq-admin:latest
+    container_name: trivioq-admin
+    restart: unless-stopped
+    env_file:
+      - apps/admin/.env         # copy from .env.docker.example; fill all values
+    environment:
+      NODE_ENV:     production
+      PORT:         3012
+      HOSTNAME:     "0.0.0.0"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      API_URL:      http://api:3013
+    ports:
+      - "3012:3012"
+    networks:
+      - trivioq-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3012/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging: *default-logging

@@ -1,0 +1,98 @@
+# =============================================================================
+# TrivioQ Admin App (Next.js 16) — Multi-Stage Docker Build
+# =============================================================================
+# Uses Next.js `output: 'standalone'` for minimal production image size.
+# Admin also uses @trivioq/database (Prisma) directly — no API proxy needed.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Stage 1: base
+# -----------------------------------------------------------------------------
+FROM node:20-alpine AS base
+
+# OpenSSL required by Prisma on Alpine
+RUN apk add --no-cache libc6-compat openssl
+RUN corepack enable
+
+WORKDIR /app
+
+# -----------------------------------------------------------------------------
+# Stage 2: deps — install all workspace dependencies
+# -----------------------------------------------------------------------------
+FROM base AS deps
+
+COPY package.json yarn.lock turbo.json ./
+COPY .yarn ./.yarn
+
+# Copy all workspace package manifests
+COPY apps/admin/package.json             ./apps/admin/package.json
+COPY packages/database/package.json      ./packages/database/package.json
+COPY packages/shared-types/package.json  ./packages/shared-types/package.json
+COPY packages/eslint-config/package.json ./packages/eslint-config/package.json
+COPY packages/typescript-config/package.json ./packages/typescript-config/package.json
+
+RUN yarn install --immutable
+
+# -----------------------------------------------------------------------------
+# Stage 3: builder — Prisma generate + Next.js build
+# -----------------------------------------------------------------------------
+FROM base AS builder
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/.yarn        ./.yarn
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/yarn.lock    ./yarn.lock
+
+COPY packages/database       ./packages/database
+COPY packages/shared-types   ./packages/shared-types
+COPY packages/eslint-config  ./packages/eslint-config
+COPY packages/typescript-config ./packages/typescript-config
+COPY apps/admin              ./apps/admin
+
+# Generate Prisma client for the Alpine target
+RUN cd packages/database && npx prisma generate
+
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV SENTRY_IGNORE_API_ERRORS=true
+
+WORKDIR /app/apps/admin
+RUN yarn build
+
+# -----------------------------------------------------------------------------
+# Stage 4: runner — minimal production image
+# -----------------------------------------------------------------------------
+FROM base AS runner
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV TZ=UTC
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser  --system --uid 1001 nextjs
+
+WORKDIR /app
+
+# Standalone output
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/standalone ./
+
+# Static assets
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/static ./apps/admin/.next/static
+
+# Public folder
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/public ./apps/admin/public
+
+# Prisma client engines (needed at runtime for DB queries from admin)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma  ./node_modules/@prisma
+
+USER nextjs
+
+EXPOSE 3012
+
+ENV PORT=3012
+ENV HOSTNAME="0.0.0.0"
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:3012/ || exit 1
+
+CMD ["node", "apps/admin/server.js"]
