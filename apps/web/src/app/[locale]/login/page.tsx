@@ -48,8 +48,8 @@ export default function LoginPage() {
           <Link href="/" className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
             {t('brandName')}
           </Link>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-white">{t('signInTitle')}</h2>
-          <p className="mt-2 text-sm text-gray-400">
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{t('signInTitle')}</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             {t('signInSubtitle')}{' '}
             <Link href="/signup" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
               {t('signInSubtitleLink')}
@@ -67,7 +67,7 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 required
-                className="relative block w-full rounded-t-md border-0 bg-gray-800 py-3 px-4 text-white ring-1 ring-inset ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                className="relative block w-full rounded-t-md border-0 bg-white dark:bg-gray-800 py-3 px-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                 placeholder={t('emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -82,7 +82,7 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 required
-                className="relative block w-full rounded-b-md border-0 bg-gray-800 py-3 px-4 text-white ring-1 ring-inset ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                className="relative block w-full rounded-b-md border-0 bg-white dark:bg-gray-800 py-3 px-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                 placeholder={t('passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -92,8 +92,8 @@ export default function LoginPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <input id="keep-me-logged-in" type="checkbox" checked={keepMeLoggedIn} onChange={(e) => setKeepMeLoggedIn(e.target.checked)} disabled={isPending} className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900" />
-            <label htmlFor="keep-me-logged-in" className="text-sm text-gray-400 select-none cursor-pointer">
+            <input id="keep-me-logged-in" type="checkbox" checked={keepMeLoggedIn} onChange={(e) => setKeepMeLoggedIn(e.target.checked)} disabled={isPending} className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-gray-900" />
+            <label htmlFor="keep-me-logged-in" className="text-sm text-gray-600 dark:text-gray-400 select-none cursor-pointer">
               {t('keepMeLoggedIn')}
             </label>
           </div>
@@ -106,13 +106,10 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-700" />
-            </div>
-            <div className="relative flex justify-center text-sm font-medium leading-6">
-              <span className="bg-gray-900 px-6 text-gray-400">{t('orContinueWith')}</span>
-            </div>
+          <div className="relative flex items-center">
+            <div className="flex-grow border-t border-gray-300 dark:border-gray-700" />
+            <span className="flex-shrink-0 px-6 text-sm font-medium text-gray-500 dark:text-gray-400">{t('orContinueWith')}</span>
+            <div className="flex-grow border-t border-gray-300 dark:border-gray-700" />
           </div>
 
           <div className="mt-6">

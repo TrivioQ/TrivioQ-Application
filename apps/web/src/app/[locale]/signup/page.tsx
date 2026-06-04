@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useAuth } from '@/context/auth-provider';
 
-const inputClass = 'relative block w-full border-0 bg-gray-800 py-3 px-4 text-white ring-1 ring-inset ring-gray-700 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6';
+const inputClass = 'relative block w-full border-0 bg-white dark:bg-gray-800 py-3 px-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -55,8 +55,8 @@ export default function SignupPage() {
           <Link href="/" className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
             {t('brandName')}
           </Link>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-white">{t('createTitle')}</h2>
-          <p className="mt-2 text-sm text-gray-400">
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{t('createTitle')}</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             {t('createSubtitle')}{' '}
             <Link href="/login" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
               {t('createSubtitleLink')}
@@ -117,14 +117,14 @@ export default function SignupPage() {
 
           {/* Terms & Privacy agreement */}
           <div className="flex items-start gap-3">
-            <input id="terms" type="checkbox" checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} disabled={isPending} className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900 cursor-pointer" />
-            <label htmlFor="terms" className="text-sm text-gray-400 leading-snug cursor-pointer select-none">
+            <input id="terms" type="checkbox" checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} disabled={isPending} className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-gray-900 cursor-pointer" />
+            <label htmlFor="terms" className="text-sm text-gray-600 dark:text-gray-400 leading-snug cursor-pointer select-none">
               {t('termsAgreement')}{' '}
-              <Link href="/terms" target="_blank" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2">
+              <Link href="/terms" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 underline underline-offset-2">
                 {t('termsLink')}
               </Link>{' '}
               {t('and')}{' '}
-              <Link href="/privacy" target="_blank" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2">
+              <Link href="/privacy" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 underline underline-offset-2">
                 {t('privacyLink')}
               </Link>
               {t('ageConfirmation')}
@@ -139,13 +139,12 @@ export default function SignupPage() {
         </form>
 
         <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-700" />
-            </div>
-            <div className="relative flex justify-center text-sm font-medium leading-6">
-              <span className="bg-gray-900 px-6 text-gray-400">{t('orContinueWith')}</span>
-            </div>
+          <div className="relative flex items-center">
+            <div className="flex-grow border-t border-gray-300 dark:border-gray-700" />
+            <span className="flex-shrink-0 px-6 text-sm font-medium text-gray-500 dark:text-gray-400">
+              {t('orContinueWith')}
+            </span>
+            <div className="flex-grow border-t border-gray-300 dark:border-gray-700" />
           </div>
 
           <div className="mt-6">
