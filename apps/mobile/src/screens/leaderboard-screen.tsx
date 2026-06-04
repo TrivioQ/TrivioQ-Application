@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
 import apiClient from '../api/client';
+import { useTheme } from '../context/ThemeContext';
+import { ThemeColors } from '../theme/colors';
 
 interface LeaderboardEntry {
   rank: number;
@@ -14,16 +16,18 @@ interface LeaderboardEntry {
   currentStreak: number;
 }
 
-function getRankBadge(rank: number) {
+function getRankBadge(rank: number, colors: ThemeColors) {
   if (rank === 1) return { label: '🥇', bg: '#fbbf24' };
   if (rank === 2) return { label: '🥈', bg: '#94a3b8' };
   if (rank === 3) return { label: '🥉', bg: '#cd7c3a' };
-  return { label: `#${rank}`, bg: '#1e293b' };
+  return { label: `#${rank}`, bg: colors.bgSecondary };
 }
 
 export default function LeaderboardScreen() {
   const { t } = useTranslation();
   const { userId } = useAuth();
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
 
   const { data, isLoading, error } = useQuery<LeaderboardEntry[]>({
     queryKey: ['leaderboard', userId],
@@ -35,7 +39,7 @@ export default function LeaderboardScreen() {
   });
 
   const renderItem = ({ item }: { item: LeaderboardEntry }) => {
-    const badge = getRankBadge(item.rank);
+    const badge = getRankBadge(item.rank, colors);
     const isCurrentUser = item.userId === userId;
 
     return (
@@ -44,7 +48,7 @@ export default function LeaderboardScreen() {
           <Text style={styles.rankText}>{badge.label}</Text>
         </View>
         <View style={styles.userInfo}>
-          <Text style={[styles.username, isCurrentUser && { color: '#818cf8' }]} numberOfLines={1}>
+          <Text style={[styles.username, isCurrentUser && { color: colors.brand }]} numberOfLines={1}>
             {item.displayName ?? item.username}
             {isCurrentUser ? t('leaderboard.youSuffix') : ''}
           </Text>
@@ -58,7 +62,7 @@ export default function LeaderboardScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color={colors.brand} />
       </View>
     );
   }
@@ -90,86 +94,87 @@ export default function LeaderboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-    paddingTop: 16,
-  },
-  heading: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#f1f5f9',
-    paddingHorizontal: 20,
-    marginBottom: 2,
-  },
-  subheading: {
-    fontSize: 13,
-    color: '#64748b',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  list: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1e293b',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    gap: 12,
-  },
-  rowHighlighted: {
-    borderColor: '#6366f1',
-    backgroundColor: '#1e1b4b',
-  },
-  rankBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rankText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#0f172a',
-  },
-  userInfo: {
-    flex: 1,
-  },
-  username: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#f1f5f9',
-    marginBottom: 2,
-  },
-  streak: {
-    fontSize: 12,
-    color: '#94a3b8',
-  },
-  score: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#818cf8',
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 80,
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 16,
-  },
-  emptyText: {
-    color: '#64748b',
-    fontSize: 16,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bgPrimary,
+      paddingTop: 16,
+    },
+    heading: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: colors.textPrimary,
+      paddingHorizontal: 20,
+      marginBottom: 2,
+    },
+    subheading: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      paddingHorizontal: 20,
+      marginBottom: 16,
+    },
+    list: {
+      paddingHorizontal: 16,
+      paddingBottom: 24,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.bgSecondary,
+      borderRadius: 14,
+      padding: 14,
+      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+      gap: 12,
+    },
+    rowHighlighted: {
+      borderColor: colors.brand,
+      backgroundColor: 'rgba(99,102,241,0.1)',
+    },
+    rankBadge: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    rankText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    userInfo: {
+      flex: 1,
+    },
+    username: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginBottom: 2,
+    },
+    streak: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    score: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.brand,
+    },
+    centered: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: 80,
+    },
+    errorText: {
+      color: colors.error,
+      fontSize: 16,
+    },
+    emptyText: {
+      color: colors.textSecondary,
+      fontSize: 16,
+    },
+  });

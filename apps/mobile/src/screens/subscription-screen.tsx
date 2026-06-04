@@ -1,8 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../api/client';
 import { useToast } from '../components/toast';
+import { useTheme } from '../context/ThemeContext';
+import { ThemeColors } from '../theme/colors';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -29,6 +31,8 @@ function formatDate(iso: string | null): string {
 // ── Stepper ───────────────────────────────────────────────────────────────────
 
 function Stepper({ value, min, max, onChange }: { value: number; min: number; max: number; onChange: (v: number) => void }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.stepper}>
       <TouchableOpacity style={[styles.stepBtn, value <= min && styles.stepBtnDisabled]} onPress={() => onChange(Math.max(min, value - 1))} disabled={value <= min} activeOpacity={0.7}>
@@ -47,6 +51,8 @@ function Stepper({ value, min, max, onChange }: { value: number; min: number; ma
 export default function SubscriptionScreen() {
   const toast = useToast();
   const queryClient = useQueryClient();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [daysToActivate, setDaysToActivate] = useState(1);
   const [activating, setActivating] = useState(false);
 
@@ -76,7 +82,7 @@ export default function SubscriptionScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color={colors.brand} />
       </View>
     );
   }
@@ -169,167 +175,168 @@ export default function SubscriptionScreen() {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 48,
-    gap: 16,
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#0f172a',
-  },
-  errorText: {
-    color: '#f87171',
-    fontSize: 15,
-    fontWeight: '600',
-  },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bgPrimary,
+    },
+    content: {
+      padding: 20,
+      paddingBottom: 48,
+      gap: 16,
+    },
+    centered: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.bgPrimary,
+    },
+    errorText: {
+      color: colors.error,
+      fontSize: 15,
+      fontWeight: '600',
+    },
 
-  // Card
-  card: {
-    backgroundColor: '#1e293b',
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    gap: 12,
-  },
-  cardHeader: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#f1f5f9',
-    marginBottom: 4,
-  },
+    // Card
+    card: {
+      backgroundColor: colors.bgSecondary,
+      borderRadius: 20,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+      gap: 12,
+    },
+    cardHeader: {
+      fontSize: 16,
+      fontWeight: '800',
+      color: colors.textPrimary,
+      marginBottom: 4,
+    },
 
-  // Badge
-  badge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-  },
-  badgeGold: {
-    backgroundColor: 'rgba(234,179,8,0.15)',
-    borderColor: '#ca8a04',
-  },
-  badgePurple: {
-    backgroundColor: 'rgba(167,139,250,0.15)',
-    borderColor: '#7c3aed',
-  },
-  badgeText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#94a3b8',
-  },
-  badgeTextGold: {
-    color: '#fde047',
-  },
-  badgeTextPurple: {
-    color: '#a78bfa',
-  },
+    // Badge
+    badge: {
+      alignSelf: 'flex-start',
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      borderRadius: 20,
+      backgroundColor: colors.bgPrimary,
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+    },
+    badgeGold: {
+      backgroundColor: 'rgba(234,179,8,0.15)',
+      borderColor: '#ca8a04',
+    },
+    badgePurple: {
+      backgroundColor: 'rgba(167,139,250,0.15)',
+      borderColor: '#7c3aed',
+    },
+    badgeText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.textSecondary,
+    },
+    badgeTextGold: {
+      color: '#fde047',
+    },
+    badgeTextPurple: {
+      color: '#a78bfa',
+    },
 
-  // Meta
-  metaLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  metaValue: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#cbd5e1',
-    marginTop: 2,
-  },
+    // Meta
+    metaLabel: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+    },
+    metaValue: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginTop: 2,
+    },
 
-  // Upgrade button
-  upgradeButton: {
-    marginTop: 4,
-    backgroundColor: '#6366f1',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  upgradeButtonText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#fff',
-  },
+    // Upgrade button
+    upgradeButton: {
+      marginTop: 4,
+      backgroundColor: colors.brand,
+      borderRadius: 14,
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
+    upgradeButtonText: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: '#fff',
+    },
 
-  // Vault
-  vaultSafeText: {
-    fontSize: 14,
-    color: '#94a3b8',
-    lineHeight: 20,
-  },
-  vaultEmptyText: {
-    fontSize: 14,
-    color: '#64748b',
-    fontStyle: 'italic',
-  },
+    // Vault
+    vaultSafeText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 20,
+    },
+    vaultEmptyText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+    },
 
-  // Stepper
-  stepperLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#94a3b8',
-  },
-  stepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  stepBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: '#334155',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  stepBtnDisabled: {
-    opacity: 0.35,
-  },
-  stepBtnText: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#f1f5f9',
-    lineHeight: 26,
-  },
-  stepValue: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#f1f5f9',
-    minWidth: 40,
-    textAlign: 'center',
-  },
+    // Stepper
+    stepperLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textSecondary,
+    },
+    stepper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+    },
+    stepBtn: {
+      width: 42,
+      height: 42,
+      borderRadius: 12,
+      backgroundColor: colors.bgPrimary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+    },
+    stepBtnDisabled: {
+      opacity: 0.35,
+    },
+    stepBtnText: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      lineHeight: 26,
+    },
+    stepValue: {
+      fontSize: 28,
+      fontWeight: '800',
+      color: colors.textPrimary,
+      minWidth: 40,
+      textAlign: 'center',
+    },
 
-  // Activate button
-  activateButton: {
-    backgroundColor: '#6366f1',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  activateButtonDisabled: {
-    opacity: 0.4,
-  },
-  activateButtonText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#fff',
-  },
-});
+    // Activate button
+    activateButton: {
+      backgroundColor: colors.brand,
+      borderRadius: 14,
+      paddingVertical: 14,
+      alignItems: 'center',
+      marginTop: 4,
+    },
+    activateButtonDisabled: {
+      opacity: 0.4,
+    },
+    activateButtonText: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: '#fff',
+    },
+  });

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appearance, ColorSchemeName } from 'react-native';
+import { ThemeColors, lightColors, darkColors } from '../theme/colors';
 
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -8,6 +9,7 @@ interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   colorScheme: 'light' | 'dark'; // The actual resolved color scheme
+  colors: ThemeColors;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -48,8 +50,9 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const colorScheme = theme === 'system' ? systemColorScheme || 'light' : theme;
+  const colors = colorScheme === 'dark' ? darkColors : lightColors;
 
-  return <ThemeContext.Provider value={{ theme, setTheme, colorScheme }}>{children}</ThemeContext.Provider>;
+  return <ThemeContext.Provider value={{ theme, setTheme, colorScheme, colors }}>{children}</ThemeContext.Provider>;
 };
 
 export const useTheme = () => {

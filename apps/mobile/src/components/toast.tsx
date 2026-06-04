@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useRef, useState, useCallback } from 'react';
 import { Animated, Text, StyleSheet } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -14,6 +15,7 @@ type ToastFn = (options: ToastOptions) => void;
 const ToastContext = createContext<ToastFn | null>(null);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const { colors } = useTheme();
   const [visible, setVisible] = useState(false);
   const [options, setOptions] = useState<ToastOptions>({ message: '' });
   const opacity = useRef(new Animated.Value(0)).current;
@@ -32,7 +34,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     [opacity],
   );
 
-  const bg = options.type === 'error' ? '#ef4444' : options.type === 'success' ? '#22c55e' : '#6366f1';
+  const bg = options.type === 'error' ? colors.error : options.type === 'success' ? colors.success : colors.brand;
 
   return (
     <ToastContext.Provider value={show}>

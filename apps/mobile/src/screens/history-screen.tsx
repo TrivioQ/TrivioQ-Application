@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
+import { useTheme } from '../context/ThemeContext';
+import { ThemeColors } from '../theme/colors';
 import apiClient from '../api/client';
 
 interface DropRecord {
@@ -39,6 +41,8 @@ function resolveChoiceText(choices: { id: string; text: string; isCorrect: boole
 export default function HistoryScreen() {
   const { t } = useTranslation();
   const { userId } = useAuth();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const {
     data: dropsRes,
@@ -60,12 +64,12 @@ export default function HistoryScreen() {
 
     const isAnswered = item.wasCorrect !== null;
     const statusIcon = item.revealedAnswer ? '👁' : isAnswered ? (item.wasCorrect ? '✅' : '❌') : '⏳';
-    const statusColor = item.revealedAnswer ? '#f97316' : isAnswered ? (item.wasCorrect ? '#22c55e' : '#ef4444') : '#94a3b8';
+    const statusColor = item.revealedAnswer ? colors.warning : isAnswered ? (item.wasCorrect ? colors.success : colors.error) : colors.textSecondary;
 
     const difficultyColor: Record<string, string> = {
-      EASY: '#22c55e',
-      MEDIUM: '#f59e0b',
-      HARD: '#ef4444',
+      EASY: colors.success,
+      MEDIUM: colors.warning,
+      HARD: colors.error,
     };
 
     const selectedText = resolveChoiceText(item.question.choices, item.selectedChoiceId);
@@ -75,7 +79,7 @@ export default function HistoryScreen() {
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Text style={[styles.difficulty, { color: difficultyColor[item.question.difficultyLevel] ?? '#94a3b8' }]}>{item.question.difficultyLevel}</Text>
+          <Text style={[styles.difficulty, { color: difficultyColor[item.question.difficultyLevel] ?? colors.textSecondary }]}>{item.question.difficultyLevel}</Text>
           <Text style={styles.date}>{date}</Text>
         </View>
 
@@ -86,7 +90,7 @@ export default function HistoryScreen() {
             {selectedText != null && (
               <View style={styles.answerRow}>
                 <Text style={styles.answerLabel}>{t('history.yourAnswer')}</Text>
-                <Text style={[styles.answerValue, { color: item.wasCorrect ? '#22c55e' : '#ef4444' }]} numberOfLines={2}>
+                <Text style={[styles.answerValue, { color: item.wasCorrect ? colors.success : colors.error }]} numberOfLines={2}>
                   {selectedText}
                 </Text>
               </View>
@@ -94,7 +98,7 @@ export default function HistoryScreen() {
             {(!item.wasCorrect || selectedText == null) && (
               <View style={styles.answerRow}>
                 <Text style={styles.answerLabel}>{t('history.correctAnswer')}</Text>
-                <Text style={[styles.answerValue, { color: '#22c55e' }]} numberOfLines={2}>
+                <Text style={[styles.answerValue, { color: colors.success }]} numberOfLines={2}>
                   {correctText}
                 </Text>
               </View>
@@ -115,7 +119,7 @@ export default function HistoryScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color={colors.brand} />
       </View>
     );
   }
@@ -146,107 +150,108 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-    paddingTop: 16,
-  },
-  heading: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#f1f5f9',
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  list: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
-  card: {
-    backgroundColor: '#1e293b',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  difficulty: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-  },
-  date: {
-    fontSize: 12,
-    color: '#64748b',
-  },
-  questionText: {
-    fontSize: 15,
-    color: '#cbd5e1',
-    lineHeight: 22,
-    marginBottom: 10,
-  },
-  answerBlock: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
-    gap: 6,
-  },
-  answerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 6,
-  },
-  answerLabel: {
-    fontSize: 11,
-    color: '#64748b',
-    fontWeight: '600',
-    minWidth: 90,
-    paddingTop: 1,
-  },
-  answerValue: {
-    fontSize: 12,
-    fontWeight: '600',
-    flex: 1,
-    flexWrap: 'wrap',
-  },
-  cardFooter: {
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.05)',
-    paddingTop: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  status: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  points: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#818cf8',
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 80,
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 16,
-  },
-  emptyText: {
-    color: '#64748b',
-    fontSize: 16,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bgPrimary,
+      paddingTop: 16,
+    },
+    heading: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: colors.textPrimary,
+      paddingHorizontal: 20,
+      marginBottom: 12,
+    },
+    list: {
+      paddingHorizontal: 16,
+      paddingBottom: 24,
+    },
+    card: {
+      backgroundColor: colors.bgSecondary,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    difficulty: {
+      fontSize: 11,
+      fontWeight: '700',
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+    },
+    date: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    questionText: {
+      fontSize: 15,
+      color: colors.textPrimary,
+      lineHeight: 22,
+      marginBottom: 10,
+    },
+    answerBlock: {
+      backgroundColor: colors.bgPrimary,
+      borderRadius: 8,
+      padding: 10,
+      marginBottom: 10,
+      gap: 6,
+    },
+    answerRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 6,
+    },
+    answerLabel: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      fontWeight: '600',
+      minWidth: 90,
+      paddingTop: 1,
+    },
+    answerValue: {
+      fontSize: 12,
+      fontWeight: '600',
+      flex: 1,
+      flexWrap: 'wrap',
+    },
+    cardFooter: {
+      borderTopWidth: 1,
+      borderTopColor: colors.borderColor,
+      paddingTop: 10,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    status: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    points: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.brand,
+    },
+    centered: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: 80,
+    },
+    errorText: {
+      color: colors.error,
+      fontSize: 16,
+    },
+    emptyText: {
+      color: colors.textSecondary,
+      fontSize: 16,
+    },
+  });

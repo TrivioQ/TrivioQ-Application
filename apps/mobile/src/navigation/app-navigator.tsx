@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigatorScreenParams } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/auth-context';
+import { useTheme } from '../context/ThemeContext';
 
 // Screens
 import LoginScreen from '../screens/login-screen';
@@ -51,10 +52,7 @@ export type RootTabParamList = {
 };
 
 // ─── Brand colour ─────────────────────────────────────────────────────────────
-
-const BRAND = '#6366f1'; // TrivioQ indigo
-const TAB_BG = '#0f172a'; // Dark navy background
-const INACTIVE = '#475569'; // Muted slate
+// Colors are now sourced dynamically from ThemeContext
 
 // ─── Tab icons (inline SVG-style via Unicode / emoji fallback) ────────────────
 // Using simple text icons for zero-dependency rendering.
@@ -70,11 +68,12 @@ const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 
 function HomeStackNavigator() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   return (
     <HomeStack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: TAB_BG },
-        headerTintColor: '#f1f5f9',
+        headerStyle: { backgroundColor: colors.bgSecondary },
+        headerTintColor: colors.textPrimary,
         headerTitleStyle: { fontWeight: '800' },
       }}
     >
@@ -98,11 +97,12 @@ const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
 function ProfileStackNavigator() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   return (
     <ProfileStack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: TAB_BG },
-        headerTintColor: '#f1f5f9',
+        headerStyle: { backgroundColor: colors.bgSecondary },
+        headerTintColor: colors.textPrimary,
         headerTitleStyle: { fontWeight: '800' },
       }}
     >
@@ -120,15 +120,16 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 function MainTabNavigator() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: BRAND,
-        tabBarInactiveTintColor: INACTIVE,
+        tabBarActiveTintColor: colors.brand,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
-          backgroundColor: TAB_BG,
-          borderTopColor: 'rgba(255,255,255,0.06)',
+          backgroundColor: colors.bgSecondary,
+          borderTopColor: colors.borderColor,
           borderTopWidth: 1,
           height: Platform.OS === 'ios' ? 84 : 64,
           paddingBottom: Platform.OS === 'ios' ? 24 : 8,

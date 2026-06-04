@@ -89,7 +89,8 @@
     "signOutAlertBody": "Are you sure you want to sign out?",
     "signOutConfirm": "Sign Out",
     "freeTier": "🆓 Free",
-    "premiumTier": "⭐ Premium"
+    "premiumTier": "⭐ Premium",
+    "plusTier": "✨ Plus"
   },
   "leaderboard": {
     "title": "Leaderboard",

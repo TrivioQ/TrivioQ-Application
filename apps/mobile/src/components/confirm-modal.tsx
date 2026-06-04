@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useRef, useState, useCallback } from 'react';
+import React, { createContext, useContext, useRef, useState, useCallback, useMemo } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../context/ThemeContext';
+import { ThemeColors } from '../theme/colors';
 
 type ConfirmOptions = {
   title: string;
@@ -16,6 +18,8 @@ const ConfirmContext = createContext<ConfirmFn | null>(null);
 
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<ConfirmOptions>({ title: '', message: '' });
   const resolveRef = useRef<((value: boolean) => void) | null>(null);
@@ -66,73 +70,74 @@ export function useConfirm(): ConfirmFn {
   return ctx;
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.65)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  card: {
-    width: '100%',
-    backgroundColor: '#1e293b',
-    borderRadius: 20,
-    padding: 24,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 12,
-  },
-  accent: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-  },
-  accentDefault: { backgroundColor: '#6366f1' },
-  accentDestructive: { backgroundColor: '#ef4444' },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#f1f5f9',
-    marginBottom: 10,
-    marginTop: 8,
-  },
-  message: {
-    fontSize: 14,
-    color: '#94a3b8',
-    lineHeight: 21,
-    marginBottom: 24,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 10,
-  },
-  cancelButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-  },
-  cancelText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#64748b',
-  },
-  confirmButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-  },
-  confirmDefault: { backgroundColor: '#6366f1' },
-  confirmDestructive: { backgroundColor: '#ef4444' },
-  confirmText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.65)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+    },
+    card: {
+      width: '100%',
+      backgroundColor: colors.bgSecondary,
+      borderRadius: 20,
+      padding: 24,
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.4,
+      shadowRadius: 20,
+      elevation: 12,
+    },
+    accent: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 3,
+    },
+    accentDefault: { backgroundColor: colors.brand },
+    accentDestructive: { backgroundColor: colors.error },
+    title: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginBottom: 10,
+      marginTop: 8,
+    },
+    message: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 21,
+      marginBottom: 24,
+    },
+    actions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      gap: 10,
+    },
+    cancelButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 12,
+    },
+    cancelText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textSecondary,
+    },
+    confirmButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 12,
+    },
+    confirmDefault: { backgroundColor: colors.brand },
+    confirmDestructive: { backgroundColor: colors.error },
+    confirmText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: '#fff',
+    },
+  });

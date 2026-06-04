@@ -3,11 +3,15 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
 import { useAuth } from '../context/auth-context';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../components/toast';
+import { useTheme } from '../context/ThemeContext';
+import { ThemeColors } from '../theme/colors';
 
 export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin: () => void }) {
   const { t } = useTranslation();
   const { registerWithEmail } = useAuth();
   const toast = useToast();
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -66,26 +70,26 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
 
         <View style={styles.form}>
           <Text style={styles.label}>{t('auth.displayNameLabel')}</Text>
-          <TextInput style={styles.input} placeholder={t('auth.displayNamePlaceholder')} placeholderTextColor="#64748b" value={displayName} onChangeText={setDisplayName} />
+          <TextInput style={styles.input} placeholder={t('auth.displayNamePlaceholder')} placeholderTextColor={colors.textSecondary} value={displayName} onChangeText={setDisplayName} />
 
           <Text style={styles.label}>{t('auth.usernameLabel')}</Text>
-          <TextInput style={styles.input} placeholder={t('auth.usernamePlaceholder')} placeholderTextColor="#64748b" value={username} onChangeText={(v) => setUsername(v.toLowerCase())} autoCapitalize="none" />
+          <TextInput style={styles.input} placeholder={t('auth.usernamePlaceholder')} placeholderTextColor={colors.textSecondary} value={username} onChangeText={(v) => setUsername(v.toLowerCase())} autoCapitalize="none" />
 
           <Text style={styles.label}>{t('auth.emailLabel')}</Text>
-          <TextInput style={styles.input} placeholder="email@example.com" placeholderTextColor="#64748b" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
+          <TextInput style={styles.input} placeholder="email@example.com" placeholderTextColor={colors.textSecondary} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
 
           <Text style={styles.label}>{t('auth.passwordLabel')}</Text>
-          <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor="#64748b" value={password} onChangeText={setPassword} secureTextEntry />
+          <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor={colors.textSecondary} value={password} onChangeText={setPassword} secureTextEntry />
 
           <Text style={styles.label}>{t('auth.dateOfBirthLabel')}</Text>
-          <TextInput style={styles.input} placeholder="YYYY-MM-DD" placeholderTextColor="#64748b" value={dateOfBirth} onChangeText={setDateOfBirth} keyboardType="numbers-and-punctuation" maxLength={10} />
+          <TextInput style={styles.input} placeholder="YYYY-MM-DD" placeholderTextColor={colors.textSecondary} value={dateOfBirth} onChangeText={setDateOfBirth} keyboardType="numbers-and-punctuation" maxLength={10} />
           <Text style={styles.hint}>{t('auth.dateOfBirthHint')}</Text>
 
           <Text style={styles.label}>{t('auth.referralCodeLabel')}</Text>
-          <TextInput style={styles.input} placeholder={t('auth.referralCodePlaceholder')} placeholderTextColor="#64748b" value={referralCode} onChangeText={setReferralCode} autoCapitalize="none" />
+          <TextInput style={styles.input} placeholder={t('auth.referralCodePlaceholder')} placeholderTextColor={colors.textSecondary} value={referralCode} onChangeText={setReferralCode} autoCapitalize="none" />
 
           <TouchableOpacity style={styles.signupButton} onPress={handleSignup} disabled={isPending} activeOpacity={0.8}>
-            {isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.signupButtonText}>{t('auth.createButton')}</Text>}
+            {isPending ? <ActivityIndicator color={colors.bgPrimary} /> : <Text style={styles.signupButtonText}>{t('auth.createButton')}</Text>}
           </TouchableOpacity>
         </View>
 
@@ -102,89 +106,90 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 24,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logoText: {
-    fontSize: 42,
-    fontWeight: '900',
-    color: '#fff',
-    letterSpacing: -1,
-  },
-  logoAccent: {
-    color: '#6366f1',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#94a3b8',
-    marginTop: 8,
-    fontWeight: '500',
-  },
-  form: {
-    width: '100%',
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#cbd5e1',
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  input: {
-    backgroundColor: '#1e293b',
-    borderRadius: 12,
-    padding: 16,
-    color: '#fff',
-    fontSize: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-  },
-  hint: {
-    fontSize: 12,
-    color: '#64748b',
-    marginTop: -16,
-    marginBottom: 20,
-    marginLeft: 4,
-  },
-  signupButton: {
-    backgroundColor: '#6366f1',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-    shadowColor: '#6366f1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  signupButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  footer: {
-    marginTop: 40,
-    alignItems: 'center',
-  },
-  footerText: {
-    color: '#94a3b8',
-    fontSize: 14,
-  },
-  footerLink: {
-    color: '#6366f1',
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bgPrimary,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      padding: 24,
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: 40,
+    },
+    logoText: {
+      fontSize: 42,
+      fontWeight: '900',
+      color: colors.textPrimary,
+      letterSpacing: -1,
+    },
+    logoAccent: {
+      color: colors.brand,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      marginTop: 8,
+      fontWeight: '500',
+    },
+    form: {
+      width: '100%',
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textPrimary,
+      marginBottom: 8,
+      marginLeft: 4,
+    },
+    input: {
+      backgroundColor: colors.bgSecondary,
+      borderRadius: 12,
+      padding: 16,
+      color: colors.textPrimary,
+      fontSize: 16,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+    },
+    hint: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: -16,
+      marginBottom: 20,
+      marginLeft: 4,
+    },
+    signupButton: {
+      backgroundColor: colors.brand,
+      borderRadius: 12,
+      padding: 16,
+      alignItems: 'center',
+      marginTop: 8,
+      shadowColor: colors.brand,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    signupButtonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    footer: {
+      marginTop: 40,
+      alignItems: 'center',
+    },
+    footerText: {
+      color: colors.textSecondary,
+      fontSize: 14,
+    },
+    footerLink: {
+      color: colors.brand,
+      fontWeight: '700',
+    },
+  });
