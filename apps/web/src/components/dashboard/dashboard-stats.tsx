@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslations, useLocale } from 'next-intl';
 import { makeAPICallV1 } from '../../lib/api';
 import { ScoreTrendChart, ScorePeriod } from './score-trend-chart';
+import { Flame, Eye, CheckCircle2, XCircle } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -54,11 +55,11 @@ function formatDate(iso: string | null, locale: string) {
   });
 }
 
-function StatCard({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: string }) {
+function StatCard({ label, value, sub, accent }: { label: string; value: React.ReactNode; sub?: string; accent?: string }) {
   return (
     <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-indigo-900/10 dark:shadow-none border border-white dark:border-white/10 p-6 flex flex-col gap-1">
       <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">{label}</p>
-      <p className={`text-3xl font-extrabold tracking-tight ${accent ?? 'text-gray-900 dark:text-white'}`}>{value}</p>
+      <div className={`text-3xl font-extrabold tracking-tight flex items-center gap-2 ${accent ?? 'text-gray-900 dark:text-white'}`}>{value}</div>
       {sub && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{sub}</p>}
     </div>
   );
@@ -110,7 +111,19 @@ export function DashboardStats() {
         <StatCard label={t('weeklyScore')} value={(currentWeek?.totalScore ?? 0).toLocaleString()} sub={currentWeek?.rank ? t('rankThisWeek', { rank: currentWeek.rank }) : t('noRankYet')} accent="text-blue-600 dark:text-indigo-400" />
         <StatCard label={t('monthlyScore')} value={(currentMonth?.totalScore ?? 0).toLocaleString()} sub={currentMonth?.rank ? t('rankThisMonth', { rank: currentMonth.rank }) : t('noRankYet')} accent="text-purple-400" />
         <StatCard label={t('allTimeScore')} value={(profile?.cumulativeScore ?? 0).toLocaleString()} sub={t('cumulativePoints')} accent="text-pink-400" />
-        <StatCard label={t('currentStreak')} value={profile ? `${profile.currentStreak} 🔥` : '—'} sub={accuracyPct !== null ? t('accuracyLast10', { pct: accuracyPct }) : t('noDataYet')} />
+        <StatCard
+          label={t('currentStreak')}
+          value={
+            profile ? (
+              <>
+                {profile.currentStreak} <Flame className="w-7 h-7 text-orange-500" />
+              </>
+            ) : (
+              '—'
+            )
+          }
+          sub={accuracyPct !== null ? t('accuracyLast10', { pct: accuracyPct }) : t('noDataYet')}
+        />
       </div>
 
       {/* ── Score Trend Charts ── */}
@@ -149,18 +162,18 @@ export function DashboardStats() {
 
               return (
                 <div key={drop.id} className="px-6 py-4 flex items-start gap-4">
-                  <div className="mt-0.5 shrink-0">
+                  <div className="mt-0.5 shrink-0 flex items-center justify-center">
                     {drop.revealedAnswer ? (
-                      <span className="text-lg" title={t('answerRevealed')}>
-                        👁
+                      <span title={t('answerRevealed')}>
+                        <Eye className="w-5 h-5 text-gray-400" />
                       </span>
                     ) : drop.wasCorrect ? (
-                      <span className="text-lg" title="Correct">
-                        ✅
+                      <span title="Correct">
+                        <CheckCircle2 className="w-5 h-5 text-green-500" />
                       </span>
                     ) : (
-                      <span className="text-lg" title="Incorrect">
-                        ❌
+                      <span title="Incorrect">
+                        <XCircle className="w-5 h-5 text-red-500" />
                       </span>
                     )}
                   </div>

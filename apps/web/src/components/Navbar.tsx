@@ -7,6 +7,7 @@ import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '../context/auth-provider';
 import { useUserProfile } from '../hooks/use-user-profile';
+import { Flame, Star, Settings, LogOut } from 'lucide-react';
 
 // ─── Framer variants ──────────────────────────────────────────────────────────
 
@@ -182,13 +183,13 @@ export function Navbar() {
               <div className="flex items-center gap-4">
                 {/* Streak */}
                 <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/25">
-                  <span className="text-base leading-none">🔥</span>
+                  <Flame className="w-4 h-4 text-orange-500" />
                   <span className="text-sm font-bold text-orange-300">{profile?.currentStreak ?? 0}</span>
                 </div>
 
                 {/* Score */}
                 <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/25">
-                  <span className="text-base leading-none">⭐</span>
+                  <Star className="w-4 h-4 text-indigo-500" />
                   <span className="text-sm font-bold text-indigo-300">{(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
                 </div>
 
@@ -210,16 +211,18 @@ export function Navbar() {
                           <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{user.email}</p>
                           {/* Streak & score on mobile (also shown inside dropdown) */}
                           <div className="flex gap-3 mt-2 sm:hidden">
-                            <span className="text-xs text-orange-300">
-                              🔥 {profile?.currentStreak ?? 0} {t('streak')}
+                            <span className="flex items-center text-xs text-orange-300">
+                              <Flame className="w-3.5 h-3.5 mr-1 text-orange-500" /> {profile?.currentStreak ?? 0} {t('streak')}
                             </span>
-                            <span className="text-xs text-indigo-300">⭐ {(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
+                            <span className="flex items-center text-xs text-indigo-300">
+                              <Star className="w-3.5 h-3.5 mr-1 text-indigo-500" /> {(profile?.cumulativeScore ?? 0).toLocaleString()}
+                            </span>
                           </div>
                         </div>
 
                         {/* Menu items */}
                         {[
-                          { label: t('settings'), href: '/settings', icon: '⚙️' },
+                          { label: t('settings'), href: '/settings', icon: <Settings className="w-4 h-4 text-gray-500" /> },
                           { label: t('subscription'), href: '/subscription', icon: <CrownIcon className="w-4 h-4 text-yellow-500" /> },
                         ].map((item) => (
                           <Link key={item.href} href={item.href} onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-colors">
@@ -230,7 +233,7 @@ export function Navbar() {
 
                         <div className="border-t border-gray-200 dark:border-white/10 mt-1">
                           <button id="logout-btn" onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300 transition-colors">
-                            <span>🚪</span>
+                            <LogOut className="w-4 h-4 text-red-500" />
                             {t('logout')}
                           </button>
                         </div>
@@ -302,20 +305,20 @@ export function Navbar() {
                     {/* Stats */}
                     <div className="flex gap-3 px-4 py-3">
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/25">
-                        <span>🔥</span>
+                        <Flame className="w-4 h-4 text-orange-500" />
                         <span className="text-sm font-bold text-orange-300">
                           {profile?.currentStreak ?? 0} {t('streak')}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/25">
-                        <span>⭐</span>
+                        <Star className="w-4 h-4 text-indigo-500" />
                         <span className="text-sm font-bold text-indigo-300">{(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
                       </div>
                     </div>
 
                     {/* Profile items */}
                     {[
-                      { label: t('settings'), href: '/settings', icon: '⚙️' },
+                      { label: t('settings'), href: '/settings', icon: <Settings className="w-5 h-5 text-gray-400" /> },
                       { label: t('subscription'), href: '/subscription', icon: <CrownIcon className="w-5 h-5 text-yellow-500" /> },
                     ].map((item) => (
                       <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
@@ -325,7 +328,7 @@ export function Navbar() {
                     ))}
 
                     <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors">
-                      <span>🚪</span>
+                      <LogOut className="w-5 h-5" />
                       {t('logout')}
                     </button>
                   </>

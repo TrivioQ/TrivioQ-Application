@@ -160,7 +160,7 @@
     "currentStreak": "Current Streak",
     "totalScore": "Total Score",
     "title": "Your Dashboard",
-    "greeting": "Hey, {name} 👋",
+    "greeting": "Hey, {name}",
     "performanceSubtitle": "Here's how you're doing across all your trivia drops.",
     "signInPrompt": "Please",
     "signInLink": "sign in",

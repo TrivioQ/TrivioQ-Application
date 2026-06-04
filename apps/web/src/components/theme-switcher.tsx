@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTheme, Theme } from '../context/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Sun, Moon, Monitor } from 'lucide-react';
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
@@ -19,10 +20,10 @@ export function ThemeSwitcher() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const themes: { value: Theme; label: string; icon: string }[] = [
-    { value: 'light', label: 'Light', icon: '☀️' },
-    { value: 'dark', label: 'Dark', icon: '🌙' },
-    { value: 'system', label: 'System', icon: '💻' },
+  const themes: { value: Theme; label: string; icon: React.ReactNode }[] = [
+    { value: 'light', label: 'Light', icon: <Sun className="w-4 h-4" /> },
+    { value: 'dark', label: 'Dark', icon: <Moon className="w-4 h-4" /> },
+    { value: 'system', label: 'System', icon: <Monitor className="w-4 h-4" /> },
   ];
 
   const currentTheme = themes.find((t) => t.value === theme) || themes[2];

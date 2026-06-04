@@ -14927,6 +14927,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react@npm:^1.17.0":
+  version: 1.17.0
+  resolution: "lucide-react@npm:1.17.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/a600d882afceffa5d3479666549e801e201ff5a95c19961648e45fc288cf3d2248a345e563cd3891f3ff3dbc052730121feeb54aa75628b663810159246b9468
+  languageName: node
+  linkType: hard
+
 "lucide-react@npm:^1.8.0":
   version: 1.8.0
   resolution: "lucide-react@npm:1.8.0"
@@ -21710,6 +21719,7 @@ __metadata:
     autoprefixer: "npm:^10.4.19"
     framer-motion: "npm:^12.38.0"
     js-cookie: "npm:^3.0.8"
+    lucide-react: "npm:^1.17.0"
     marked: "npm:^18.0.2"
     next: "npm:14.2.3"
     next-intl: "npm:^4.11.0"

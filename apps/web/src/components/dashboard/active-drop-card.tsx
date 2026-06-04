@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
 import { makeAPICallV1, APIError } from '../../lib/api';
 import { useConfirm } from '../confirm-modal';
+import { Hourglass, Gift, Lightbulb } from 'lucide-react';
 
 interface ActiveDrop {
   dropId: string;
@@ -262,7 +263,7 @@ export default function ActiveDropCard() {
           <p className="text-lg font-mono font-bold text-gray-400">--:--</p>
         </div>
         <div className="px-6 py-8 flex flex-col items-center gap-3 text-center">
-          <span className="text-4xl">⏳</span>
+          <Hourglass className="w-10 h-10 text-gray-400" />
           <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('noActiveQuestion')}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 max-w-xs leading-relaxed">{t('noActiveDesc')}</p>
           <button onClick={handleOnDemand} disabled={onDemandLoading} className="mt-2 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 border border-blue-600 dark:border-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 text-sm text-white dark:text-blue-300 font-medium transition-colors">
@@ -319,8 +320,8 @@ export default function ActiveDropCard() {
 
         {/* Mystery → Reveal */}
         {!revealed ? (
-          <div className="text-center py-4">
-            <p className="text-4xl mb-3">🎁</p>
+          <div className="text-center py-4 flex flex-col items-center">
+            <Gift className="w-10 h-10 mb-3 text-indigo-400" />
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{t('newQuestionWaiting')}</p>
             <button onClick={handleRevealQuestion} disabled={isExpired || revealQuestionLoading} className="rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-gray-900 dark:text-white transition-colors">
               {revealQuestionLoading ? t('revealLoading') : t('revealQuestion')}
@@ -336,7 +337,9 @@ export default function ActiveDropCard() {
               <div className="flex gap-2">
                 {hintText ? (
                   <div className="flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2">
-                    <p className="text-[11px] font-bold text-yellow-400 mb-0.5">💡 Hint {hintCostDeducted != null ? `(−${hintCostDeducted} ${t('pts')})` : ''}</p>
+                    <p className="text-[11px] font-bold text-yellow-400 mb-0.5 flex items-center gap-1">
+                      <Lightbulb className="w-3.5 h-3.5" /> Hint {hintCostDeducted != null ? `(−${hintCostDeducted} ${t('pts')})` : ''}
+                    </p>
                     <p className="text-xs text-yellow-200">{hintText}</p>
                   </div>
                 ) : (
