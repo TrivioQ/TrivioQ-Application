@@ -148,6 +148,14 @@ async function main() {
               activeWindowStart,
               activeWindowEnd,
               role: Role.USER,
+              preferences: {
+                theme: 'system',
+                notificationsEnabled: true,
+                language: 'en',
+                categoryPercentages: { tech: 0.5, science: 0.5 },
+                difficultyPercentages: { easy: 50, medium: 30, hard: 20 },
+                targetDropsPerWeek: 35,
+              },
             },
           });
           users.push(user);
@@ -284,7 +292,7 @@ async function main() {
                 },
               });
             } catch (e) {
-              // Ignore unique constraint violations if friendship already exists from other side
+              console.error(e);
             }
           }
         }

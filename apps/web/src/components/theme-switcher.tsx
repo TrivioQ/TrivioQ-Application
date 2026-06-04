@@ -1,0 +1,59 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import { useTheme, Theme } from '../context/ThemeContext';
+import { motion, AnimatePresence } from 'framer-motion';
+
+export function ThemeSwitcher() {
+  const { theme, setTheme } = useTheme();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const themes: { value: Theme; label: string; icon: string }[] = [
+    { value: 'light', label: 'Light', icon: '☀️' },
+    { value: 'dark', label: 'Dark', icon: '🌙' },
+    { value: 'system', label: 'System', icon: '💻' },
+  ];
+
+  const currentTheme = themes.find((t) => t.value === theme) || themes[2];
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 dark:bg-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-700 transition-colors border border-white/20 dark:border-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400" aria-label="Toggle theme">
+        <span className="text-sm">{currentTheme.icon}</span>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div initial={{ opacity: 0, y: -8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.96 }} transition={{ duration: 0.15, ease: 'easeOut' }} className="absolute right-0 mt-2 w-36 rounded-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border border-gray-200 dark:border-white/10 shadow-xl overflow-hidden z-50">
+            <div className="py-1">
+              {themes.map((t) => (
+                <button
+                  key={t.value}
+                  onClick={() => {
+                    setTheme(t.value);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-sm text-left transition-colors ${theme === t.value ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'}`}
+                >
+                  <span>{t.icon}</span>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

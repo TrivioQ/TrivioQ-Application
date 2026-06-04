@@ -20,6 +20,7 @@
     "@trivioq/shared-types": "workspace:*",
     "axios": "^1.15.2",
     "expo": "~50.0.14",
+    "expo-blur": "~12.9.2",
     "expo-constants": "^55.0.15",
     "expo-device": "^55.0.15",
     "expo-linking": "^55.0.14",

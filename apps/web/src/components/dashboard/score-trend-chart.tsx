@@ -32,8 +32,8 @@ const CustomTooltip = ({ active, payload, label, mode, t }: any) => {
   const title = mode === 'monthly' ? d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }) : `${t('chart.weekOf')} ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
 
   return (
-    <div className="bg-gray-800 border border-white/10 rounded-xl p-3 text-xs shadow-xl">
-      <p className="text-gray-400 mb-2 font-medium">{title}</p>
+    <div className="bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-xs shadow-xl">
+      <p className="text-gray-600 dark:text-gray-400 mb-2 font-medium">{title}</p>
       {payload.map((p: any) => (
         <p key={p.name} style={{ color: p.fill }} className="font-semibold">
           {p.name}: {p.value.toLocaleString()} {t('chart.pts')}
@@ -49,7 +49,7 @@ export function ScoreTrendChart({ data, mode, namespace = 'dashboard' }: Props) 
   const sorted = [...data].sort((a, b) => new Date(a.periodStart).getTime() - new Date(b.periodStart).getTime());
 
   if (sorted.length === 0) {
-    return <div className="flex h-[220px] items-center justify-center text-sm text-gray-500">{t('chart.noData')}</div>;
+    return <div className="flex h-[220px] items-center justify-center text-sm text-gray-500 dark:text-gray-600 dark:text-gray-400">{t('chart.noData')}</div>;
   }
 
   return (

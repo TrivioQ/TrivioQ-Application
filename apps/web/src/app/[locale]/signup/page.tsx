@@ -33,7 +33,7 @@ export default function SignupPage() {
 
   if (isLoading || user) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
       </div>
     );
@@ -49,8 +49,8 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-950 px-6 py-12 lg:px-8 selection:bg-indigo-500 selection:text-white">
-      <div className="w-full max-w-md space-y-8 bg-gray-900 p-10 rounded-2xl border border-white/5 shadow-2xl">
+    <div className="flex min-h-screen items-center justify-center px-6 py-12 lg:px-8 selection:bg-indigo-500 selection:text-white">
+      <div className="w-full max-w-md space-y-8 bg-white/30 dark:bg-white/5 backdrop-blur-2xl p-10 rounded-3xl border border-white/50 dark:border-white/10 shadow-2xl shadow-indigo-900/10">
         <div className="text-center">
           <Link href="/" className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
             {t('brandName')}

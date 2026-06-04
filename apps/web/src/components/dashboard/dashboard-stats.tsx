@@ -56,10 +56,10 @@ function formatDate(iso: string | null, locale: string) {
 
 function StatCard({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: string }) {
   return (
-    <div className="rounded-2xl bg-white/5 border border-white/8 p-6 flex flex-col gap-1">
-      <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">{label}</p>
-      <p className={`text-3xl font-extrabold tracking-tight ${accent ?? 'text-white'}`}>{value}</p>
-      {sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
+    <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-indigo-900/10 dark:shadow-none border border-white dark:border-white/10 p-6 flex flex-col gap-1">
+      <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">{label}</p>
+      <p className={`text-3xl font-extrabold tracking-tight ${accent ?? 'text-gray-900 dark:text-white'}`}>{value}</p>
+      {sub && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{sub}</p>}
     </div>
   );
 }
@@ -107,7 +107,7 @@ export function DashboardStats() {
     <>
       {/* ── Score Cards ── */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard label={t('weeklyScore')} value={(currentWeek?.totalScore ?? 0).toLocaleString()} sub={currentWeek?.rank ? t('rankThisWeek', { rank: currentWeek.rank }) : t('noRankYet')} accent="text-indigo-400" />
+        <StatCard label={t('weeklyScore')} value={(currentWeek?.totalScore ?? 0).toLocaleString()} sub={currentWeek?.rank ? t('rankThisWeek', { rank: currentWeek.rank }) : t('noRankYet')} accent="text-blue-600 dark:text-indigo-400" />
         <StatCard label={t('monthlyScore')} value={(currentMonth?.totalScore ?? 0).toLocaleString()} sub={currentMonth?.rank ? t('rankThisMonth', { rank: currentMonth.rank }) : t('noRankYet')} accent="text-purple-400" />
         <StatCard label={t('allTimeScore')} value={(profile?.cumulativeScore ?? 0).toLocaleString()} sub={t('cumulativePoints')} accent="text-pink-400" />
         <StatCard label={t('currentStreak')} value={profile ? `${profile.currentStreak} 🔥` : '—'} sub={accuracyPct !== null ? t('accuracyLast10', { pct: accuracyPct }) : t('noDataYet')} />
@@ -115,32 +115,32 @@ export function DashboardStats() {
 
       {/* ── Score Trend Charts ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl bg-white/5 border border-white/8 p-6">
-          <p className="text-sm font-semibold text-gray-300 mb-1">{t('weeklyTrendTitle')}</p>
-          <p className="text-xs text-gray-500 mb-4">{t('weeklyTrendSubtitle')}</p>
+        <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-indigo-900/10 dark:shadow-none border border-white dark:border-white/10 p-6">
+          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{t('weeklyTrendTitle')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{t('weeklyTrendSubtitle')}</p>
           <ScoreTrendChart data={weekly} mode="weekly" namespace="dashboard" />
         </div>
-        <div className="rounded-2xl bg-white/5 border border-white/8 p-6">
-          <p className="text-sm font-semibold text-gray-300 mb-1">{t('monthlyTrendTitle')}</p>
-          <p className="text-xs text-gray-500 mb-4">{t('monthlyTrendSubtitle')}</p>
+        <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-indigo-900/10 dark:shadow-none border border-white dark:border-white/10 p-6">
+          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{t('monthlyTrendTitle')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{t('monthlyTrendSubtitle')}</p>
           <ScoreTrendChart data={monthly} mode="monthly" namespace="dashboard" />
         </div>
       </div>
 
       {/* ── Recent Drops ── */}
-      <div className="rounded-2xl bg-white/5 border border-white/8 overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/8 flex items-center justify-between">
+      <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-indigo-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200/60 dark:border-white/10 flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-200">{t('recentQuestionsTitle')}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{t('recentQuestionsSubtitle')}</p>
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{t('recentQuestionsTitle')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t('recentQuestionsSubtitle')}</p>
           </div>
-          <a href="/score-history" className="text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+          <a href="/score-history" className="text-xs text-blue-600 dark:text-indigo-400 hover:text-blue-500 dark:text-indigo-300 font-medium transition-colors">
             {t('fullHistory')}
           </a>
         </div>
 
         {recentDrops.length === 0 ? (
-          <div className="px-6 py-12 text-center text-sm text-gray-500">{t('noDropsYet')}</div>
+          <div className="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">{t('noDropsYet')}</div>
         ) : (
           <div className="divide-y divide-white/5">
             {recentDrops.map((drop) => {
@@ -166,11 +166,11 @@ export function DashboardStats() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-200 truncate">{drop.question.questionText}</p>
+                    <p className="text-sm text-gray-800 dark:text-gray-200 truncate">{drop.question.questionText}</p>
                     <div className="flex flex-wrap items-center gap-2 mt-1.5">
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${DIFF_COLOR[drop.question.difficultyLevel]}`}>{t(`diffLabels.${drop.question.difficultyLevel}`)}</span>
                       {drop.question.categories.slice(0, 2).map((c) => (
-                        <span key={c.name} className="text-[11px] text-gray-500 bg-white/5 rounded-full px-2 py-0.5">
+                        <span key={c.name} className="text-[11px] text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/5 rounded-full px-2 py-0.5">
                           {c.name}
                         </span>
                       ))}
@@ -180,12 +180,12 @@ export function DashboardStats() {
                     {selectedText != null && (
                       <div className="mt-2 space-y-0.5">
                         <p className="text-[11px]">
-                          <span className="text-gray-500">{t('yourAnswer')} </span>
+                          <span className="text-gray-500 dark:text-gray-600 dark:text-gray-400">{t('yourAnswer')} </span>
                           <span className={drop.wasCorrect ? 'text-green-400' : 'text-red-400'}>{selectedText}</span>
                         </p>
                         {!drop.wasCorrect && (
                           <p className="text-[11px]">
-                            <span className="text-gray-500">{t('correctAnswer')} </span>
+                            <span className="text-gray-500 dark:text-gray-600 dark:text-gray-400">{t('correctAnswer')} </span>
                             <span className="text-green-400">{correctText}</span>
                           </p>
                         )}
@@ -195,7 +195,7 @@ export function DashboardStats() {
                   </div>
 
                   <div className="shrink-0 text-right">
-                    <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-indigo-400' : 'text-gray-600'}`}>
+                    <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-blue-600 dark:text-indigo-400' : 'text-gray-600'}`}>
                       {drop.pointsAwarded > 0 ? `+${drop.pointsAwarded}` : '0'} {t('pts')}
                     </p>
                   </div>

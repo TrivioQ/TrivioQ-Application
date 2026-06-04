@@ -2,26 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Light (default) theme ── */
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --bg-primary: 248, 250, 252;       /* slate-50 */
+  --bg-secondary: 255, 255, 255;     /* white */
+  --text-primary: 15, 23, 42;        /* slate-900 */
+  --text-secondary: 100, 116, 139;   /* slate-500 */
+  --border-color: 226, 232, 240;     /* slate-200 */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+/* ── Dark theme (triggered by .dark class on <html>) ── */
+.dark {
+  --bg-primary: 2, 6, 23;            /* slate-950 */
+  --bg-secondary: 15, 23, 42;        /* slate-900 */
+  --text-primary: 248, 250, 252;     /* slate-50 */
+  --text-secondary: 148, 163, 184;   /* slate-400 */
+  --border-color: 30, 41, 59;        /* slate-800 */
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background-color: rgb(var(--bg-primary));
+  color: rgb(var(--text-primary));
+  transition: background-color 0.3s ease, color 0.3s ease;
+  /* Background is overridden per-page for glassmorphism */
 }

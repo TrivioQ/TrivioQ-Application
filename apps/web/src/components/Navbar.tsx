@@ -72,9 +72,9 @@ function CrownIcon({ className }: { className?: string }) {
 
 function NavLink({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
-    <Link href={href} className={`relative text-sm font-medium transition-colors duration-200 group ${active ? 'text-white' : 'text-gray-400 hover:text-white'}`}>
+    <Link href={href} className={`relative text-sm font-medium transition-colors duration-200 group ${active ? 'text-blue-600 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-white'}`}>
       {label}
-      <span className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-indigo-400 transition-all duration-300 ${active ? 'w-full' : 'w-0 group-hover:w-full'}`} />
+      <span className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-blue-500 dark:bg-indigo-400 transition-all duration-300 ${active ? 'w-full' : 'w-0 group-hover:w-full'}`} />
     </Link>
   );
 }
@@ -91,6 +91,8 @@ function UserAvatar({ profilePicture, displayName, email, isPremium, avatarAlt, 
     </div>
   );
 }
+
+import { ThemeSwitcher } from './theme-switcher';
 
 // ─── Main Navbar ──────────────────────────────────────────────────────────────
 
@@ -153,12 +155,12 @@ export function Navbar() {
   return (
     <>
       {/* ── Bar ── */}
-      <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-gray-950/90 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/20' : 'bg-transparent'}`}>
+      <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/60 dark:bg-gray-950/60 backdrop-blur-2xl border-b border-white/50 dark:border-white/10 shadow-lg shadow-blue-100/20 dark:shadow-black/20' : 'bg-white/40 dark:bg-transparent backdrop-blur-md border-b border-transparent'}`}>
         <nav className="mx-auto max-w-7xl px-6 lg:px-8 h-16 flex items-center justify-between gap-6">
           {/* ── Logo ── */}
           <Link href="/" className="flex items-center gap-2 group shrink-0">
             <img src="/logo.png" alt={t('logoAlt')} className="w-8 h-8" />
-            <span className="font-extrabold text-xl tracking-tight text-white group-hover:text-orange-100 transition-colors">{t('brandName')}</span>
+            <span className="font-extrabold text-xl tracking-tight text-gray-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-orange-200 transition-colors">{t('brandName')}</span>
           </Link>
 
           {/* ── Center links (desktop) ── */}
@@ -170,6 +172,8 @@ export function Navbar() {
 
           {/* ── Right side ── */}
           <div className="flex items-center gap-3 shrink-0">
+            <ThemeSwitcher />
+
             {authLoading ? (
               // Skeleton loader
               <div className="w-24 h-8 rounded-full bg-white/10 animate-pulse" />
@@ -199,11 +203,11 @@ export function Navbar() {
 
                   <AnimatePresence>
                     {dropdownOpen && (
-                      <motion.div id="user-dropdown" variants={dropdownVariants} initial="hidden" animate="visible" exit="exit" className="absolute right-0 mt-3 w-56 rounded-2xl bg-gray-900 border border-white/10 shadow-2xl shadow-black/40 overflow-hidden">
+                      <motion.div id="user-dropdown" variants={dropdownVariants} initial="hidden" animate="visible" exit="exit" className="absolute right-0 mt-3 w-56 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/10 shadow-2xl shadow-black/10 dark:shadow-black/40 overflow-hidden">
                         {/* User info header */}
-                        <div className="px-4 py-3 border-b border-white/10">
-                          <p className="text-sm font-semibold text-white truncate">{profile?.displayName ?? profile?.username ?? user.email}</p>
-                          <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
+                        <div className="px-4 py-3 border-b border-gray-200 dark:border-white/10">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{profile?.displayName ?? profile?.username ?? user.email}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{user.email}</p>
                           {/* Streak & score on mobile (also shown inside dropdown) */}
                           <div className="flex gap-3 mt-2 sm:hidden">
                             <span className="text-xs text-orange-300">
@@ -218,14 +222,14 @@ export function Navbar() {
                           { label: t('settings'), href: '/settings', icon: '⚙️' },
                           { label: t('subscription'), href: '/subscription', icon: <CrownIcon className="w-4 h-4 text-yellow-500" /> },
                         ].map((item) => (
-                          <Link key={item.href} href={item.href} onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
+                          <Link key={item.href} href={item.href} onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-colors">
                             <span className="flex shrink-0">{item.icon}</span>
                             {item.label}
                           </Link>
                         ))}
 
-                        <div className="border-t border-white/10 mt-1">
-                          <button id="logout-btn" onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors">
+                        <div className="border-t border-gray-200 dark:border-white/10 mt-1">
+                          <button id="logout-btn" onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300 transition-colors">
                             <span>🚪</span>
                             {t('logout')}
                           </button>
@@ -238,20 +242,20 @@ export function Navbar() {
             ) : (
               // ── Logged-out state ──
               <div className="hidden md:flex items-center gap-3">
-                <Link href="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5">
+                <Link href="/login" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-blue-50 dark:hover:bg-white/5">
                   {t('login')}
                 </Link>
-                <Link href="/signup" className="text-sm font-semibold text-white bg-indigo-500 hover:bg-indigo-400 px-5 py-2 rounded-full shadow-[0_0_16px_rgba(99,102,241,0.35)] hover:shadow-[0_0_24px_rgba(99,102,241,0.55)] transition-all duration-200">
+                <Link href="/signup" className="text-sm font-semibold text-white bg-blue-500 dark:bg-indigo-500 hover:bg-blue-400 dark:hover:bg-indigo-400 px-5 py-2 rounded-full shadow-[0_0_16px_rgba(59,130,246,0.35)] dark:shadow-[0_0_16px_rgba(99,102,241,0.35)] hover:shadow-[0_0_24px_rgba(59,130,246,0.55)] transition-all duration-200">
                   {t('getStarted')}
                 </Link>
               </div>
             )}
 
             {/* ── Hamburger (mobile) ── */}
-            <button id="mobile-menu-btn" className="md:hidden flex flex-col gap-1.5 w-8 h-8 items-center justify-center rounded-lg hover:bg-white/10 transition-colors" onClick={() => setMobileOpen((o) => !o)} aria-label={t('toggleMobileMenu')} aria-expanded={mobileOpen}>
-              <motion.span animate={mobileOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }} className="w-5 h-0.5 bg-white rounded-full block" />
-              <motion.span animate={mobileOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }} className="w-5 h-0.5 bg-white rounded-full block" />
-              <motion.span animate={mobileOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }} className="w-5 h-0.5 bg-white rounded-full block" />
+            <button id="mobile-menu-btn" className="md:hidden flex flex-col gap-1.5 w-8 h-8 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors" onClick={() => setMobileOpen((o) => !o)} aria-label={t('toggleMobileMenu')} aria-expanded={mobileOpen}>
+              <motion.span animate={mobileOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }} className="w-5 h-0.5 bg-gray-700 dark:bg-white rounded-full block" />
+              <motion.span animate={mobileOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }} className="w-5 h-0.5 bg-gray-700 dark:bg-white rounded-full block" />
+              <motion.span animate={mobileOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }} className="w-5 h-0.5 bg-gray-700 dark:bg-white rounded-full block" />
             </button>
           </div>
         </nav>
@@ -265,14 +269,14 @@ export function Navbar() {
             <motion.div variants={backdropVariants} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setMobileOpen(false)} aria-hidden="true" />
 
             {/* Slide-out panel */}
-            <motion.aside variants={mobileMenuVariants} initial="hidden" animate="visible" exit="exit" className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-gray-950 border-l border-white/10 shadow-2xl md:hidden flex flex-col">
+            <motion.aside variants={mobileMenuVariants} initial="hidden" animate="visible" exit="exit" className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-white dark:bg-gray-950 border-l border-gray-200 dark:border-white/10 shadow-2xl md:hidden flex flex-col">
               {/* Header */}
-              <div className="flex items-center justify-between px-6 h-16 border-b border-white/10">
+              <div className="flex items-center justify-between px-6 h-16 border-b border-gray-200 dark:border-white/10">
                 <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-2">
                   <img src="/logo.svg" alt={t('logoAlt')} className="w-7 h-7" />
-                  <span className="font-extrabold text-lg text-white">{t('brandName')}</span>
+                  <span className="font-extrabold text-lg text-gray-900 dark:text-white">{t('brandName')}</span>
                 </Link>
-                <button onClick={() => setMobileOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors" aria-label={t('closeMenu')}>
+                <button onClick={() => setMobileOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" aria-label={t('closeMenu')}>
                   ✕
                 </button>
               </div>
@@ -280,13 +284,18 @@ export function Navbar() {
               {/* Nav links */}
               <div className="flex-1 overflow-y-auto py-6 px-6 space-y-1">
                 {(isLoggedIn ? LOGGED_IN_NAV_LINKS : NAV_LINKS).map((link) => (
-                  <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${pathname === link.href ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${pathname === link.href ? 'bg-blue-50 dark:bg-indigo-500/20 text-blue-600 dark:text-indigo-300 border border-blue-200 dark:border-indigo-500/30' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5'}`}
+                  >
                     {link.label}
                   </Link>
                 ))}
 
                 {/* Divider */}
-                <div className="border-t border-white/10 my-4" />
+                <div className="border-t border-gray-200 dark:border-white/10 my-4" />
 
                 {isLoggedIn ? (
                   <>
@@ -322,10 +331,10 @@ export function Navbar() {
                   </>
                 ) : (
                   <div className="flex flex-col gap-3 pt-2">
-                    <Link href="/login" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-medium text-gray-300 border border-white/15 hover:bg-white/5 hover:text-white transition-colors">
+                    <Link href="/login" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-white/15 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-colors">
                       {t('login')}
                     </Link>
-                    <Link href="/signup" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-semibold text-white bg-indigo-500 hover:bg-indigo-400 shadow-[0_0_16px_rgba(99,102,241,0.35)] transition-all">
+                    <Link href="/signup" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-semibold text-white bg-blue-500 dark:bg-indigo-500 hover:bg-blue-400 dark:hover:bg-indigo-400 shadow-[0_0_16px_rgba(59,130,246,0.35)] transition-all">
                       {t('getStarted')}
                     </Link>
                   </div>

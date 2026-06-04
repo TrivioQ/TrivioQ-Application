@@ -54,7 +54,7 @@ function HistoryTable({ data, t, locale }: { data: ScorePeriod[]; t: ReturnType<
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10">
       <table className="w-full text-left">
-        <thead className="bg-white/5 text-xs uppercase tracking-widest text-gray-400">
+        <thead className="bg-white/10 text-xs uppercase tracking-widest text-gray-400 backdrop-blur-xl">
           <tr>
             <th className="px-6 py-4">{t('periodHeader')}</th>
             <th className="px-6 py-4 text-right">{t('triviaScoreHeader')}</th>
@@ -65,7 +65,7 @@ function HistoryTable({ data, t, locale }: { data: ScorePeriod[]; t: ReturnType<
         </thead>
         <tbody className="divide-y divide-white/5">
           {data.map((row) => (
-            <tr key={row.id} className="hover:bg-white/[0.02] transition-colors">
+            <tr key={row.id} className="hover:bg-white/10 dark:hover:bg-white/[0.02] transition-colors">
               <td className="px-6 py-4 text-sm text-gray-300 font-medium">{formatPeriodLabel(row, locale)}</td>
               <td className="px-6 py-4 text-right font-mono text-white">{row.baseScore.toLocaleString()}</td>
               <td className="px-6 py-4 text-right">{row.bonusScore > 0 ? <span className="text-green-400 font-bold font-mono">+{row.bonusScore.toLocaleString()}</span> : <span className="text-gray-600 font-mono">—</span>}</td>
@@ -90,7 +90,7 @@ export function ScoreHistoryTabs({ weekly, monthly }: ScoreHistoryTabsProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-center p-1 bg-gray-900/50 rounded-xl border border-white/5 backdrop-blur-sm w-fit mx-auto">
+      <div className="flex justify-center p-1 bg-white/40 dark:bg-gray-900/50 rounded-xl border border-white dark:border-white/5 backdrop-blur-xl w-fit mx-auto shadow-xl shadow-indigo-900/10 dark:shadow-none">
         {(['weekly', 'monthly'] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)} className={`px-8 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === tab ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
             {tab === 'weekly' ? t('weekly') : t('monthly')}

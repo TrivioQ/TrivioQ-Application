@@ -28,12 +28,12 @@ export default async function WebDashboard() {
 
   if (!hasCookie) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center px-6 text-white">
+      <div className="min-h-screen flex items-center justify-center px-6 text-gray-900 dark:text-white">
         <div className="text-center space-y-4">
           <span className="text-6xl block">🔒</span>
-          <p className="text-gray-400">
+          <p className="text-gray-500 dark:text-gray-400">
             {t('signInPrompt')}{' '}
-            <Link href="/login" className="text-indigo-400 hover:text-indigo-300">
+            <Link href="/login" className="text-blue-600 hover:text-blue-500 dark:text-indigo-400 dark:hover:text-indigo-300">
               {t('signInLink')}
             </Link>{' '}
             {t('signInSuffix')}
@@ -51,12 +51,12 @@ export default async function WebDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white selection:bg-indigo-500 selection:text-white">
-      <div className="max-w-5xl mx-auto px-6 py-16 space-y-10">
+    <div className="min-h-screen text-gray-900 dark:text-white selection:bg-blue-500 dark:selection:bg-indigo-500 selection:text-white">
+      <div className="max-w-5xl mx-auto px-6 py-24 space-y-10">
         {/* ── Header ── */}
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">{profile ? t('greeting', { name: profile.displayName ?? profile.username }) : t('title')}</h1>
-          <p className="text-gray-400 mt-2">{t('performanceSubtitle')}</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-blue-500 to-orange-500 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400">{profile ? t('greeting', { name: profile.displayName ?? profile.username }) : t('title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">{t('performanceSubtitle')}</p>
         </div>
 
         {/* ── Active Drop ── */}
@@ -67,10 +67,10 @@ export default async function WebDashboard() {
 
         {/* ── Quick links ── */}
         <div className="flex flex-wrap gap-3 pt-2">
-          <Link href="/score-history" className="rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 px-4 py-2 text-sm text-indigo-300 font-medium transition-colors">
+          <Link href="/score-history" className="rounded-xl bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-600/20 dark:hover:bg-indigo-600/30 border border-indigo-600 dark:border-indigo-500/30 px-4 py-2 text-sm text-white dark:text-indigo-300 font-medium transition-colors">
             {t('fullScoreHistory')}
           </Link>
-          <Link href="/leaderboard" className="rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 px-4 py-2 text-sm text-purple-300 font-medium transition-colors">
+          <Link href="/leaderboard" className="rounded-xl bg-blue-600 hover:bg-blue-500 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 border border-blue-600 dark:border-blue-500/30 px-4 py-2 text-sm text-white dark:text-blue-300 font-medium transition-colors">
             {t('leaderboard')}
           </Link>
         </div>

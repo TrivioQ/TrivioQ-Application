@@ -78,19 +78,32 @@ const linking: LinkingOptions<RootStackParamList> = {
   },
 };
 
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import { DefaultTheme, DarkTheme as NavDarkTheme } from '@react-navigation/native';
+
+function RootNavigation() {
+  const { colorScheme } = useTheme();
+
+  return (
+    <NavigationContainer linking={linking} theme={colorScheme === 'dark' ? NavDarkTheme : DefaultTheme}>
+      <AppNavigator />
+    </NavigationContainer>
+  );
+}
+
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ToastProvider>
-          <ConfirmProvider>
-            <NavigationContainer linking={linking}>
-              <AppNavigator />
-            </NavigationContainer>
-          </ConfirmProvider>
-        </ToastProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ToastProvider>
+            <ConfirmProvider>
+              <RootNavigation />
+            </ConfirmProvider>
+          </ToastProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

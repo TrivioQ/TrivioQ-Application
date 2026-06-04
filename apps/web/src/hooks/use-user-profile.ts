@@ -13,6 +13,10 @@ export interface UserProfile {
   currentStreak: number;
   cumulativeScore: number;
   subscriptionTier: 'FREE' | 'PREMIUM' | 'PLUS';
+  preferences?: {
+    theme?: 'light' | 'dark' | 'system';
+    [key: string]: any;
+  };
 }
 
 export function useUserProfile() {
