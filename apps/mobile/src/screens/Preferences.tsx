@@ -7,6 +7,7 @@ import { useAuth } from '../context/auth-context';
 import { useTheme, Theme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
 import { BlurView } from 'expo-blur';
+import { Feather } from '@expo/vector-icons';
 
 import apiClient from '../api/client';
 
@@ -110,10 +111,10 @@ export default function Preferences({ navigation }: any) {
     );
   }
 
-  const themes: { label: string; value: Theme }[] = [
-    { label: 'Light', value: 'light' },
-    { label: 'Dark', value: 'dark' },
-    { label: 'System', value: 'system' },
+  const themes: { label: string; value: Theme; iconName: keyof typeof Feather.glyphMap }[] = [
+    { label: 'Light', value: 'light', iconName: 'sun' },
+    { label: 'Dark', value: 'dark', iconName: 'moon' },
+    { label: 'System', value: 'system', iconName: 'monitor' },
   ];
 
   const SafeBlurView = BlurView as any;
@@ -123,11 +124,18 @@ export default function Preferences({ navigation }: any) {
       <SafeBlurView intensity={isDark ? 30 : 60} tint={isDark ? 'dark' : 'light'} style={styles.glassCard}>
         <Text style={styles.header}>App Theme</Text>
         <View style={styles.themeRow}>
-          {themes.map((tItem) => (
-            <TouchableOpacity key={tItem.value} style={[styles.themeButton, theme === tItem.value && styles.themeButtonActive]} onPress={() => setTheme(tItem.value)}>
-              <Text style={[styles.themeButtonText, theme === tItem.value && styles.themeButtonTextActive]}>{tItem.label}</Text>
-            </TouchableOpacity>
-          ))}
+          {themes.map((tItem) => {
+            const isActive = theme === tItem.value;
+            const FeatherIcon: any = Feather;
+            return (
+              <TouchableOpacity key={tItem.value} style={[styles.themeButton, isActive && styles.themeButtonActive]} onPress={() => setTheme(tItem.value)}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <FeatherIcon name={tItem.iconName} size={16} color={isActive ? colors.brand : colors.textSecondary} />
+                  <Text style={[styles.themeButtonText, isActive && styles.themeButtonTextActive]}>{tItem.label}</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         <Text style={styles.header}>{t('preferences.windowHeader')}</Text>
