@@ -41,7 +41,6 @@ import subscriptionRoutes from './routes/subscription-routes';
 import { env } from './config/env';
 import { getSetting } from './utils/settings';
 import { initLeaderboardWorker } from './workers/leaderboard-worker';
-import { initAIQuestionWorker } from './workers/ai-question-worker';
 
 const app = express();
 const port = env.PORT;
@@ -81,7 +80,6 @@ app.get('/v1/info', async (req: Request, res: Response) => {
 Sentry.setupExpressErrorHandler(app);
 
 initLeaderboardWorker();
-initAIQuestionWorker();
 
 app.listen(Number(port), () => {
   console.log(`API server listening on port ${port}`);
