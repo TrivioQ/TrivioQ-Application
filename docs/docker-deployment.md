@@ -109,18 +109,17 @@ Run this **once** when setting up the server. You can also use the helper script
 # SSH into the server
 ssh wolfofweb3@192.168.0.101
 
-# Create the application directory
-sudo mkdir -p /opt/trivioq
-sudo chown $USER:$USER /opt/trivioq
+# Create the application directory (under user's home projects directory)
+mkdir -p /home/wolfofweb3/projects/codebases/TrivioQ
 
 # Clone the repository (Option A — recommended if using Git)
-git clone https://github.com/Enatos-Tech/TrivioQ.git /opt/trivioq
+git clone https://github.com/Enatos-Tech/TrivioQ.git /home/wolfofweb3/projects/codebases/TrivioQ
 
 # OR transfer from your Mac (Option B — rsync)
 # Run this on your Mac:
 rsync -avz --exclude node_modules --exclude .next --exclude dist \
   "/Users/shashikumardhandapani/Documents/Workspace/Enatos-Tech/TrivioQ/Source Code/Application/" \
-  wolfofweb3@192.168.0.101:/opt/trivioq/
+  wolfofweb3@192.168.0.101:/home/wolfofweb3/projects/codebases/TrivioQ/
 ```
 
 ---
@@ -131,7 +130,7 @@ rsync -avz --exclude node_modules --exclude .next --exclude dist \
 
 ```bash
 # On the server
-cd /opt/trivioq
+cd /home/wolfofweb3/projects/codebases/TrivioQ
 cp .env.docker.example .env
 nano .env
 ```
@@ -205,10 +204,10 @@ The Firebase Admin service account JSON must be placed on the **host** machine a
 ```bash
 # Copy from your Mac to the server
 scp /path/to/firebase-service-account.json \
-  wolfofweb3@192.168.0.101:/opt/trivioq/apps/api/firebase-service-account.json
+  wolfofweb3@192.168.0.101:/home/wolfofweb3/projects/codebases/TrivioQ/apps/api/firebase-service-account.json
 
 # Set restrictive permissions on the server
-chmod 600 /opt/trivioq/apps/api/firebase-service-account.json
+chmod 600 /home/wolfofweb3/projects/codebases/TrivioQ/apps/api/firebase-service-account.json
 ```
 
 > **Security:** The `.dockerignore` file excludes this JSON from the build context. Never commit it to version control.
@@ -222,7 +221,7 @@ chmod 600 /opt/trivioq/apps/api/firebase-service-account.json
 A `scripts/deploy.sh` script is provided that automates the full deployment workflow.
 
 ```bash
-cd /opt/trivioq
+cd /home/wolfofweb3/projects/codebases/TrivioQ
 
 # First-time full deploy
 ./scripts/deploy.sh deploy
@@ -249,7 +248,7 @@ cd /opt/trivioq
 ### Manual commands
 
 ```bash
-cd /opt/trivioq
+cd /home/wolfofweb3/projects/codebases/TrivioQ
 
 # Build all images (uses Docker layer cache when possible)
 docker compose build
@@ -384,7 +383,7 @@ docker compose exec redis redis-cli info memory
 ### Code-only update (no dependency changes)
 
 ```bash
-cd /opt/trivioq
+cd /home/wolfofweb3/projects/codebases/TrivioQ
 
 # Pull latest code
 git pull origin main
@@ -421,7 +420,7 @@ docker compose up -d --no-deps api
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
 | `api` keeps restarting | `migrate` service failed | `docker compose logs migrate` — check for SQL errors |
-| `POSTGRES_PASSWORD is required` error | Root `.env` missing password | Add `POSTGRES_PASSWORD=...` to `/opt/trivioq/.env` |
+| `POSTGRES_PASSWORD is required` error | Root `.env` missing password | Add `POSTGRES_PASSWORD=...` to `/home/wolfofweb3/projects/codebases/TrivioQ/.env` |
 | Prisma engine not found in container | Wrong `binaryTargets` in `schema.prisma` | `docker compose build --no-cache api` |
 | `Next.js API_URL not reachable` in web/admin | Using `localhost` instead of service name | Set `API_URL=http://api:3013` in `apps/web/.env` and `apps/admin/.env` |
 | Firebase auth failing | Service account not mounted correctly | Verify file exists at `FIREBASE_SERVICE_ACCOUNT_PATH` on host and `chmod 600` is set |
