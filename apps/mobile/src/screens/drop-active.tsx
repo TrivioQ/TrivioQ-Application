@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
 import apiClient from '../api/client';
 import { QuestionDropPayload } from '@trivioq/shared-types';
+import { MarkdownText } from '../components/markdown-text';
 
 export default function DropActive() {
   const { t } = useTranslation();
@@ -252,7 +253,10 @@ export default function DropActive() {
         </View>
       ) : (
         <View style={styles.questionContainer}>
-          <Text style={styles.questionText}>{data.questionText}</Text>
+          {/* Question — rendered as Markdown */}
+          <View style={styles.questionMarkdownWrapper}>
+            <MarkdownText>{data.questionText}</MarkdownText>
+          </View>
 
           {/* Hint section */}
           {!answerResult && !isAnswerKnown && (
@@ -263,7 +267,10 @@ export default function DropActive() {
                     {t('drop.hintLabel')}
                     {hintCostDeducted != null ? ` (−${hintCostDeducted} pts)` : ''}
                   </Text>
-                  <Text style={styles.hintText}>{hintText}</Text>
+                  {/* Hint rendered as Markdown */}
+                  <MarkdownText color="#7d6608" scale={0.85}>
+                    {hintText}
+                  </MarkdownText>
                 </View>
               ) : (
                 <TouchableOpacity style={[styles.assistButton, (hintMutation.isPending || isExpired || data.usedHint) && styles.disabledButton]} onPress={handleHint} disabled={hintMutation.isPending || isExpired || data.usedHint}>
@@ -284,7 +291,8 @@ export default function DropActive() {
             </View>
           )}
 
-          {data.options.map((option: string, index: number) => {
+          {/* Options — each rendered as Markdown */}
+          {data.options.map((option, index) => {
             let buttonStyle: any = styles.optionButton;
 
             if (answerResult) {
@@ -302,8 +310,10 @@ export default function DropActive() {
             }
 
             return (
-              <TouchableOpacity key={index} style={buttonStyle} disabled={isExpired || submitMutation.isPending || answerResult !== null} onPress={() => handleSelectOption(index)}>
-                <Text style={styles.optionText}>{option}</Text>
+              <TouchableOpacity key={option.id} style={buttonStyle} disabled={isExpired || submitMutation.isPending || answerResult !== null} onPress={() => handleSelectOption(index)}>
+                <MarkdownText color="#ffffff" scale={0.9}>
+                  {option.text}
+                </MarkdownText>
               </TouchableOpacity>
             );
           })}
@@ -314,7 +324,15 @@ export default function DropActive() {
             <View style={styles.resultContainer}>
               <Text style={styles.resultTitle}>{answerResult.revealedAnswer ? t('drop.answerWasRevealed') : answerResult.isCorrect ? t('drop.correct') : t('drop.incorrect')}</Text>
               <Text style={styles.pointsText}>{answerResult.pointsAwarded > 0 ? t('drop.points', { count: answerResult.pointsAwarded }) : t('drop.zeroPoints')}</Text>
-              {answerResult.explanation && <Text style={styles.explanationText}>{answerResult.explanation}</Text>}
+
+              {/* Explanation rendered as Markdown */}
+              {answerResult.explanation && (
+                <View style={styles.explanationWrapper}>
+                  <MarkdownText color="#34495e" scale={0.9}>
+                    {answerResult.explanation}
+                  </MarkdownText>
+                </View>
+              )}
 
               <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
                 <Text style={styles.shareButtonText}>{t('drop.shareButton')}</Text>
@@ -419,6 +437,10 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'stretch',
   },
+  questionMarkdownWrapper: {
+    marginBottom: 20,
+  },
+  // Kept for the error/loading state plain text
   questionText: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -460,10 +482,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#e67e22',
     marginBottom: 4,
-    fontSize: 13,
-  },
-  hintText: {
-    color: '#7d6608',
     fontSize: 13,
   },
   revealedBanner: {
@@ -517,6 +535,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#7f8c8d',
     marginBottom: 15,
+  },
+  explanationWrapper: {
+    width: '100%',
+    marginBottom: 20,
   },
   explanationText: {
     fontSize: 16,

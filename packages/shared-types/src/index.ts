@@ -16,7 +16,7 @@ export interface QuestionDropPayload {
   category: string;
   difficulty: 'easy' | 'medium' | 'hard';
   questionText: string;
-  options: string[];
+  options: { id: string; text: string }[];
   expiresAt: number;
   answerDeadline: number | null;
   pointsValue: number;

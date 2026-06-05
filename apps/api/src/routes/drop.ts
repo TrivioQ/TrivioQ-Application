@@ -48,7 +48,7 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
       category: activeDrop.question.categories[0]?.name ?? 'General',
       difficulty: activeDrop.question.difficultyLevel.toLowerCase() as 'easy' | 'medium' | 'hard',
       questionText: activeDrop.question.questionText,
-      options: activeDrop.question.choices.map((c) => c.text),
+      options: activeDrop.question.choices.map((c) => ({ id: c.id, text: c.text })),
       expiresAt: activeDrop.expirationTime.getTime(),
       answerDeadline: activeDrop.answerDeadline?.getTime() ?? null,
       pointsValue,
@@ -322,7 +322,7 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
         categories: { select: { name: true } },
         difficultyLevel: true,
         questionText: true,
-        choices: { select: { text: true }, orderBy: { order: 'asc' } },
+        choices: { select: { id: true, text: true }, orderBy: { order: 'asc' } },
       },
     });
 
@@ -359,7 +359,7 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
       category: randomQ.categories[0]?.name ?? 'General',
       difficulty: randomQ.difficultyLevel.toLowerCase() as 'easy' | 'medium' | 'hard',
       questionText: randomQ.questionText,
-      options: randomQ.choices.map((c) => c.text),
+      options: randomQ.choices.map((c) => ({ id: c.id, text: c.text })),
       expiresAt: expirationTime.getTime(),
       answerDeadline: null,
       pointsValue,

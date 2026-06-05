@@ -4,17 +4,17 @@ import { useState, useTransition } from 'react';
 import { createQuestion } from '@/app/actions/question-actions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DifficultyLevel } from '@trivioq/database';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from 'next-intl';
+import { MarkdownPreview } from '@/components/ui/markdown-preview';
 
 const DEFAULT_CHOICES = () => [
   { text: '', isCorrect: true },
@@ -36,6 +36,12 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const [comboboxOpen, setComboboxOpen] = useState(false);
+
+  // Preview toggles
+  const [showQuestionPreview, setShowQuestionPreview] = useState(false);
+  const [showHintPreview, setShowHintPreview] = useState(false);
+  const [showExplanationPreview, setShowExplanationPreview] = useState(false);
+  const [choicePreviewIdx, setChoicePreviewIdx] = useState<number | null>(null);
 
   const markCorrect = (idx: number) => {
     setChoices((prev) => prev.map((c, i) => ({ ...c, isCorrect: i === idx })));
@@ -66,6 +72,10 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
         setHintText('');
         setExplanationText('');
         setSelectedCategories([]);
+        setShowQuestionPreview(false);
+        setShowHintPreview(false);
+        setShowExplanationPreview(false);
+        setChoicePreviewIdx(null);
       } else {
         alert(res.error);
       }
@@ -79,16 +89,33 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger className={buttonVariants()}>{t('trigger')}</DialogTrigger>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+
+          {/* Question Text */}
           <div className="space-y-2">
-            <Label htmlFor="question">{t('questionText')}</Label>
-            <Input id="question" required value={questionText} onChange={(e) => setQuestionText(e.target.value)} />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="question">{t('questionText')} <span className="text-xs text-muted-foreground ml-1">(Markdown supported)</span></Label>
+              <Button type="button" variant="ghost" size="sm" className="h-7 px-2 gap-1 text-xs" onClick={() => setShowQuestionPreview((v) => !v)}>
+                {showQuestionPreview ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                {showQuestionPreview ? 'Hide Preview' : 'Preview'}
+              </Button>
+            </div>
+            <Textarea
+              id="question"
+              required
+              value={questionText}
+              onChange={(e) => setQuestionText(e.target.value)}
+              placeholder={t('questionText')}
+              className="min-h-[80px] resize-y font-mono text-sm"
+            />
+            {showQuestionPreview && <MarkdownPreview value={questionText} />}
           </div>
 
+          {/* Difficulty */}
           <div className="space-y-2">
             <Label>{t('difficulty')}</Label>
             <Select value={difficultyLevel} onValueChange={(val) => setDifficultyLevel(val as DifficultyLevel)}>
@@ -103,26 +130,75 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
             </Select>
           </div>
 
+          {/* Choices */}
           <div className="space-y-3">
-            <Label>{t('choicesLabel')}</Label>
+            <Label>{t('choicesLabel')} <span className="text-xs text-muted-foreground ml-1">(Markdown supported)</span></Label>
             {choices.map((choice, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <input type="radio" name="correctAnswer" title={t('markCorrect')} checked={choice.isCorrect} onChange={() => markCorrect(idx)} className="h-4 w-4 shrink-0" />
-                <Input required placeholder={t('choicePlaceholder', { number: idx + 1 })} value={choice.text} onChange={(e) => updateChoiceText(idx, e.target.value)} />
+              <div key={idx} className="space-y-1">
+                <div className="flex items-start gap-2">
+                  <input
+                    type="radio"
+                    name="correctAnswer"
+                    title={t('markCorrect')}
+                    checked={choice.isCorrect}
+                    onChange={() => markCorrect(idx)}
+                    className="h-4 w-4 shrink-0 mt-2.5"
+                  />
+                  <div className="flex-1 space-y-1">
+                    <div className="flex gap-1">
+                      <Textarea
+                        required
+                        placeholder={t('choicePlaceholder', { number: idx + 1 })}
+                        value={choice.text}
+                        onChange={(e) => updateChoiceText(idx, e.target.value)}
+                        className="min-h-[44px] resize-none font-mono text-sm flex-1"
+                        rows={1}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 w-9 p-0 shrink-0"
+                        title="Toggle preview"
+                        onClick={() => setChoicePreviewIdx(choicePreviewIdx === idx ? null : idx)}
+                      >
+                        {choicePreviewIdx === idx ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </Button>
+                    </div>
+                    {choicePreviewIdx === idx && <MarkdownPreview value={choice.text} compact />}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
 
+          {/* Hint */}
           <div className="space-y-2">
-            <Label htmlFor="hint">{t('hintLabel')}</Label>
-            <Textarea id="hint" value={hintText} onChange={(e) => setHintText(e.target.value)} placeholder={t('hintPlaceholder')} className="resize-none" />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="hint">{t('hintLabel')} <span className="text-xs text-muted-foreground ml-1">(Markdown supported)</span></Label>
+              <Button type="button" variant="ghost" size="sm" className="h-7 px-2 gap-1 text-xs" onClick={() => setShowHintPreview((v) => !v)}>
+                {showHintPreview ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                {showHintPreview ? 'Hide Preview' : 'Preview'}
+              </Button>
+            </div>
+            <Textarea id="hint" value={hintText} onChange={(e) => setHintText(e.target.value)} placeholder={t('hintPlaceholder')} className="resize-none font-mono text-sm" />
+            {showHintPreview && <MarkdownPreview value={hintText} />}
           </div>
 
+          {/* Explanation */}
           <div className="space-y-2">
-            <Label htmlFor="explanation">{t('explanationLabel')}</Label>
-            <Textarea id="explanation" value={explanationText} onChange={(e) => setExplanationText(e.target.value)} placeholder={t('explanationPlaceholder')} className="resize-none" />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="explanation">{t('explanationLabel')} <span className="text-xs text-muted-foreground ml-1">(Markdown supported)</span></Label>
+              <Button type="button" variant="ghost" size="sm" className="h-7 px-2 gap-1 text-xs" onClick={() => setShowExplanationPreview((v) => !v)}>
+                {showExplanationPreview ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                {showExplanationPreview ? 'Hide Preview' : 'Preview'}
+              </Button>
+            </div>
+            <Textarea id="explanation" value={explanationText} onChange={(e) => setExplanationText(e.target.value)} placeholder={t('explanationPlaceholder')} className="resize-none font-mono text-sm" />
+            {showExplanationPreview && <MarkdownPreview value={explanationText} />}
           </div>
 
+          {/* Categories */}
           <div className="space-y-2">
             <Label>{t('categoriesLabel')}</Label>
             <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>

@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { makeAPICallV1, APIError } from '../../lib/api';
 import { useConfirm } from '../confirm-modal';
 import { Hourglass, Gift, Lightbulb } from 'lucide-react';
+import { MarkdownContent } from '../markdown-content';
 
 interface ActiveDrop {
   dropId: string;
@@ -13,7 +14,7 @@ interface ActiveDrop {
   category: string;
   difficulty: 'easy' | 'medium' | 'hard';
   questionText: string;
-  options: (string | { id: string; text: string })[];
+  options: { id: string; text: string }[];
   expiresAt: number;
   answerDeadline: number | null;
   pointsValue: number;
@@ -330,7 +331,9 @@ export default function ActiveDropCard() {
         ) : (
           <>
             {/* Question text */}
-            <p className="text-base font-semibold text-gray-900 dark:text-white leading-snug">{drop.questionText}</p>
+            <div className="text-base font-semibold text-gray-900 dark:text-white leading-snug">
+              <MarkdownContent>{drop.questionText}</MarkdownContent>
+            </div>
 
             {/* Hint / Reveal Answer row */}
             {!submitResult && !isAnswerKnown && (
@@ -340,7 +343,9 @@ export default function ActiveDropCard() {
                     <p className="text-[11px] font-bold text-yellow-400 mb-0.5 flex items-center gap-1">
                       <Lightbulb className="w-3.5 h-3.5" /> Hint {hintCostDeducted != null ? `(−${hintCostDeducted} ${t('pts')})` : ''}
                     </p>
-                    <p className="text-xs text-yellow-200">{hintText}</p>
+                    <div className="text-xs text-yellow-200">
+                      <MarkdownContent>{hintText}</MarkdownContent>
+                    </div>
                   </div>
                 ) : (
                   <button onClick={handleHint} disabled={hintLoading || isExpired || drop.usedHint} className="flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-yellow-400 transition-colors">
@@ -358,16 +363,16 @@ export default function ActiveDropCard() {
             {/* Answer options */}
             <div className="space-y-2">
               {drop.options.map((opt, index) => {
-                const option = typeof opt === 'string' ? opt : opt.text;
+                const option = opt.text;
                 let cls = 'w-full text-left rounded-xl border px-4 py-3 text-sm font-medium transition-colors ';
                 if (submitResult) {
                   if (index === revealedCorrectIndex) cls += 'border-green-500/50 bg-green-500/20 text-green-300';
                   else if (index === selectedOption && !submitResult.isCorrect) cls += 'border-red-500/50 bg-red-500/20 text-red-300';
-                  else cls += 'border-gray-200 dark:border-white/5 bg-white/70 dark:bg-white/5 backdrop-blur-md shadow-sm dark:shadow-none text-gray-500 dark:text-gray-600 dark:text-gray-400 cursor-default';
+                  else cls += 'border-gray-200 dark:border-white/5 bg-white/70 dark:bg-white/5 backdrop-blur-md shadow-sm dark:shadow-none text-gray-500 dark:text-gray-400 cursor-default';
                 } else if (isAnswerKnown) {
-                  cls += index === revealedCorrectIndex ? 'border-green-500/50 bg-green-500/20 text-green-300 cursor-default' : 'border-gray-200 dark:border-white/5 bg-white/70 dark:bg-white/5 backdrop-blur-md shadow-sm dark:shadow-none text-gray-500 dark:text-gray-600 dark:text-gray-400 cursor-default';
+                  cls += index === revealedCorrectIndex ? 'border-green-500/50 bg-green-500/20 text-green-300 cursor-default' : 'border-gray-200 dark:border-white/5 bg-white/70 dark:bg-white/5 backdrop-blur-md shadow-sm dark:shadow-none text-gray-500 dark:text-gray-400 cursor-default';
                 } else if (isExpired || submitting) {
-                  cls += 'border-gray-200 dark:border-white/5 bg-white/70 dark:bg-white/5 backdrop-blur-md shadow-sm dark:shadow-none text-gray-500 dark:text-gray-600 dark:text-gray-400 cursor-default';
+                  cls += 'border-gray-200 dark:border-white/5 bg-white/70 dark:bg-white/5 backdrop-blur-md shadow-sm dark:shadow-none text-gray-500 dark:text-gray-400 cursor-default';
                 } else if (index === selectedOption) {
                   cls += 'border-indigo-500/60 bg-indigo-500/20 text-indigo-200';
                 } else {
@@ -375,8 +380,8 @@ export default function ActiveDropCard() {
                 }
 
                 return (
-                  <button key={index} className={cls} disabled={isExpired || submitting || submitResult !== null || isAnswerKnown} onClick={() => setSelectedOption(index)}>
-                    {option}
+                  <button key={opt.id} className={cls} disabled={isExpired || submitting || submitResult !== null || isAnswerKnown} onClick={() => setSelectedOption(index)}>
+                    <MarkdownContent inline>{option}</MarkdownContent>
                   </button>
                 );
               })}
@@ -396,7 +401,11 @@ export default function ActiveDropCard() {
               <div className="rounded-xl border border-gray-200/80 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-md shadow-sm dark:shadow-none px-5 py-4 text-center space-y-1">
                 <p className="text-lg font-bold text-gray-900 dark:text-white">{submitResult.revealedAnswer ? t('resultRevealed') : submitResult.isCorrect ? t('resultCorrect') : t('resultIncorrect')}</p>
                 <p className={`text-sm font-semibold ${submitResult.pointsAwarded > 0 ? 'text-blue-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-600 dark:text-gray-400'}`}>{submitResult.pointsAwarded > 0 ? t('pointsAwarded', { pts: submitResult.pointsAwarded }) : t('zeroPoints')}</p>
-                {submitResult.explanation && <p className="text-xs text-gray-600 dark:text-gray-400 italic mt-1">{submitResult.explanation}</p>}
+                {submitResult.explanation && (
+                  <div className="text-xs text-gray-600 dark:text-gray-400 italic mt-1">
+                    <MarkdownContent>{submitResult.explanation}</MarkdownContent>
+                  </div>
+                )}
                 <p className="text-xs text-gray-500 dark:text-gray-600 dark:text-gray-400 mt-2">{t('streakTotal', { streak: submitResult.newStreak, total: submitResult.newTotalScore.toLocaleString() })}</p>
                 <div className="flex gap-2 mt-3 flex-wrap justify-center">
                   <button
