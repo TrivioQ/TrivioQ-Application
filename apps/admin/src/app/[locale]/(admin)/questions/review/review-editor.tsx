@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
-import { approvePendingQuestion, rejectPendingQuestion, type EditQuestionPayload } from '@/app/actions/pending-questions';
+import { approvePendingQuestion, rejectPendingQuestion, updatePendingQuestion, type EditQuestionPayload } from '@/app/actions/pending-questions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,11 +12,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DifficultyLevel } from '@trivioq/database';
 import type { SuggestedChoice } from '@trivioq/shared-types';
 import { formatDistanceToNow } from 'date-fns';
+import { Check } from 'lucide-react';
 
 interface PendingQuestion {
   id: string;
   topic: string;
   categorySlug: string;
+  difficultyLevel: DifficultyLevel;
   suggestedText: string;
   suggestedChoices: unknown;
   hint: string | null;
@@ -59,11 +61,12 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
   const [rejectionReason, setRejectionReason] = useState('');
 
   const [questionText, setQuestionText] = useState(pendingQuestion.suggestedText);
-  const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel>('EASY');
+  const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel>(pendingQuestion.difficultyLevel ?? 'EASY');
   const [choices, setChoices] = useState(() => parseChoices(pendingQuestion.suggestedChoices));
   const [hintText, setHintText] = useState(pendingQuestion.hint ?? '');
   const [explanationText, setExplanationText] = useState(pendingQuestion.explanation ?? '');
   const [categorySlug, setCategorySlug] = useState(pendingQuestion.categorySlug);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const markCorrect = (idx: number) => {
     setChoices((prev) => prev.map((c, i) => ({ ...c, isCorrect: i === idx })));
@@ -73,18 +76,30 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
     setChoices((prev) => prev.map((c, i) => (i === idx ? { ...c, text } : c)));
   };
 
-  const handleApprove = () => {
-    const payload: EditQuestionPayload = {
-      questionText,
-      difficultyLevel,
-      categorySlug,
-      choices: choices.map((c, idx) => ({ ...c, order: c.order ?? idx })),
-      hintText: hintText || undefined,
-      explanationText: explanationText || undefined,
-    };
+  const buildPayload = (): EditQuestionPayload => ({
+    questionText,
+    difficultyLevel,
+    categorySlug,
+    choices: choices.map((c, idx) => ({ ...c, order: c.order ?? idx })),
+    hintText: hintText || undefined,
+    explanationText: explanationText || undefined,
+  });
 
+  const handleSave = () => {
     startTransition(async () => {
-      const res = await approvePendingQuestion(pendingQuestion.id, payload);
+      const res = await updatePendingQuestion(pendingQuestion.id, buildPayload());
+      if (res.success) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 2000);
+      } else {
+        alert(res.error);
+      }
+    });
+  };
+
+  const handleApprove = () => {
+    startTransition(async () => {
+      const res = await approvePendingQuestion(pendingQuestion.id, buildPayload());
       if (res.success) {
         onComplete(pendingQuestion.id);
       } else {
@@ -122,8 +137,11 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="outline" size="sm" onClick={() => setRejectDialogOpen(true)}>
+          <Button variant="outline" size="sm" onClick={() => setRejectDialogOpen(true)} disabled={isPending}>
             {t('reject')}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={handleSave} disabled={isPending}>
+            {isPending ? t('saving') : saveSuccess ? <><Check className="mr-1 h-3.5 w-3.5" />{t('saved')}</> : t('saveChanges')}
           </Button>
           <Button size="sm" onClick={handleApprove} disabled={isPending}>
             {isPending ? t('publishing') : t('approve')}

@@ -16,6 +16,30 @@ export interface EditQuestionPayload {
   explanationText?: string;
 }
 
+// ── Update (save edits without approving) ────────────────────────────────────────
+
+export async function updatePendingQuestion(pendingId: string, editedData: EditQuestionPayload) {
+  try {
+    await prisma.pendingQuestion.update({
+      where: { id: pendingId },
+      data: {
+        suggestedText: editedData.questionText,
+        difficultyLevel: editedData.difficultyLevel,
+        categorySlug: editedData.categorySlug,
+        suggestedChoices: editedData.choices,
+        hint: editedData.hintText ?? null,
+        explanation: editedData.explanationText ?? null,
+      },
+    });
+
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update pending question:', error);
+    return { success: false, error: 'Failed to update pending question' };
+  }
+}
+
 // ── Fetch ────────────────────────────────────────────────────────────────────────
 
 export async function getPendingQuestions(filter?: string) {

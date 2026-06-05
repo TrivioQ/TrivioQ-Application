@@ -229,6 +229,9 @@
       "explanationLabel": "Explanation (Optional)",
       "explanationPlaceholder": "Explain why the answer is correct...",
       "reject": "Reject",
+      "saveChanges": "Save Changes",
+      "saving": "Saving...",
+      "saved": "Saved",
       "approve": "Approve & Publish",
       "publishing": "Publishing...",
       "rejectDialog": {

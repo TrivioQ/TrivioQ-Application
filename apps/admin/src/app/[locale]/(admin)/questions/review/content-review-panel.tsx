@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import type { SuggestedChoice, DifficultyLevel } from '@trivioq/shared-types';
 import { ReviewEditor } from './review-editor';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -10,8 +11,9 @@ interface PendingQuestion {
   id: string;
   topic: string;
   categorySlug: string;
+  difficultyLevel: DifficultyLevel;
   suggestedText: string;
-  suggestedChoices: unknown;
+  suggestedChoices: SuggestedChoice[];
   hint: string | null;
   explanation: string | null;
   status: string;
