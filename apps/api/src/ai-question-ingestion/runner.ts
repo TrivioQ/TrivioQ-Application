@@ -23,12 +23,12 @@ export interface InstructionsJson {
   /** Unique identifier for this book (used as state-file prefix). */
   bookId: string;
   /** Human-readable topic passed to the database row. */
-  topic: string;
+  topic?: string;
   /**
    * One or more category slugs that must already exist in the Category table.
    * A PendingQuestion row is created for each slug.
    */
-  categorySlugs: string[];
+  categorySlugs?: string[];
   /**
    * Optional free-text instruction injected into extraction and enhancement
    * prompts (e.g. "Focus only on chapters 3–6.").
@@ -124,8 +124,14 @@ export async function runIngestion(): Promise<void> {
       continue;
     }
 
-    if (!instructions.bookId || !instructions.topic || !Array.isArray(instructions.categorySlugs) || instructions.categorySlugs.length === 0) {
-      console.error(`[Runner] Skipping — ${INSTRUCTIONS_FILE} is missing required fields (bookId, topic, categorySlugs)`);
+    if (!instructions.bookId) {
+      console.error(`[Runner] Skipping — ${INSTRUCTIONS_FILE} is missing required field (bookId)`);
+      skipped++;
+      continue;
+    }
+
+    if (instructions.categorySlugs !== undefined && (!Array.isArray(instructions.categorySlugs) || instructions.categorySlugs.length === 0)) {
+      console.error(`[Runner] Skipping — ${INSTRUCTIONS_FILE} field "categorySlugs" must be a non-empty array of strings if provided`);
       skipped++;
       continue;
     }
@@ -172,18 +178,27 @@ export async function runIngestion(): Promise<void> {
 
     console.log(`[Runner] ${imagePaths.length} images produced → starting orchestrator`);
     console.log(`[Runner] bookId: ${instructions.bookId}`);
-    console.log(`[Runner] topic: ${instructions.topic}`);
-    console.log(`[Runner] categorySlugs: ${instructions.categorySlugs.join(', ')}`);
+    if (instructions.topic) {
+      console.log(`[Runner] topic: ${instructions.topic}`);
+    } else {
+      console.log('[Runner] topic: to be auto-detected');
+    }
+    if (instructions.categorySlugs) {
+      console.log(`[Runner] categorySlugs: ${instructions.categorySlugs.join(', ')}`);
+    } else {
+      console.log('[Runner] categorySlugs: to be selected from all DB categories');
+    }
 
     // ── Run orchestrator (sequential — awaited fully before next book) ─────────
     try {
       const orchestrator = new IngestionOrchestrator(instructions.bookId, imagePaths, {
         outputDir: dataDir,
-        topic: instructions.topic,
-        categorySlugs: instructions.categorySlugs,
+        topic: instructions.topic ?? '',
+        categorySlugs: instructions.categorySlugs ?? [],
         aiProvider,
         providers: instructions.providers,
-        specialInstruction: instructions.specialInstruction,
+        extractionSpecialInstruction: instructions.specialInstruction,
+        enhancementSpecialInstruction: instructions.specialInstruction,
       });
 
       await orchestrator.run();

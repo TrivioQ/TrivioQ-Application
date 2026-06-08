@@ -5,13 +5,13 @@ import { ENHANCEMENT_PROMPT, EXTRACTION_PROMPT, SCOUT_PROMPT } from '../prompts'
 // ── Model constants ───────────────────────────────────────────────────────────
 
 /** Fast multimodal model used for image classification (Scout phase). */
-const FAST_MODEL = 'gemini-2.0-flash';
+const FAST_MODEL = 'gemini-3.5-flash';
 
 /** Heavy multimodal model used for question extraction (Extraction phase). */
-const HEAVY_MODEL = 'gemini-2.5-pro';
+const HEAVY_MODEL = 'gemini-3.1-pro';
 
 /** Model used for question enhancement (Enhancement phase). */
-const ENHANCEMENT_MODEL = 'gemini-2.5-pro';
+const ENHANCEMENT_MODEL = 'gemini-3.1-pro';
 
 // ── Google GenAI provider ─────────────────────────────────────────────────────
 

@@ -46,6 +46,7 @@ function buildContent(prompt: string, images: ImageInput[] = []): string | objec
 export class NvidiaProvider implements AIProvider {
   private readonly model: string;
   private readonly apiKey: string;
+  private lastCallTime = 0;
 
   constructor(model?: string, apiKey?: string) {
     this.model = model ?? process.env.NVIDIA_MODEL ?? DEFAULT_MODEL;
@@ -55,6 +56,16 @@ export class NvidiaProvider implements AIProvider {
   // ── Core fetch helper ───────────────────────────────────────────────────────
 
   private async call(prompt: string, images: ImageInput[] = []): Promise<string> {
+    // Rate limit control (40 RPM = 1.5s per request)
+    const minDelay = 1500;
+    const now = Date.now();
+    const timeSinceLastCall = now - this.lastCallTime;
+    if (timeSinceLastCall < minDelay) {
+      const waitTime = minDelay - timeSinceLastCall;
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+    this.lastCallTime = Date.now();
+
     const payload = {
       model: this.model,
       messages: [{ role: 'user', content: buildContent(prompt, images) }],
@@ -62,24 +73,50 @@ export class NvidiaProvider implements AIProvider {
       temperature: 0.2,
     };
 
-    const response = await fetch(NVIDIA_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    const maxRetries = 5;
+    let delay = 1000;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`[NvidiaProvider] HTTP ${response.status}: ${errorText}`);
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(NVIDIA_API_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
+          if (attempt === maxRetries) {
+            const errorText = await response.text();
+            throw new Error(`[NvidiaProvider] HTTP ${response.status} (after ${maxRetries} attempts): ${errorText}`);
+          }
+          console.warn(`[NvidiaProvider] HTTP ${response.status} (Attempt ${attempt}/${maxRetries}). Retrying in ${delay}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          delay *= 2;
+          continue;
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`[NvidiaProvider] HTTP ${response.status}: ${errorText}`);
+        }
+
+        const data = (await response.json()) as any;
+        const rawText: string = data.choices[0].message.content;
+        return stripMarkdownFences(rawText.trim());
+      } catch (error) {
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        console.warn(`[NvidiaProvider] Error (Attempt ${attempt}/${maxRetries}): ${error instanceof Error ? error.message : error}. Retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        delay *= 2;
+      }
     }
-
-    const data = (await response.json()) as any;
-    const rawText: string = data.choices[0].message.content;
-    return stripMarkdownFences(rawText.trim());
+    throw new Error('[NvidiaProvider] Unreachable code reached in retry loop');
   }
 
   // ── AIProvider implementation ───────────────────────────────────────────────

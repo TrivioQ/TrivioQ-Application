@@ -12,12 +12,7 @@ export type { ExtractedQuestion, ExtractedAnswerKey, EnhancementResult } from '.
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type ImageType = 'QUESTIONS' | 'ANSWER_KEY' | 'OTHER';
-
-export interface ImageGroup {
-  questions: string[];
-  answerKeys: string[];
-}
+export type ImageType = 'RELEVANT' | 'OTHER';
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
@@ -51,9 +46,9 @@ export class IngestionOrchestrator {
     private readonly imagePaths: string[],
     private readonly config: {
       outputDir: string;
-      topic: string;
+      topic?: string;
       /** One or more category slugs. Multiple slugs create one PendingQuestion row per slug. */
-      categorySlugs: string[];
+      categorySlugs?: string[];
       /**
        * Fallback AI provider for all phases.
        * Falls back to INGESTION_AI_PROVIDER env var, then 'google'.
@@ -74,11 +69,6 @@ export class IngestionOrchestrator {
         /** Provider for question enhancement + difficulty (Enhancement phase). */
         enhancement?: AIProviderName;
       };
-      /**
-       * Optional free-text instruction injected into the extraction prompt.
-       * @deprecated Use `extractionSpecialInstruction` instead.
-       */
-      specialInstruction?: string;
       /** Optional free-text instruction for the extraction phase. */
       extractionSpecialInstruction?: string;
       /** Optional free-text instruction for the enhancement phase. */
@@ -96,8 +86,8 @@ export class IngestionOrchestrator {
 
     this.enhancementProvider = createProvider(config.providers?.enhancement ?? (process.env.INGESTION_ENHANCEMENT_PROVIDER as AIProviderName | undefined) ?? globalDefault);
 
-    this.extractionSpecialInstruction = config.extractionSpecialInstruction ?? config.specialInstruction;
-    this.enhancementSpecialInstruction = config.enhancementSpecialInstruction ?? config.specialInstruction;
+    this.extractionSpecialInstruction = config.extractionSpecialInstruction;
+    this.enhancementSpecialInstruction = config.enhancementSpecialInstruction;
   }
 
   private availableCategories: { slug: string; name: string }[] = [];
@@ -105,7 +95,7 @@ export class IngestionOrchestrator {
   async run(): Promise<void> {
     this.state.initOrLoad();
     console.log(`[Orchestrator] Starting ingestion for ${this.imagePaths.length} images`);
-    console.log(`[Orchestrator] Categories: ${this.config.categorySlugs.join(', ')}`);
+    console.log(`[Orchestrator] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
     console.log(`[Orchestrator] Providers — scout: ${this.scoutProvider.constructor.name}, extraction: ${this.extractionProvider.constructor.name}, enhancement: ${this.enhancementProvider.constructor.name}`);
     if (this.extractionSpecialInstruction || this.enhancementSpecialInstruction) {
       const ei = this.extractionSpecialInstruction?.slice(0, 80);
@@ -167,29 +157,33 @@ export class IngestionOrchestrator {
     const stateData = this.state.initOrLoad();
     const imageClassifications = (stateData.metadata?.imageClassifications as Record<string, ImageType>) ?? {};
 
-    const questionImages: string[] = [];
-    const answerKeyImages: string[] = [];
+    const relevantImages: string[] = [];
 
     for (const [imagePath, classification] of Object.entries(imageClassifications)) {
-      if (classification === 'QUESTIONS') questionImages.push(imagePath);
-      if (classification === 'ANSWER_KEY') answerKeyImages.push(imagePath);
+      if (classification === 'RELEVANT') relevantImages.push(imagePath);
     }
 
-    if (questionImages.length === 0) {
-      console.log('[Extraction] No QUESTION images found');
+    if (relevantImages.length === 0) {
+      console.log('[Extraction] No RELEVANT images found');
       return;
     }
 
-    console.log(`[Extraction] Processing ${questionImages.length} questions, ${answerKeyImages.length} answer keys`);
+    console.log(`[Extraction] Processing ${relevantImages.length} relevant images`);
 
     // Build the prompt once — optionally prefixed with the book's special instruction
     const extractionPrompt = buildExtractionPrompt(this.extractionSpecialInstruction);
-    const groups = this.buildImageGroups(questionImages, answerKeyImages);
 
-    for (const group of groups) {
+    // Chunk images into batches of 3
+    const batchSize = 3;
+    const groups: string[][] = [];
+    for (let i = 0; i < relevantImages.length; i += batchSize) {
+      groups.push(relevantImages.slice(i, i + batchSize));
+    }
+
+    for (let i = 0; i < groups.length; i++) {
+      const group = groups[i];
       try {
-        const allImages = [...group.questions, ...group.answerKeys];
-        const images = allImages.map((img) => this.imageToBase64(img));
+        const images = group.map((img) => this.imageToBase64(img));
 
         // Pass the (possibly enriched) prompt through via the extraction provider
         const extracted = await this.extractionProvider.extractFromImages(images, extractionPrompt);
@@ -219,40 +213,11 @@ export class IngestionOrchestrator {
       } catch (error) {
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'extraction',
-          group,
+          batchIndex: i,
+          images: group,
         });
       }
     }
-  }
-
-  private buildImageGroups(questionImages: string[], answerKeyImages: string[]): ImageGroup[] {
-    if (answerKeyImages.length === 0 || questionImages.length === 0) {
-      return questionImages.map((q) => ({ questions: [q], answerKeys: [] }));
-    }
-
-    const groups: ImageGroup[] = [];
-    let currentGroup: string[] = [];
-
-    for (let i = 0; i < questionImages.length; i++) {
-      currentGroup.push(questionImages[i]);
-
-      const nextImg = questionImages[i + 1] ?? answerKeyImages[0];
-      if (answerKeyImages.includes(nextImg)) {
-        const akForGroup: string[] = [];
-        while (answerKeyImages.length > 0) {
-          akForGroup.push(answerKeyImages.shift()!);
-          break; // take one answer key per group for simplicity
-        }
-        groups.push({ questions: [...currentGroup], answerKeys: akForGroup });
-        currentGroup = [];
-      }
-    }
-
-    if (currentGroup.length > 0) {
-      groups.push({ questions: currentGroup, answerKeys: [] });
-    }
-
-    return groups;
   }
 
   private reconcileAnswerKeys(): void {
@@ -274,7 +239,8 @@ export class IngestionOrchestrator {
       }
 
       // If answer came directly from extraction choices, no answer key needed
-      if (!hasAnswer && q.metadata?.answerKeyRef) {
+      const hasDirectAnswer = (q.metadata?.choices as any[])?.some((c) => c.isCorrect === true);
+      if (!hasAnswer && (q.metadata?.answerKeyRef || hasDirectAnswer)) {
         this.state.upsertQuestion({ ...q, status: 'READY_FOR_ENHANCEMENT' });
       }
     }

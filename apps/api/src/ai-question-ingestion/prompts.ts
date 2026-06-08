@@ -3,12 +3,11 @@
 // Changes to a prompt are automatically reflected in all providers.
 
 export const SCOUT_PROMPT = `You are a document classifier. Analyze the provided page image and classify it into one of these categories:
-- "QUESTIONS" — contains trivia or quiz questions
-- "ANSWER_KEY" — contains answers or answer keys for questions
-- "OTHER" — anything else (table of contents, blank pages, etc.)
+- "RELEVANT" — contains trivia questions, quiz questions, or answer keys
+- "OTHER" — anything else (table of contents, blank pages, advertisements, etc.)
 
 Return ONLY a JSON object with this exact schema. Do not include markdown, explanations, or any other text:
-{"classification": "QUESTIONS|ANSWER_KEY|OTHER", "confidence": 0.0-1.0}`;
+{"classification": "RELEVANT|OTHER", "confidence": 0.0-1.0}`;
 
 export const EXTRACTION_PROMPT = `You are an expert trivia question extractor. Given images containing trivia questions (and possibly their answer keys), extract all questions with their multiple-choice options.
 
@@ -57,6 +56,7 @@ Use \`-\` for unordered and \`1.\` for ordered lists where the source uses them.
 - Never emit raw HTML tags anywhere.
 - Never escape Markdown syntax unnecessarily.
 - Preserve every piece of data visible on the page; do not summarise or truncate.
+- Fix any merged words or improper spacing caused by OCR or tight layout formatting (e.g., "NagarholeNational park" -> "Nagarhole National park", "PapikondaNational park" -> "Papikonda National park"). Always ensure there are proper spaces between words.
 
 Return a JSON object with this exact schema:
 {

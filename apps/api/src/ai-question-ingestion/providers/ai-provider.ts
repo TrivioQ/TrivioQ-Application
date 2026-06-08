@@ -12,7 +12,7 @@ export interface ImageInput {
 // ── Result types ──────────────────────────────────────────────────────────────
 
 export interface ClassificationResult {
-  classification: 'QUESTIONS' | 'ANSWER_KEY' | 'OTHER';
+  classification: 'RELEVANT' | 'OTHER';
   confidence: number;
 }
 
@@ -64,7 +64,7 @@ export interface EnhancementResult {
 export interface AIProvider {
   /**
    * Classify a single page image.
-   * Returns one of: 'QUESTIONS' | 'ANSWER_KEY' | 'OTHER'
+   * Returns one of: 'RELEVANT' | 'OTHER'
    */
   classifyImage(image: ImageInput): Promise<ClassificationResult>;
 

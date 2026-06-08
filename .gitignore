@@ -70,3 +70,6 @@ firebase-service-account.json
 *.db
 *.db-journal
 *.sqlite
+
+# Artifacts
+apps/api/ingestion
