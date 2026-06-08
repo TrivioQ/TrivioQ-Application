@@ -58,6 +58,9 @@ Use \`-\` for unordered and \`1.\` for ordered lists where the source uses them.
 - Preserve every piece of data visible on the page; do not summarise or truncate.
 - Fix any merged words or improper spacing caused by OCR or tight layout formatting (e.g., "NagarholeNational park" -> "Nagarhole National park", "PapikondaNational park" -> "Papikonda National park"). Always ensure there are proper spaces between words.
 
+### 8. Multiple-choice options
+Completely strip all leading identifiers (such as "A)", "B.", "a.", "b)", "1.", "2)", etc.) from the choice text. The "text" field of a choice should contain ONLY the raw value of the option without any prefix.
+
 Return a JSON object with this exact schema:
 {
   "questions": [
