@@ -5,6 +5,7 @@ import { shuffleArray } from '../utils/shuffle';
 import { reportError } from '../utils/errorReporter';
 import fs from 'fs';
 import { createProvider, type AIProvider, type AIProviderName } from './providers';
+import { buildExtractionPrompt, buildEnhancementPrompt } from './prompts';
 
 // ── Re-exports (kept for backwards-compatibility with existing callers) ────────
 export type { ExtractedQuestion, ExtractedAnswerKey, EnhancementResult } from './providers';
@@ -21,12 +22,29 @@ export interface ImageGroup {
 // ── Configuration ─────────────────────────────────────────────────────────────
 
 const UPLOAD_BATCH_SIZE = 20;
+const VALID_DIFFICULTIES: DifficultyLevel[] = ['EASY', 'MEDIUM', 'HARD'];
+
+/** Validate an AI-returned difficulty string; falls back to MEDIUM if invalid. */
+function sanitiseDifficulty(raw: string | undefined): DifficultyLevel {
+  if (raw && (VALID_DIFFICULTIES as string[]).includes(raw)) {
+    return raw as DifficultyLevel;
+  }
+  console.warn(`[Orchestrator] Invalid difficulty "${raw}" — defaulting to MEDIUM`);
+  return 'MEDIUM';
+}
 
 // ── Orchestrator ──────────────────────────────────────────────────────────────
 
 export class IngestionOrchestrator {
   private readonly state: IngestionState;
-  private readonly provider: AIProvider;
+  /** Provider used in Phase 1 — image classification. */
+  private readonly scoutProvider: AIProvider;
+  /** Provider used in Phase 2 — question extraction. */
+  private readonly extractionProvider: AIProvider;
+  /** Provider used in Phase 3 — question enhancement + difficulty inference. */
+  private readonly enhancementProvider: AIProvider;
+  private readonly extractionSpecialInstruction?: string;
+  private readonly enhancementSpecialInstruction?: string;
 
   constructor(
     bookId: string,
@@ -34,19 +52,71 @@ export class IngestionOrchestrator {
     private readonly config: {
       outputDir: string;
       topic: string;
-      difficultyLevel?: DifficultyLevel;
-      categorySlug: string;
-      /** AI provider to use. Defaults to 'google'. */
+      /** One or more category slugs. Multiple slugs create one PendingQuestion row per slug. */
+      categorySlugs: string[];
+      /**
+       * Fallback AI provider for all phases.
+       * Falls back to INGESTION_AI_PROVIDER env var, then 'google'.
+       */
       aiProvider?: AIProviderName;
+      /**
+       * Per-phase provider overrides. Each key takes precedence over `aiProvider`
+       * and the INGESTION_AI_PROVIDER env var.
+       *
+       * Per-phase env var fallback order (example for scout):
+       *   providers.scout → aiProvider → INGESTION_SCOUT_PROVIDER → INGESTION_AI_PROVIDER → 'google'
+       */
+      providers?: {
+        /** Provider for image classification (Scout phase). */
+        scout?: AIProviderName;
+        /** Provider for question extraction (Extraction phase). */
+        extraction?: AIProviderName;
+        /** Provider for question enhancement + difficulty (Enhancement phase). */
+        enhancement?: AIProviderName;
+      };
+      /**
+       * Optional free-text instruction injected into the extraction prompt.
+       * @deprecated Use `extractionSpecialInstruction` instead.
+       */
+      specialInstruction?: string;
+      /** Optional free-text instruction for the extraction phase. */
+      extractionSpecialInstruction?: string;
+      /** Optional free-text instruction for the enhancement phase. */
+      enhancementSpecialInstruction?: string;
     },
   ) {
     this.state = new IngestionState(bookId, config.outputDir);
-    this.provider = createProvider(config.aiProvider ?? 'google');
+
+    // Resolve the global fallback once
+    const globalDefault: AIProviderName = config.aiProvider ?? (process.env.INGESTION_AI_PROVIDER as AIProviderName | undefined) ?? 'google';
+
+    this.scoutProvider = createProvider(config.providers?.scout ?? (process.env.INGESTION_SCOUT_PROVIDER as AIProviderName | undefined) ?? globalDefault);
+
+    this.extractionProvider = createProvider(config.providers?.extraction ?? (process.env.INGESTION_EXTRACTION_PROVIDER as AIProviderName | undefined) ?? globalDefault);
+
+    this.enhancementProvider = createProvider(config.providers?.enhancement ?? (process.env.INGESTION_ENHANCEMENT_PROVIDER as AIProviderName | undefined) ?? globalDefault);
+
+    this.extractionSpecialInstruction = config.extractionSpecialInstruction ?? config.specialInstruction;
+    this.enhancementSpecialInstruction = config.enhancementSpecialInstruction ?? config.specialInstruction;
   }
+
+  private availableCategories: { slug: string; name: string }[] = [];
 
   async run(): Promise<void> {
     this.state.initOrLoad();
     console.log(`[Orchestrator] Starting ingestion for ${this.imagePaths.length} images`);
+    console.log(`[Orchestrator] Categories: ${this.config.categorySlugs.join(', ')}`);
+    console.log(`[Orchestrator] Providers — scout: ${this.scoutProvider.constructor.name}, extraction: ${this.extractionProvider.constructor.name}, enhancement: ${this.enhancementProvider.constructor.name}`);
+    if (this.extractionSpecialInstruction || this.enhancementSpecialInstruction) {
+      const ei = this.extractionSpecialInstruction?.slice(0, 80);
+      const hi = this.enhancementSpecialInstruction?.slice(0, 80);
+      console.log(`[Orchestrator] Special instructions — extraction: ${ei ?? 'none'}, enhancement: ${hi ?? 'none'}`);
+    }
+
+    this.availableCategories = await prisma.category.findMany({
+      select: { slug: true, name: true },
+    });
+    console.log(`[Orchestrator] Fetched ${this.availableCategories.length} categories from DB`);
 
     await this.scoutPhase();
     await this.extractionPhase();
@@ -73,7 +143,7 @@ export class IngestionOrchestrator {
         const existingMeta = (stateData.metadata as Record<string, unknown>) ?? {};
         const imageClassifications = (existingMeta.imageClassifications as Record<string, ImageType>) ?? {};
 
-        const { classification } = await this.provider.classifyImage(image);
+        const { classification } = await this.scoutProvider.classifyImage(image);
         imageClassifications[imagePath] = classification;
 
         this.state.updateMetadata({ ...existingMeta, imageClassifications });
@@ -112,6 +182,8 @@ export class IngestionOrchestrator {
 
     console.log(`[Extraction] Processing ${questionImages.length} questions, ${answerKeyImages.length} answer keys`);
 
+    // Build the prompt once — optionally prefixed with the book's special instruction
+    const extractionPrompt = buildExtractionPrompt(this.extractionSpecialInstruction);
     const groups = this.buildImageGroups(questionImages, answerKeyImages);
 
     for (const group of groups) {
@@ -119,7 +191,8 @@ export class IngestionOrchestrator {
         const allImages = [...group.questions, ...group.answerKeys];
         const images = allImages.map((img) => this.imageToBase64(img));
 
-        const extracted = await this.provider.extractFromImages(images);
+        // Pass the (possibly enriched) prompt through via the extraction provider
+        const extracted = await this.extractionProvider.extractFromImages(images, extractionPrompt);
 
         for (const eq of extracted.questions) {
           const question: Question = {
@@ -215,9 +288,12 @@ export class IngestionOrchestrator {
 
     console.log(`[Enhancement] Enhancing ${questionsToEnhance.length} questions`);
 
+    // Build the prompt once — optionally prefixed with the book's special instruction, injecting available categories
+    const enhancementPrompt = buildEnhancementPrompt(this.availableCategories, this.enhancementSpecialInstruction);
+
     for (const question of questionsToEnhance) {
       try {
-        const enhanced = await this.provider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? []);
+        const enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt);
 
         this.state.upsertQuestion({
           ...question,
@@ -227,10 +303,14 @@ export class IngestionOrchestrator {
             hint: enhanced.hint,
             explanation: enhanced.explanation,
             aiQualityScore: enhanced.aiQualityScore,
+            topic: enhanced.topic,
+            categorySlugs: enhanced.categorySlugs,
+            // Store the AI-inferred difficulty; sanitised before upload
+            difficulty: sanitiseDifficulty(enhanced.difficulty),
           },
         });
 
-        console.log(`[Enhancement] Enhanced ${question.id}`);
+        console.log(`[Enhancement] Enhanced ${question.id} — difficulty: ${enhanced.difficulty}`);
       } catch (error) {
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'enhancement',
@@ -254,7 +334,6 @@ export class IngestionOrchestrator {
 
       try {
         const duplicateFlags = await Promise.all(batch.map((q) => checkIsDuplicate(q.text)));
-
         const nonDuplicates: Question[] = batch.filter((_, j) => !duplicateFlags[j]);
 
         if (nonDuplicates.length === 0) {
@@ -262,10 +341,12 @@ export class IngestionOrchestrator {
           continue;
         }
 
+        // One PendingQuestion row per question (no duplication).
         const rows = nonDuplicates.map((q) => ({
-          topic: this.config.topic,
-          categorySlug: this.config.categorySlug,
-          difficultyLevel: (this.config.difficultyLevel ?? 'MEDIUM') as DifficultyLevel,
+          topic: (q.metadata?.topic as string) || this.config.topic || 'General',
+          categorySlugs: (q.metadata?.categorySlugs as string[]) || [],
+          // Use AI-inferred difficulty stored in metadata; fall back to MEDIUM
+          difficultyLevel: sanitiseDifficulty(q.metadata?.difficulty as string | undefined),
           suggestedText: q.text,
           suggestedChoices: shuffleArray((q.metadata?.choices as any[]) ?? []),
           hint: (q.metadata?.hint as string) ?? null,
@@ -283,7 +364,7 @@ export class IngestionOrchestrator {
           this.state.updateStatus(q.id, 'UPLOADED');
         }
 
-        console.log(`[Upload] Batch ${i / UPLOAD_BATCH_SIZE + 1}: inserted ${rows.length}`);
+        console.log(`[Upload] Batch ${i / UPLOAD_BATCH_SIZE + 1}: inserted ${rows.length} row(s) (${nonDuplicates.length} question(s))`);
       } catch (error) {
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'upload',

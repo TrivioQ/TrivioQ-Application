@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import type { SuggestedChoice, DifficultyLevel } from '@trivioq/shared-types';
+import { DifficultyLevel } from '@trivioq/database';
 import { ReviewEditor } from './review-editor';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -10,10 +10,10 @@ import { cn } from '@/lib/utils';
 interface PendingQuestion {
   id: string;
   topic: string;
-  categorySlug: string;
+  categorySlugs: string[];
   difficultyLevel: DifficultyLevel;
   suggestedText: string;
-  suggestedChoices: SuggestedChoice[];
+  suggestedChoices: any;
   hint: string | null;
   explanation: string | null;
   status: string;
@@ -70,9 +70,13 @@ export function ContentReviewPanel({ questions, categories }: { questions: Pendi
                 <button onClick={() => setSelectedId(q.id)} className={cn('w-full text-left px-4 py-3 transition-colors hover:bg-gray-100', selectedId === q.id && 'bg-blue-50 border-l-2 border-l-blue-500 hover:bg-blue-50', q.isDuplicate && 'opacity-50 grayscale')}>
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-medium text-gray-900 truncate">{q.topic}</p>
-                    <Badge variant="secondary" className="text-[10px] shrink-0">
-                      {q.categorySlug}
-                    </Badge>
+                    <div className="flex gap-1 flex-wrap">
+                      {q.categorySlugs.map(slug => (
+                        <Badge key={slug} variant="secondary" className="text-[10px] shrink-0">
+                          {slug}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-1 line-clamp-2">{q.suggestedText}</p>
                   <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">

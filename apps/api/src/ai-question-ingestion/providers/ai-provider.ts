@@ -42,9 +42,13 @@ export interface ExtractionResult {
 }
 
 export interface EnhancementResult {
+  topic: string;
+  categorySlugs: string[];
   hint: string;
   explanation: string;
   aiQualityScore: number;
+  /** AI-inferred difficulty. Must be validated against DifficultyLevel values before use. */
+  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
 }
 
 // ── Provider interface ────────────────────────────────────────────────────────
@@ -66,11 +70,17 @@ export interface AIProvider {
 
   /**
    * Extract trivia questions and answer keys from one or more page images.
+   *
+   * @param promptOverride - Optional full prompt to use instead of the default
+   *   EXTRACTION_PROMPT (e.g. with a book-level special instruction prepended).
    */
-  extractFromImages(images: ImageInput[]): Promise<ExtractionResult>;
+  extractFromImages(images: ImageInput[], promptOverride?: string): Promise<ExtractionResult>;
 
   /**
-   * Generate a hint, explanation, and quality score for a question.
+   * Generate a hint, explanation, quality score, and difficulty for a question.
+   *
+   * @param promptOverride - Optional full prompt to use instead of the default
+   *   ENHANCEMENT_PROMPT (e.g. with a book-level special instruction prepended).
    */
-  enhanceQuestion(questionText: string, choices: unknown[]): Promise<EnhancementResult>;
+  enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult>;
 }

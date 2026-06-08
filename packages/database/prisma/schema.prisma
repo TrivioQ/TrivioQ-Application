@@ -206,7 +206,7 @@ model Setting {
 model PendingQuestion {
   id               String   @id @default(uuid())
   topic            String
-  categorySlug     String
+  categorySlugs    String[]
   difficultyLevel  DifficultyLevel
   suggestedText    String
   suggestedChoices Json

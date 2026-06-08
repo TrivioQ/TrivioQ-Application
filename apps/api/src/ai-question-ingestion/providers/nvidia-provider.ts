@@ -89,13 +89,15 @@ export class NvidiaProvider implements AIProvider {
     return JSON.parse(text) as ClassificationResult;
   }
 
-  async extractFromImages(images: ImageInput[]): Promise<ExtractionResult> {
-    const text = await this.call(EXTRACTION_PROMPT, images);
+  async extractFromImages(images: ImageInput[], promptOverride?: string): Promise<ExtractionResult> {
+    const prompt = promptOverride ?? EXTRACTION_PROMPT;
+    const text = await this.call(prompt, images);
     return JSON.parse(text) as ExtractionResult;
   }
 
-  async enhanceQuestion(questionText: string, choices: unknown[]): Promise<EnhancementResult> {
-    const userMessage = `${ENHANCEMENT_PROMPT}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}\n\nReturn a JSON object with: hint, explanation, aiQualityScore`;
+  async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult> {
+    const basePrompt = promptOverride ?? ENHANCEMENT_PROMPT;
+    const userMessage = `${basePrompt}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}\n\nReturn a JSON object with: hint, explanation, aiQualityScore, difficulty`;
     const text = await this.call(userMessage);
     return JSON.parse(text) as EnhancementResult;
   }

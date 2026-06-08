@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 export interface EditQuestionPayload {
   questionText: string;
   difficultyLevel: DifficultyLevel;
-  categorySlug: string;
+  categorySlugs: string[];
   choices: { text: string; order: number; isCorrect: boolean }[];
   hintText?: string;
   explanationText?: string;
@@ -25,7 +25,7 @@ export async function updatePendingQuestion(pendingId: string, editedData: EditQ
       data: {
         suggestedText: editedData.questionText,
         difficultyLevel: editedData.difficultyLevel,
-        categorySlug: editedData.categorySlug,
+        categorySlugs: editedData.categorySlugs,
         suggestedChoices: editedData.choices,
         hint: editedData.hintText ?? null,
         explanation: editedData.explanationText ?? null,
@@ -77,7 +77,7 @@ export async function approvePendingQuestion(pendingId: string, editedData: Edit
             })),
           },
           categories: {
-            connect: { slug: editedData.categorySlug },
+            connect: editedData.categorySlugs.map((slug) => ({ slug })),
           },
         },
       });

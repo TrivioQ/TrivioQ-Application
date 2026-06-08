@@ -17,7 +17,7 @@ import { Check } from 'lucide-react';
 interface PendingQuestion {
   id: string;
   topic: string;
-  categorySlug: string;
+  categorySlugs: string[];
   difficultyLevel: DifficultyLevel;
   suggestedText: string;
   suggestedChoices: unknown;
@@ -65,8 +65,19 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
   const [choices, setChoices] = useState(() => parseChoices(pendingQuestion.suggestedChoices));
   const [hintText, setHintText] = useState(pendingQuestion.hint ?? '');
   const [explanationText, setExplanationText] = useState(pendingQuestion.explanation ?? '');
-  const [categorySlug, setCategorySlug] = useState(pendingQuestion.categorySlug);
+  const [categorySlugs, setCategorySlugs] = useState<string[]>(pendingQuestion.categorySlugs || []);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const addCategory = (slug: string | null) => {
+    if (!slug) return;
+    if (categorySlugs.length < 2 && !categorySlugs.includes(slug)) {
+      setCategorySlugs([...categorySlugs, slug]);
+    }
+  };
+
+  const removeCategory = (slug: string) => {
+    setCategorySlugs(categorySlugs.filter((s) => s !== slug));
+  };
 
   const markCorrect = (idx: number) => {
     setChoices((prev) => prev.map((c, i) => ({ ...c, isCorrect: i === idx })));
@@ -79,7 +90,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
   const buildPayload = (): EditQuestionPayload => ({
     questionText,
     difficultyLevel,
-    categorySlug,
+    categorySlugs,
     choices: choices.map((c, idx) => ({ ...c, order: c.order ?? idx })),
     hintText: hintText || undefined,
     explanationText: explanationText || undefined,
@@ -121,7 +132,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
     });
   };
 
-  const selectedCategory = categories.find((c) => c.slug === categorySlug);
+
 
   return (
     <div className="flex flex-col h-full">
@@ -193,19 +204,33 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
         {/* Category */}
         <div className="space-y-1.5">
           <Label>{t('category')}</Label>
-          <Select value={categorySlug} onValueChange={(val) => setCategorySlug(val ?? '')}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.slug}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {selectedCategory ? <p className="text-xs text-gray-400">{t('slugLabel', { slug: selectedCategory.slug })}</p> : <p className="text-xs text-amber-500">{t('noCategoryMatch', { slug: categorySlug })}</p>}
+          <div className="flex flex-wrap gap-2 mb-2">
+            {categorySlugs.map((slug) => {
+              const cat = categories.find(c => c.slug === slug);
+              return (
+                <div key={slug} className="flex items-center gap-1 bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                  {cat?.name || slug}
+                  <button type="button" onClick={() => removeCategory(slug)} className="text-gray-500 hover:text-red-500 font-bold ml-1">
+                     &times;
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          {categorySlugs.length < 2 && (
+            <Select onValueChange={addCategory} value="">
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Add category..." />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.filter(c => !categorySlugs.includes(c.slug)).map((cat) => (
+                  <SelectItem key={cat.id} value={cat.slug}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {/* Choices */}

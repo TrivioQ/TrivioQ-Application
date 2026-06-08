@@ -81,7 +81,7 @@ Return a JSON object with this exact schema:
   ]
 }`;
 
-export const ENHANCEMENT_PROMPT = `You are a trivia question enhancer. Given a trivia question with its choices (which may already contain Markdown, LaTeX math, or tables), generate a hint, an explanation, and an AI quality score.
+export const ENHANCEMENT_PROMPT = `You are a trivia question enhancer. Given a trivia question with its choices (which may already contain Markdown, LaTeX math, or tables), generate a hint, an explanation, an AI quality score, a difficulty level, a topic, and 1-2 category slugs.
 
 ## CRITICAL — Markdown compatibility rules
 Both "hint" and "explanation" fields MUST be written in **GitHub-Flavored Markdown (GFM)**.
@@ -101,9 +101,48 @@ Follow every rule below:
 6. Keep the hint concise (1–2 sentences) without giving away the answer.
 7. Keep the explanation concise (2–3 sentences) and accurate.
 
+## Difficulty classification
+Assess the question and assign a difficulty level:
+- "EASY"   — factual recall, widely known, requires no reasoning
+- "MEDIUM" — requires some domain knowledge or light reasoning
+- "HARD"   — requires specialist knowledge, multi-step reasoning, or is a common misconception trap
+
+## Topic and Categories
+You must assign a concise \`topic\` (e.g. "World War 2", "Javascript Fundamentals", "Quantum Physics") that best describes the question.
+You must also assign an array of \`categorySlugs\` consisting of minimum 1 and maximum 2 slugs chosen from the [AVAILABLE CATEGORIES] list provided below. Choose the most relevant ones.
+
+[AVAILABLE_CATEGORIES_PLACEHOLDER]
+
 Return a JSON object with this exact schema:
 {
+  "topic": "A short, concise topic string",
+  "categorySlugs": ["slug1", "slug2"],
   "hint": "A short, helpful clue without giving away the answer (compatible Markdown)",
   "explanation": "A concise 2-3 sentence explanation of why the correct answer is right (compatible Markdown)",
-  "aiQualityScore": 75
+  "aiQualityScore": 75,
+  "difficulty": "EASY|MEDIUM|HARD"
 }`;
+
+// ── Prompt builders ───────────────────────────────────────────────────────────
+// Use these helpers when a per-book special instruction should be injected.
+
+/**
+ * Returns EXTRACTION_PROMPT optionally prefixed with a special instruction
+ * sourced from the book's instructions.json.
+ */
+export function buildExtractionPrompt(specialInstruction?: string): string {
+  if (!specialInstruction) return EXTRACTION_PROMPT;
+  return `## Special instruction for this book\n${specialInstruction.trim()}\n\n${EXTRACTION_PROMPT}`;
+}
+
+/**
+ * Returns ENHANCEMENT_PROMPT optionally prefixed with a special instruction
+ * sourced from the book's instructions.json, and with the available categories injected.
+ */
+export function buildEnhancementPrompt(categories: { slug: string; name: string }[], specialInstruction?: string): string {
+  const categoryListStr = categories.map((c) => `- "${c.slug}" (${c.name})`).join('\n');
+  const basePrompt = ENHANCEMENT_PROMPT.replace('[AVAILABLE_CATEGORIES_PLACEHOLDER]', `[AVAILABLE CATEGORIES]\n${categoryListStr}`);
+
+  if (!specialInstruction) return basePrompt;
+  return `## Special instruction for this book\n${specialInstruction.trim()}\n\n${basePrompt}`;
+}

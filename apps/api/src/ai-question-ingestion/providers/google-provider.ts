@@ -49,9 +49,10 @@ export class GoogleProvider implements AIProvider {
     return JSON.parse(response.text) as ClassificationResult;
   }
 
-  async extractFromImages(images: ImageInput[]): Promise<ExtractionResult> {
+  async extractFromImages(images: ImageInput[], promptOverride?: string): Promise<ExtractionResult> {
+    const prompt = promptOverride ?? EXTRACTION_PROMPT;
     const parts: any[] = [
-      { text: EXTRACTION_PROMPT },
+      { text: prompt },
       ...images.map((img) => ({
         inlineData: {
           mimeType: img.mimeType,
@@ -73,15 +74,16 @@ export class GoogleProvider implements AIProvider {
     return JSON.parse(response.text) as ExtractionResult;
   }
 
-  async enhanceQuestion(questionText: string, choices: unknown[]): Promise<EnhancementResult> {
-    const userMessage = `Question: ${questionText}\nChoices: ${JSON.stringify(choices)}\n\nReturn a JSON object with: hint, explanation, aiQualityScore`;
+  async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult> {
+    const basePrompt = promptOverride ?? ENHANCEMENT_PROMPT;
+    const userMessage = `Question: ${questionText}\nChoices: ${JSON.stringify(choices)}\n\nReturn a JSON object with: hint, explanation, aiQualityScore, difficulty`;
 
     const response = await this.ai.models.generateContent({
       model: ENHANCEMENT_MODEL,
       contents: [
         {
           role: 'user',
-          parts: [{ text: ENHANCEMENT_PROMPT }, { text: userMessage }],
+          parts: [{ text: basePrompt }, { text: userMessage }],
         },
       ],
       config: { responseMimeType: 'application/json' },

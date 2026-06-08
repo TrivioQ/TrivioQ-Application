@@ -14,12 +14,13 @@ const DIFFICULTIES: DifficultyLevel[] = ['EASY', 'MEDIUM', 'HARD'];
 // ── Types ────────────────────────────────────────────────────────────────────────
 
 export interface AiQuestionJobPayload {
-  topic: string;
-  categorySlug: string;
+  topic?: string;
 }
 
 interface LLMQuestion {
   questionText: string;
+  topic: string;
+  categorySlugs: string[];
   choices: SuggestedChoice[];
   hint: string;
   explanation: string;
@@ -52,6 +53,8 @@ You MUST return the response strictly as a JSON array of objects. Do not include
 Each object in the array must match this exact schema:
 {
 "difficulty": "[INSERT_DIFFICULTY]",
+"topic": "A concise string defining the specific topic",
+"categorySlugs": ["slug1", "slug2"],
 "questionText": "The trivia question here",
 "hint": "A short, helpful clue",
 "explanation": "A 1-2 sentence explanation of why the correct answer is true",
@@ -64,19 +67,27 @@ Each object in the array must match this exact schema:
 }
 Ensure the distractor choices (the incorrect ones) are plausible and appropriately scaled for the requested difficulty level.`;
 
-function buildSystemPrompt(topic: string, difficulty: DifficultyLevel): string {
-  return SYSTEM_PROMPT.replaceAll('[INSERT_DIFFICULTY]', difficulty).replaceAll('[INSERT_TOPIC]', topic);
+function buildSystemPrompt(topic: string | undefined, categories: { slug: string; name: string }[], difficulty: DifficultyLevel): string {
+    const categoryListStr = categories.map((c) => `- "${c.slug}" (${c.name})`).join('\n');
+    let prompt = SYSTEM_PROMPT.replaceAll('[INSERT_DIFFICULTY]', difficulty);
+    if (topic) {
+        prompt = prompt.replaceAll('[INSERT_TOPIC]', topic);
+    } else {
+        prompt = prompt.replaceAll('[INSERT_TOPIC]', 'any general knowledge topic');
+    }
+
+    return prompt + `\n\nChoose 1-2 categorySlugs from this list:\n${categoryListStr}`;
 }
 
-async function generateTriviaQuestions(topic: string, categorySlug: string, difficulty: DifficultyLevel): Promise<LLMQuestion[]> {
-  const systemPrompt = buildSystemPrompt(topic, difficulty);
+async function generateTriviaQuestions(topic: string | undefined, categories: { slug: string; name: string }[], difficulty: DifficultyLevel): Promise<LLMQuestion[]> {
+  const systemPrompt = buildSystemPrompt(topic, categories, difficulty);
 
-  console.log(`[AIQuestionWorker] Generating 10 ${difficulty} questions for topic="${topic}" category="${categorySlug}"`);
+  console.log(`[AIQuestionWorker] Generating 10 ${difficulty} questions for topic="${topic || 'auto'}"`);
   console.log(`[AIQuestionWorker] System prompt (first 120 chars): ${systemPrompt.slice(0, 120)}...`);
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-pro',
-    contents: `Topic: ${topic}, Category: ${categorySlug}`,
+    contents: `Generate questions. ${topic ? `Topic: ${topic}` : ''}`,
     config: {
       systemInstruction: systemPrompt,
       responseMimeType: 'application/json',
@@ -98,7 +109,7 @@ Return a JSON array of objects with exactly one entry per question, in the same 
   "aiFeedback": "<concise feedback explaining the score>"
 }`;
 
-async function reviewQuestionsForQuality(questions: { suggestedText: string; difficultyLevel: DifficultyLevel; suggestedChoices: any; hint: string; explanation: string }[], topic: string): Promise<AIReviewResult[]> {
+async function reviewQuestionsForQuality(questions: { suggestedText: string; difficultyLevel: DifficultyLevel; suggestedChoices: any; hint: string; explanation: string }[], topic: string | undefined): Promise<AIReviewResult[]> {
   console.log(`[AIQuestionWorker] Requesting quality review for ${questions.length} questions on topic="${topic}"`);
   console.log(`[AIQuestionWorker] Quality review system prompt (first 120 chars): ${QUALITY_REVIEW_SYSTEM_PROMPT.slice(0, 120)}...`);
 
@@ -121,29 +132,32 @@ async function reviewQuestionsForQuality(questions: { suggestedText: string; dif
 // ── Job handler ──────────────────────────────────────────────────────────────────
 
 async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promise<void> {
-  const { topic, categorySlug } = job.data;
+  const { topic } = job.data;
 
-  console.log(`[AIQuestionWorker] Processing job ${job.id} — topic="${topic}" category="${categorySlug}"`);
+  console.log(`[AIQuestionWorker] Processing job ${job.id} — topic="${topic || 'auto'}"`);
+
+  // 0. Fetch all categories from the database
+  const categories = await prisma.category.findMany({ select: { slug: true, name: true } });
 
   // 1. Three parallel LLM calls — one per difficulty, 10 questions each
   let results: { difficulty: DifficultyLevel; questions: LLMQuestion[] }[];
   try {
     results = await Promise.all(
       DIFFICULTIES.map(async (difficulty) => {
-        const questions = await generateTriviaQuestions(topic, categorySlug, difficulty);
+        const questions = await generateTriviaQuestions(topic, categories, difficulty);
         return { difficulty, questions };
       }),
     );
   } catch (error) {
-    reportError(error instanceof Error ? error : new Error(String(error)), { topic, categorySlug, phase: 'llm-generation' });
+    reportError(error instanceof Error ? error : new Error(String(error)), { topic, phase: 'llm-generation' });
     throw error;
   }
 
   // 2. Flatten into 30 questions, shuffle each question's choices
   const rows = results.flatMap(({ difficulty, questions }) =>
     questions.map((q) => ({
-      topic,
-      categorySlug,
+      topic: q.topic || topic || 'General',
+      categorySlugs: q.categorySlugs,
       difficultyLevel: difficulty,
       suggestedText: q.questionText,
       suggestedChoices: shuffleArray(q.choices) as any,
@@ -181,7 +195,7 @@ async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promi
     try {
       qualityReviews = await reviewQuestionsForQuality(uniqueQuestions, topic);
     } catch (error) {
-      reportError(error instanceof Error ? error : new Error(String(error)), { topic, categorySlug, phase: 'quality-review' });
+      reportError(error instanceof Error ? error : new Error(String(error)), { topic, phase: 'quality-review' });
       throw error;
     }
 
@@ -202,7 +216,7 @@ async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promi
 
     console.log(`[AIQuestionWorker] Batch-inserted ${rows.length} PendingQuestions for topic="${topic}" (${duplicateCount} duplicates, ${uniqueQuestions.length} reviewed)`);
   } catch (error) {
-    reportError(error instanceof Error ? error : new Error(String(error)), { topic, categorySlug, phase: 'batch-insert' });
+    reportError(error instanceof Error ? error : new Error(String(error)), { topic, phase: 'batch-insert' });
     throw error;
   }
 }

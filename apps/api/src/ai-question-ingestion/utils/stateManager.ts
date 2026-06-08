@@ -1,11 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-export type QuestionStatus =
-  | 'AWAITING_KEY'
-  | 'READY_FOR_ENHANCEMENT'
-  | 'READY_FOR_UPLOAD'
-  | 'UPLOADED';
+export type QuestionStatus = 'AWAITING_KEY' | 'READY_FOR_ENHANCEMENT' | 'READY_FOR_UPLOAD' | 'UPLOADED';
 
 export interface Question {
   id: string;
@@ -37,15 +33,12 @@ export class IngestionState {
 
   constructor(
     private readonly bookId: string,
-    private readonly outputDir: string
+    private readonly outputDir: string,
   ) {
     if (!bookId || bookId.trim() === '') {
       throw new Error('bookId is required');
     }
-    this.stateFilePath = path.resolve(
-      this.outputDir,
-      `${this.bookId}_state.json`
-    );
+    this.stateFilePath = path.resolve(this.outputDir, `${this.bookId}_state.json`);
   }
 
   private writeState(state: IngestionStateData): void {

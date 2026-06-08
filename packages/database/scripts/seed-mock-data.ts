@@ -94,9 +94,9 @@ async function main() {
             isCorrect: idx === correctIdx,
           }));
 
-          // Pick 1-3 random categories
+          // Pick 1-2 random categories
           const shuffledCats = [...categories].sort(() => 0.5 - Math.random());
-          const selectedCats = shuffledCats.slice(0, faker.number.int({ min: 1, max: 3 }));
+          const selectedCats = shuffledCats.slice(0, faker.number.int({ min: 1, max: 2 }));
 
           questionsData.push({
             questionText: faker.lorem.sentence() + '?',

@@ -10,6 +10,7 @@
     "start:scheduler": "node dist/workers/scheduler.js",
     "start:dispatcher": "node dist/workers/dispatcher.js",
     "start:drop-worker": "node dist/workers/drop-worker.js",
+    "ingest": "ts-node-dev --respawn false src/ingest.ts",
     "clean": "rm -rf dist"
   },
   "dependencies": {
