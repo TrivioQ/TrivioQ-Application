@@ -91,6 +91,22 @@ export class IngestionOrchestrator {
   }
 
   private availableCategories: { slug: string; name: string }[] = [];
+  private lastCallTime = 0;
+
+  private async delayIfNeeded(): Promise<void> {
+    if (this.lastCallTime > 0) {
+      const elapsed = Date.now() - this.lastCallTime;
+      const delay = 30000 - elapsed;
+      if (delay > 0) {
+        console.log(`[Orchestrator] Delaying ${Math.ceil(delay / 1000)} seconds to rate-limit AI calls...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  private recordCallTime(): void {
+    this.lastCallTime = Date.now();
+  }
 
   async run(): Promise<void> {
     this.state.initOrLoad();
@@ -133,7 +149,14 @@ export class IngestionOrchestrator {
         const existingMeta = (stateData.metadata as Record<string, unknown>) ?? {};
         const imageClassifications = (existingMeta.imageClassifications as Record<string, ImageType>) ?? {};
 
-        const { classification } = await this.scoutProvider.classifyImage(image);
+        await this.delayIfNeeded();
+        let classification: ImageType;
+        try {
+          const res = await this.scoutProvider.classifyImage(image);
+          classification = res.classification;
+        } finally {
+          this.recordCallTime();
+        }
         imageClassifications[imagePath] = classification;
 
         this.state.updateMetadata({ ...existingMeta, imageClassifications });
@@ -185,8 +208,14 @@ export class IngestionOrchestrator {
       try {
         const images = group.map((img) => this.imageToBase64(img));
 
-        // Pass the (possibly enriched) prompt through via the extraction provider
-        const extracted = await this.extractionProvider.extractFromImages(images, extractionPrompt);
+        await this.delayIfNeeded();
+        let extracted;
+        try {
+          // Pass the (possibly enriched) prompt through via the extraction provider
+          extracted = await this.extractionProvider.extractFromImages(images, extractionPrompt);
+        } finally {
+          this.recordCallTime();
+        }
 
         for (const eq of extracted.questions) {
           const question: Question = {
@@ -259,7 +288,13 @@ export class IngestionOrchestrator {
 
     for (const question of questionsToEnhance) {
       try {
-        const enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt);
+        await this.delayIfNeeded();
+        let enhanced;
+        try {
+          enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt);
+        } finally {
+          this.recordCallTime();
+        }
 
         this.state.upsertQuestion({
           ...question,
