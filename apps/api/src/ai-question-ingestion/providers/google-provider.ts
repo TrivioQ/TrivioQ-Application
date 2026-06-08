@@ -17,12 +17,23 @@ const ENHANCEMENT_MODEL = 'gemini-2.5-flash';
 
 export class GoogleProvider implements AIProvider {
   private readonly ai: GoogleGenAI;
+  private lastCallTime = 0;
 
   constructor(apiKey?: string) {
     this.ai = new GoogleGenAI({ apiKey: apiKey ?? process.env.GEMINI_API_KEY ?? '' });
   }
 
   private async generateContentWithRetry(params: any): Promise<any> {
+    // Rate limit control (15 RPM = 4s per request)
+    const minDelay = 4000;
+    const now = Date.now();
+    const timeSinceLastCall = now - this.lastCallTime;
+    if (timeSinceLastCall < minDelay) {
+      const waitTime = minDelay - timeSinceLastCall;
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+    this.lastCallTime = Date.now();
+
     const maxRetries = 5;
     let delay = 2000;
 

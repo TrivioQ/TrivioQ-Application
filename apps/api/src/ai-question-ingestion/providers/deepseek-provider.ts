@@ -1,16 +1,16 @@
 import type { AIProvider, ClassificationResult, EnhancementResult, ExtractionResult, ImageInput } from './ai-provider';
 import { ENHANCEMENT_PROMPT, EXTRACTION_PROMPT, SCOUT_PROMPT } from '../prompts';
 
-// ── NVIDIA API provider ───────────────────────────────────────────────────────
+// ── Deepseek API provider ───────────────────────────────────────────────────────
 //
-// Connects to the NVIDIA NIM / integrate.api.nvidia.com endpoint, which exposes
+// Connects to the Deepseek endpoint, which exposes
 // an OpenAI-compatible chat-completions API.
 //
-// Required env var:  NVIDIA_API_KEY
-// Optional env var:  NVIDIA_MODEL   (default: moonshotai/kimi-k2.6)
+// Required env var:  DEEPSEEK_API_KEY
+// Optional env var:  DEEPSEEK_MODEL   (default: deepseek-chat)
 
-const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
-const DEFAULT_MODEL = 'moonshotai/kimi-k2.6';
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
+const DEFAULT_MODEL = 'deepseek-chat';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -27,37 +27,30 @@ function stripMarkdownFences(text: string): string {
 
 /** Build an OpenAI-style message content array that includes optional images. */
 function buildContent(prompt: string, images: ImageInput[] = []): string | object[] {
-  if (images.length === 0) {
-    return prompt;
+  if (images.length > 0) {
+    throw new Error('[DeepseekProvider] DeepSeek API does not support image inputs. Please configure a vision-capable provider (like google or nvidia) for the scout and extraction phases.');
   }
 
-  const parts: object[] = [{ type: 'text', text: prompt }];
-  for (const img of images) {
-    parts.push({
-      type: 'image_url',
-      image_url: { url: `data:${img.mimeType};base64,${img.base64}` },
-    });
-  }
-  return parts;
+  return prompt;
 }
 
-// ── NvidiaProvider ────────────────────────────────────────────────────────────
+// ── DeepseekProvider ────────────────────────────────────────────────────────────
 
-export class NvidiaProvider implements AIProvider {
+export class DeepseekProvider implements AIProvider {
   private readonly model: string;
   private readonly apiKey: string;
   private lastCallTime = 0;
 
   constructor(model?: string, apiKey?: string) {
-    this.model = model ?? process.env.NVIDIA_MODEL ?? DEFAULT_MODEL;
-    this.apiKey = apiKey ?? process.env.NVIDIA_API_KEY ?? '';
+    this.model = model ?? process.env.DEEPSEEK_MODEL ?? DEFAULT_MODEL;
+    this.apiKey = apiKey ?? process.env.DEEPSEEK_API_KEY ?? '';
   }
 
   // ── Core fetch helper ───────────────────────────────────────────────────────
 
   private async call(prompt: string, images: ImageInput[] = []): Promise<string> {
-    // Rate limit control (15 RPM = 4s per request)
-    const minDelay = 4000;
+    // Rate limit control (adjust as needed for Deepseek)
+    const minDelay = 1500;
     const now = Date.now();
     const timeSinceLastCall = now - this.lastCallTime;
     if (timeSinceLastCall < minDelay) {
@@ -69,7 +62,7 @@ export class NvidiaProvider implements AIProvider {
     const payload = {
       model: this.model,
       messages: [{ role: 'user', content: buildContent(prompt, images) }],
-      max_tokens: 8192,
+      response_format: { type: 'json_object' },
       temperature: 0.2,
     };
 
@@ -78,7 +71,7 @@ export class NvidiaProvider implements AIProvider {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await fetch(NVIDIA_API_URL, {
+        const response = await fetch(DEEPSEEK_API_URL, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${this.apiKey}`,
@@ -91,7 +84,7 @@ export class NvidiaProvider implements AIProvider {
         if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
           if (attempt === maxRetries) {
             const errorText = await response.text();
-            throw new Error(`[NvidiaProvider] HTTP ${response.status} (after ${maxRetries} attempts): ${errorText}`);
+            throw new Error(`[DeepseekProvider] HTTP ${response.status} (after ${maxRetries} attempts): ${errorText}`);
           }
           let retryDelay = delay;
           const retryAfter = response.headers.get('retry-after');
@@ -101,7 +94,7 @@ export class NvidiaProvider implements AIProvider {
               retryDelay = Math.max(retryDelay, parsed * 1000);
             }
           }
-          console.warn(`[NvidiaProvider] HTTP ${response.status} (Attempt ${attempt}/${maxRetries}). Retrying in ${retryDelay}ms...`);
+          console.warn(`[DeepseekProvider] HTTP ${response.status} (Attempt ${attempt}/${maxRetries}). Retrying in ${retryDelay}ms...`);
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
           delay = Math.max(delay * 2, retryDelay);
           continue;
@@ -109,7 +102,7 @@ export class NvidiaProvider implements AIProvider {
 
         if (!response.ok) {
           const errorText = await response.text();
-          throw new Error(`[NvidiaProvider] HTTP ${response.status}: ${errorText}`);
+          throw new Error(`[DeepseekProvider] HTTP ${response.status}: ${errorText}`);
         }
 
         const data = (await response.json()) as any;
@@ -119,31 +112,52 @@ export class NvidiaProvider implements AIProvider {
         if (attempt === maxRetries) {
           throw error;
         }
-        console.warn(`[NvidiaProvider] Error (Attempt ${attempt}/${maxRetries}): ${error instanceof Error ? error.message : error}. Retrying in ${delay}ms...`);
+        console.warn(`[DeepseekProvider] Error (Attempt ${attempt}/${maxRetries}): ${error instanceof Error ? error.message : error}. Retrying in ${delay}ms...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
         delay *= 2;
       }
     }
-    throw new Error('[NvidiaProvider] Unreachable code reached in retry loop');
+    throw new Error('[DeepseekProvider] Unreachable code reached in retry loop');
   }
 
   // ── AIProvider implementation ───────────────────────────────────────────────
 
   async classifyImage(image: ImageInput): Promise<ClassificationResult> {
     const text = await this.call(SCOUT_PROMPT, [image]);
-    return JSON.parse(text) as ClassificationResult;
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (e) {
+      console.warn('[DeepseekProvider] Failed to parse JSON from classifyImage:', text);
+      throw e;
+    }
+    return result as ClassificationResult;
   }
 
   async extractFromImages(images: ImageInput[], promptOverride?: string): Promise<ExtractionResult> {
     const prompt = promptOverride ?? EXTRACTION_PROMPT;
     const text = await this.call(prompt, images);
-    return JSON.parse(text) as ExtractionResult;
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (e) {
+      console.warn('[DeepseekProvider] Failed to parse JSON from extractFromImages:', text);
+      throw e;
+    }
+    return result as ExtractionResult;
   }
 
   async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult> {
     const basePrompt = promptOverride ?? ENHANCEMENT_PROMPT;
     const userMessage = `${basePrompt}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}\n\nReturn a JSON object with: hint, explanation, aiQualityScore, difficulty`;
     const text = await this.call(userMessage);
-    return JSON.parse(text) as EnhancementResult;
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (e) {
+      console.warn('[DeepseekProvider] Failed to parse JSON from enhanceQuestion:', text);
+      throw e;
+    }
+    return result as EnhancementResult;
   }
 }
