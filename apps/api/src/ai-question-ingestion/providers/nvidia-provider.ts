@@ -69,7 +69,7 @@ export class NvidiaProvider implements AIProvider {
     const payload = {
       model: this.model,
       messages: [{ role: 'user', content: buildContent(prompt, images) }],
-      max_tokens: 4096,
+      max_tokens: 8192,
       temperature: 0.2,
     };
 

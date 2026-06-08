@@ -200,8 +200,8 @@ export class IngestionOrchestrator {
     // Build the prompt once — optionally prefixed with the book's special instruction
     const extractionPrompt = buildExtractionPrompt(this.extractionSpecialInstruction);
 
-    // Chunk images into batches of 3
-    const batchSize = 3;
+    // Chunk images into batches of 2
+    const batchSize = 2;
     const groups: string[][] = [];
     for (let i = 0; i < relevantImages.length; i += batchSize) {
       groups.push(relevantImages.slice(i, i + batchSize));

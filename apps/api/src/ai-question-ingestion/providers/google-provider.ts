@@ -22,8 +22,34 @@ export class GoogleProvider implements AIProvider {
     this.ai = new GoogleGenAI({ apiKey: apiKey ?? process.env.GEMINI_API_KEY ?? '' });
   }
 
+  private async generateContentWithRetry(params: any): Promise<any> {
+    const maxRetries = 5;
+    let delay = 2000;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await this.ai.models.generateContent(params);
+      } catch (error: any) {
+        if (error.status === 429 || (error.status >= 500 && error.status < 600)) {
+          if (attempt === maxRetries) throw error;
+
+          let retryDelay = delay;
+          const match = error.message?.match(/retry in (\d+(\.\d+)?)s/i);
+          if (match) {
+            retryDelay = Math.ceil(parseFloat(match[1]) * 1000) + 1000;
+          }
+          console.warn(`[GoogleProvider] HTTP ${error.status} (Attempt ${attempt}/${maxRetries}). Retrying in ${retryDelay}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+          delay *= 2;
+        } else {
+          throw error;
+        }
+      }
+    }
+  }
+
   async classifyImage(image: ImageInput): Promise<ClassificationResult> {
-    const response = await this.ai.models.generateContent({
+    const response = await this.generateContentWithRetry({
       model: FAST_MODEL,
       contents: [
         {
@@ -61,7 +87,7 @@ export class GoogleProvider implements AIProvider {
       })),
     ];
 
-    const response = await this.ai.models.generateContent({
+    const response = await this.generateContentWithRetry({
       model: HEAVY_MODEL,
       contents: [{ role: 'user', parts }],
       config: { responseMimeType: 'application/json' },
@@ -78,7 +104,7 @@ export class GoogleProvider implements AIProvider {
     const basePrompt = promptOverride ?? ENHANCEMENT_PROMPT;
     const userMessage = `Question: ${questionText}\nChoices: ${JSON.stringify(choices)}\n\nReturn a JSON object with: hint, explanation, aiQualityScore, difficulty`;
 
-    const response = await this.ai.models.generateContent({
+    const response = await this.generateContentWithRetry({
       model: ENHANCEMENT_MODEL,
       contents: [
         {
