@@ -40,6 +40,7 @@ export class IngestionOrchestrator {
   private readonly enhancementProvider: AIProvider;
   private readonly extractionSpecialInstruction?: string;
   private readonly enhancementSpecialInstruction?: string;
+  private readonly callDelayMs: number;
 
   constructor(
     bookId: string,
@@ -88,6 +89,9 @@ export class IngestionOrchestrator {
 
     this.extractionSpecialInstruction = config.extractionSpecialInstruction;
     this.enhancementSpecialInstruction = config.enhancementSpecialInstruction;
+
+    const delaySec = process.env.INGESTION_CALL_DELAY_SEC ? parseInt(process.env.INGESTION_CALL_DELAY_SEC, 10) : 30;
+    this.callDelayMs = delaySec * 1000;
   }
 
   private availableCategories: { slug: string; name: string }[] = [];
@@ -96,7 +100,7 @@ export class IngestionOrchestrator {
   private async delayIfNeeded(): Promise<void> {
     if (this.lastCallTime > 0) {
       const elapsed = Date.now() - this.lastCallTime;
-      const delay = 30000 - elapsed;
+      const delay = this.callDelayMs - elapsed;
       if (delay > 0) {
         console.log(`[Orchestrator] Delaying ${Math.ceil(delay / 1000)} seconds to rate-limit AI calls...`);
         await new Promise((resolve) => setTimeout(resolve, delay));

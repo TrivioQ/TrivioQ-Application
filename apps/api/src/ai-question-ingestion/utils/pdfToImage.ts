@@ -56,8 +56,8 @@ export async function pdfToImage(pdfPath: string, outputDir: string, options: Pd
 
   const imagePaths = response.map((res) => res.path!);
 
-  // pdf2pic may return paths in arbitrary order; sort them so indexes are stable.
-  imagePaths.sort((a, b) => a.localeCompare(b));
+  // pdf2pic may return paths in arbitrary order; sort them numerically so indexes are stable (e.g., page 2 before page 10).
+  imagePaths.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 
   return imagePaths;
 }
