@@ -12,13 +12,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider = ({
-  children,
-  initialTheme = 'system',
-}: {
-  children: React.ReactNode;
-  initialTheme?: Theme;
-}) => {
+export const ThemeProvider = ({ children, initialTheme = 'system' }: { children: React.ReactNode; initialTheme?: Theme }) => {
   const [theme, setThemeState] = useState<Theme>(initialTheme);
 
   const applyThemeClass = (themeToApply: Theme) => {

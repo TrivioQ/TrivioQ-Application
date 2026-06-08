@@ -68,15 +68,15 @@ Each object in the array must match this exact schema:
 Ensure the distractor choices (the incorrect ones) are plausible and appropriately scaled for the requested difficulty level.`;
 
 function buildSystemPrompt(topic: string | undefined, categories: { slug: string; name: string }[], difficulty: DifficultyLevel): string {
-    const categoryListStr = categories.map((c) => `- "${c.slug}" (${c.name})`).join('\n');
-    let prompt = SYSTEM_PROMPT.replaceAll('[INSERT_DIFFICULTY]', difficulty);
-    if (topic) {
-        prompt = prompt.replaceAll('[INSERT_TOPIC]', topic);
-    } else {
-        prompt = prompt.replaceAll('[INSERT_TOPIC]', 'any general knowledge topic');
-    }
+  const categoryListStr = categories.map((c) => `- "${c.slug}" (${c.name})`).join('\n');
+  let prompt = SYSTEM_PROMPT.replaceAll('[INSERT_DIFFICULTY]', difficulty);
+  if (topic) {
+    prompt = prompt.replaceAll('[INSERT_TOPIC]', topic);
+  } else {
+    prompt = prompt.replaceAll('[INSERT_TOPIC]', 'any general knowledge topic');
+  }
 
-    return prompt + `\n\nChoose 1-2 categorySlugs from this list:\n${categoryListStr}`;
+  return prompt + `\n\nChoose 1-2 categorySlugs from this list:\n${categoryListStr}`;
 }
 
 async function generateTriviaQuestions(topic: string | undefined, categories: { slug: string; name: string }[], difficulty: DifficultyLevel): Promise<LLMQuestion[]> {

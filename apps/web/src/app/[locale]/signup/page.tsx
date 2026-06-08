@@ -117,7 +117,14 @@ export default function SignupPage() {
 
           {/* Terms & Privacy agreement */}
           <div className="flex items-start gap-3">
-            <input id="terms" type="checkbox" checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} disabled={isPending} className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-gray-900 cursor-pointer" />
+            <input
+              id="terms"
+              type="checkbox"
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              disabled={isPending}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-gray-900 cursor-pointer"
+            />
             <label htmlFor="terms" className="text-sm text-gray-600 dark:text-gray-400 leading-snug cursor-pointer select-none">
               {t('termsAgreement')}{' '}
               <Link href="/terms" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 underline underline-offset-2">
@@ -141,9 +148,7 @@ export default function SignupPage() {
         <div className="mt-6">
           <div className="relative flex items-center">
             <div className="flex-grow border-t border-gray-300 dark:border-gray-700" />
-            <span className="flex-shrink-0 px-6 text-sm font-medium text-gray-500 dark:text-gray-400">
-              {t('orContinueWith')}
-            </span>
+            <span className="flex-shrink-0 px-6 text-sm font-medium text-gray-500 dark:text-gray-400">{t('orContinueWith')}</span>
             <div className="flex-grow border-t border-gray-300 dark:border-gray-700" />
           </div>
 
