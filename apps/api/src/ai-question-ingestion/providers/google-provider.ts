@@ -1,38 +1,21 @@
 import { GoogleGenAI } from '@google/genai';
-import type { AIProvider, ClassificationResult, EnhancementResult, ExtractionResult, ImageInput } from './ai-provider';
-import { ENHANCEMENT_PROMPT, EXTRACTION_PROMPT, SCOUT_PROMPT } from '../prompts';
-
-// ── Model constants ───────────────────────────────────────────────────────────
-
-/** Fast multimodal model used for image classification (Scout phase). */
-const FAST_MODEL = 'gemini-2.5-flash';
-
-/** Heavy multimodal model used for question extraction (Extraction phase). */
-const HEAVY_MODEL = 'gemini-2.5-flash';
-
-/** Model used for question enhancement (Enhancement phase). */
-const ENHANCEMENT_MODEL = 'gemini-2.5-flash';
+import { BaseAIProvider } from './base-provider';
+import type { ImageInput } from './ai-provider';
 
 // ── Google GenAI provider ─────────────────────────────────────────────────────
 
-export class GoogleProvider implements AIProvider {
+const GOOGLE_MODEL = 'gemini-2.5-flash';
+
+export class GoogleProvider extends BaseAIProvider {
   private readonly ai: GoogleGenAI;
-  private lastCallTime = 0;
 
   constructor(apiKey?: string) {
+    super();
     this.ai = new GoogleGenAI({ apiKey: apiKey ?? process.env.GEMINI_API_KEY ?? '' });
   }
 
   private async generateContentWithRetry(params: any): Promise<any> {
-    // Rate limit control (15 RPM = 4s per request)
-    const minDelay = 4000;
-    const now = Date.now();
-    const timeSinceLastCall = now - this.lastCallTime;
-    if (timeSinceLastCall < minDelay) {
-      const waitTime = minDelay - timeSinceLastCall;
-      await new Promise((resolve) => setTimeout(resolve, waitTime));
-    }
-    this.lastCallTime = Date.now();
+    await this.enforceRateLimit(4000);
 
     const maxRetries = 5;
     let delay = 2000;
@@ -59,77 +42,27 @@ export class GoogleProvider implements AIProvider {
     }
   }
 
-  async classifyImage(image: ImageInput): Promise<ClassificationResult> {
-    const response = await this.generateContentWithRetry({
-      model: FAST_MODEL,
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: SCOUT_PROMPT },
-            {
-              inlineData: {
-                mimeType: image.mimeType,
-                data: image.base64,
-              },
-            },
-          ],
-        },
-      ],
-      config: { responseMimeType: 'application/json' },
-    });
-
-    if (!response.text) {
-      throw new Error('[GoogleProvider] classifyImage: empty response');
-    }
-
-    return JSON.parse(response.text) as ClassificationResult;
-  }
-
-  async extractFromImages(images: ImageInput[], promptOverride?: string): Promise<ExtractionResult> {
-    const prompt = promptOverride ?? EXTRACTION_PROMPT;
-    const parts: any[] = [
-      { text: prompt },
-      ...images.map((img) => ({
+  protected async call(prompt: string, images: ImageInput[]): Promise<string> {
+    const parts: any[] = [{ text: prompt }];
+    for (const img of images) {
+      parts.push({
         inlineData: {
           mimeType: img.mimeType,
           data: img.base64,
         },
-      })),
-    ];
+      });
+    }
 
     const response = await this.generateContentWithRetry({
-      model: HEAVY_MODEL,
+      model: GOOGLE_MODEL,
       contents: [{ role: 'user', parts }],
       config: { responseMimeType: 'application/json' },
     });
 
     if (!response.text) {
-      throw new Error('[GoogleProvider] extractFromImages: empty response');
+      throw new Error('[GoogleProvider] call: empty response');
     }
 
-    return JSON.parse(response.text) as ExtractionResult;
-  }
-
-  async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult> {
-    const basePrompt = promptOverride ?? ENHANCEMENT_PROMPT;
-    const userMessage = `Question: ${questionText}\nChoices: ${JSON.stringify(choices)}\n\nReturn a JSON object with: hint, explanation, aiQualityScore, difficulty`;
-
-    const response = await this.generateContentWithRetry({
-      model: ENHANCEMENT_MODEL,
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: basePrompt }, { text: userMessage }],
-        },
-      ],
-      config: { responseMimeType: 'application/json' },
-    });
-
-    if (!response.text) {
-      throw new Error('[GoogleProvider] enhanceQuestion: empty response');
-    }
-
-    return JSON.parse(response.text) as EnhancementResult;
+    return response.text;
   }
 }

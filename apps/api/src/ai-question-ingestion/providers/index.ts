@@ -10,16 +10,18 @@
 export { GoogleProvider } from './google-provider';
 export { NvidiaProvider } from './nvidia-provider';
 export { DeepseekProvider } from './deepseek-provider';
+export { AntigravityProvider } from './antigravity-provider';
 export type { AIProvider, ClassificationResult, EnhancementResult, ExtractionResult, ExtractedAnswerKey, ExtractedChoice, ExtractedQuestion, ImageInput } from './ai-provider';
 
 import type { AIProvider } from './ai-provider';
 import { GoogleProvider } from './google-provider';
 import { NvidiaProvider } from './nvidia-provider';
 import { DeepseekProvider } from './deepseek-provider';
+import { AntigravityProvider } from './antigravity-provider';
 
 // Union of all supported provider names.
 // Add your new provider name here when extending.
-export type AIProviderName = 'google' | 'nvidia' | 'deepseek';
+export type AIProviderName = 'google' | 'nvidia' | 'deepseek' | 'antigravity';
 
 /**
  * Instantiates the requested AI provider.
@@ -29,6 +31,8 @@ export type AIProviderName = 'google' | 'nvidia' | 'deepseek';
  */
 export function createProvider(name: AIProviderName = 'google'): AIProvider {
   switch (name) {
+    case 'antigravity':
+      return new AntigravityProvider();
     case 'deepseek':
       return new DeepseekProvider();
     case 'nvidia':

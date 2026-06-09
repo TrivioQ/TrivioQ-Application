@@ -4,9 +4,9 @@ import { fromPath } from 'pdf2pic';
 import type { Options as Pdf2PicOptions } from 'pdf2pic/dist/types/options';
 
 export interface PdfToImageOptions {
-  /** @default "png" */
+  /** @default "jpeg" */
   format?: 'png' | 'jpeg' | 'webp';
-  /** @default 200 */
+  /** @default 100 */
   density?: number;
   /** Image width in pixels (preserves aspect ratio by default). */
   width?: number;
@@ -36,7 +36,7 @@ export async function pdfToImage(pdfPath: string, outputDir: string, options: Pd
     fs.mkdirSync(resolvedOutput, { recursive: true });
   }
 
-  const { format = 'png', density = 200, width, height, preserveAspectRatio = true } = options;
+  const { format = 'jpeg', density = 100, width, height, preserveAspectRatio = true } = options;
 
   const baseFilename = path.basename(resolvedPdf, path.extname(resolvedPdf));
 

@@ -1,5 +1,5 @@
-import type { AIProvider, ClassificationResult, EnhancementResult, ExtractionResult, ImageInput } from './ai-provider';
-import { ENHANCEMENT_PROMPT, EXTRACTION_PROMPT, SCOUT_PROMPT } from '../prompts';
+import { BaseAIProvider } from './base-provider';
+import type { ImageInput } from './ai-provider';
 
 // ── NVIDIA API provider ───────────────────────────────────────────────────────
 //
@@ -11,19 +11,6 @@ import { ENHANCEMENT_PROMPT, EXTRACTION_PROMPT, SCOUT_PROMPT } from '../prompts'
 
 const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 const DEFAULT_MODEL = 'moonshotai/kimi-k2.6';
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Strip markdown fences that some models wrap around JSON output. */
-function stripMarkdownFences(text: string): string {
-  if (text.startsWith('```json')) {
-    return text.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-  }
-  if (text.startsWith('```')) {
-    return text.replace(/^```\s*/, '').replace(/\s*```$/, '');
-  }
-  return text;
-}
 
 /** Build an OpenAI-style message content array that includes optional images. */
 function buildContent(prompt: string, images: ImageInput[] = []): string | object[] {
@@ -41,30 +28,18 @@ function buildContent(prompt: string, images: ImageInput[] = []): string | objec
   return parts;
 }
 
-// ── NvidiaProvider ────────────────────────────────────────────────────────────
-
-export class NvidiaProvider implements AIProvider {
+export class NvidiaProvider extends BaseAIProvider {
   private readonly model: string;
   private readonly apiKey: string;
-  private lastCallTime = 0;
 
   constructor(model?: string, apiKey?: string) {
+    super();
     this.model = model ?? process.env.NVIDIA_MODEL ?? DEFAULT_MODEL;
     this.apiKey = apiKey ?? process.env.NVIDIA_API_KEY ?? '';
   }
 
-  // ── Core fetch helper ───────────────────────────────────────────────────────
-
-  private async call(prompt: string, images: ImageInput[] = []): Promise<string> {
-    // Rate limit control (15 RPM = 4s per request)
-    const minDelay = 4000;
-    const now = Date.now();
-    const timeSinceLastCall = now - this.lastCallTime;
-    if (timeSinceLastCall < minDelay) {
-      const waitTime = minDelay - timeSinceLastCall;
-      await new Promise((resolve) => setTimeout(resolve, waitTime));
-    }
-    this.lastCallTime = Date.now();
+  protected async call(prompt: string, images: ImageInput[]): Promise<string> {
+    await this.enforceRateLimit(4000);
 
     const payload = {
       model: this.model,
@@ -75,13 +50,15 @@ export class NvidiaProvider implements AIProvider {
 
     const maxRetries = 8;
     let delay = 3000;
+    const url = NVIDIA_API_URL;
+    const apiKey = this.apiKey;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await fetch(NVIDIA_API_URL, {
+        const response = await fetch(url, {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
@@ -113,8 +90,7 @@ export class NvidiaProvider implements AIProvider {
         }
 
         const data = (await response.json()) as any;
-        const rawText: string = data.choices[0].message.content;
-        return stripMarkdownFences(rawText.trim());
+        return data.choices[0].message.content.trim();
       } catch (error) {
         if (attempt === maxRetries) {
           throw error;
@@ -125,25 +101,5 @@ export class NvidiaProvider implements AIProvider {
       }
     }
     throw new Error('[NvidiaProvider] Unreachable code reached in retry loop');
-  }
-
-  // ── AIProvider implementation ───────────────────────────────────────────────
-
-  async classifyImage(image: ImageInput): Promise<ClassificationResult> {
-    const text = await this.call(SCOUT_PROMPT, [image]);
-    return JSON.parse(text) as ClassificationResult;
-  }
-
-  async extractFromImages(images: ImageInput[], promptOverride?: string): Promise<ExtractionResult> {
-    const prompt = promptOverride ?? EXTRACTION_PROMPT;
-    const text = await this.call(prompt, images);
-    return JSON.parse(text) as ExtractionResult;
-  }
-
-  async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult> {
-    const basePrompt = promptOverride ?? ENHANCEMENT_PROMPT;
-    const userMessage = `${basePrompt}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}\n\nReturn a JSON object with: hint, explanation, aiQualityScore, difficulty`;
-    const text = await this.call(userMessage);
-    return JSON.parse(text) as EnhancementResult;
   }
 }
