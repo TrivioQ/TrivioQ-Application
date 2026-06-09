@@ -70,6 +70,14 @@ export class IngestionOrchestrator {
         /** Provider for question enhancement + difficulty (Enhancement phase). */
         enhancement?: AIProviderName;
       };
+      models?: {
+        /** Model override for image classification (Scout phase). */
+        scout?: string;
+        /** Model override for question extraction (Extraction phase). */
+        extraction?: string;
+        /** Model override for question enhancement + difficulty (Enhancement phase). */
+        enhancement?: string;
+      };
       /** Optional free-text instruction for the extraction phase. */
       extractionSpecialInstruction?: string;
       /** Optional free-text instruction for the enhancement phase. */
@@ -81,11 +89,15 @@ export class IngestionOrchestrator {
     // Resolve the global fallback once
     const globalDefault: AIProviderName = config.aiProvider ?? (process.env.INGESTION_AI_PROVIDER as AIProviderName | undefined) ?? 'google';
 
-    this.scoutProvider = createProvider(config.providers?.scout ?? (process.env.INGESTION_SCOUT_PROVIDER as AIProviderName | undefined) ?? globalDefault);
+    const scoutModel = config.models?.scout ?? process.env.INGESTION_SCOUT_MODEL;
+    const extractionModel = config.models?.extraction ?? process.env.INGESTION_EXTRACTION_MODEL;
+    const enhancementModel = config.models?.enhancement ?? process.env.INGESTION_ENHANCEMENT_MODEL;
 
-    this.extractionProvider = createProvider(config.providers?.extraction ?? (process.env.INGESTION_EXTRACTION_PROVIDER as AIProviderName | undefined) ?? globalDefault);
+    this.scoutProvider = createProvider(config.providers?.scout ?? (process.env.INGESTION_SCOUT_PROVIDER as AIProviderName | undefined) ?? globalDefault, scoutModel);
 
-    this.enhancementProvider = createProvider(config.providers?.enhancement ?? (process.env.INGESTION_ENHANCEMENT_PROVIDER as AIProviderName | undefined) ?? globalDefault);
+    this.extractionProvider = createProvider(config.providers?.extraction ?? (process.env.INGESTION_EXTRACTION_PROVIDER as AIProviderName | undefined) ?? globalDefault, extractionModel);
+
+    this.enhancementProvider = createProvider(config.providers?.enhancement ?? (process.env.INGESTION_ENHANCEMENT_PROVIDER as AIProviderName | undefined) ?? globalDefault, enhancementModel);
 
     this.extractionSpecialInstruction = config.extractionSpecialInstruction;
     this.enhancementSpecialInstruction = config.enhancementSpecialInstruction;
@@ -221,7 +233,7 @@ export class IngestionOrchestrator {
           this.recordCallTime();
         }
 
-        for (const eq of extracted.questions) {
+        for (const eq of extracted.questions || []) {
           const question: Question = {
             id: eq.id,
             text: eq.text,
@@ -235,7 +247,7 @@ export class IngestionOrchestrator {
           this.state.upsertQuestion(question);
         }
 
-        if (extracted.answerKeys.length > 0) {
+        if ((extracted.answerKeys?.length ?? 0) > 0) {
           const existingMeta = (this.state.initOrLoad().metadata as Record<string, unknown>) ?? {};
           const existingAKs = (existingMeta.answerKeys as any[]) ?? [];
           existingAKs.push(...extracted.answerKeys);
@@ -262,19 +274,62 @@ export class IngestionOrchestrator {
     for (const q of stateData.questions) {
       if (q.status !== 'AWAITING_KEY') continue;
 
-      let hasAnswer = false;
+      let currentAnswer = q.answer;
+      let foundInKey = false;
       for (const ak of answerKeys) {
         if (ak.answers[q.id]) {
-          this.state.upsertQuestion({ ...q, answer: ak.answers[q.id], status: 'READY_FOR_ENHANCEMENT' });
-          hasAnswer = true;
+          currentAnswer = ak.answers[q.id];
+          foundInKey = true;
           break;
         }
       }
 
-      // If answer came directly from extraction choices, no answer key needed
-      const hasDirectAnswer = (q.metadata?.choices as any[])?.some((c) => c.isCorrect === true);
-      if (!hasAnswer && (q.metadata?.answerKeyRef || hasDirectAnswer)) {
-        this.state.upsertQuestion({ ...q, status: 'READY_FOR_ENHANCEMENT' });
+      // Normalize answer and isCorrect flags
+      const choices = (q.metadata?.choices as any[]) ?? [];
+      const trueOptions = choices.map((opt: any, index: number) => ({ opt, index })).filter((item: any) => item.opt.isCorrect === true);
+      const hasAnswerKey = currentAnswer !== undefined && currentAnswer !== null;
+
+      if (hasAnswerKey && trueOptions.length === 0) {
+        // Case 1: answer key present, all isCorrect false
+        const answerChar = currentAnswer!.charAt(0).toUpperCase();
+        const targetIndex = answerChar.charCodeAt(0) - 65; // A=0, B=1, etc.
+        choices.forEach((opt: any, idx: number) => {
+          opt.isCorrect = idx === targetIndex;
+        });
+      } else if (!hasAnswerKey && trueOptions.length > 0) {
+        // Case 2: answer key missing, some isCorrect true
+        const correctIndex = trueOptions[0].index;
+        currentAnswer = String.fromCharCode(65 + correctIndex);
+      } else if (hasAnswerKey && trueOptions.length > 0) {
+        // Case 3: Both exist, check for mismatch
+        const answerChar = currentAnswer!.charAt(0).toUpperCase();
+        const expectedIndex = answerChar.charCodeAt(0) - 65;
+        const actualIndex = trueOptions[0].index;
+
+        if (expectedIndex !== actualIndex) {
+          // Mismatch! Prioritize explicit answer key
+          choices.forEach((opt: any, idx: number) => {
+            opt.isCorrect = idx === expectedIndex;
+          });
+        }
+      }
+
+      const updatedQ = {
+        ...q,
+        answer: currentAnswer,
+        metadata: {
+          ...q.metadata,
+          choices,
+        },
+      };
+
+      const hasDirectAnswer = choices.some((c: any) => c.isCorrect === true);
+
+      if (foundInKey || hasDirectAnswer || (!foundInKey && q.metadata?.answerKeyRef)) {
+        this.state.upsertQuestion({ ...updatedQ, status: 'READY_FOR_ENHANCEMENT' });
+      } else {
+        // Just save the normalized state without changing status
+        this.state.upsertQuestion(updatedQ);
       }
     }
   }
@@ -312,6 +367,8 @@ export class IngestionOrchestrator {
             categorySlugs: enhanced.categorySlugs,
             // Store the AI-inferred difficulty; sanitised before upload
             difficulty: sanitiseDifficulty(enhanced.difficulty),
+            isFactuallyCorrect: enhanced.isFactuallyCorrect,
+            factCheckRationale: enhanced.factCheckRationale,
           },
         });
 
@@ -360,7 +417,7 @@ export class IngestionOrchestrator {
           isDuplicate: false,
           isValidated: false,
           aiQualityScore: (q.metadata?.aiQualityScore as number) ?? undefined,
-          aiFeedback: null,
+          aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
         }));
 
         await prisma.pendingQuestion.createMany({ data: rows as any });

@@ -10,7 +10,7 @@ import type { ImageInput } from './ai-provider';
 // Optional env var:  NVIDIA_MODEL   (default: moonshotai/kimi-k2.6)
 
 const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
-const DEFAULT_MODEL = 'moonshotai/kimi-k2.6';
+const FALLBACK_MODEL = 'moonshotai/kimi-k2.6';
 
 /** Build an OpenAI-style message content array that includes optional images. */
 function buildContent(prompt: string, images: ImageInput[] = []): string | object[] {
@@ -34,11 +34,11 @@ export class NvidiaProvider extends BaseAIProvider {
 
   constructor(model?: string, apiKey?: string) {
     super();
-    this.model = model ?? process.env.NVIDIA_MODEL ?? DEFAULT_MODEL;
+    this.model = model ?? FALLBACK_MODEL;
     this.apiKey = apiKey ?? process.env.NVIDIA_API_KEY ?? '';
   }
 
-  protected async call(prompt: string, images: ImageInput[]): Promise<string> {
+  protected async call(prompt: string, images: ImageInput[] = []): Promise<string> {
     await this.enforceRateLimit(4000);
 
     const payload = {

@@ -4,14 +4,16 @@ import type { ImageInput } from './ai-provider';
 
 // ── Google GenAI provider ─────────────────────────────────────────────────────
 
-const GOOGLE_MODEL = 'gemini-3.5-flash';
+const FALLBACK_MODEL = 'gemini-3.1-flash-lite';
 
 export class GoogleProvider extends BaseAIProvider {
   private readonly ai: GoogleGenAI;
+  private readonly model: string;
 
-  constructor(apiKey?: string) {
+  constructor(model?: string, apiKey?: string) {
     super();
-    this.ai = new GoogleGenAI({ apiKey: apiKey ?? process.env.GEMINI_API_KEY ?? '' });
+    this.model = model ?? FALLBACK_MODEL;
+    this.ai = new GoogleGenAI({ apiKey: apiKey || process.env.GEMINI_API_KEY || '' });
   }
 
   private async generateContentWithRetry(params: any): Promise<any> {
@@ -42,7 +44,7 @@ export class GoogleProvider extends BaseAIProvider {
     }
   }
 
-  protected async call(prompt: string, images: ImageInput[]): Promise<string> {
+  protected async call(prompt: string, images: ImageInput[] = []): Promise<string> {
     const parts: any[] = [{ text: prompt }];
     for (const img of images) {
       parts.push({
@@ -53,8 +55,10 @@ export class GoogleProvider extends BaseAIProvider {
       });
     }
 
+    console.log(`[GoogleProvider] Calling model: ${this.model}`);
+
     const response = await this.generateContentWithRetry({
-      model: GOOGLE_MODEL,
+      model: this.model,
       contents: [{ role: 'user', parts }],
       config: { responseMimeType: 'application/json' },
     });

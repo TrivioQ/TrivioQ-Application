@@ -88,6 +88,9 @@ Return a JSON object with this exact schema:
 
 export const ENHANCEMENT_PROMPT = `You are a trivia question enhancer. Given a trivia question with its choices (which may already contain Markdown, LaTeX math, or tables), generate a hint, an explanation, an AI quality score, a difficulty level, a topic, and 1-2 category slugs.
 
+## CRITICAL — Fact Checking
+Perform a strict fact check on the question and the provided choices. Ensure that the question is factually accurate and the option marked as correct is indeed the true answer. If there are factual errors or the marked answer is wrong, record this in \`factCheckRationale\` and set \`isFactuallyCorrect\` to false. If everything is accurate, set \`isFactuallyCorrect\` to true.
+
 ## CRITICAL — Markdown compatibility rules
 Both "hint" and "explanation" fields MUST be written in **GitHub-Flavored Markdown (GFM)**.
 The output is rendered by TWO different engines:
@@ -125,7 +128,9 @@ Return a JSON object with this exact schema:
   "hint": "A short, helpful clue without giving away the answer (compatible Markdown)",
   "explanation": "A concise 2-3 sentence explanation of why the correct answer is right (compatible Markdown)",
   "aiQualityScore": 75,
-  "difficulty": "EASY|MEDIUM|HARD"
+  "difficulty": "EASY|MEDIUM|HARD",
+  "isFactuallyCorrect": true,
+  "factCheckRationale": "Reasoning if factually incorrect, otherwise null"
 }`;
 
 // ── Prompt builders ───────────────────────────────────────────────────────────

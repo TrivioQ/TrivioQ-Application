@@ -17,7 +17,7 @@ export abstract class BaseAIProvider {
    * **raw** text response.  Markdown fences, trimming and JSON parsing
    * are handled by the base class.
    */
-  protected abstract call(prompt: string, images: ImageInput[]): Promise<string>;
+  protected abstract call(prompt: string, images?: ImageInput[]): Promise<string>;
 
   // ---------------------------------------------------------------------------
   // Shared helpers
@@ -68,7 +68,7 @@ export abstract class BaseAIProvider {
 
   async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult> {
     const prompt = `${promptOverride ?? ENHANCEMENT_PROMPT}\n\n` + `Question: ${questionText}\n` + `Choices: ${JSON.stringify(choices)}\n\n` + 'Return a JSON object with: hint, explanation, aiQualityScore, difficulty';
-    const text = await this.call(prompt, []);
+    const text = await this.call(prompt);
     return this.parseJson(text, 'enhanceQuestion');
   }
 }

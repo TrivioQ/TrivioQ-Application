@@ -10,18 +10,16 @@
 export { GoogleProvider } from './google-provider';
 export { NvidiaProvider } from './nvidia-provider';
 export { DeepseekProvider } from './deepseek-provider';
-export { AntigravityProvider } from './antigravity-provider';
 export type { AIProvider, ClassificationResult, EnhancementResult, ExtractionResult, ExtractedAnswerKey, ExtractedChoice, ExtractedQuestion, ImageInput } from './ai-provider';
 
 import type { AIProvider } from './ai-provider';
 import { GoogleProvider } from './google-provider';
 import { NvidiaProvider } from './nvidia-provider';
 import { DeepseekProvider } from './deepseek-provider';
-import { AntigravityProvider } from './antigravity-provider';
 
 // Union of all supported provider names.
 // Add your new provider name here when extending.
-export type AIProviderName = 'google' | 'nvidia' | 'deepseek' | 'antigravity';
+export type AIProviderName = 'google' | 'nvidia' | 'deepseek';
 
 /**
  * Instantiates the requested AI provider.
@@ -29,16 +27,14 @@ export type AIProviderName = 'google' | 'nvidia' | 'deepseek' | 'antigravity';
  * @param name - Provider to use. Defaults to `'google'`.
  * @returns     An object satisfying the `AIProvider` contract.
  */
-export function createProvider(name: AIProviderName = 'google'): AIProvider {
+export function createProvider(name: AIProviderName = 'google', model?: string): AIProvider {
   switch (name) {
-    case 'antigravity':
-      return new AntigravityProvider();
     case 'deepseek':
-      return new DeepseekProvider();
+      return new DeepseekProvider(model);
     case 'nvidia':
-      return new NvidiaProvider();
+      return new NvidiaProvider(model);
     case 'google':
     default:
-      return new GoogleProvider();
+      return new GoogleProvider(model);
   }
 }

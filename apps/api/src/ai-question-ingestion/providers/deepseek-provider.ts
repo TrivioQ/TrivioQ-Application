@@ -10,7 +10,7 @@ import type { ImageInput } from './ai-provider';
 // Optional env var:  DEEPSEEK_MODEL   (default: deepseek-chat)
 
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
-const DEFAULT_MODEL = 'deepseek-chat';
+const FALLBACK_MODEL = 'deepseek-chat';
 
 export class DeepseekProvider extends BaseAIProvider {
   private readonly model: string;
@@ -18,11 +18,11 @@ export class DeepseekProvider extends BaseAIProvider {
 
   constructor(model?: string, apiKey?: string) {
     super();
-    this.model = model ?? process.env.DEEPSEEK_MODEL ?? DEFAULT_MODEL;
+    this.model = model ?? FALLBACK_MODEL;
     this.apiKey = apiKey ?? process.env.DEEPSEEK_API_KEY ?? '';
   }
 
-  protected async call(prompt: string, images: ImageInput[]): Promise<string> {
+  protected async call(prompt: string, images: ImageInput[] = []): Promise<string> {
     await this.enforceRateLimit(1500);
 
     const payload = {

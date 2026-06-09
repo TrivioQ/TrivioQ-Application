@@ -49,6 +49,8 @@ export interface EnhancementResult {
   aiQualityScore: number;
   /** AI-inferred difficulty. Must be validated against DifficultyLevel values before use. */
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  isFactuallyCorrect: boolean;
+  factCheckRationale: string | null;
 }
 
 // ── Provider interface ────────────────────────────────────────────────────────
