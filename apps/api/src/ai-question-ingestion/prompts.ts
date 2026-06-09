@@ -2,9 +2,11 @@
 // All AI prompts live here so every provider imports from one place.
 // Changes to a prompt are automatically reflected in all providers.
 
-export const SCOUT_PROMPT = `You are a document classifier. Analyze the provided page image and classify it into one of these categories:
-- "RELEVANT" — contains trivia questions, quiz questions, or answer keys
-- "OTHER" — anything else (table of contents, blank pages, advertisements, etc.)
+export const SCOUT_PROMPT = `You are a strict document classifier. Analyze the provided page image and classify it into one of these categories:
+- "RELEVANT" — strictly contains actual trivia questions, quiz questions, or answer keys.
+- "OTHER" — anything else (table of contents, blank pages, advertisements, title pages, prefaces, syllabuses, instructional pages, or any page WITHOUT actual questions or answer keys).
+
+CRITICAL: If the page does NOT contain any actual questions or answer keys, you MUST classify it as "OTHER".
 
 Return ONLY a JSON object with this exact schema. Do not include markdown, explanations, or any other text:
 {"classification": "RELEVANT|OTHER", "confidence": 0.0-1.0}`;
