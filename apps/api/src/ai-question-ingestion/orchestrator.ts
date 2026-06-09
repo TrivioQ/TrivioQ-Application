@@ -219,7 +219,13 @@ export class IngestionOrchestrator {
       groups.push(relevantImages.slice(i, i + batchSize));
     }
 
-    for (let i = 0; i < groups.length; i++) {
+    const startIndex = this.state.getLastProcessedExtractionBatchIndex() + 1;
+
+    if (startIndex > 0 && startIndex <= groups.length) {
+      console.log(`[Extraction] Resuming from batch ${startIndex + 1} of ${groups.length}`);
+    }
+
+    for (let i = startIndex; i < groups.length; i++) {
       const group = groups[i];
       try {
         const images = group.map((img) => this.imageToBase64(img));
@@ -255,6 +261,10 @@ export class IngestionOrchestrator {
         }
 
         this.reconcileAnswerKeys();
+
+        // Mark this batch as completed
+        this.state.setLastProcessedExtractionBatchIndex(i);
+        console.log(`[Extraction] Completed batch ${i + 1} of ${groups.length}`);
       } catch (error) {
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'extraction',
@@ -398,35 +408,35 @@ export class IngestionOrchestrator {
         const duplicateFlags = await Promise.all(batch.map((q) => checkIsDuplicate(q.text)));
         const nonDuplicates: Question[] = batch.filter((_, j) => !duplicateFlags[j]);
 
-        if (nonDuplicates.length === 0) {
+        if (nonDuplicates.length > 0) {
+          // One PendingQuestion row per question (no duplication).
+          const rows = nonDuplicates.map((q) => ({
+            topic: (q.metadata?.topic as string) || this.config.topic || 'General',
+            categorySlugs: (q.metadata?.categorySlugs as string[]) || [],
+            // Use AI-inferred difficulty stored in metadata; fall back to MEDIUM
+            difficultyLevel: sanitiseDifficulty(q.metadata?.difficulty as string | undefined),
+            suggestedText: q.text,
+            suggestedChoices: shuffleArray((q.metadata?.choices as any[]) ?? []),
+            hint: (q.metadata?.hint as string) ?? null,
+            explanation: (q.metadata?.explanation as string) ?? null,
+            status: 'PENDING',
+            isDuplicate: false,
+            isValidated: false,
+            aiQualityScore: (q.metadata?.aiQualityScore as number) ?? undefined,
+            aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
+          }));
+
+          await prisma.pendingQuestion.createMany({ data: rows as any });
+          console.log(`[Upload] Batch ${i / UPLOAD_BATCH_SIZE + 1}: inserted ${rows.length} row(s) (${nonDuplicates.length} question(s))`);
+        } else {
           console.log(`[Upload] Batch ${i / UPLOAD_BATCH_SIZE + 1}: all duplicates`);
-          continue;
         }
 
-        // One PendingQuestion row per question (no duplication).
-        const rows = nonDuplicates.map((q) => ({
-          topic: (q.metadata?.topic as string) || this.config.topic || 'General',
-          categorySlugs: (q.metadata?.categorySlugs as string[]) || [],
-          // Use AI-inferred difficulty stored in metadata; fall back to MEDIUM
-          difficultyLevel: sanitiseDifficulty(q.metadata?.difficulty as string | undefined),
-          suggestedText: q.text,
-          suggestedChoices: shuffleArray((q.metadata?.choices as any[]) ?? []),
-          hint: (q.metadata?.hint as string) ?? null,
-          explanation: (q.metadata?.explanation as string) ?? null,
-          status: 'PENDING',
-          isDuplicate: false,
-          isValidated: false,
-          aiQualityScore: (q.metadata?.aiQualityScore as number) ?? undefined,
-          aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
-        }));
-
-        await prisma.pendingQuestion.createMany({ data: rows as any });
-
-        for (const q of nonDuplicates) {
+        // Mark ALL questions in the batch (both duplicates and non-duplicates) as UPLOADED
+        // so they don't get stuck in READY_FOR_UPLOAD state and re-processed on every restart.
+        for (const q of batch) {
           this.state.updateStatus(q.id, 'UPLOADED');
         }
-
-        console.log(`[Upload] Batch ${i / UPLOAD_BATCH_SIZE + 1}: inserted ${rows.length} row(s) (${nonDuplicates.length} question(s))`);
       } catch (error) {
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'upload',

@@ -14,6 +14,7 @@ export interface Question {
 export interface IngestionStateData {
   bookId: string;
   lastProcessedImageIndex: number;
+  lastProcessedExtractionBatchIndex?: number;
   questions: Question[];
   metadata?: Record<string, unknown>;
   createdAt: string;
@@ -23,6 +24,7 @@ export interface IngestionStateData {
 const defaultStateData = (bookId: string): IngestionStateData => ({
   bookId,
   lastProcessedImageIndex: -1,
+  lastProcessedExtractionBatchIndex: -1,
   questions: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -92,6 +94,17 @@ export class IngestionState {
   getLastProcessedImageIndex(): number {
     const state = this.initOrLoad();
     return state.lastProcessedImageIndex;
+  }
+
+  setLastProcessedExtractionBatchIndex(index: number): void {
+    const state = this.initOrLoad();
+    state.lastProcessedExtractionBatchIndex = index;
+    this.writeState(state);
+  }
+
+  getLastProcessedExtractionBatchIndex(): number {
+    const state = this.initOrLoad();
+    return state.lastProcessedExtractionBatchIndex ?? -1;
   }
 
   getQuestionsByStatus(status: QuestionStatus): Question[] {
