@@ -13,7 +13,9 @@
 import 'dotenv/config';
 import { runIngestion } from './ai-question-ingestion/runner';
 
-runIngestion().catch((err) => {
+const reuploadOnly = process.argv.includes('--reupload');
+
+runIngestion({ reuploadOnly }).catch((err) => {
   console.error('[Ingest] Fatal error:', err);
   process.exit(1);
 });

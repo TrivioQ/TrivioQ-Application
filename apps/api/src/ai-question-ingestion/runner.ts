@@ -79,7 +79,7 @@ const DATA_DIR_NAME = 'data';
  * `'google'`).  The `INGESTION_DIR` env var can override the base directory
  * (default: `ingestion`).
  */
-export async function runIngestion(): Promise<void> {
+export async function runIngestion(options?: { reuploadOnly?: boolean }): Promise<void> {
   const ingestionRoot = path.resolve(process.cwd(), process.env.INGESTION_DIR ?? 'ingestion');
 
   if (!fs.existsSync(ingestionRoot)) {
@@ -160,23 +160,28 @@ export async function runIngestion(): Promise<void> {
     }
 
     // ── Convert PDF → images ──────────────────────────────────────────────────
-    console.log(`[Runner] Converting PDF: ${pdfFiles[0]}`);
-    let imagePaths: string[];
-    try {
-      imagePaths = await pdfToImage(pdfPath, dataDir);
-    } catch (err) {
-      console.error('[Runner] Failed to convert PDF — skipping book:', err);
-      skipped++;
-      continue;
+    let imagePaths: string[] = [];
+    if (!options?.reuploadOnly) {
+      console.log(`[Runner] Converting PDF: ${pdfFiles[0]}`);
+      try {
+        imagePaths = await pdfToImage(pdfPath, dataDir);
+      } catch (err) {
+        console.error('[Runner] Failed to convert PDF — skipping book:', err);
+        skipped++;
+        continue;
+      }
+
+      if (imagePaths.length === 0) {
+        console.warn('[Runner] PDF produced no images — skipping');
+        skipped++;
+        continue;
+      }
+
+      console.log(`[Runner] ${imagePaths.length} images produced → starting orchestrator`);
+    } else {
+      console.log(`[Runner] Reupload mode: skipping PDF conversion for ${pdfFiles[0]}`);
     }
 
-    if (imagePaths.length === 0) {
-      console.warn('[Runner] PDF produced no images — skipping');
-      skipped++;
-      continue;
-    }
-
-    console.log(`[Runner] ${imagePaths.length} images produced → starting orchestrator`);
     console.log(`[Runner] bookId: ${instructions.bookId}`);
     if (instructions.topic) {
       console.log(`[Runner] topic: ${instructions.topic}`);
@@ -201,7 +206,7 @@ export async function runIngestion(): Promise<void> {
         enhancementSpecialInstruction: instructions.specialInstruction,
       });
 
-      await orchestrator.run();
+      await orchestrator.run(options);
       processed++;
       console.log(`[Runner] ✓ Completed: ${dir.name}`);
     } catch (err) {

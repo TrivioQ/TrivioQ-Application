@@ -124,7 +124,7 @@ export class IngestionOrchestrator {
     this.lastCallTime = Date.now();
   }
 
-  async run(): Promise<void> {
+  async run(options?: { reuploadOnly?: boolean }): Promise<void> {
     this.state.initOrLoad();
     console.log(`[Orchestrator] Starting ingestion for ${this.imagePaths.length} images`);
     console.log(`[Orchestrator] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
@@ -140,10 +140,21 @@ export class IngestionOrchestrator {
     });
     console.log(`[Orchestrator] Fetched ${this.availableCategories.length} categories from DB`);
 
-    await this.scoutPhase();
-    await this.extractionPhase();
-    await this.enhancementPhase();
-    await this.uploadPhase();
+    if (options?.reuploadOnly) {
+      console.log('[Orchestrator] Reupload mode: preparing questions for upload...');
+      const stateData = this.state.initOrLoad();
+      for (const q of stateData.questions) {
+        if (q.status === 'UPLOADED' || q.status === 'READY_FOR_UPLOAD') {
+          this.state.updateStatus(q.id, 'READY_FOR_UPLOAD');
+        }
+      }
+      await this.uploadPhase();
+    } else {
+      await this.scoutPhase();
+      await this.extractionPhase();
+      await this.enhancementPhase();
+      await this.uploadPhase();
+    }
 
     console.log('[Orchestrator] Ingestion complete');
   }

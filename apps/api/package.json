@@ -11,6 +11,7 @@
     "start:dispatcher": "node dist/workers/dispatcher.js",
     "start:drop-worker": "node dist/workers/drop-worker.js",
     "ingest": "ts-node-dev --respawn false src/ingest.ts",
+    "ingest:reupload": "ts-node-dev --respawn false src/ingest.ts --reupload",
     "clean": "rm -rf dist"
   },
   "dependencies": {
