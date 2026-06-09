@@ -154,7 +154,7 @@ export class IngestionOrchestrator {
     const stateData = this.state.initOrLoad();
     const startIndex = stateData.lastProcessedImageIndex + 1;
 
-    console.log(`[Scout] Starting from image ${startIndex}`);
+    console.log(`[Scout] Starting from image ${startIndex + 1}`);
 
     for (let i = startIndex; i < this.imagePaths.length; i++) {
       const imagePath = this.imagePaths[i];
@@ -178,7 +178,7 @@ export class IngestionOrchestrator {
         this.state.updateMetadata({ ...existingMeta, imageClassifications });
         this.state.setLastProcessedImageIndex(i);
 
-        console.log(`[Scout] Image ${i} classified as ${classification}`);
+        console.log(`[Scout] Image ${i + 1} classified as ${classification}`);
       } catch (error) {
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'scout',

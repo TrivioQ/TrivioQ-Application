@@ -43,10 +43,25 @@ export abstract class BaseAIProvider {
   }
 
   private parseJson<T>(raw: string, op: string): T {
-    const text = this.stripMarkdownFences(raw);
+    const text = this.stripMarkdownFences(raw).trim();
     try {
       return JSON.parse(text) as T;
-    } catch (e) {
+    } catch (e: any) {
+      // Attempt to recover from "Unexpected non-whitespace character after JSON"
+      // (e.g., when the LLM outputs an extra closing brace at the end)
+      if (e instanceof Error && e.message.includes('Unexpected non-whitespace character after JSON')) {
+        const match = e.message.match(/position (\d+)/);
+        if (match) {
+          const pos = parseInt(match[1], 10);
+          try {
+            return JSON.parse(text.slice(0, pos)) as T;
+          } catch (recoveryErr) {
+            console.error(`[${this.constructor.name}] ${op} recovery error:`, recoveryErr);
+            // If recovery fails, fall through to the original error log
+          }
+        }
+      }
+
       console.error(`[${this.constructor.name}] ${op} parse error:`, text);
       throw e;
     }
@@ -56,19 +71,39 @@ export abstract class BaseAIProvider {
   // AIProvider implementation
   // ---------------------------------------------------------------------------
 
+  private async callWithRetry<T>(prompt: string, images: ImageInput[], op: string): Promise<T> {
+    const maxAttempts = 3;
+    let lastError: any;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const text = await this.call(prompt, images);
+        return this.parseJson<T>(text, op);
+      } catch (e: any) {
+        if (e instanceof SyntaxError || e.name === 'SyntaxError') {
+          console.warn(`[${this.constructor.name}] ${op} attempt ${attempt} failed with SyntaxError. Retrying...`);
+          lastError = e;
+          if (attempt < maxAttempts) {
+            await new Promise((r) => setTimeout(r, 2000));
+          }
+          continue;
+        }
+        throw e;
+      }
+    }
+    throw lastError;
+  }
+
   async classifyImage(image: ImageInput): Promise<ClassificationResult> {
-    const text = await this.call(SCOUT_PROMPT, [image]);
-    return this.parseJson(text, 'classifyImage');
+    return this.callWithRetry<ClassificationResult>(SCOUT_PROMPT, [image], 'classifyImage');
   }
 
   async extractFromImages(images: ImageInput[], promptOverride?: string): Promise<ExtractionResult> {
-    const text = await this.call(promptOverride ?? EXTRACTION_PROMPT, images);
-    return this.parseJson(text, 'extractFromImages');
+    return this.callWithRetry<ExtractionResult>(promptOverride ?? EXTRACTION_PROMPT, images, 'extractFromImages');
   }
 
   async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult> {
     const prompt = `${promptOverride ?? ENHANCEMENT_PROMPT}\n\n` + `Question: ${questionText}\n` + `Choices: ${JSON.stringify(choices)}\n\n` + 'Return a JSON object with: hint, explanation, aiQualityScore, difficulty';
-    const text = await this.call(prompt);
-    return this.parseJson(text, 'enhanceQuestion');
+    return this.callWithRetry<EnhancementResult>(prompt, [], 'enhanceQuestion');
   }
 }
