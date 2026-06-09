@@ -4,7 +4,7 @@ import type { ImageInput } from './ai-provider';
 
 // ── Google GenAI provider ─────────────────────────────────────────────────────
 
-const GOOGLE_MODEL = 'gemini-2.5-flash';
+const GOOGLE_MODEL = 'gemini-3.5-flash';
 
 export class GoogleProvider extends BaseAIProvider {
   private readonly ai: GoogleGenAI;
