@@ -223,8 +223,8 @@ export class IngestionOrchestrator {
     // Build the prompt once — optionally prefixed with the book's special instruction
     const extractionPrompt = buildExtractionPrompt(this.extractionSpecialInstruction);
 
-    // Chunk images into batches of 2
-    const batchSize = 2;
+    // Chunk images into batches
+    const batchSize = process.env.INGESTION_EXTRACTION_BATCH_SIZE ? parseInt(process.env.INGESTION_EXTRACTION_BATCH_SIZE, 10) : 1;
     const groups: string[][] = [];
     for (let i = 0; i < relevantImages.length; i += batchSize) {
       groups.push(relevantImages.slice(i, i + batchSize));
@@ -284,6 +284,10 @@ export class IngestionOrchestrator {
         });
       }
     }
+
+    // Always reconcile one final time at the end of the phase to catch any previously skipped questions
+    // or manual logic updates.
+    this.reconcileAnswerKeys();
   }
 
   private reconcileAnswerKeys(): void {
@@ -298,8 +302,20 @@ export class IngestionOrchestrator {
       let currentAnswer = q.answer;
       let foundInKey = false;
       for (const ak of answerKeys) {
+        // Try exact match, then stripped prefix match, then added prefix match
+        const rawId = q.id.replace(/^q/i, '');
+        const qIdVariant = `q${rawId}`;
+
         if (ak.answers[q.id]) {
           currentAnswer = ak.answers[q.id];
+          foundInKey = true;
+          break;
+        } else if (ak.answers[rawId]) {
+          currentAnswer = ak.answers[rawId];
+          foundInKey = true;
+          break;
+        } else if (ak.answers[qIdVariant]) {
+          currentAnswer = ak.answers[qIdVariant];
           foundInKey = true;
           break;
         }
