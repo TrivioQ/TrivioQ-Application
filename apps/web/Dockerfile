@@ -20,7 +20,7 @@ WORKDIR /app
 # -----------------------------------------------------------------------------
 FROM base AS deps
 
-COPY package.json yarn.lock turbo.json ./
+COPY package.json yarn.lock turbo.json .yarnrc.yml ./
 COPY .yarn ./.yarn
 
 # Copy all workspace package manifests

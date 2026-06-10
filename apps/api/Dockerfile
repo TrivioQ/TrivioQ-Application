@@ -26,7 +26,7 @@ WORKDIR /app
 FROM base AS deps
 
 # Copy Yarn Berry configuration and lockfile first (cache layer)
-COPY package.json yarn.lock turbo.json ./
+COPY package.json yarn.lock turbo.json .yarnrc.yml ./
 COPY .yarn ./.yarn
 
 # Copy all workspace package manifests so Yarn can resolve the graph
