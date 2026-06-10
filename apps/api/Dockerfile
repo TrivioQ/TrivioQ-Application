@@ -30,14 +30,15 @@ COPY package.json yarn.lock turbo.json ./
 COPY .yarn ./.yarn
 
 # Copy all workspace package manifests so Yarn can resolve the graph
-COPY apps/api/package.json             ./apps/api/package.json
-COPY packages/database/package.json    ./packages/database/package.json
-COPY packages/shared-types/package.json ./packages/shared-types/package.json
-COPY packages/eslint-config/package.json ./packages/eslint-config/package.json
-COPY packages/typescript-config/package.json ./packages/typescript-config/package.json
+COPY apps/api/package.json              ./apps/api/package.json
+COPY apps/web/package.json              ./apps/web/package.json
+COPY apps/admin/package.json            ./apps/admin/package.json
+COPY apps/mobile/package.json           ./apps/mobile/package.json
+COPY packages/database/package.json     ./packages/database/package.json
+COPY packages/shared-types/package.json  ./packages/shared-types/package.json
 
 # Install all dependencies (including devDependencies needed for build)
-RUN yarn install --immutable
+RUN yarn install
 
 # -----------------------------------------------------------------------------
 # Stage 3: builder — compile workspace packages then the API
@@ -52,8 +53,6 @@ COPY --from=deps /app/yarn.lock       ./yarn.lock
 # Copy all source code
 COPY packages/database    ./packages/database
 COPY packages/shared-types ./packages/shared-types
-COPY packages/eslint-config ./packages/eslint-config
-COPY packages/typescript-config ./packages/typescript-config
 COPY apps/api             ./apps/api
 
 # ── Step 1: Generate Prisma Client ──────────────────────────────────────────

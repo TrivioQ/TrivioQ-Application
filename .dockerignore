@@ -48,6 +48,7 @@ README.md
 
 # ── Mobile app (not containerized) ────────────────────────────────────────────
 apps/mobile
+!apps/mobile/package.json
 
 # ── Yarn Berry install state (rebuilt inside container) ───────────────────────
 .yarn/install-state.gz
