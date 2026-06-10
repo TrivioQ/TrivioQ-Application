@@ -54,6 +54,12 @@ COPY --from=deps /app/yarn.lock       ./yarn.lock
 COPY packages/database    ./packages/database
 COPY packages/shared-types ./packages/shared-types
 COPY apps/api             ./apps/api
+COPY apps/web/package.json   ./apps/web/package.json
+COPY apps/admin/package.json ./apps/admin/package.json
+COPY apps/mobile/package.json ./apps/mobile/package.json
+
+# Align the Yarn install state with the copied source files
+RUN yarn install
 
 # ── Step 1: Generate Prisma Client ──────────────────────────────────────────
 # Must happen before compiling any package that imports @prisma/client

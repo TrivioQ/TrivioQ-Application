@@ -45,6 +45,13 @@ COPY --from=deps /app/yarn.lock    ./yarn.lock
 
 COPY packages/shared-types   ./packages/shared-types
 COPY apps/web                ./apps/web
+COPY apps/api/package.json   ./apps/api/package.json
+COPY apps/admin/package.json ./apps/admin/package.json
+COPY apps/mobile/package.json ./apps/mobile/package.json
+COPY packages/database/package.json ./packages/database/package.json
+
+# Align the Yarn install state with the copied source files
+RUN yarn install
 
 # Sentry source-map upload requires SENTRY_AUTH_TOKEN; in Docker builds we
 # skip it — uploads should happen in CI, not container builds.

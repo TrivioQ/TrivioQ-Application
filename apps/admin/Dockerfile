@@ -47,6 +47,12 @@ COPY --from=deps /app/yarn.lock    ./yarn.lock
 COPY packages/database       ./packages/database
 COPY packages/shared-types   ./packages/shared-types
 COPY apps/admin              ./apps/admin
+COPY apps/api/package.json   ./apps/api/package.json
+COPY apps/web/package.json   ./apps/web/package.json
+COPY apps/mobile/package.json ./apps/mobile/package.json
+
+# Align the Yarn install state with the copied source files
+RUN yarn install
 
 # Generate Prisma client for the Alpine target
 RUN cd packages/database && npx prisma generate
