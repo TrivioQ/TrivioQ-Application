@@ -63,6 +63,9 @@ Use \`-\` for unordered and \`1.\` for ordered lists where the source uses them.
 ### 8. Multiple-choice options
 Completely strip all leading identifiers (such as "A)", "B.", "a.", "b)", "1.", "2)", etc.) from the choice text. The "text" field of a choice should contain ONLY the raw value of the option without any prefix.
 
+### 9. Questions spanning multiple pages
+If a question starts at the bottom of one page image and continues on the next page image, you MUST stitch them together and extract them as a single question object. Do not split it or drop it.
+
 Return a JSON object with this exact schema:
 {
   "questions": [

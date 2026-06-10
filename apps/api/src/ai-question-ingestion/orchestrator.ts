@@ -223,11 +223,15 @@ export class IngestionOrchestrator {
     // Build the prompt once — optionally prefixed with the book's special instruction
     const extractionPrompt = buildExtractionPrompt(this.extractionSpecialInstruction);
 
-    // Chunk images into batches
+    // Chunk images into overlapping batches (stride = batchSize - 1, min stride = 1)
     const batchSize = process.env.INGESTION_EXTRACTION_BATCH_SIZE ? parseInt(process.env.INGESTION_EXTRACTION_BATCH_SIZE, 10) : 1;
+    const overlap = 1;
+    const stride = Math.max(1, batchSize - overlap);
     const groups: string[][] = [];
-    for (let i = 0; i < relevantImages.length; i += batchSize) {
-      groups.push(relevantImages.slice(i, i + batchSize));
+    for (let i = 0; i < relevantImages.length; i += stride) {
+      const group = relevantImages.slice(i, i + batchSize);
+      groups.push(group);
+      if (group.length < batchSize) break;
     }
 
     const startIndex = this.state.getLastProcessedExtractionBatchIndex() + 1;
