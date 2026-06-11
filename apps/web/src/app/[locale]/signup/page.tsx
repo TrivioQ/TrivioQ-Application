@@ -79,7 +79,7 @@ export default function SignupPage() {
               <label className="sr-only" htmlFor="username">
                 {t('usernameLabel')}
               </label>
-              <input id="username" type="text" required minLength={3} maxLength={30} pattern="[a-zA-Z0-9_]+" title={t('usernameTitle')} className={inputClass} placeholder={t('usernamePlaceholder')} value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} disabled={isPending} />
+              <input id="username" type="text" required minLength={3} maxLength={30} pattern="[a-zA-Z0-9_.]+" title={t('usernameTitle')} className={inputClass} placeholder={t('usernamePlaceholder')} value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} disabled={isPending} />
             </div>
 
             {/* Email */}

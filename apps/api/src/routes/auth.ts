@@ -69,8 +69,8 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
         return res.status(400).json({ error: 'Username must be between 3 and 30 characters.' });
       }
 
-      if (!/^[a-z0-9_]+$/.test(username)) {
-        return res.status(400).json({ error: 'Username may only contain lowercase letters, numbers, and underscores.' });
+      if (!/^[a-z0-9_.]+$/.test(username)) {
+        return res.status(400).json({ error: 'Username may only contain lowercase letters, numbers, underscores, and periods.' });
       }
 
       // ── Validate date of birth (must be at least 13 years old) ───────────────

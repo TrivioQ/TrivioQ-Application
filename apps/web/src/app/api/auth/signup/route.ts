@@ -40,8 +40,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ message: 'Username must be at least 3 characters' }, { status: 400 });
   }
 
-  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-    return NextResponse.json({ message: 'Username may only contain letters, numbers, and underscores' }, { status: 400 });
+  if (!/^[a-zA-Z0-9_.]+$/.test(username)) {
+    return NextResponse.json({ message: 'Username may only contain letters, numbers, underscores, and periods' }, { status: 400 });
   }
 
   if (password.length < 8) {
