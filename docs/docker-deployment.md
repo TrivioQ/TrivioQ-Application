@@ -73,6 +73,23 @@ AutomationServer (192.168.0.101)
     └── admin:3012        ← Next.js 16 admin dashboard
 ```
 
+### Container Responsibilities
+
+#### Infrastructure
+*   **`postgres`**: The core relational database storing all persistent data (users, scores, questions, user settings, and drop history).
+*   **`redis`**: Key-value data store used as the message broker for BullMQ background job queues.
+
+#### Application Servers
+*   **`api`**: Express REST API serving HTTP endpoints for web, mobile, and admin clients. Handles authentication, database queries, and dispatches background tasks to Redis.
+*   **`web`**: Next.js 14 user-facing web application.
+*   **`admin`**: Next.js 16 admin dashboard for question management and system diagnostics.
+
+#### Background Workers
+*   **`worker-scheduler`**: Runs a cron scheduler every minute to check if users are inside active windows and determines if they should receive a new trivia question drop.
+*   **`worker-dispatcher`**: Push notification dispatcher. Pulls jobs from the `dispatch-notifications` queue and uses Firebase Cloud Messaging (FCM) to send push notifications.
+*   **`worker-drop`**: Processes scheduled drops. It handles question selection logic (standard randomized weight selection or mistakes-based mastery logic), database entries, and queueing notifications.
+*   **`worker-cron`**: Processes weekly/monthly leaderboard updates, bonus distributions, and periodic cleanup tasks.
+
 ### Startup Dependency Order
 
 ```
