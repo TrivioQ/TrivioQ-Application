@@ -262,8 +262,11 @@ export class IngestionOrchestrator {
         }
 
         for (const eq of extracted.questions || []) {
+          // Guarantee a globally unique ID by prepending the page number
+          const uniqueId = eq.pageNumber && !eq.id.includes(`p${eq.pageNumber}`) ? `p${eq.pageNumber}_${eq.id}` : eq.id;
+
           const question: Question = {
-            id: eq.id,
+            id: uniqueId,
             text: eq.text,
             status: 'AWAITING_KEY',
             metadata: {
@@ -314,11 +317,17 @@ export class IngestionOrchestrator {
       let foundInKey = false;
       for (const ak of answerKeys) {
         // Try exact match, then stripped prefix match, then added prefix match
-        const rawId = q.id.replace(/^q/i, '');
+        const originalIdMatch = q.id.match(/_([^_]+)$/);
+        const baseId = originalIdMatch ? originalIdMatch[1] : q.id;
+        const rawId = baseId.replace(/^q/i, '');
         const qIdVariant = `q${rawId}`;
 
         if (ak.answers[q.id]) {
           currentAnswer = ak.answers[q.id];
+          foundInKey = true;
+          break;
+        } else if (ak.answers[baseId]) {
+          currentAnswer = ak.answers[baseId];
           foundInKey = true;
           break;
         } else if (ak.answers[rawId]) {
