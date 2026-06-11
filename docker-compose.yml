@@ -137,6 +137,7 @@ services:
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_HOST:    redis
       REDIS_PORT:    6379
+      FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     ports:
       - "3013:3013"
     volumes:
@@ -172,6 +173,7 @@ services:
       NODE_ENV:      production
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL:     redis://redis:6379
+      FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
     networks:
@@ -195,6 +197,7 @@ services:
       NODE_ENV:      production
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL:     redis://redis:6379
+      FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
     networks:
@@ -218,6 +221,7 @@ services:
       NODE_ENV:      production
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL:     redis://redis:6379
+      FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
     networks:
@@ -241,6 +245,7 @@ services:
       NODE_ENV:      production
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL:     redis://redis:6379
+      FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
     networks:

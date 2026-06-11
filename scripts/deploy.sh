@@ -171,12 +171,12 @@ cmd_redeploy() {
     info "Rebuilding image for: ${service}"
     docker compose -f "${COMPOSE_FILE}" build "${service}"
     info "Recreating container: ${service}"
-    docker compose -f "${COMPOSE_FILE}" up -d --no-deps "${service}"
+    docker compose -f "${COMPOSE_FILE}" up -d --no-deps --force-recreate "${service}"
   else
     info "Rebuilding all changed images ..."
     docker compose -f "${COMPOSE_FILE}" build
     info "Restarting all services ..."
-    docker compose -f "${COMPOSE_FILE}" up -d
+    docker compose -f "${COMPOSE_FILE}" up -d --force-recreate
   fi
 
   success "Redeploy complete."
