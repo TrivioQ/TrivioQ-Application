@@ -55,6 +55,7 @@ Use \`-\` for unordered and \`1.\` for ordered lists where the source uses them.
 \`**bold**\` and \`*italic*\` only — never HTML tags such as \`<b>\` or \`<em>\`.
 
 ### 7. General
+- STRICT ANTI-HALLUCINATION RULE: Do not hallucinate or fabricate any text, questions, or data. You must stick STRICTLY to the factual data visible in the source images.
 - Never emit raw HTML tags anywhere.
 - Never escape Markdown syntax unnecessarily.
 - Preserve every piece of data visible on the page; do not summarise or truncate.
@@ -66,6 +67,11 @@ Completely strip all leading identifiers (such as "A)", "B.", "a.", "b)", "1.", 
 ### 9. Questions spanning multiple pages
 If a question starts at the bottom of one page image and continues on the next page image, you MUST stitch them together and extract them as a single question object. Do not split it or drop it.
 
+### 10. Answer Keys & Guessing
+Do NOT guess or attempt to solve the questions.
+Only set \`isCorrect: true\` for a choice IF the correct answer is explicitly marked inline in the text next to the question.
+If the answer is NOT explicitly marked inline, you MUST set \`isCorrect: false\` for ALL choices. Answer keys are usually provided separately on another page, so it is completely normal and expected for all choices to be false.
+
 Return a JSON object with this exact schema:
 {
   "questions": [
@@ -74,7 +80,9 @@ Return a JSON object with this exact schema:
       "text": "The question text in compatible Markdown",
       "choices": [
         { "text": "Option A in compatible Markdown", "isCorrect": false },
-        { "text": "Option B in compatible Markdown", "isCorrect": true }
+        { "text": "Option B in compatible Markdown", "isCorrect": false },
+        { "text": "Option C in compatible Markdown", "isCorrect": false },
+        { "text": "Option D in compatible Markdown", "isCorrect": false }
       ],
       "pageNumber": 1
     }
@@ -91,20 +99,21 @@ Return a JSON object with this exact schema:
 
 export const ENHANCEMENT_PROMPT = `You are a trivia question enhancer. Given a trivia question with its choices (which may already contain Markdown, LaTeX math, or tables), generate a hint, an explanation, an AI quality score, a difficulty level, a topic, and 1-2 category slugs.
 
-## CRITICAL — Fact Checking
-Perform a strict fact check on the question and the provided choices. Ensure that the question is factually accurate and the option marked as correct is indeed the true answer. If there are factual errors or the marked answer is wrong, record this in \`factCheckRationale\` and set \`isFactuallyCorrect\` to false. If everything is accurate, set \`isFactuallyCorrect\` to true.
+## CRITICAL — Fact Checking & Anti-Hallucination
+STRICT ANTI-HALLUCINATION RULE: Do not hallucinate or fabricate any facts in your hint or explanation. Stick strictly to verified, factual data.
+Perform a strict fact check on the question and the provided choices. Ensure that the question is factually accurate and the option marked as correct is indeed the true answer. If there are factual errors or the marked answer is wrong, record this in factCheckRationale and set isFactuallyCorrect to false. If everything is accurate, set isFactuallyCorrect to true.
 
 ## CRITICAL — Markdown compatibility rules
 Both "hint" and "explanation" fields MUST be written in **GitHub-Flavored Markdown (GFM)**.
 The output is rendered by TWO different engines:
   • Web/Admin — react-markdown v10 with remark-gfm, remark-math, and rehype-katex (full KaTeX support)
-  • Mobile    — react-native-markdown-display v7 (markdown-it, NO math plugin installed)
+  • Mobile    — react-native-markdown-display v7 (markdown-it, with mathjax3 plugin installed)
 
 Follow every rule below:
 
-1. **Mathematical formulas** — Always write math in LaTeX notation AND include a plain-text fallback in parentheses on the same line:
-   Inline: \`$E = mc^2$ (E equals m times c squared)\`
-   Block:  \`$$\\frac{a}{b}$$ (a divided by b)\`
+1. **Mathematical formulas** — Always write math in standard LaTeX notation:
+   Inline: \`$E = mc^2$\`
+   Block:  \`$$\frac{a}{b}$$\`
 2. **Tables** — use GFM pipe-table syntax if comparisons or data need to be displayed; never use HTML \`<table>\` tags.
 3. **Code / data values** — wrap in backticks or fenced code blocks.
 4. **Bold / italic** — \`**bold**\` and \`*italic*\` only; no HTML tags.

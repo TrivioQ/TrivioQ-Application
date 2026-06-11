@@ -17,6 +17,7 @@ export type ImageType = 'RELEVANT' | 'OTHER';
 // ── Configuration ─────────────────────────────────────────────────────────────
 
 const UPLOAD_BATCH_SIZE = 20;
+const DEFAULT_CALL_DELAY = 10;
 const VALID_DIFFICULTIES: DifficultyLevel[] = ['EASY', 'MEDIUM', 'HARD'];
 
 /** Validate an AI-returned difficulty string; falls back to MEDIUM if invalid. */
@@ -40,7 +41,7 @@ export class IngestionOrchestrator {
   private readonly enhancementProvider: AIProvider;
   private readonly extractionSpecialInstruction?: string;
   private readonly enhancementSpecialInstruction?: string;
-  private readonly callDelayMs: number;
+  private readonly callDelayMs: { scout: number; extraction: number; enhancement: number };
 
   constructor(
     bookId: string,
@@ -102,17 +103,20 @@ export class IngestionOrchestrator {
     this.extractionSpecialInstruction = config.extractionSpecialInstruction;
     this.enhancementSpecialInstruction = config.enhancementSpecialInstruction;
 
-    const delaySec = process.env.INGESTION_CALL_DELAY_SEC ? parseInt(process.env.INGESTION_CALL_DELAY_SEC, 10) : 30;
-    this.callDelayMs = delaySec * 1000;
+    this.callDelayMs = {
+      scout: (process.env.INGESTION_SCOUT_CALL_DELAY_SEC ? parseInt(process.env.INGESTION_SCOUT_CALL_DELAY_SEC, 10) : DEFAULT_CALL_DELAY) * 1000,
+      extraction: (process.env.INGESTION_EXTRACTION_CALL_DELAY_SEC ? parseInt(process.env.INGESTION_EXTRACTION_CALL_DELAY_SEC, 10) : DEFAULT_CALL_DELAY) * 1000,
+      enhancement: (process.env.INGESTION_ENHANCEMENT_CALL_DELAY_SEC ? parseInt(process.env.INGESTION_ENHANCEMENT_CALL_DELAY_SEC, 10) : DEFAULT_CALL_DELAY) * 1000,
+    };
   }
 
   private availableCategories: { slug: string; name: string }[] = [];
   private lastCallTime = 0;
 
-  private async delayIfNeeded(): Promise<void> {
+  private async delayIfNeeded(phase: 'scout' | 'extraction' | 'enhancement'): Promise<void> {
     if (this.lastCallTime > 0) {
       const elapsed = Date.now() - this.lastCallTime;
-      const delay = this.callDelayMs - elapsed;
+      const delay = this.callDelayMs[phase] - elapsed;
       if (delay > 0) {
         console.log(`[Orchestrator] Delaying ${Math.ceil(delay / 1000)} seconds to rate-limit AI calls...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
@@ -176,7 +180,8 @@ export class IngestionOrchestrator {
         const existingMeta = (stateData.metadata as Record<string, unknown>) ?? {};
         const imageClassifications = (existingMeta.imageClassifications as Record<string, ImageType>) ?? {};
 
-        await this.delayIfNeeded();
+        await this.delayIfNeeded('scout');
+        console.log(`[Scout] Classifying image ${i + 1}...`);
         let classification: ImageType;
         try {
           const res = await this.scoutProvider.classifyImage(image);
@@ -245,7 +250,9 @@ export class IngestionOrchestrator {
       try {
         const images = group.map((img) => this.imageToBase64(img));
 
-        await this.delayIfNeeded();
+        const imageIndices = group.map((p) => this.imagePaths.indexOf(p) + 1).join(', ');
+        await this.delayIfNeeded('extraction');
+        console.log(`[Extraction] Extracting questions from image(s) ${imageIndices}...`);
         let extracted;
         try {
           // Pass the (possibly enriched) prompt through via the extraction provider
@@ -339,8 +346,12 @@ export class IngestionOrchestrator {
         });
       } else if (!hasAnswerKey && trueOptions.length > 0) {
         // Case 2: answer key missing, some isCorrect true
-        const correctIndex = trueOptions[0].index;
-        currentAnswer = String.fromCharCode(65 + correctIndex);
+        // The LLM often hallucinates the correct answer to satisfy the JSON schema.
+        // If we don't have an explicit answer key matched, we must clear these hallucinations
+        // so the question remains in AWAITING_KEY status.
+        choices.forEach((opt: any) => {
+          opt.isCorrect = false;
+        });
       } else if (hasAnswerKey && trueOptions.length > 0) {
         // Case 3: Both exist, check for mismatch
         const answerChar = currentAnswer!.charAt(0).toUpperCase();
@@ -388,7 +399,8 @@ export class IngestionOrchestrator {
 
     for (const question of questionsToEnhance) {
       try {
-        await this.delayIfNeeded();
+        await this.delayIfNeeded('enhancement');
+        console.log(`[Enhancement] Enhancing question ${question.id}...`);
         let enhanced;
         try {
           enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt);

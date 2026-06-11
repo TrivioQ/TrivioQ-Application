@@ -1,6 +1,11 @@
 import React from 'react';
-import Markdown from 'react-native-markdown-display';
+import Markdown, { MarkdownIt } from 'react-native-markdown-display';
 import { StyleSheet, useColorScheme, Linking } from 'react-native';
+// @ts-ignore
+import MathView from 'react-native-math-view';
+import markdownItMathjax3 from 'markdown-it-mathjax3';
+
+const markdownItInstance = MarkdownIt({ typographer: true }).use(markdownItMathjax3);
 
 interface MarkdownTextProps {
   children: string;
@@ -13,7 +18,7 @@ interface MarkdownTextProps {
 /**
  * Renders a markdown string in React Native using react-native-markdown-display.
  * Supports GFM-compatible markdown: bold, italic, images, tables, code, and lists.
- * Math formulas (KaTeX) are not supported on RN — use descriptive text fallback.
+ * Math formulas (LaTeX) are supported via react-native-math-view.
  */
 export function MarkdownText({ children, color, scale = 1 }: MarkdownTextProps) {
   const scheme = useColorScheme();
@@ -65,9 +70,20 @@ export function MarkdownText({ children, color, scale = 1 }: MarkdownTextProps) 
     blockquote_text: { color: mutedColor },
   });
 
+  const rules = {
+    math_inline: (node: any, _children: any, _parent: any, _styles: any) => {
+      return <MathView key={node.key} math={node.content} style={{ color: textColor }} />;
+    },
+    math_block: (node: any, _children: any, _parent: any, _styles: any) => {
+      return <MathView key={node.key} math={node.content} style={{ color: textColor, marginVertical: 8, alignSelf: 'center' }} />;
+    },
+  };
+
   return (
     <Markdown
+      markdownit={markdownItInstance}
       style={styles}
+      rules={rules}
       onLinkPress={(url) => {
         Linking.openURL(url);
         return false;
