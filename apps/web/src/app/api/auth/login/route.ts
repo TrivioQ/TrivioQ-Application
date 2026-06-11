@@ -98,10 +98,18 @@ export async function syncAndRespond(idToken: string, extraData: Record<string, 
 
     const response = NextResponse.json(data, { status: 200 });
 
+    // Use secure cookies only when the app is served over HTTPS.
+    // In Docker-based local/beta deploys, NODE_ENV is 'production' but the
+    // app is served over plain HTTP — enforcing secure: true would silently
+    // drop the cookie in the browser.
+    // TODO: this is a temp fix, 
+    // should be: secure: process.env.NODE_ENV === 'production', sameSite: true
+
+    const isHttps = (process.env.APP_URL ?? '').startsWith('https://');
     const cookieBase = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: true,
+      secure: isHttps,
+      sameSite: 'lax' as const,
       path: '/',
       ...(keepMeLoggedIn ? { maxAge: COOKIE_MAX_AGE_14_DAYS } : {}),
     };

@@ -137,6 +137,7 @@ services:
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_HOST:    redis
       REDIS_PORT:    6379
+      REDIS_URL:     redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     ports:
       - "3013:3013"

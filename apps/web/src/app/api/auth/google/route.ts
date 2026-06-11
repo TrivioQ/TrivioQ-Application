@@ -32,7 +32,7 @@ export async function GET(): Promise<NextResponse> {
 
   response.cookies.set(STATE_COOKIE, state, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: (process.env.APP_URL ?? '').startsWith('https://'),
     sameSite: 'lax',
     maxAge: 60 * 10, // 10 minutes
     path: '/',

@@ -111,7 +111,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   redirectResponse.cookies.set('tq_oauth_state', '', { maxAge: 0, path: '/' });
   redirectResponse.cookies.set('tq_auth', authCookie.value, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: (process.env.APP_URL ?? '').startsWith('https://'),
     sameSite: 'lax',
     maxAge: authCookie.maxAge,
     path: '/',
