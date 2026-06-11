@@ -2,7 +2,9 @@ import { Worker } from 'bullmq';
 process.env.TZ = 'UTC';
 import Redis from 'ioredis';
 
-const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
+  maxRetriesPerRequest: null,
+});
 
 const worker = new Worker(
   'trivia-drops',
