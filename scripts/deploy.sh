@@ -119,7 +119,8 @@ ensure_main_and_pull() {
   local current_branch
   current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
   if [[ "${current_branch}" != "main" ]]; then
-    die "Not on the 'main' branch (current branch is '${current_branch}'). Please switch to main to deploy/redeploy."
+    info "Not on the 'main' branch (current branch is '${current_branch}'). Switching to main..."
+    git checkout main || die "Failed to switch to main branch."
   fi
   info "Pulling latest changes from main branch..."
   git pull origin main || die "Failed to pull latest changes from main branch."
