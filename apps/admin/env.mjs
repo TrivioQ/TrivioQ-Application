@@ -18,4 +18,5 @@ export const env = createEnv({
     API_URL: process.env.API_URL,
   },
   emptyStringAsUndefined: true,
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
 });

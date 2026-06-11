@@ -40,6 +40,7 @@ FROM base AS builder
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/.yarn        ./.yarn
+COPY --from=deps /app/.yarnrc.yml  ./.yarnrc.yml
 COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/yarn.lock    ./yarn.lock
 
@@ -57,6 +58,7 @@ RUN yarn install
 # skip it — uploads should happen in CI, not container builds.
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SENTRY_IGNORE_API_ERRORS=true
+ENV SKIP_ENV_VALIDATION=1
 
 # Build — all required env vars must be provided as build-args or .env
 # (NEXT_PUBLIC_* vars are baked in at build time by Next.js)

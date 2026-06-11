@@ -41,6 +41,7 @@ FROM base AS builder
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/.yarn        ./.yarn
+COPY --from=deps /app/.yarnrc.yml  ./.yarnrc.yml
 COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/yarn.lock    ./yarn.lock
 
@@ -59,6 +60,7 @@ RUN cd packages/database && npx prisma generate
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SENTRY_IGNORE_API_ERRORS=true
+ENV SKIP_ENV_VALIDATION=1
 
 WORKDIR /app/apps/admin
 RUN yarn build
