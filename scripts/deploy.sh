@@ -114,6 +114,17 @@ cd_to_project() {
   cd "${PROJECT_ROOT}"
 }
 
+ensure_main_and_pull() {
+  cd_to_project
+  local current_branch
+  current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  if [[ "${current_branch}" != "main" ]]; then
+    die "Not on the 'main' branch (current branch is '${current_branch}'). Please switch to main to deploy/redeploy."
+  fi
+  info "Pulling latest changes from main branch..."
+  git pull origin main || die "Failed to pull latest changes from main branch."
+}
+
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
@@ -146,6 +157,7 @@ cmd_deploy() {
   check_env
   check_firebase_sa
   cd_to_project
+  ensure_main_and_pull
 
   info "Building all Docker images ..."
   docker compose -f "${COMPOSE_FILE}" build
@@ -166,6 +178,7 @@ cmd_redeploy() {
   info "Redeploying${service:+ $service} ..."
   check_docker
   cd_to_project
+  ensure_main_and_pull
 
   if [[ -n "${service}" ]]; then
     info "Rebuilding image for: ${service}"
