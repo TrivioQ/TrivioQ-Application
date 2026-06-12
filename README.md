@@ -107,6 +107,29 @@ To access the Admin Portal (`apps/admin`), your user must have the `ADMIN` role.
 yarn workspace @trivioq/database run make-admin <email>
 ```
 
+### AI Question Ingestion (Background Processing)
+
+When running the question ingestion script on a remote server, it is recommended to run it inside a persistent terminal multiplexer (`tmux`) so the process continues running even if your host machine closes the terminal or shuts down.
+
+**Create a new tmux session:**
+```bash
+tmux new -s ingest-session
+```
+
+**Start the ingestion process:**
+```bash
+# Navigate to apps/api and run:
+npx ts-node -r dotenv/config src/ingest.ts
+```
+
+**Detach from the session:**
+Press `Ctrl + B`, then release and press `D`. You can now safely close your local terminal.
+
+**Re-attach to the session later:**
+```bash
+tmux attach -t ingest-session
+```
+
 ---
 
 ## 🛠 Features & Systems
