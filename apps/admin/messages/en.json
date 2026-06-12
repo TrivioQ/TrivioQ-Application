@@ -198,12 +198,14 @@
     "description": "Review and approve AI-generated trivia questions before they enter the live database.",
     "filters": {
       "unvalidated": "Unvalidated",
-      "aiValidated": "AI Validated"
+      "aiValidated": "AI Validated",
+      "pendingDuplicates": "Pending Duplicates"
     },
     "pendingQuestions": "Pending Questions",
     "noPending": "No pending questions to review.",
     "selectPrompt": "Select a question from the list to review.",
     "duplicateBadge": "DUPLICATE",
+    "pendingDuplicateBadge": "PENDING DUPLICATE",
     "scoreBadge": {
       "high": "High ({score})",
       "medium": "Medium ({score})",
@@ -212,6 +214,7 @@
     "editor": {
       "submitted": "Submitted",
       "duplicateWarning": "DUPLICATE DETECTED — This question appears to be a duplicate of an existing question. Review carefully before approving.",
+      "pendingDuplicateWarning": "⚡ HIGHER-QUALITY VERSION — Approving will replace the existing live question with this improved version.",
       "aiFeedback": "AI Feedback",
       "questionText": "Question Text",
       "difficultyLevel": "Difficulty Level",
@@ -234,6 +237,8 @@
       "saved": "Saved",
       "approve": "Approve & Publish",
       "publishing": "Publishing...",
+      "approveAndReplace": "Approve & Replace",
+      "replacing": "Replacing...",
       "rejectDialog": {
         "title": "Reject Question",
         "description": "Optionally provide a reason for rejecting this question. This will be saved and can help the content team improve future submissions.",

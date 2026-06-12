@@ -216,10 +216,11 @@ model PendingQuestion {
   rejectionReason  String?
   isValidated     Boolean  @default(false)
   isDuplicate     Boolean  @default(false)
-  aiQualityScore  Int?
-  aiFeedback      String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  aiQualityScore      Int?
+  aiFeedback          String?
+  replacesQuestionId  String?  // set when status = 'PENDING-DUPLICATE'; points to the live Question.id to replace on approval
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model BonusPlan {

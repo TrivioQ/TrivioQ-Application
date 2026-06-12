@@ -1,6 +1,7 @@
 import { prisma, DifficultyLevel } from '@trivioq/database';
 import { IngestionState, Question } from './utils/stateManager';
 import { checkIsDuplicate } from '../utils/checkIsDuplicate';
+import { checkPendingDuplicate } from '../utils/checkPendingDuplicate';
 import { shuffleArray } from '../utils/shuffle';
 import { reportError } from '../utils/errorReporter';
 import fs from 'fs';
@@ -16,7 +17,6 @@ export type ImageType = 'RELEVANT' | 'OTHER';
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
-const UPLOAD_BATCH_SIZE = 20;
 const DEFAULT_CALL_DELAY = 10;
 const VALID_DIFFICULTIES: DifficultyLevel[] = ['EASY', 'MEDIUM', 'HARD'];
 
@@ -453,46 +453,132 @@ export class IngestionOrchestrator {
     console.log(`[Upload] Uploading ${readyQuestions.length} questions`);
     if (readyQuestions.length === 0) return;
 
-    for (let i = 0; i < readyQuestions.length; i += UPLOAD_BATCH_SIZE) {
-      const batch = readyQuestions.slice(i, i + UPLOAD_BATCH_SIZE);
-
+    for (const q of readyQuestions) {
       try {
-        const duplicateFlags = await Promise.all(batch.map((q) => checkIsDuplicate(q.text)));
-        const nonDuplicates: Question[] = batch.filter((_, j) => !duplicateFlags[j]);
+        const newScore: number = (q.metadata?.aiQualityScore as number) ?? 0;
 
-        if (nonDuplicates.length > 0) {
-          // One PendingQuestion row per question (no duplication).
-          const rows = nonDuplicates.map((q) => ({
-            topic: (q.metadata?.topic as string) || this.config.topic || 'General',
-            categorySlugs: (q.metadata?.categorySlugs as string[]) || [],
-            // Use AI-inferred difficulty stored in metadata; fall back to MEDIUM
-            difficultyLevel: sanitiseDifficulty(q.metadata?.difficulty as string | undefined),
-            suggestedText: q.text,
-            suggestedChoices: shuffleArray((q.metadata?.choices as any[]) ?? []),
-            hint: (q.metadata?.hint as string) ?? null,
-            explanation: (q.metadata?.explanation as string) ?? null,
-            status: 'PENDING',
-            isDuplicate: false,
-            isValidated: false,
-            aiQualityScore: (q.metadata?.aiQualityScore as number) ?? undefined,
-            aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
-          }));
+        // ── Step 1: Check PendingQuestion table for a near-duplicate ──────────
+        const pendingCheck = await checkPendingDuplicate(q.text);
 
-          await prisma.pendingQuestion.createMany({ data: rows as any });
-          console.log(`[Upload] Batch ${i / UPLOAD_BATCH_SIZE + 1}: inserted ${rows.length} row(s) (${nonDuplicates.length} question(s))`);
+        if (pendingCheck.found && pendingCheck.record) {
+          const existing = pendingCheck.record;
+          const existingScore: number = existing.aiQualityScore ?? 0;
+
+          if (existing.status === 'PENDING') {
+            if (newScore > existingScore) {
+              // Case A — Replace the lower-scored pending record in-place
+              console.log(`[Upload] Replacing PENDING record ${existing.id} (score ${existingScore}) with higher-scored version (score ${newScore})`);
+
+              await prisma.pendingQuestion.update({
+                where: { id: existing.id },
+                data: {
+                  topic: (q.metadata?.topic as string) || this.config.topic || 'General',
+                  categorySlugs: (q.metadata?.categorySlugs as string[]) || [],
+                  difficultyLevel: sanitiseDifficulty(q.metadata?.difficulty as string | undefined),
+                  suggestedText: q.text,
+                  suggestedChoices: shuffleArray((q.metadata?.choices as any[]) ?? []),
+                  hint: (q.metadata?.hint as string) ?? null,
+                  explanation: (q.metadata?.explanation as string) ?? null,
+                  aiQualityScore: newScore,
+                  aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
+                },
+              });
+            } else {
+              console.log(`[Upload] Skipping — existing PENDING record ${existing.id} has equal or higher score (${existingScore} >= ${newScore})`);
+            }
+
+            this.state.updateStatus(q.id, 'UPLOADED');
+            continue;
+          }
+
+          if (existing.status === 'PENDING-DUPLICATE') {
+            // There is already a PENDING-DUPLICATE row; compare scores and replace if better
+            if (newScore > existingScore) {
+              console.log(`[Upload] Replacing existing PENDING-DUPLICATE record ${existing.id} (score ${existingScore}) with higher score (${newScore})`);
+              await prisma.pendingQuestion.update({
+                where: { id: existing.id },
+                data: {
+                  topic: (q.metadata?.topic as string) || this.config.topic || 'General',
+                  categorySlugs: (q.metadata?.categorySlugs as string[]) || [],
+                  difficultyLevel: sanitiseDifficulty(q.metadata?.difficulty as string | undefined),
+                  suggestedText: q.text,
+                  suggestedChoices: shuffleArray((q.metadata?.choices as any[]) ?? []),
+                  hint: (q.metadata?.hint as string) ?? null,
+                  explanation: (q.metadata?.explanation as string) ?? null,
+                  aiQualityScore: newScore,
+                  aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
+                },
+              });
+            } else {
+              console.log(`[Upload] Skipping — existing PENDING-DUPLICATE record ${existing.id} has equal or higher score (${existingScore} >= ${newScore})`);
+            }
+
+            this.state.updateStatus(q.id, 'UPLOADED');
+            continue;
+          }
+        }
+
+        // ── Step 2: No active pending match — check the live Question table ───
+        const isLiveDuplicate = await checkIsDuplicate(q.text);
+
+        if (isLiveDuplicate) {
+          // Find the live Question id for the closest match so we can link the PENDING-DUPLICATE row
+          const liveRows = await prisma.$queryRaw<{ id: string }[]>`
+            SELECT id
+            FROM "Question"
+            WHERE similarity("questionText", ${q.text}) > 0.85
+            ORDER BY similarity("questionText", ${q.text}) DESC
+            LIMIT 1
+          `;
+          const liveQuestionId = liveRows[0]?.id ?? null;
+
+          // Case B — Insert a PENDING-DUPLICATE row pointing to the live question
+          console.log(`[Upload] Inserting PENDING-DUPLICATE for live question ${liveQuestionId ?? 'unknown'} (new score: ${newScore})`);
+
+          await prisma.pendingQuestion.create({
+            data: {
+              topic: (q.metadata?.topic as string) || this.config.topic || 'General',
+              categorySlugs: (q.metadata?.categorySlugs as string[]) || [],
+              difficultyLevel: sanitiseDifficulty(q.metadata?.difficulty as string | undefined),
+              suggestedText: q.text,
+              suggestedChoices: shuffleArray((q.metadata?.choices as any[]) ?? []),
+              hint: (q.metadata?.hint as string) ?? null,
+              explanation: (q.metadata?.explanation as string) ?? null,
+              status: 'PENDING-DUPLICATE',
+              isDuplicate: true,
+              isValidated: false,
+              aiQualityScore: newScore,
+              aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
+              replacesQuestionId: liveQuestionId,
+            } as any,
+          });
         } else {
-          console.log(`[Upload] Batch ${i / UPLOAD_BATCH_SIZE + 1}: all duplicates`);
+          // ── Step 3: Genuinely new question — insert normally ─────────────────
+          await prisma.pendingQuestion.create({
+            data: {
+              topic: (q.metadata?.topic as string) || this.config.topic || 'General',
+              categorySlugs: (q.metadata?.categorySlugs as string[]) || [],
+              difficultyLevel: sanitiseDifficulty(q.metadata?.difficulty as string | undefined),
+              suggestedText: q.text,
+              suggestedChoices: shuffleArray((q.metadata?.choices as any[]) ?? []),
+              hint: (q.metadata?.hint as string) ?? null,
+              explanation: (q.metadata?.explanation as string) ?? null,
+              status: 'PENDING',
+              isDuplicate: false,
+              isValidated: false,
+              aiQualityScore: newScore,
+              aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
+            } as any,
+          });
+
+          console.log(`[Upload] Inserted new PENDING question (score: ${newScore})`);
         }
 
-        // Mark ALL questions in the batch (both duplicates and non-duplicates) as UPLOADED
-        // so they don't get stuck in READY_FOR_UPLOAD state and re-processed on every restart.
-        for (const q of batch) {
-          this.state.updateStatus(q.id, 'UPLOADED');
-        }
+        this.state.updateStatus(q.id, 'UPLOADED');
       } catch (error) {
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'upload',
-          batchIndex: i,
+          questionId: q.id,
         });
       }
     }

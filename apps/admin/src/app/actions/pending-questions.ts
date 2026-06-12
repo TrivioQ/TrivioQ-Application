@@ -44,7 +44,14 @@ export async function updatePendingQuestion(pendingId: string, editedData: EditQ
 
 export async function getPendingQuestions(filter?: string) {
   try {
-    const where = filter === 'ai-validated' ? { isValidated: true, status: 'PENDING' } : { status: 'PENDING' };
+    let where: Record<string, unknown>;
+    if (filter === 'ai-validated') {
+      where = { isValidated: true, status: 'PENDING' };
+    } else if (filter === 'pending-duplicate') {
+      where = { status: 'PENDING-DUPLICATE' };
+    } else {
+      where = { status: 'PENDING' };
+    }
 
     const questions = await prisma.pendingQuestion.findMany({
       where,
@@ -63,24 +70,66 @@ export async function getPendingQuestions(filter?: string) {
 export async function approvePendingQuestion(pendingId: string, editedData: EditQuestionPayload) {
   try {
     const result = await prisma.$transaction(async (tx) => {
-      const question = await tx.question.create({
-        data: {
-          questionText: editedData.questionText,
-          difficultyLevel: editedData.difficultyLevel,
-          hintText: editedData.hintText,
-          explanationText: editedData.explanationText,
-          choices: {
-            create: editedData.choices.map((c, idx) => ({
-              text: c.text,
-              order: c.order ?? idx,
-              isCorrect: c.isCorrect,
-            })),
-          },
-          categories: {
-            connect: editedData.categorySlugs.map((slug) => ({ slug })),
-          },
-        },
+      // Fetch the pending question to check whether this is a PENDING-DUPLICATE
+      const pendingQuestion = await tx.pendingQuestion.findUniqueOrThrow({
+        where: { id: pendingId },
+        select: { status: true, replacesQuestionId: true },
       });
+
+      let questionId: string;
+
+      if (pendingQuestion.status === 'PENDING-DUPLICATE' && pendingQuestion.replacesQuestionId) {
+        // ── Case B: Update the existing live question in-place ───────────────────
+        const liveId = pendingQuestion.replacesQuestionId;
+
+        // Replace choices: delete old ones then create new
+        await tx.choice.deleteMany({ where: { questionId: liveId } });
+
+        const updated = await tx.question.update({
+          where: { id: liveId },
+          data: {
+            questionText: editedData.questionText,
+            difficultyLevel: editedData.difficultyLevel,
+            hintText: editedData.hintText ?? null,
+            explanationText: editedData.explanationText ?? null,
+            choices: {
+              create: editedData.choices.map((c, idx) => ({
+                text: c.text,
+                order: c.order ?? idx,
+                isCorrect: c.isCorrect,
+              })),
+            },
+            // Replace all categories
+            categories: {
+              set: editedData.categorySlugs.map((slug) => ({ slug })),
+            },
+          },
+        });
+
+        questionId = updated.id;
+      } else {
+        // ── Default: Create a brand-new live Question ────────────────────────────
+        const created = await tx.question.create({
+          data: {
+            questionText: editedData.questionText,
+            difficultyLevel: editedData.difficultyLevel,
+            hintText: editedData.hintText,
+            explanationText: editedData.explanationText,
+            choices: {
+              create: editedData.choices.map((c, idx) => ({
+                text: c.text,
+                order: c.order ?? idx,
+                isCorrect: c.isCorrect,
+              })),
+            },
+            categories: {
+              connect: editedData.categorySlugs.map((slug) => ({ slug })),
+            },
+          },
+        });
+
+        questionId = created.id;
+      }
 
       // NOTE: We only update the status to 'APPROVED'. Pending questions are NEVER deleted
       // from the database, ensuring we maintain a full history/audit trail of AI generations.
@@ -89,7 +138,7 @@ export async function approvePendingQuestion(pendingId: string, editedData: Edit
         data: { status: 'APPROVED' },
       });
 
-      return question;
+      return { id: questionId };
     });
 
     revalidatePath('/');

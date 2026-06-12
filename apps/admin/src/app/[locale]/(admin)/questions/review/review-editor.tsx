@@ -30,6 +30,7 @@ interface PendingQuestion {
   aiFeedback: string | null;
   aiQualityScore: number | null;
   isDuplicate: boolean;
+  replacesQuestionId: string | null;
 }
 
 interface Category {
@@ -155,15 +156,23 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
             {isPending ? t('saving') : saveSuccess ? <><Check className="mr-1 h-3.5 w-3.5" />{t('saved')}</> : t('saveChanges')}
           </Button>
           <Button size="sm" onClick={handleApprove} disabled={isPending}>
-            {isPending ? t('publishing') : t('approve')}
+            {isPending
+              ? pendingQuestion.status === 'PENDING-DUPLICATE' ? t('replacing') : t('publishing')
+              : pendingQuestion.status === 'PENDING-DUPLICATE' ? t('approveAndReplace') : t('approve')}
           </Button>
         </div>
       </div>
 
       {/* AI Feedback & Warnings */}
-      {(pendingQuestion.isDuplicate || pendingQuestion.aiFeedback) && (
+      {(pendingQuestion.status === 'PENDING-DUPLICATE' || pendingQuestion.isDuplicate || pendingQuestion.aiFeedback) && (
         <div className="px-6 py-3 space-y-3 border-b border-gray-200 bg-gray-50/50">
-          {pendingQuestion.isDuplicate && (
+          {pendingQuestion.status === 'PENDING-DUPLICATE' && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg text-sm text-amber-900">
+              <span className="text-base shrink-0">⚡</span>
+              <span>{t('pendingDuplicateWarning')}</span>
+            </div>
+          )}
+          {pendingQuestion.isDuplicate && pendingQuestion.status !== 'PENDING-DUPLICATE' && (
             <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
               <span className="text-base shrink-0">&#9888;</span>
               <span>{t('duplicateWarning')}</span>

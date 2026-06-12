@@ -23,6 +23,7 @@ interface PendingQuestion {
   aiQualityScore: number | null;
   aiFeedback: string | null;
   isDuplicate: boolean;
+  replacesQuestionId: string | null;
 }
 
 interface Category {
@@ -67,7 +68,7 @@ export function ContentReviewPanel({ questions, categories }: { questions: Pendi
           <ul className="flex-1 overflow-y-auto divide-y divide-gray-100">
             {pendingQuestions.map((q) => (
               <li key={q.id}>
-                <button onClick={() => setSelectedId(q.id)} className={cn('w-full text-left px-4 py-3 transition-colors hover:bg-gray-100', selectedId === q.id && 'bg-blue-50 border-l-2 border-l-blue-500 hover:bg-blue-50', q.isDuplicate && 'opacity-50 grayscale')}>
+                <button onClick={() => setSelectedId(q.id)} className={cn('w-full text-left px-4 py-3 transition-colors hover:bg-gray-100', selectedId === q.id && 'bg-blue-50 border-l-2 border-l-blue-500 hover:bg-blue-50', q.isDuplicate && q.status !== 'PENDING-DUPLICATE' && 'opacity-50 grayscale')}>
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-medium text-gray-900 truncate">{q.topic}</p>
                     <div className="flex gap-1 flex-wrap">
@@ -80,7 +81,12 @@ export function ContentReviewPanel({ questions, categories }: { questions: Pendi
                   </div>
                   <p className="text-xs text-gray-500 mt-1 line-clamp-2">{q.suggestedText}</p>
                   <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                    {q.isDuplicate && (
+                    {q.status === 'PENDING-DUPLICATE' && (
+                      <Badge className="text-[10px] bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100">
+                        {t('pendingDuplicateBadge')}
+                      </Badge>
+                    )}
+                    {q.isDuplicate && q.status !== 'PENDING-DUPLICATE' && (
                       <Badge variant="destructive" className="text-[10px]">
                         {t('duplicateBadge')}
                       </Badge>
