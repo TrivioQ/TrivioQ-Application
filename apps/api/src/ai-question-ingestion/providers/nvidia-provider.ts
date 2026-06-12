@@ -44,7 +44,7 @@ export class NvidiaProvider extends BaseAIProvider {
     const payload = {
       model: this.model,
       messages: [{ role: 'user', content: buildContent(prompt, images) }],
-      max_tokens: 8192,
+      max_tokens: 32768,
       temperature: 0.2,
     };
 

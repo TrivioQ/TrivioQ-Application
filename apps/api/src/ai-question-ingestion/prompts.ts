@@ -72,6 +72,21 @@ Do NOT guess or attempt to solve the questions.
 Only set \`isCorrect: true\` for a choice IF the correct answer is explicitly marked inline in the text next to the question.
 If the answer is NOT explicitly marked inline, you MUST set \`isCorrect: false\` for ALL choices. Answer keys are usually provided separately on another page, so it is completely normal and expected for all choices to be false.
 
+### 11. Passage-dependent questions
+There are TWO types of passage-related questions — handle them differently:
+
+**TYPE A — Inline passage (KEEP & EXTRACT):**
+The passage or quote is embedded directly inside the question text itself.
+Example: \`"...instil into the vast millions of workers..." The above passage relates to:\`
+These questions are fully self-contained. Extract them normally, including the quoted text as part of the question's "text" field.
+
+**TYPE B — External passage reference (SKIP & DISCARD):**
+The question refers to a passage, excerpt, or text that is located elsewhere — on a different part of the page, on a previous page, or entirely absent from the current image(s).
+Example: \`Based on the passage you read earlier, what is the author's main argument?\`
+These questions are NOT self-contained and cannot be answered without the missing passage.
+
+**Decision rule:** If the passage or quoted text that the question refers to is physically present within the question's own text — you MUST extract it. Only silently skip a question if the referenced passage is absent from the question text and cannot be found on the current page(s) being processed.
+
 Return a JSON object with this exact schema:
 {
   "questions": [
