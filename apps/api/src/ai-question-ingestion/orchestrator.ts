@@ -198,6 +198,7 @@ export class IngestionOrchestrator {
 
         console.log(`[Scout] Image ${i + 1} classified as ${classification}`);
       } catch (error) {
+        console.error(`[Scout] Error processing image ${imagePath}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'scout',
           imageIndex: i,
@@ -296,6 +297,7 @@ export class IngestionOrchestrator {
         this.state.setLastProcessedExtractionBatchIndex(i);
         console.log(`[Extraction] Completed batch ${i + 1} of ${groups.length}`);
       } catch (error) {
+        console.error(`[Extraction] Error processing batch ${i + 1}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'extraction',
           batchIndex: i,
@@ -444,6 +446,7 @@ export class IngestionOrchestrator {
 
         console.log(`[Enhancement] Enhanced ${question.id} — difficulty: ${enhanced.difficulty}`);
       } catch (error) {
+        console.error(`[Enhancement] Error processing question ${question.id}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'enhancement',
           questionId: question.id,
@@ -584,6 +587,7 @@ export class IngestionOrchestrator {
 
         this.state.updateStatus(q.id, 'UPLOADED');
       } catch (error) {
+        console.error(`[Upload] Error uploading question ${q.id}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'upload',
           questionId: q.id,
