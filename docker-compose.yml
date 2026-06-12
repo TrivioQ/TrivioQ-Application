@@ -154,7 +154,7 @@ services:
       migrate:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3013/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3013/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -183,6 +183,8 @@ services:
       api:
         condition: service_healthy
     command: ["node", "dist/cron.js"]
+    healthcheck:
+      disable: true
     logging: *default-logging
 
   # -------------------------------------------------------------------------
@@ -207,6 +209,8 @@ services:
       api:
         condition: service_healthy
     command: ["node", "dist/workers/scheduler.js"]
+    healthcheck:
+      disable: true
     logging: *default-logging
 
   # -------------------------------------------------------------------------
@@ -231,6 +235,8 @@ services:
       api:
         condition: service_healthy
     command: ["node", "dist/workers/dispatcher.js"]
+    healthcheck:
+      disable: true
     logging: *default-logging
 
   # -------------------------------------------------------------------------
@@ -255,6 +261,8 @@ services:
       api:
         condition: service_healthy
     command: ["node", "dist/workers/drop-worker.js"]
+    healthcheck:
+      disable: true
     logging: *default-logging
 
   # -------------------------------------------------------------------------
@@ -284,7 +292,7 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3011/ || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3011/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -320,7 +328,7 @@ services:
       migrate:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3012/ || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3012/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
