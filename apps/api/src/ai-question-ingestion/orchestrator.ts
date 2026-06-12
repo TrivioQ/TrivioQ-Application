@@ -1,9 +1,9 @@
 import { prisma, DifficultyLevel } from '@trivioq/database';
-import { IngestionState, Question } from './utils/stateManager';
-import { checkIsDuplicate } from '../utils/checkIsDuplicate';
-import { checkPendingDuplicate } from '../utils/checkPendingDuplicate';
+import { IngestionState, Question } from './utils/state-manager';
+import { checkIsDuplicate } from '../utils/check-is-duplicate';
+import { checkPendingDuplicate } from '../utils/check-pending-duplicate';
 import { shuffleArray } from '../utils/shuffle';
-import { reportError } from '../utils/errorReporter';
+import { reportError } from '../utils/error-reporter';
 import fs from 'fs';
 import { createProvider, type AIProvider, type AIProviderName } from './providers';
 import { buildExtractionPrompt, buildEnhancementPrompt } from './prompts';

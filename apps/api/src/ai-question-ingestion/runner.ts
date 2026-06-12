@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { IngestionOrchestrator } from './orchestrator';
-import { pdfToImage } from './utils/pdfToImage';
+import { pdfToImage } from './utils/pdf-to-image';
 import type { AIProviderName } from './providers';
 
 // ── Types ─────────────────────────────────────────────────────────────────────

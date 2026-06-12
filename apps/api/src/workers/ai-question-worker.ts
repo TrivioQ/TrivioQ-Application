@@ -3,8 +3,8 @@ import Redis from 'ioredis';
 import { prisma, DifficultyLevel } from '@trivioq/database';
 import type { SuggestedChoice } from '@trivioq/shared-types';
 import { shuffleArray } from '../utils/shuffle';
-import { checkIsDuplicate } from '../utils/checkIsDuplicate';
-import { reportError } from '../utils/errorReporter';
+import { checkIsDuplicate } from '../utils/check-is-duplicate';
+import { reportError } from '../utils/error-reporter';
 import { GoogleGenAI } from '@google/genai';
 
 const QUEUE_NAME = 'ai-question-generation';
