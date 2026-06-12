@@ -8,7 +8,7 @@ const FALLBACK_MODEL = 'gemini-3.1-flash-lite';
 
 export class GoogleProvider extends BaseAIProvider {
   private readonly ai: GoogleGenAI;
-  private readonly model: string;
+  readonly model: string;
 
   constructor(model?: string, apiKey?: string) {
     super();

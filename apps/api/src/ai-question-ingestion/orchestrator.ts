@@ -170,6 +170,8 @@ export class IngestionOrchestrator {
     const startIndex = stateData.lastProcessedImageIndex + 1;
 
     console.log(`[Scout] Starting from image ${startIndex + 1}`);
+    const tempStr = process.env.INGESTION_SCOUT_TEMPERATURE;
+    console.log(`[Scout] Stage Config — Provider: ${this.scoutProvider.constructor.name}, Model: ${this.scoutProvider.model}, Temperature: ${tempStr ?? 'default'}, Delay: ${this.callDelayMs.scout}ms`);
 
     for (let i = startIndex; i < this.imagePaths.length; i++) {
       const imagePath = this.imagePaths[i];
@@ -223,13 +225,16 @@ export class IngestionOrchestrator {
       return;
     }
 
+    const tempStr = process.env.INGESTION_EXTRACTION_TEMPERATURE;
+    const batchSize = process.env.INGESTION_EXTRACTION_BATCH_SIZE ? parseInt(process.env.INGESTION_EXTRACTION_BATCH_SIZE, 10) : 1;
+    console.log(`[Extraction] Stage Config — Provider: ${this.extractionProvider.constructor.name}, Model: ${this.extractionProvider.model}, Temperature: ${tempStr ?? 'default'}, Batch Size: ${batchSize}, Delay: ${this.callDelayMs.extraction}ms`);
+
     console.log(`[Extraction] Processing ${relevantImages.length} relevant images`);
 
     // Build the prompt once — optionally prefixed with the book's special instruction
     const extractionPrompt = buildExtractionPrompt(this.extractionSpecialInstruction);
 
     // Chunk images into overlapping batches (stride = batchSize - 1, min stride = 1)
-    const batchSize = process.env.INGESTION_EXTRACTION_BATCH_SIZE ? parseInt(process.env.INGESTION_EXTRACTION_BATCH_SIZE, 10) : 1;
     const overlap = 1;
     const stride = Math.max(1, batchSize - overlap);
     const groups: string[][] = [];
@@ -400,6 +405,9 @@ export class IngestionOrchestrator {
   private async enhancementPhase(): Promise<void> {
     const stateData = this.state.initOrLoad();
     const questionsToEnhance = stateData.questions.filter((q) => q.status === 'READY_FOR_ENHANCEMENT');
+
+    const tempStr = process.env.INGESTION_ENHANCEMENT_TEMPERATURE;
+    console.log(`[Enhancement] Stage Config — Provider: ${this.enhancementProvider.constructor.name}, Model: ${this.enhancementProvider.model}, Temperature: ${tempStr ?? 'default'}, Delay: ${this.callDelayMs.enhancement}ms`);
 
     console.log(`[Enhancement] Enhancing ${questionsToEnhance.length} questions`);
 

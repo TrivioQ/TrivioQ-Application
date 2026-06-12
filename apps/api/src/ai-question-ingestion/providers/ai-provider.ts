@@ -64,6 +64,7 @@ export interface EnhancementResult {
  *   No other files need to change.
  */
 export interface AIProvider {
+  readonly model: string;
   /**
    * Classify a single page image.
    * Returns one of: 'RELEVANT' | 'OTHER'

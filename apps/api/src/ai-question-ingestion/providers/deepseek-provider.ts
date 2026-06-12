@@ -13,7 +13,7 @@ const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
 const FALLBACK_MODEL = 'deepseek-chat';
 
 export class DeepseekProvider extends BaseAIProvider {
-  private readonly model: string;
+  readonly model: string;
   private readonly apiKey: string;
 
   constructor(model?: string, apiKey?: string) {

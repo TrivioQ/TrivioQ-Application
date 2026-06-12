@@ -29,7 +29,7 @@ function buildContent(prompt: string, images: ImageInput[] = []): string | objec
 }
 
 export class NvidiaProvider extends BaseAIProvider {
-  private readonly model: string;
+  readonly model: string;
   private readonly apiKey: string;
 
   constructor(model?: string, apiKey?: string) {
