@@ -48,7 +48,7 @@ export class NvidiaProvider extends BaseAIProvider {
     const payload = {
       model: this.model,
       messages: [{ role: 'user', content: buildContent(prompt, images) }],
-      max_tokens: 32768,
+      max_tokens: isDeepSeekModel ? 16384 : 32768,
       temperature: options?.temperature !== undefined ? options.temperature : 0.2,
       ...(isDeepSeekModel && { chat_template_kwargs: { thinking: false } }),
     };

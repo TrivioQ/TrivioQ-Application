@@ -13,101 +13,91 @@ Return ONLY a JSON object with this exact schema. Do not include markdown, expla
 
 export const EXTRACTION_PROMPT = `You are an expert trivia question extractor. Given images containing trivia questions (and possibly their answer keys), extract all questions with their multiple-choice options.
 
-## CRITICAL — Markdown compatibility rules
-All "text" fields (question text and choice text) MUST be written in **GitHub-Flavored Markdown (GFM)**.
-The output is rendered by TWO different engines:
-  • Web/Admin — react-markdown v10 with remark-gfm, remark-math, and rehype-katex (full KaTeX support)
-  • Mobile    — react-native-markdown-display v7 (markdown-it, NO math plugin installed)
+## 1. Output Format Rules
+- All "text" fields (question and options) must be in GitHub-Flavored Markdown (GFM).
+- Never use raw HTML tags (e.g., <b>, <table>).
+- Preserve data exactly: do not summarize or truncate content.
+- Fix OCR artifacts: correct word-merging (e.g., "NagarholeNational" -> "Nagarhole National").
+- Do not add, remove, or hallucinate content not present in the image.
 
-Follow every rule below exactly:
+## 2. Mathematical Formulas
+For every LaTeX formula, provide:
+  a) The LaTeX expression (e.g., \`$E = mc^2$\`)
+  b) A plain-text readable fallback in parentheses immediately after, e.g., \`$E = mc^2$ (E equals m times c squared)\`.
+  *This is mandatory for all math to support dual-renderer compatibility.*
 
-### 1. Mathematical formulas
-Always write math in TWO parts on the same line:
-  a) LaTeX notation for the web renderer: \`$<LaTeX>$\` (inline) or \`$$<LaTeX>$$\` (block)
-  b) A plain-text readable version in parentheses immediately after, for the mobile renderer.
+## 3. Structural Elements
+- **Tables**: Use GFM pipe-table syntax. Never use HTML \`<table>\` tags.
+- **Figures**: If a question references a diagram, describe it: \`*[Figure: description]*\`
+- **Code/Data**: Use backticks for inline or fenced blocks for multi-line code.
+- **Emphasis**: Use only \`**bold**\` or \`*italic*\`. Never use HTML tags.
 
-Examples:
-  • Inline:  \`The formula $E = mc^2$ (E equals m times c squared) was proposed by Einstein.\`
-  • Block:
-    \`\`\`
-    $$\\frac{d}{dx}\\sin x = \\cos x$$
-    (The derivative of sin x equals cos x)
-    \`\`\`
+## 4. CRITICAL — Numbered List Formatting
+**"Consider the following statements" / "Which of the following" questions MUST use proper Markdown line breaks.**
 
-Never emit a LaTeX expression without its plain-text fallback. The fallback must make the expression fully understandable on its own.
+Any question with numbered sub-items (1., 2., 3., etc.) MUST follow this structure:
+- The opening stem ends with a colon followed by \`\\n\`
+- Each numbered item is on its own line: \`1. Item text\\n\`
+- The closing question is separated by a blank line (\`\\n\\n\`)
 
-### 2. Tables
-Reproduce any table from the source image using GFM pipe-table syntax (supported by both renderers):
-\`| Column A | Column B |\\n|---|---|\\n| value | value |\`
-Never use HTML \`<table>\` tags.
+✅ CORRECT (always use this):
+\`Consider the following statements about X:\\n1. Statement one.\\n2. Statement two.\\n3. Statement three.\\n\\nHow many of the statements given above are correct?\`
 
-### 3. Figures / images
-If the question references a diagram or figure visible in the image, describe it with an italicised caption:
-\`*[Figure: a bar chart showing population growth from 1900 to 2000]*\`
+❌ WRONG (never do this):
+\`Consider the following statements about X: 1. Statement one. 2. Statement two. 3. Statement three. How many of the statements given above are correct?\`
 
-### 4. Code / data
-Wrap code or data values in backticks (inline) or fenced code blocks with a language tag.
+This rule applies to ALL multi-item structures — statements, names, places, conditions, or code snippets.
 
-### 5. Lists
-Use \`-\` for unordered and \`1.\` for ordered lists where the source uses them.
+## 5. Multiple-Choice Options
+Completely strip all leading identifiers (e.g., "A)", "B.", "a.", "b)", "(i)", "(ii)") from choice text. The "text" field must contain ONLY the raw option value with no prefix.
 
-### 6. Emphasis
-\`**bold**\` and \`*italic*\` only — never HTML tags such as \`<b>\` or \`<em>\`.
+## 6. Questions Spanning Multiple Pages
+If a question starts at the bottom of one page and continues on the next, stitch them into a single question object. Do not split or drop it.
 
-### 7. General
-- STRICT ANTI-HALLUCINATION RULE: Do not hallucinate or fabricate any text, questions, or data. You must stick STRICTLY to the factual data visible in the source images.
-- Never emit raw HTML tags anywhere.
-- Never escape Markdown syntax unnecessarily.
-- Preserve every piece of data visible on the page; do not summarise or truncate.
-- Fix any merged words or improper spacing caused by OCR or tight layout formatting (e.g., "NagarholeNational park" -> "Nagarhole National park", "PapikondaNational park" -> "Papikonda National park"). Always ensure there are proper spaces between words.
+## 7. Answer Keys
+- Do NOT guess or solve questions.
+- Set \`isCorrect: true\` ONLY if the correct answer is explicitly marked inline in the source image (e.g., printed next to the question) or appears in an answer key table visible in the current page images.
+- If no answer is explicitly shown, set \`isCorrect: false\` for ALL choices. This is the default and expected case — answer keys are usually on a separate page.
 
-### 8. Multiple-choice options
-Completely strip all leading identifiers (such as "A)", "B.", "a.", "b)", "1.", "2)", etc.) from the choice text. The "text" field of a choice should contain ONLY the raw value of the option without any prefix.
+## 8. Passage-Dependent Questions
+**TYPE A — Inline passage (EXTRACT):** The passage is embedded in the question text itself. Extract it as-is, including the quoted text.
+**TYPE B — External passage reference (DISCARD):** The question references a passage not visible in the current image(s). Silently skip these questions.
 
-### 9. Questions spanning multiple pages
-If a question starts at the bottom of one page image and continues on the next page image, you MUST stitch them together and extract them as a single question object. Do not split it or drop it.
+## 9. Question IDs
+Generate IDs using the format \`p<pageNumber>_<sequentialNumber>\` where the sequential number restarts at 1 for each new page (e.g., \`p5_1\`, \`p5_2\`, \`p6_1\`).
 
-### 10. Answer Keys & Guessing
-Do NOT guess or attempt to solve the questions.
-Only set \`isCorrect: true\` for a choice IF the correct answer is explicitly marked inline in the text next to the question.
-If the answer is NOT explicitly marked inline, you MUST set \`isCorrect: false\` for ALL choices. Answer keys are usually provided separately on another page, so it is completely normal and expected for all choices to be false.
-
-### 11. Passage-dependent questions
-There are TWO types of passage-related questions — handle them differently:
-
-**TYPE A — Inline passage (KEEP & EXTRACT):**
-The passage or quote is embedded directly inside the question text itself.
-Example: \`"...instil into the vast millions of workers..." The above passage relates to:\`
-These questions are fully self-contained. Extract them normally, including the quoted text as part of the question's "text" field.
-
-**TYPE B — External passage reference (SKIP & DISCARD):**
-The question refers to a passage, excerpt, or text that is located elsewhere — on a different part of the page, on a previous page, or entirely absent from the current image(s).
-Example: \`Based on the passage you read earlier, what is the author's main argument?\`
-These questions are NOT self-contained and cannot be answered without the missing passage.
-
-**Decision rule:** If the passage or quoted text that the question refers to is physically present within the question's own text — you MUST extract it. Only silently skip a question if the referenced passage is absent from the question text and cannot be found on the current page(s) being processed.
-
-Return a JSON object with this exact schema:
+Return a JSON object with this exact schema. The examples below show the expected GFM markdown formatting:
 {
   "questions": [
     {
-      "id": "string",
-      "text": "The question text in compatible Markdown",
+      "id": "p5_1",
+      "text": "Consider the following statements about the Mughal Empire:\\n1. Akbar introduced the Mansabdari system.\\n2. Aurangzeb abolished the jiziya tax.\\n3. Humayun built the Taj Mahal.\\n\\nHow many of the statements given above are **correct**?",
       "choices": [
-        { "text": "Option A in compatible Markdown", "isCorrect": false },
-        { "text": "Option B in compatible Markdown", "isCorrect": false },
-        { "text": "Option C in compatible Markdown", "isCorrect": false },
-        { "text": "Option D in compatible Markdown", "isCorrect": false }
+        { "text": "Only one", "isCorrect": false },
+        { "text": "Only two", "isCorrect": false },
+        { "text": "All three", "isCorrect": false },
+        { "text": "None", "isCorrect": false }
       ],
-      "pageNumber": 1
+      "pageNumber": 5
+    },
+    {
+      "id": "p5_2",
+      "text": "Which one of the following is **not** a feature of the Indian Constitution?",
+      "choices": [
+        { "text": "Federal system with unitary bias", "isCorrect": false },
+        { "text": "Parliamentary form of government", "isCorrect": false },
+        { "text": "Dual citizenship", "isCorrect": true },
+        { "text": "Independent judiciary", "isCorrect": false }
+      ],
+      "pageNumber": 5
     }
   ],
   "answerKeys": [
     {
-      "id": "string",
-      "answers": { "q1": "A", "q2": "B" },
-      "questionRefs": ["q1", "q2"],
-      "pageNumber": 2
+      "id": "ak_p10",
+      "answers": { "p5_1": "A", "p5_2": "C" },
+      "questionRefs": ["p5_1", "p5_2"],
+      "pageNumber": 10
     }
   ]
 }`;
