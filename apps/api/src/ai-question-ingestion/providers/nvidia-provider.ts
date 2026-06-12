@@ -38,14 +38,19 @@ export class NvidiaProvider extends BaseAIProvider {
     this.apiKey = apiKey ?? process.env.NVIDIA_API_KEY ?? '';
   }
 
-  protected async call(prompt: string, images: ImageInput[] = []): Promise<string> {
-    await this.enforceRateLimit(4000);
+  /** Returns true for DeepSeek models served through the NVIDIA NIM endpoint. */
+  private isDeepSeek(): boolean {
+    return this.model.toLowerCase().includes('deepseek');
+  }
 
+  protected async call(prompt: string, images: ImageInput[] = [], options?: { temperature?: number }): Promise<string> {
+    const isDeepSeekModel = this.isDeepSeek();
     const payload = {
       model: this.model,
       messages: [{ role: 'user', content: buildContent(prompt, images) }],
       max_tokens: 32768,
-      temperature: 0.2,
+      temperature: options?.temperature !== undefined ? options.temperature : 0.2,
+      ...(isDeepSeekModel && { chat_template_kwargs: { thinking: false } }),
     };
 
     const maxRetries = 8;

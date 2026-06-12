@@ -22,14 +22,14 @@ export class DeepseekProvider extends BaseAIProvider {
     this.apiKey = apiKey ?? process.env.DEEPSEEK_API_KEY ?? '';
   }
 
-  protected async call(prompt: string, images: ImageInput[] = []): Promise<string> {
+  protected async call(prompt: string, images: ImageInput[] = [], options?: { temperature?: number }): Promise<string> {
     await this.enforceRateLimit(1500);
 
     const payload = {
       model: this.model,
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
-      temperature: 0.2,
+      temperature: options?.temperature !== undefined ? options.temperature : 0.2,
       max_tokens: 8192,
     };
 

@@ -44,7 +44,7 @@ export class GoogleProvider extends BaseAIProvider {
     }
   }
 
-  protected async call(prompt: string, images: ImageInput[] = []): Promise<string> {
+  protected async call(prompt: string, images: ImageInput[] = [], options?: { temperature?: number }): Promise<string> {
     const parts: any[] = [{ text: prompt }];
     for (const img of images) {
       parts.push({
@@ -60,7 +60,10 @@ export class GoogleProvider extends BaseAIProvider {
     const response = await this.generateContentWithRetry({
       model: this.model,
       contents: [{ role: 'user', parts }],
-      config: { responseMimeType: 'application/json' },
+      config: {
+        responseMimeType: 'application/json',
+        ...(options?.temperature !== undefined && { temperature: options.temperature }),
+      },
     });
 
     if (!response.text) {

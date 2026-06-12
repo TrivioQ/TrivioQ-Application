@@ -17,7 +17,7 @@ export abstract class BaseAIProvider {
    * **raw** text response.  Markdown fences, trimming and JSON parsing
    * are handled by the base class.
    */
-  protected abstract call(prompt: string, images?: ImageInput[]): Promise<string>;
+  protected abstract call(prompt: string, images?: ImageInput[], options?: { temperature?: number }): Promise<string>;
 
   // ---------------------------------------------------------------------------
   // Shared helpers
@@ -71,13 +71,13 @@ export abstract class BaseAIProvider {
   // AIProvider implementation
   // ---------------------------------------------------------------------------
 
-  private async callWithRetry<T>(prompt: string, images: ImageInput[], op: string): Promise<T> {
+  private async callWithRetry<T>(prompt: string, images: ImageInput[], op: string, options?: { temperature?: number }): Promise<T> {
     const maxAttempts = 3;
     let lastError: any;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        const text = await this.call(prompt, images);
+        const text = await this.call(prompt, images, options);
         return this.parseJson<T>(text, op);
       } catch (e: any) {
         if (e instanceof SyntaxError || e.name === 'SyntaxError') {
@@ -95,15 +95,21 @@ export abstract class BaseAIProvider {
   }
 
   async classifyImage(image: ImageInput): Promise<ClassificationResult> {
-    return this.callWithRetry<ClassificationResult>(SCOUT_PROMPT, [image], 'classifyImage');
+    const tempStr = process.env.INGESTION_SCOUT_TEMPERATURE;
+    const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
+    return this.callWithRetry<ClassificationResult>(SCOUT_PROMPT, [image], 'classifyImage', { temperature });
   }
 
   async extractFromImages(images: ImageInput[], promptOverride?: string): Promise<ExtractionResult> {
-    return this.callWithRetry<ExtractionResult>(promptOverride ?? EXTRACTION_PROMPT, images, 'extractFromImages');
+    const tempStr = process.env.INGESTION_EXTRACTION_TEMPERATURE;
+    const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
+    return this.callWithRetry<ExtractionResult>(promptOverride ?? EXTRACTION_PROMPT, images, 'extractFromImages', { temperature });
   }
 
   async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult> {
+    const tempStr = process.env.INGESTION_ENHANCEMENT_TEMPERATURE;
+    const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
     const prompt = `${promptOverride ?? ENHANCEMENT_PROMPT}\n\n` + `Question: ${questionText}\n` + `Choices: ${JSON.stringify(choices)}\n\n` + 'Return a JSON object with: hint, explanation, aiQualityScore, difficulty';
-    return this.callWithRetry<EnhancementResult>(prompt, [], 'enhanceQuestion');
+    return this.callWithRetry<EnhancementResult>(prompt, [], 'enhanceQuestion', { temperature });
   }
 }
