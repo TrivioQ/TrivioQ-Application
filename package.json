@@ -13,7 +13,8 @@
     "lint:fix": "turbo run lint -- --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "test": "turbo run test",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "ingest": "turbo run ingest --filter @trivioq/api"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.59.0",

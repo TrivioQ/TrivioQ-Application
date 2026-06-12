@@ -30,10 +30,16 @@ export interface InstructionsJson {
    */
   categorySlugs?: string[];
   /**
-   * Optional free-text instruction injected into extraction and enhancement
-   * prompts (e.g. "Focus only on chapters 3–6.").
+   * Optional free-text instruction injected into the extraction prompt only
+   * (e.g. "Extract only chapters 3–6. Strip exam year markers.").
    */
-  specialInstruction?: string;
+  extractionSpecialInstruction?: string;
+  /**
+   * Optional free-text instruction injected into the enhancement prompt only
+   * (e.g. "This book contains Indian competitive exam questions.").
+   */
+  enhancementSpecialInstruction?: string;
+
   /**
    * Per-phase AI provider overrides for this book.
    * Falls back to the INGESTION_*_PROVIDER env vars and finally to 'google'.
@@ -202,8 +208,8 @@ export async function runIngestion(options?: { reuploadOnly?: boolean }): Promis
         categorySlugs: instructions.categorySlugs ?? [],
         aiProvider,
         providers: instructions.providers,
-        extractionSpecialInstruction: instructions.specialInstruction,
-        enhancementSpecialInstruction: instructions.specialInstruction,
+        extractionSpecialInstruction: instructions.extractionSpecialInstruction,
+        enhancementSpecialInstruction: instructions.enhancementSpecialInstruction,
       });
 
       await orchestrator.run(options);
