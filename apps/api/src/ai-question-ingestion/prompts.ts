@@ -148,7 +148,7 @@ Follow every rule below:
 7. Keep the explanation concise (2–3 sentences) and accurate.
 
 ## Difficulty classification
-Assess the question and assign a difficulty level:
+Assess the question and assign a difficulty level with keeping the average user in mind:
 - "EASY"   — factual recall, widely known, requires no reasoning
 - "MEDIUM" — requires some domain knowledge or light reasoning
 - "HARD"   — requires specialist knowledge, multi-step reasoning, or is a common misconception trap
