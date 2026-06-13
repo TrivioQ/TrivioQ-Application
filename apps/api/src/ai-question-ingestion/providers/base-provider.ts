@@ -109,7 +109,7 @@ export abstract class BaseAIProvider {
   async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult> {
     const tempStr = process.env.INGESTION_ENHANCEMENT_TEMPERATURE;
     const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
-    const prompt = `${promptOverride ?? ENHANCEMENT_PROMPT}\n\n` + `Question: ${questionText}\n` + `Choices: ${JSON.stringify(choices)}\n\n` + 'Return a JSON object with: hint, explanation, aiQualityScore, difficulty';
+    const prompt = `${promptOverride ?? ENHANCEMENT_PROMPT}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}`;
     return this.callWithRetry<EnhancementResult>(prompt, [], 'enhanceQuestion', { temperature });
   }
 }

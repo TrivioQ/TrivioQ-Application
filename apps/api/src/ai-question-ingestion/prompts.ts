@@ -54,10 +54,11 @@ Completely strip all leading identifiers (e.g., "A)", "B.", "a.", "b)", "(i)", "
 ## 6. Questions Spanning Multiple Pages
 If a question starts at the bottom of one page and continues on the next, stitch them into a single question object. Do not split or drop it.
 
-## 7. Answer Keys
-- Do NOT guess or solve questions.
-- Set \`isCorrect: true\` ONLY if the correct answer is explicitly marked inline in the source image (e.g., printed next to the question) or appears in an answer key table visible in the current page images.
+## 7. Answer Keys (CRITICAL ANTI-HALLUCINATION)
+- Do NOT guess or solve questions under any circumstances.
+- Set \`isCorrect: true\` ONLY if the correct answer is explicitly marked inline in the source image (e.g., printed next to the question).
 - If no answer is explicitly shown, set \`isCorrect: false\` for ALL choices. This is the default and expected case — answer keys are usually on a separate page.
+- **Answer key tables**: ONLY extract into the \`answerKeys\` array if a physical answer key table is VISIBLY PRINTED on the current page image. DO NOT fabricate or hallucinate an \`answerKeys\` block to solve the questions yourself. If no answer key is printed on the page, leave the \`answerKeys\` array empty or omit it. Use the **exact question number as printed in the table** (e.g., "1", "2", "26", "51") as the key in the \`answers\` map.
 
 ## 8. Passage-Dependent Questions
 **TYPE A — Inline passage (EXTRACT):** The passage is embedded in the question text itself. Extract it as-is, including the quoted text.
@@ -65,6 +66,9 @@ If a question starts at the bottom of one page and continues on the next, stitch
 
 ## 9. Question IDs
 Generate IDs using the format \`p<pageNumber>_<sequentialNumber>\` where the sequential number restarts at 1 for each new page (e.g., \`p5_1\`, \`p5_2\`, \`p6_1\`).
+
+## 10. Original Question Number
+Extract the explicit question number printed next to the question (e.g., if the question starts with "105. ", extract "105"). **Strip this number prefix from the question text** so the text begins with the actual content. If the question has no visible number, set this to null. Do NOT include periods, spaces, or brackets.
 
 Return a JSON object with this exact schema. The examples below show the expected GFM markdown formatting:
 {
@@ -78,7 +82,8 @@ Return a JSON object with this exact schema. The examples below show the expecte
         { "text": "All three", "isCorrect": false },
         { "text": "None", "isCorrect": false }
       ],
-      "pageNumber": 5
+      "pageNumber": 5,
+      "originalQuestionNumber": "1"
     },
     {
       "id": "p5_2",
@@ -86,18 +91,18 @@ Return a JSON object with this exact schema. The examples below show the expecte
       "choices": [
         { "text": "Federal system with unitary bias", "isCorrect": false },
         { "text": "Parliamentary form of government", "isCorrect": false },
-        { "text": "Dual citizenship", "isCorrect": true },
+        { "text": "Dual citizenship", "isCorrect": false },
         { "text": "Independent judiciary", "isCorrect": false }
       ],
-      "pageNumber": 5
+      "pageNumber": 5,
+      "originalQuestionNumber": "2"
     }
   ],
   "answerKeys": [
     {
-      "id": "ak_p10",
-      "answers": { "p5_1": "A", "p5_2": "C" },
-      "questionRefs": ["p5_1", "p5_2"],
-      "pageNumber": 10
+      "id": "ak_p12",
+      "answers": { "1": "D", "2": "C", "3": "B", "26": "A", "51": "C" },
+      "pageNumber": 12
     }
   ]
 }`;

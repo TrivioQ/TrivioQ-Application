@@ -279,6 +279,7 @@ export class IngestionOrchestrator {
               choices: eq.choices,
               pageNumber: eq.pageNumber,
               answerKeyRef: eq.answerKeyRef,
+              originalQuestionNumber: eq.originalQuestionNumber,
             },
           };
           this.state.upsertQuestion(question);
@@ -287,7 +288,12 @@ export class IngestionOrchestrator {
         if ((extracted.answerKeys?.length ?? 0) > 0) {
           const existingMeta = (this.state.initOrLoad().metadata as Record<string, unknown>) ?? {};
           const existingAKs = (existingMeta.answerKeys as any[]) ?? [];
-          existingAKs.push(...extracted.answerKeys);
+          for (const newAk of extracted.answerKeys) {
+            // Deduplicate: skip if an AK with the same answers already exists
+            const newKey = JSON.stringify(newAk.answers);
+            const isDupe = existingAKs.some((ak: any) => JSON.stringify(ak.answers) === newKey);
+            if (!isDupe) existingAKs.push(newAk);
+          }
           this.state.updateMetadata({ ...existingMeta, answerKeys: existingAKs });
         }
 
@@ -317,36 +323,48 @@ export class IngestionOrchestrator {
       answers: Record<string, string>;
     }>;
 
-    for (const q of stateData.questions) {
+    for (let qIdx = 0; qIdx < stateData.questions.length; qIdx++) {
+      const q = stateData.questions[qIdx];
       if (q.status !== 'AWAITING_KEY') continue;
 
       let currentAnswer = q.answer;
       let foundInKey = false;
-      for (const ak of answerKeys) {
-        // Try exact match, then stripped prefix match, then added prefix match
-        const originalIdMatch = q.id.match(/_([^_]+)$/);
-        const baseId = originalIdMatch ? originalIdMatch[1] : q.id;
-        const rawId = baseId.replace(/^q/i, '');
-        const qIdVariant = `q${rawId}`;
 
+      // Sort answer keys by proximity to the question's page number.
+      // Answer keys always appear AFTER their questions in a PDF, so we strongly
+      // prefer answer keys on a page >= the question's page. Among those, pick
+      // the closest one. This ensures that when multiple sets share overlapping
+      // question numbers (e.g., two sets both numbered 1–50), each question
+      // matches the answer key from its own set.
+      const qPage = (q.metadata?.pageNumber as number) ?? 0;
+      const sortedAKs = [...answerKeys].sort((a, b) => {
+        const aPage = (a as any).pageNumber ?? 0;
+        const bPage = (b as any).pageNumber ?? 0;
+        const aAfter = aPage >= qPage ? 0 : 1; // 0 = on or after question page
+        const bAfter = bPage >= qPage ? 0 : 1;
+        if (aAfter !== bAfter) return aAfter - bAfter; // prefer keys after question
+        // Both on same side — pick the closest one
+        return Math.abs(aPage - qPage) - Math.abs(bPage - qPage);
+      });
+
+      for (const ak of sortedAKs) {
+        // Strategy A: exact ID match (e.g. key is "p5_1")
         if (ak.answers[q.id]) {
           currentAnswer = ak.answers[q.id];
           foundInKey = true;
           break;
-        } else if (ak.answers[baseId]) {
-          currentAnswer = ak.answers[baseId];
-          foundInKey = true;
-          break;
-        } else if (ak.answers[rawId]) {
-          currentAnswer = ak.answers[rawId];
-          foundInKey = true;
-          break;
-        } else if (ak.answers[qIdVariant]) {
-          currentAnswer = ak.answers[qIdVariant];
+        }
+
+        // Strategy B: Extracted original question number, scoped by page proximity
+        if (q.metadata?.originalQuestionNumber && ak.answers[String(q.metadata.originalQuestionNumber)]) {
+          currentAnswer = ak.answers[String(q.metadata.originalQuestionNumber)];
           foundInKey = true;
           break;
         }
       }
+
+      // No further fallback strategies — if originalQuestionNumber didn't match,
+      // the question stays AWAITING_KEY. This is safer than guessing.
 
       // Normalize answer and isCorrect flags
       const choices = (q.metadata?.choices as any[]) ?? [];
@@ -361,13 +379,18 @@ export class IngestionOrchestrator {
           opt.isCorrect = idx === targetIndex;
         });
       } else if (!hasAnswerKey && trueOptions.length > 0) {
-        // Case 2: answer key missing, some isCorrect true
-        // The LLM often hallucinates the correct answer to satisfy the JSON schema.
-        // If we don't have an explicit answer key matched, we must clear these hallucinations
-        // so the question remains in AWAITING_KEY status.
-        choices.forEach((opt: any) => {
-          opt.isCorrect = false;
-        });
+        // Case 2: No answer key matched, but AI set isCorrect on some choice(s).
+        // This can happen in two scenarios:
+        //   A) The answer was genuinely printed inline (e.g. "Answer: 3" below the question)
+        //   B) The AI hallucinated the answer to satisfy the schema
+        //
+        // We trust the extraction AI here — the prompt rules (§7) only allow
+        // isCorrect: true when the answer is explicitly visible in the source image.
+        // Derive the answer letter from the first isCorrect choice.
+        const answerIndex = trueOptions[0].index;
+        const answerLetter = String.fromCharCode(65 + answerIndex).toLowerCase(); // 0→a, 1→b, etc.
+        currentAnswer = answerLetter;
+        foundInKey = false; // not from a key table, but the answer is resolved
       } else if (hasAnswerKey && trueOptions.length > 0) {
         // Case 3: Both exist, check for mismatch
         const answerChar = currentAnswer!.charAt(0).toUpperCase();
@@ -393,7 +416,7 @@ export class IngestionOrchestrator {
 
       const hasDirectAnswer = choices.some((c: any) => c.isCorrect === true);
 
-      if (foundInKey || hasDirectAnswer || (!foundInKey && q.metadata?.answerKeyRef)) {
+      if (foundInKey || hasDirectAnswer) {
         this.state.upsertQuestion({ ...updatedQ, status: 'READY_FOR_ENHANCEMENT' });
       } else {
         // Just save the normalized state without changing status

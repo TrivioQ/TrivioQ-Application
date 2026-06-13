@@ -27,12 +27,12 @@ export interface ExtractedQuestion {
   choices: ExtractedChoice[];
   answerKeyRef?: string;
   pageNumber?: number;
+  originalQuestionNumber?: string | null;
 }
 
 export interface ExtractedAnswerKey {
   id: string;
   answers: Record<string, string>;
-  questionRefs: string[];
   pageNumber?: number;
 }
 
