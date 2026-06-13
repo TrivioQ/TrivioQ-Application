@@ -2,6 +2,24 @@ import { ImageInput } from './ai-provider';
 import { SCOUT_PROMPT, EXTRACTION_PROMPT, ENHANCEMENT_PROMPT } from '../prompts';
 import type { ClassificationResult, EnhancementResult, ExtractionResult } from './ai-provider';
 
+export class ApiRateLimitError extends Error {
+  constructor(
+    public status: number,
+    public retryAfterMs?: number,
+    message?: string,
+  ) {
+    super(message);
+    this.name = 'ApiRateLimitError';
+  }
+}
+
+export class ApiFatalError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = 'ApiFatalError';
+  }
+}
+
 /**
  * Base class for all AI providers.
  *
@@ -71,13 +89,54 @@ export abstract class BaseAIProvider {
   // AIProvider implementation
   // ---------------------------------------------------------------------------
 
+  protected async executeApiCallWithRetry<T>(apiCall: () => Promise<T>): Promise<T> {
+    const maxRetries = 16;
+    let delay = 5000;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await apiCall();
+      } catch (error: any) {
+        if (error instanceof ApiFatalError) {
+          console.error(`[${this.constructor.name}] FATAL: Unrecoverable error. Stopping ingestion process. Error: ${error.message}`);
+          process.exit(1);
+        }
+
+        if (error instanceof ApiRateLimitError) {
+          if (attempt === maxRetries) {
+            console.error(`[${this.constructor.name}] FATAL: Max retries exhausted. Stopping ingestion process. HTTP ${error.status}: ${error.message}`);
+            process.exit(1);
+          }
+          let retryDelay = delay;
+          if (error.retryAfterMs) {
+            retryDelay = Math.max(retryDelay, error.retryAfterMs);
+          }
+          console.warn(`[${this.constructor.name}] HTTP ${error.status} (Attempt ${attempt}/${maxRetries}). Retrying in ${retryDelay}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+          delay = Math.max(delay * 2, retryDelay);
+          continue;
+        }
+
+        // Generic error (network timeout, etc.)
+        if (attempt === maxRetries) {
+          console.error(`[${this.constructor.name}] FATAL: Max retries exhausted. Stopping ingestion process. Error: ${error instanceof Error ? error.message : error}`);
+          process.exit(1);
+        }
+        console.warn(`[${this.constructor.name}] Error (Attempt ${attempt}/${maxRetries}): ${error instanceof Error ? error.message : error}. Retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        delay *= 2;
+      }
+    }
+    throw new Error(`[${this.constructor.name}] Unreachable code reached in retry loop`);
+  }
+
   private async callWithRetry<T>(prompt: string, images: ImageInput[], op: string, options?: { temperature?: number }): Promise<T> {
     const maxAttempts = 3;
     let lastError: any;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        const text = await this.call(prompt, images, options);
+        const text = await this.executeApiCallWithRetry(() => this.call(prompt, images, options));
         return this.parseJson<T>(text, op);
       } catch (e: any) {
         if (e instanceof SyntaxError || e.name === 'SyntaxError') {

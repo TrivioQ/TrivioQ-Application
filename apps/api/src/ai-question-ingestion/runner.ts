@@ -99,7 +99,7 @@ export async function runIngestion(options?: { reuploadOnly?: boolean }): Promis
   console.log(`[Runner] AI provider: ${aiProvider}`);
 
   const entries = fs.readdirSync(ingestionRoot, { withFileTypes: true });
-  const bookDirs = entries.filter((e) => e.isDirectory());
+  const bookDirs = entries.filter((e) => e.isDirectory() && !e.name.startsWith('__'));
 
   if (bookDirs.length === 0) {
     console.log('[Runner] No sub-folders found — nothing to process.');

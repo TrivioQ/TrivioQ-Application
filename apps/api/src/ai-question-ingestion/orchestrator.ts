@@ -6,14 +6,14 @@ import { shuffleArray } from '../utils/shuffle';
 import { reportError } from '../utils/error-reporter';
 import fs from 'fs';
 import { createProvider, type AIProvider, type AIProviderName } from './providers';
-import { buildExtractionPrompt, buildEnhancementPrompt } from './prompts';
+import { buildExtractionPrompt, buildEnhancementPrompt, KEY_EXTRACTION_PROMPT } from './prompts';
 
 // ── Re-exports (kept for backwards-compatibility with existing callers) ────────
 export type { ExtractedQuestion, ExtractedAnswerKey, EnhancementResult } from './providers';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type ImageType = 'RELEVANT' | 'OTHER';
+export type ImageType = 'QUESTIONS' | 'QUESTIONS_WITH_KEYS' | 'QUESTIONS_WITH_KEY_UNDERNEATH' | 'OTHER';
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
@@ -215,14 +215,72 @@ export class IngestionOrchestrator {
     const stateData = this.state.initOrLoad();
     const imageClassifications = (stateData.metadata?.imageClassifications as Record<string, ImageType>) ?? {};
 
-    const relevantImages: string[] = [];
-
+    // ── Pass 1: Extract Keys from 'QUESTIONS_WITH_KEYS' pages ──
+    const keyPages: string[] = [];
     for (const [imagePath, classification] of Object.entries(imageClassifications)) {
-      if (classification === 'RELEVANT') relevantImages.push(imagePath);
+      if (classification === 'QUESTIONS_WITH_KEYS') keyPages.push(imagePath);
+    }
+
+    if (keyPages.length > 0) {
+      console.log(`[Extraction] Pass 1: Extracting answer keys from ${keyPages.length} boundary pages...`);
+      for (const keyPagePath of keyPages) {
+        try {
+          const stateDataMeta = (this.state.initOrLoad().metadata as Record<string, unknown>) ?? {};
+          const processedKeyPages = (stateDataMeta.processedKeyPages as string[]) ?? [];
+
+          // Backward compatibility check for already extracted keys
+          const match = keyPagePath.match(/page\.(\d+)\./);
+          const pageNum = match ? parseInt(match[1], 10) : -1;
+          const existingAKsInitial = (stateDataMeta.answerKeys as any[]) ?? [];
+          const alreadyExtracted = existingAKsInitial.some((ak: any) => ak.pageNumber === pageNum);
+
+          if (processedKeyPages.includes(keyPagePath) || alreadyExtracted) {
+            console.log(`[Extraction] Skipping already extracted key page ${keyPagePath}`);
+            continue;
+          }
+
+          const image = this.imageToBase64(keyPagePath);
+          await this.delayIfNeeded('extraction');
+
+          console.log(`[Extraction] Extracting keys from ${keyPagePath}...`);
+          let extracted;
+          try {
+            extracted = await this.extractionProvider.extractFromImages([image], KEY_EXTRACTION_PROMPT);
+          } finally {
+            this.recordCallTime();
+          }
+
+          const existingMeta = (this.state.initOrLoad().metadata as Record<string, unknown>) ?? {};
+          const existingAKs = (existingMeta.answerKeys as any[]) ?? [];
+          if ((extracted.answerKeys?.length ?? 0) > 0) {
+            for (const newAk of extracted.answerKeys) {
+              const newKeyStr = JSON.stringify(newAk.answers);
+              const isDupe = existingAKs.some((ak: any) => JSON.stringify(ak.answers) === newKeyStr);
+              if (!isDupe) existingAKs.push(newAk);
+            }
+            console.log(`[Extraction] Saved answer keys from ${keyPagePath}`);
+          }
+
+          const updatedProcessedKeyPages = (existingMeta.processedKeyPages as string[]) ?? [];
+          if (!updatedProcessedKeyPages.includes(keyPagePath)) {
+            updatedProcessedKeyPages.push(keyPagePath);
+          }
+
+          this.state.updateMetadata({ ...existingMeta, answerKeys: existingAKs, processedKeyPages: updatedProcessedKeyPages });
+        } catch (error) {
+          console.error(`[Extraction] Error extracting keys from ${keyPagePath}:`, error);
+        }
+      }
+    }
+
+    // ── Pass 2: Question Extraction ──
+    const relevantImages: string[] = [];
+    for (const [imagePath, classification] of Object.entries(imageClassifications)) {
+      if (classification !== 'OTHER') relevantImages.push(imagePath);
     }
 
     if (relevantImages.length === 0) {
-      console.log('[Extraction] No RELEVANT images found');
+      console.log('[Extraction] No relevant images found for questions');
       return;
     }
 
@@ -230,19 +288,70 @@ export class IngestionOrchestrator {
     const batchSize = process.env.INGESTION_EXTRACTION_BATCH_SIZE ? parseInt(process.env.INGESTION_EXTRACTION_BATCH_SIZE, 10) : 1;
     console.log(`[Extraction] Stage Config — Provider: ${this.extractionProvider.constructor.name}, Model: ${this.extractionProvider.model}, Temperature: ${tempStr ?? 'default'}, Batch Size: ${batchSize}, Delay: ${this.callDelayMs.extraction}ms`);
 
-    console.log(`[Extraction] Processing ${relevantImages.length} relevant images`);
+    // Chunking logic based on QUESTIONS_WITH_KEYS
+    const chunks: string[][] = [];
+    let currentChunk: string[] = [];
 
-    // Build the prompt once — optionally prefixed with the book's special instruction
-    const extractionPrompt = buildExtractionPrompt(this.extractionSpecialInstruction);
+    for (const img of relevantImages) {
+      currentChunk.push(img);
+      if (imageClassifications[img] === 'QUESTIONS_WITH_KEYS') {
+        chunks.push([...currentChunk]);
+        currentChunk = [img]; // The boundary page is also the start of the next chunk
+      }
+    }
+    // Add the final chunk if it has new items
+    if (currentChunk.length > 0) {
+      const isJustBoundary = currentChunk.length === 1 && imageClassifications[currentChunk[0]] === 'QUESTIONS_WITH_KEYS';
+      // If it's the very first chunk, we push it regardless. If it's just a boundary carried over, we don't.
+      if (chunks.length === 0 || !isJustBoundary) {
+        chunks.push(currentChunk);
+      }
+    }
 
-    // Chunk images into overlapping batches (stride = batchSize - 1, min stride = 1)
+    // Generate batches for all chunks
+    const groups: { images: string[]; spatialInstructions: string[]; answerKeyRef?: number; hasUnderneathKeys: boolean }[] = [];
     const overlap = 1;
     const stride = Math.max(1, batchSize - overlap);
-    const groups: string[][] = [];
-    for (let i = 0; i < relevantImages.length; i += stride) {
-      const group = relevantImages.slice(i, i + batchSize);
-      groups.push(group);
-      if (group.length < batchSize) break;
+
+    for (const chunk of chunks) {
+      // Find the answer key page for this chunk
+      const keyImg = chunk
+        .slice()
+        .reverse()
+        .find((img) => imageClassifications[img] === 'QUESTIONS_WITH_KEYS');
+      let answerKeyRef: number | undefined;
+      if (keyImg) {
+        const m = keyImg.match(/page\.(\d+)\./);
+        if (m) answerKeyRef = parseInt(m[1], 10);
+      }
+
+      for (let i = 0; i < chunk.length; i += stride) {
+        const group = chunk.slice(i, i + batchSize);
+        if (group.length === 0) break;
+
+        const spatialInstructions: string[] = [];
+        const hasUnderneathKeys = group.some((img) => imageClassifications[img] === 'QUESTIONS_WITH_KEY_UNDERNEATH');
+
+        if (hasUnderneathKeys) {
+          spatialInstructions.push("The answer key is provided right below each question. Extract the correct answer and set 'isCorrect: true' for that choice.");
+        }
+
+        const firstImg = group[0];
+        const lastImg = group[group.length - 1];
+
+        if (imageClassifications[firstImg] === 'QUESTIONS_WITH_KEYS') {
+          spatialInstructions.push('CRITICAL: For the first image, ignore the answer key table and anything above it. Begin extracting questions ONLY from the text that appears *below* the answer keys.');
+        }
+
+        if (group.length > 1 && imageClassifications[lastImg] === 'QUESTIONS_WITH_KEYS') {
+          spatialInstructions.push('CRITICAL: For the final image, STOP extracting immediately when you reach the answer key table. Do not extract anything below the answer keys.');
+        }
+
+        groups.push({ images: group, spatialInstructions, answerKeyRef, hasUnderneathKeys });
+
+        // Stop if we reached the end of the chunk
+        if (group.length < batchSize || i + stride >= chunk.length) break;
+      }
     }
 
     const startIndex = this.state.getLastProcessedExtractionBatchIndex() + 1;
@@ -252,33 +361,42 @@ export class IngestionOrchestrator {
     }
 
     for (let i = startIndex; i < groups.length; i++) {
-      const group = groups[i];
+      const { images: group, spatialInstructions, answerKeyRef, hasUnderneathKeys } = groups[i];
       try {
-        const images = group.map((img) => this.imageToBase64(img));
-
+        const imagesB64 = group.map((img) => this.imageToBase64(img));
         const imageIndices = group.map((p) => this.imagePaths.indexOf(p) + 1).join(', ');
+
         await this.delayIfNeeded('extraction');
         console.log(`[Extraction] Extracting questions from image(s) ${imageIndices}...`);
+
+        const extractionPrompt = buildExtractionPrompt(spatialInstructions, this.extractionSpecialInstruction);
+
         let extracted;
         try {
           // Pass the (possibly enriched) prompt through via the extraction provider
-          extracted = await this.extractionProvider.extractFromImages(images, extractionPrompt);
+          extracted = await this.extractionProvider.extractFromImages(imagesB64, extractionPrompt);
         } finally {
           this.recordCallTime();
         }
 
         for (const eq of extracted.questions || []) {
-          // Guarantee a globally unique ID by prepending the page number
-          const uniqueId = eq.pageNumber && !eq.id.includes(`p${eq.pageNumber}`) ? `p${eq.pageNumber}_${eq.id}` : eq.id;
+          // Build a globally unique ID using the page number and the original question number.
+          // This ensures the ID directly matches the answer-key numbering (e.g., p7_29 for Q29).
+          const qNum = eq.originalQuestionNumber ?? eq.id.replace(/^p\d+_/, '');
+          const pagePrefix = eq.pageNumber ? `p${eq.pageNumber}_` : '';
+          const uniqueId = `${pagePrefix}${qNum}`;
+
+          const hasDirectAnswer = eq.choices.some((c) => c.isCorrect);
+          const initialStatus = hasUnderneathKeys && hasDirectAnswer ? 'READY_FOR_ENHANCEMENT' : 'AWAITING_KEY';
 
           const question: Question = {
             id: uniqueId,
             text: eq.text,
-            status: 'AWAITING_KEY',
+            status: initialStatus,
             metadata: {
               choices: eq.choices,
               pageNumber: eq.pageNumber,
-              answerKeyRef: eq.answerKeyRef,
+              answerKeyRef: answerKeyRef ?? eq.answerKeyRef,
               originalQuestionNumber: eq.originalQuestionNumber,
             },
           };
@@ -347,19 +465,35 @@ export class IngestionOrchestrator {
         return Math.abs(aPage - qPage) - Math.abs(bPage - qPage);
       });
 
-      for (const ak of sortedAKs) {
-        // Strategy A: exact ID match (e.g. key is "p5_1")
-        if (ak.answers[q.id]) {
-          currentAnswer = ak.answers[q.id];
-          foundInKey = true;
-          break;
+      // Strategy 0: Exact set binding via explicit answerKeyRef
+      if (q.metadata?.answerKeyRef !== undefined) {
+        const taggedAK = answerKeys.find((ak) => (ak as any).pageNumber === q.metadata?.answerKeyRef);
+        if (taggedAK) {
+          if (taggedAK.answers[q.id]) {
+            currentAnswer = taggedAK.answers[q.id];
+            foundInKey = true;
+          } else if (q.metadata.originalQuestionNumber && taggedAK.answers[String(q.metadata.originalQuestionNumber)]) {
+            currentAnswer = taggedAK.answers[String(q.metadata.originalQuestionNumber)];
+            foundInKey = true;
+          }
         }
+      }
 
-        // Strategy B: Extracted original question number, scoped by page proximity
-        if (q.metadata?.originalQuestionNumber && ak.answers[String(q.metadata.originalQuestionNumber)]) {
-          currentAnswer = ak.answers[String(q.metadata.originalQuestionNumber)];
-          foundInKey = true;
-          break;
+      if (!foundInKey) {
+        for (const ak of sortedAKs) {
+          // Strategy A: exact ID match (e.g. key is "p5_1")
+          if (ak.answers[q.id]) {
+            currentAnswer = ak.answers[q.id];
+            foundInKey = true;
+            break;
+          }
+
+          // Strategy B: Extracted original question number, scoped by page proximity
+          if (q.metadata?.originalQuestionNumber && ak.answers[String(q.metadata.originalQuestionNumber)]) {
+            currentAnswer = ak.answers[String(q.metadata.originalQuestionNumber)];
+            foundInKey = true;
+            break;
+          }
         }
       }
 
@@ -375,9 +509,13 @@ export class IngestionOrchestrator {
         // Case 1: answer key present, all isCorrect false
         const answerChar = currentAnswer!.charAt(0).toUpperCase();
         const targetIndex = answerChar.charCodeAt(0) - 65; // A=0, B=1, etc.
-        choices.forEach((opt: any, idx: number) => {
-          opt.isCorrect = idx === targetIndex;
-        });
+        if (targetIndex >= 0 && targetIndex < choices.length) {
+          choices.forEach((opt: any, idx: number) => {
+            opt.isCorrect = idx === targetIndex;
+          });
+        } else {
+          console.warn(`[Reconciliation] Question ${q.id} has answer key ${currentAnswer} but extracted only ${choices.length} choices.`);
+        }
       } else if (!hasAnswerKey && trueOptions.length > 0) {
         // Case 2: No answer key matched, but AI set isCorrect on some choice(s).
         // This can happen in two scenarios:
@@ -397,11 +535,13 @@ export class IngestionOrchestrator {
         const expectedIndex = answerChar.charCodeAt(0) - 65;
         const actualIndex = trueOptions[0].index;
 
-        if (expectedIndex !== actualIndex) {
+        if (expectedIndex !== actualIndex && expectedIndex >= 0 && expectedIndex < choices.length) {
           // Mismatch! Prioritize explicit answer key
           choices.forEach((opt: any, idx: number) => {
             opt.isCorrect = idx === expectedIndex;
           });
+        } else if (expectedIndex >= choices.length) {
+          console.warn(`[Reconciliation] Question ${q.id} has answer key ${currentAnswer} but extracted only ${choices.length} choices.`);
         }
       }
 

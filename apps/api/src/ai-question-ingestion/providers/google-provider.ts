@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { BaseAIProvider } from './base-provider';
+import { BaseAIProvider, ApiRateLimitError, ApiFatalError } from './base-provider';
 import type { ImageInput } from './ai-provider';
 
 // ── Google GenAI provider ─────────────────────────────────────────────────────
@@ -19,28 +19,21 @@ export class GoogleProvider extends BaseAIProvider {
   private async generateContentWithRetry(params: any): Promise<any> {
     await this.enforceRateLimit(4000);
 
-    const maxRetries = 5;
-    let delay = 2000;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        return await this.ai.models.generateContent(params);
-      } catch (error: any) {
-        if (error.status === 429 || (error.status >= 500 && error.status < 600)) {
-          if (attempt === maxRetries) throw error;
-
-          let retryDelay = delay;
-          const match = error.message?.match(/retry in (\d+(\.\d+)?)s/i);
-          if (match) {
-            retryDelay = Math.ceil(parseFloat(match[1]) * 1000) + 1000;
-          }
-          console.warn(`[GoogleProvider] HTTP ${error.status} (Attempt ${attempt}/${maxRetries}). Retrying in ${retryDelay}ms...`);
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
-          delay *= 2;
-        } else {
-          throw error;
+    try {
+      return await this.ai.models.generateContent(params);
+    } catch (error: any) {
+      if (error.status === 429 || (error.status >= 500 && error.status < 600)) {
+        let retryDelay;
+        const match = error.message?.match(/retry in (\d+(\.\d+)?)s/i);
+        if (match) {
+          retryDelay = Math.ceil(parseFloat(match[1]) * 1000) + 1000;
         }
+        throw new ApiRateLimitError(error.status, retryDelay, error.message);
       }
+      if (error.status >= 400 && error.status < 500) {
+        throw new ApiFatalError(error.message);
+      }
+      throw error;
     }
   }
 

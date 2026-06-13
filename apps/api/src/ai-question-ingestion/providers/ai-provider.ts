@@ -12,7 +12,7 @@ export interface ImageInput {
 // ── Result types ──────────────────────────────────────────────────────────────
 
 export interface ClassificationResult {
-  classification: 'RELEVANT' | 'OTHER';
+  classification: 'QUESTIONS' | 'QUESTIONS_WITH_KEYS' | 'QUESTIONS_WITH_KEY_UNDERNEATH' | 'OTHER';
   confidence: number;
 }
 
@@ -67,7 +67,7 @@ export interface AIProvider {
   readonly model: string;
   /**
    * Classify a single page image.
-   * Returns one of: 'RELEVANT' | 'OTHER'
+   * Returns one of: 'QUESTIONS' | 'QUESTIONS_WITH_KEYS' | 'QUESTIONS_WITH_KEY_UNDERNEATH' | 'OTHER'
    */
   classifyImage(image: ImageInput): Promise<ClassificationResult>;
 

@@ -3,13 +3,29 @@
 // Changes to a prompt are automatically reflected in all providers.
 
 export const SCOUT_PROMPT = `You are a strict document classifier. Analyze the provided page image and classify it into one of these categories:
-- "RELEVANT" — strictly contains actual trivia questions, quiz questions, or answer keys.
+- "QUESTIONS_WITH_KEYS" — Classify as this if the page contains a distinct grid, list, or table of answer mappings (e.g., "1: A, 2: B" or a large Answer Key table) for multiple questions. This takes PRIORITY. If you see an answer key table, choose this category even if regular questions are also present on the page.
+- "QUESTIONS_WITH_KEY_UNDERNEATH" — ONLY classify as this if the image explicitly contains text like "Answer: A" or "Answer: 2" printed directly below or next to the question.
+- "QUESTIONS" — classify as this if the page strictly contains trivia/quiz questions. Multiple-choice options (e.g., (A), (B), (C), (D)) are just part of the question. Choose this if there are NO answer keys on the page.
 - "OTHER" — anything else (table of contents, blank pages, advertisements, title pages, prefaces, syllabuses, instructional pages, or any page WITHOUT actual questions or answer keys).
 
 CRITICAL: If the page does NOT contain any actual questions or answer keys, you MUST classify it as "OTHER".
 
 Return ONLY a JSON object with this exact schema. Do not include markdown, explanations, or any other text:
-{"classification": "RELEVANT|OTHER", "confidence": 0.0-1.0}`;
+{"classification": "QUESTIONS|QUESTIONS_WITH_KEYS|QUESTIONS_WITH_KEY_UNDERNEATH|OTHER", "confidence": 0.0-1.0}`;
+
+export const KEY_EXTRACTION_PROMPT = `You are an expert answer key extractor. Given an image containing an answer key table for trivia questions, extract ONLY the answer key table.
+DO NOT extract any questions from the image. Only extract the answer key mapping.
+
+Return a JSON object with this exact schema:
+{
+  "answerKeys": [
+    {
+      "id": "ak_p<pageNumber>",
+      "answers": { "1": "D", "2": "C", "3": "B", "26": "A", "51": "C" },
+      "pageNumber": <pageNumber>
+    }
+  ]
+}`;
 
 export const EXTRACTION_PROMPT = `You are an expert trivia question extractor. Given images containing trivia questions (and possibly their answer keys), extract all questions with their multiple-choice options.
 
@@ -65,7 +81,7 @@ If a question starts at the bottom of one page and continues on the next, stitch
 **TYPE B — External passage reference (DISCARD):** The question references a passage not visible in the current image(s). Silently skip these questions.
 
 ## 9. Question IDs
-Generate IDs using the format \`p<pageNumber>_<sequentialNumber>\` where the sequential number restarts at 1 for each new page (e.g., \`p5_1\`, \`p5_2\`, \`p6_1\`).
+Generate IDs using the format \`p<pageNumber>_<originalQuestionNumber>\` where the number is the actual printed question number from the source (e.g., if page 7 has questions 29, 30, 31, the IDs are \`p7_29\`, \`p7_30\`, \`p7_31\`). If a question has no visible number, use a sequential fallback starting from 1 (e.g., \`p5_1\`, \`p5_2\`).
 
 ## 10. Original Question Number
 Extract the explicit question number printed next to the question (e.g., if the question starts with "105. ", extract "105"). **Strip this number prefix from the question text** so the text begins with the actual content. If the question has no visible number, set this to null. Do NOT include periods, spaces, or brackets.
@@ -74,7 +90,7 @@ Return a JSON object with this exact schema. The examples below show the expecte
 {
   "questions": [
     {
-      "id": "p5_1",
+      "id": "p5_29",
       "text": "Consider the following statements about the Mughal Empire:\\n1. Akbar introduced the Mansabdari system.\\n2. Aurangzeb abolished the jiziya tax.\\n3. Humayun built the Taj Mahal.\\n\\nHow many of the statements given above are **correct**?",
       "choices": [
         { "text": "Only one", "isCorrect": false },
@@ -83,10 +99,10 @@ Return a JSON object with this exact schema. The examples below show the expecte
         { "text": "None", "isCorrect": false }
       ],
       "pageNumber": 5,
-      "originalQuestionNumber": "1"
+      "originalQuestionNumber": "29"
     },
     {
-      "id": "p5_2",
+      "id": "p5_30",
       "text": "Which one of the following is **not** a feature of the Indian Constitution?",
       "choices": [
         { "text": "Federal system with unitary bias", "isCorrect": false },
@@ -95,7 +111,7 @@ Return a JSON object with this exact schema. The examples below show the expecte
         { "text": "Independent judiciary", "isCorrect": false }
       ],
       "pageNumber": 5,
-      "originalQuestionNumber": "2"
+      "originalQuestionNumber": "30"
     }
   ],
   "answerKeys": [
@@ -159,12 +175,23 @@ Return a JSON object with this exact schema:
 // Use these helpers when a per-book special instruction should be injected.
 
 /**
- * Returns EXTRACTION_PROMPT optionally prefixed with a special instruction
- * sourced from the book's instructions.json.
+ * Returns EXTRACTION_PROMPT optionally prefixed with spatial boundary instructions
+ * and a special instruction sourced from the book's instructions.json.
  */
-export function buildExtractionPrompt(specialInstruction?: string): string {
-  if (!specialInstruction) return EXTRACTION_PROMPT;
-  return `## Special instruction for this book\n${specialInstruction.trim()}\n\n${EXTRACTION_PROMPT}`;
+export function buildExtractionPrompt(spatialInstructions?: string[], specialInstruction?: string): string {
+  let prompt = '';
+
+  if (spatialInstructions && spatialInstructions.length > 0) {
+    prompt += '## Spatial/Boundary Instructions for this Batch\n';
+    spatialInstructions.forEach((inst) => (prompt += `- ${inst}\n`));
+    prompt += '\n';
+  }
+
+  if (specialInstruction) {
+    prompt += `## Special instruction for this book\n${specialInstruction.trim()}\n\n`;
+  }
+
+  return prompt + EXTRACTION_PROMPT;
 }
 
 /**
