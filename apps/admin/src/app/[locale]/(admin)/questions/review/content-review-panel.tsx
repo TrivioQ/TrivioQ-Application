@@ -36,6 +36,14 @@ export function ContentReviewPanel({ questions, categories }: { questions: Pendi
   const t = useTranslations('review');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pendingQuestions, setPendingQuestions] = useState(questions);
+  const [prevQuestionsProp, setPrevQuestionsProp] = useState(questions);
+
+  // Update internal state when the questions prop changes (React recommended pattern)
+  if (questions !== prevQuestionsProp) {
+    setPrevQuestionsProp(questions);
+    setPendingQuestions(questions);
+    setSelectedId(null);
+  }
 
   const selected = pendingQuestions.find((q) => q.id === selectedId) ?? null;
 
@@ -52,7 +60,7 @@ export function ContentReviewPanel({ questions, categories }: { questions: Pendi
   }
 
   return (
-    <div className="flex gap-0 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden min-h-[600px]">
+    <div className="flex gap-0 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden h-[calc(100vh-220px)] min-h-[600px]">
       {/* ── Left: Question List ── */}
       <aside className="w-80 flex-shrink-0 border-r border-gray-200 bg-gray-50/50 flex flex-col">
         <div className="px-4 py-3 border-b border-gray-200 bg-white">
