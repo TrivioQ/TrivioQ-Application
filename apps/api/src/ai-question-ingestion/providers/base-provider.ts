@@ -90,7 +90,7 @@ export abstract class BaseAIProvider {
   // ---------------------------------------------------------------------------
 
   protected async executeApiCallWithRetry<T>(apiCall: () => Promise<T>): Promise<T> {
-    const maxRetries = 16;
+    const maxRetries = 8;
     let delay = 5000;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {

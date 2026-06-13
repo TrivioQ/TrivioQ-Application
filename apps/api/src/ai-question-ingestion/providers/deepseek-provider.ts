@@ -30,7 +30,7 @@ export class DeepseekProvider extends BaseAIProvider {
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
       temperature: options?.temperature !== undefined ? options.temperature : 0.2,
-      max_tokens: 8192,
+      max_tokens: 32768,
     };
 
     if (images.length > 0) {
