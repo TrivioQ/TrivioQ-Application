@@ -64,26 +64,31 @@ Any question with numbered sub-items (1., 2., 3., etc.) MUST follow this structu
 
 This rule applies to ALL multi-item structures — statements, names, places, conditions, or code snippets.
 
-## 5. Multiple-Choice Options
+## 5. Complex Question Structures (Items vs Final Choices)
+Some questions present a list of items (statements, names, places) followed by final choices that combine them (e.g., "1 and 2", "2, 3 and 4").
+- **Sub-Items are NOT Choices:** The intermediate list of items (even if labeled a, b, c, d or 1, 2, 3, 4 in the image) MUST be included in the main "text" of the question. You should normalize their labels to a numbered list (1., 2., 3., 4.) to match the final choices.
+- **Final Choices ONLY:** The "choices" array MUST contain ONLY the final selectable options (e.g., "1, 2 and 3", "1 and 4"). DO NOT put the intermediate items into the "choices" array.
+
+## 6. Multiple-Choice Options
 Completely strip all leading identifiers (e.g., "A)", "B.", "a.", "b)", "(i)", "(ii)") from choice text. The "text" field must contain ONLY the raw option value with no prefix.
 
-## 6. Questions Spanning Multiple Pages
+## 7. Questions Spanning Multiple Pages
 If a question starts at the bottom of one page and continues on the next, stitch them into a single question object. Do not split or drop it.
 
-## 7. Answer Keys (CRITICAL ANTI-HALLUCINATION)
+## 8. Answer Keys (CRITICAL ANTI-HALLUCINATION)
 - Do NOT guess or solve questions under any circumstances.
 - Set \`isCorrect: true\` ONLY if the correct answer is explicitly marked inline in the source image (e.g., printed next to the question).
 - If no answer is explicitly shown, set \`isCorrect: false\` for ALL choices. This is the default and expected case — answer keys are usually on a separate page.
 - **Answer key tables**: ONLY extract into the \`answerKeys\` array if a physical answer key table is VISIBLY PRINTED on the current page image. DO NOT fabricate or hallucinate an \`answerKeys\` block to solve the questions yourself. If no answer key is printed on the page, leave the \`answerKeys\` array empty or omit it. Use the **exact question number as printed in the table** (e.g., "1", "2", "26", "51") as the key in the \`answers\` map.
 
-## 8. Passage-Dependent Questions
+## 9. Passage-Dependent Questions
 **TYPE A — Inline passage (EXTRACT):** The passage is embedded in the question text itself. Extract it as-is, including the quoted text.
 **TYPE B — External passage reference (DISCARD):** The question references a passage not visible in the current image(s). Silently skip these questions.
 
-## 9. Question IDs
+## 10. Question IDs
 Generate IDs using the format \`p<pageNumber>_<originalQuestionNumber>\` where the number is the actual printed question number from the source (e.g., if page 7 has questions 29, 30, 31, the IDs are \`p7_29\`, \`p7_30\`, \`p7_31\`). If a question has no visible number, use a sequential fallback starting from 1 (e.g., \`p5_1\`, \`p5_2\`).
 
-## 10. Original Question Number
+## 11. Original Question Number
 Extract the explicit question number printed next to the question (e.g., if the question starts with "105. ", extract "105"). **Strip this number prefix from the question text** so the text begins with the actual content. If the question has no visible number, set this to null. Do NOT include periods, spaces, or brackets.
 
 Return a JSON object with this exact schema. The examples below show the expected GFM markdown formatting:
