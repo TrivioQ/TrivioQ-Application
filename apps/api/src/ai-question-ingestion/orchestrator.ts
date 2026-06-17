@@ -367,7 +367,7 @@ export class IngestionOrchestrator {
         const imageIndices = group.map((p) => this.imagePaths.indexOf(p) + 1).join(', ');
 
         await this.delayIfNeeded('extraction');
-        console.log(`[Extraction] Extracting questions from image(s) ${imageIndices}...`);
+        console.log(`[Extraction] Extracting questions from image(s) ${imageIndices}, batch ${i + 1} of ${groups.length}...`);
 
         const extractionPrompt = buildExtractionPrompt(spatialInstructions, this.extractionSpecialInstruction);
 
