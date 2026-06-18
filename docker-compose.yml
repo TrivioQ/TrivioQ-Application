@@ -331,3 +331,23 @@ services:
       retries: 3
       start_period: 30s
     logging: *default-logging
+
+  # -------------------------------------------------------------------------
+  # Cloudflare Tunnel (cloudflared)
+  # -------------------------------------------------------------------------
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: trivioq-tunnel
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - trivioq-network
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+      admin:
+        condition: service_healthy
