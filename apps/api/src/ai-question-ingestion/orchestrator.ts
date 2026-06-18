@@ -196,7 +196,7 @@ export class IngestionOrchestrator {
         this.state.updateMetadata({ ...existingMeta, imageClassifications });
         this.state.setLastProcessedImageIndex(i);
 
-        console.log(`[Scout] Image ${i + 1} classified as ${classification}`);
+        console.log(`[Scout] Image ${i + 1} classified as ${classification} [${i + 1}/${this.imagePaths.length}]`);
       } catch (error) {
         console.error(`[Scout] Error processing image ${imagePath}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
@@ -480,6 +480,13 @@ export class IngestionOrchestrator {
           } else if (q.metadata.originalQuestionNumber && taggedAK.answers[String(q.metadata.originalQuestionNumber)]) {
             currentAnswer = taggedAK.answers[String(q.metadata.originalQuestionNumber)];
             foundInKey = true;
+          } else {
+            // Strategy C: Extract question number from ID (fallback)
+            const idMatch = q.id.match(/_(\d+)/);
+            if (idMatch && idMatch[1] && taggedAK.answers[idMatch[1]]) {
+              currentAnswer = taggedAK.answers[idMatch[1]];
+              foundInKey = true;
+            }
           }
         }
       }
@@ -496,6 +503,14 @@ export class IngestionOrchestrator {
           // Strategy B: Extracted original question number, scoped by page proximity
           if (q.metadata?.originalQuestionNumber && ak.answers[String(q.metadata.originalQuestionNumber)]) {
             currentAnswer = ak.answers[String(q.metadata.originalQuestionNumber)];
+            foundInKey = true;
+            break;
+          }
+
+          // Strategy C: Extract question number from ID (fallback)
+          const idMatch = q.id.match(/_(\d+)/);
+          if (idMatch && idMatch[1] && ak.answers[idMatch[1]]) {
+            currentAnswer = ak.answers[idMatch[1]];
             foundInKey = true;
             break;
           }
