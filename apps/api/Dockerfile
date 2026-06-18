@@ -112,6 +112,12 @@ RUN cd packages/shared-types && \
 # ── Step 4: Compile the API ──────────────────────────────────────────────────
 RUN cd apps/api && npx tsc
 
+# ── Step 5: Prune devDependencies for smaller image ──────────────────────────
+RUN cd apps/api && yarn workspaces focus --production
+
+# ── Step 6: Regenerate Prisma Client (focus might clean it up) ───────────────
+RUN cd packages/database && npx prisma generate
+
 # -----------------------------------------------------------------------------
 # Stage 4: runner — lean production image
 # -----------------------------------------------------------------------------
@@ -131,6 +137,7 @@ COPY --from=builder --chown=trivioq:nodejs /app/apps/api/dist ./dist
 
 # Copy workspace package builds (node_modules symlinks point here at runtime)
 COPY --from=builder --chown=trivioq:nodejs /app/packages/database/dist       ./packages/database/dist
+COPY --from=builder --chown=trivioq:nodejs /app/packages/database/prisma     ./packages/database/prisma
 COPY --from=builder --chown=trivioq:nodejs /app/packages/database/package.json ./packages/database/package.json
 COPY --from=builder --chown=trivioq:nodejs /app/packages/shared-types/dist      ./packages/shared-types/dist
 COPY --from=builder --chown=trivioq:nodejs /app/packages/shared-types/package.json ./packages/shared-types/package.json

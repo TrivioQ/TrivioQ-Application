@@ -99,10 +99,7 @@ services:
   # The API will only start after this service completes successfully.
   # -------------------------------------------------------------------------
   migrate:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-      target: builder           # reuse the builder stage — Prisma CLI is present
+    image: trivioq-api:latest
     container_name: trivioq-migrate
     restart: "no"               # exits after running — intentional
     command: >
