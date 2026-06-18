@@ -6,8 +6,11 @@ const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  /* config options here */
-  // Reload trigger to pick up new DATABASE_URL
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['admin.trivioq.com'],
+    },
+  },
 };
 
 export default withSentryConfig(withNextIntl(nextConfig), {

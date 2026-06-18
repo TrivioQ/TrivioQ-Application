@@ -8,6 +8,11 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig = {
   output: 'standalone',
   transpilePackages: ["@trivioq/shared-types"],
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['trivioq.com'],
+    },
+  },
 };
 
 export default withSentryConfig(withNextIntl(nextConfig), {

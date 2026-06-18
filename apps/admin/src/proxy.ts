@@ -33,14 +33,14 @@ export async function proxy(req: NextRequest) {
   // Verify role via internal API
   try {
     const meUrl = new URL('/api/auth/me', req.url);
-    
-    // In production (Docker/Cloudflare), use the container's service name to bypass external routing loops
+
+    // In production (Docker/Cloudflare), use local container address to bypass external routing loops
     if (process.env.NODE_ENV === 'production') {
       meUrl.protocol = 'http:';
       meUrl.hostname = '127.0.0.1';
       meUrl.port = process.env.PORT || '3012';
     }
-    
+
     const meRes = await fetch(meUrl.toString(), {
       headers: {
         cookie: req.headers.get('cookie') ?? '',
@@ -66,7 +66,7 @@ export async function proxy(req: NextRequest) {
 
     return response;
   } catch (err) {
-    console.error('[middleware] auth check failed:', err);
+    console.error('[middleware] auth check failed exception:', err);
     return NextResponse.redirect(new URL('/en/login?error=Unauthorized Access', req.url));
   }
 }
