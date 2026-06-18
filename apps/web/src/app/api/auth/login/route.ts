@@ -102,7 +102,7 @@ export async function syncAndRespond(idToken: string, extraData: Record<string, 
     // In Docker-based local/beta deploys, NODE_ENV is 'production' but the
     // app is served over plain HTTP — enforcing secure: true would silently
     // drop the cookie in the browser.
-    // TODO: this is a temp fix, 
+    // TODO: this is a temp fix,
     // should be: secure: process.env.NODE_ENV === 'production', sameSite: true
 
     const isHttps = (process.env.APP_URL ?? '').startsWith('https://');

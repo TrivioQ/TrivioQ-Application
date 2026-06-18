@@ -369,10 +369,12 @@ export class IngestionOrchestrator {
         await this.delayIfNeeded('extraction');
         console.log(`[Extraction] Extracting questions from image(s) ${imageIndices}, batch ${i + 1} of ${groups.length}...`);
 
-        const pageNumbers = group.map((img) => {
-          const m = img.match(/page\.(\d+)\./);
-          return m ? parseInt(m[1], 10) : null;
-        }).filter((n): n is number => n !== null);
+        const pageNumbers = group
+          .map((img) => {
+            const m = img.match(/page\.(\d+)\./);
+            return m ? parseInt(m[1], 10) : null;
+          })
+          .filter((n): n is number => n !== null);
 
         const extractionPrompt = buildExtractionPrompt(spatialInstructions, this.extractionSpecialInstruction, pageNumbers);
 
