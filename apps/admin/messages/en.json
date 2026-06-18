@@ -199,13 +199,15 @@
     "filters": {
       "unvalidated": "Unvalidated",
       "aiValidated": "AI Validated",
-      "pendingDuplicates": "Pending Duplicates"
+      "pendingDuplicates": "Pending Duplicates",
+      "rejected": "Rejected"
     },
     "pendingQuestions": "Pending Questions",
     "noPending": "No pending questions to review.",
     "selectPrompt": "Select a question from the list to review.",
     "duplicateBadge": "DUPLICATE",
     "pendingDuplicateBadge": "PENDING DUPLICATE",
+    "rejectedBadge": "REJECTED",
     "scoreBadge": {
       "high": "High ({score})",
       "medium": "Medium ({score})",
@@ -215,6 +217,8 @@
       "submitted": "Submitted",
       "duplicateWarning": "DUPLICATE DETECTED — This question appears to be a duplicate of an existing question. Review carefully before approving.",
       "pendingDuplicateWarning": "⚡ HIGHER-QUALITY VERSION — Approving will replace the existing live question with this improved version.",
+      "rejectedWarning": "REJECTED — This question was previously rejected. You can modify and approve it.",
+      "rejectionReasonLabel": "Rejection Reason",
       "aiFeedback": "AI Feedback",
       "questionText": "Question Text",
       "difficultyLevel": "Difficulty Level",

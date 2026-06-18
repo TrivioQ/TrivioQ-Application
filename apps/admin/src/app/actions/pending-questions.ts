@@ -49,6 +49,8 @@ export async function getPendingQuestions(filter?: string) {
       where = { isValidated: true, status: 'PENDING' };
     } else if (filter === 'pending-duplicate') {
       where = { status: 'PENDING-DUPLICATE' };
+    } else if (filter === 'rejected') {
+      where = { status: 'REJECTED' };
     } else {
       where = { status: 'PENDING' };
     }

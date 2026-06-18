@@ -149,9 +149,11 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="outline" size="sm" onClick={() => setRejectDialogOpen(true)} disabled={isPending}>
-            {t('reject')}
-          </Button>
+          {pendingQuestion.status !== 'REJECTED' && (
+            <Button variant="outline" size="sm" onClick={() => setRejectDialogOpen(true)} disabled={isPending}>
+              {t('reject')}
+            </Button>
+          )}
           <Button variant="secondary" size="sm" onClick={handleSave} disabled={isPending}>
             {isPending ? t('saving') : saveSuccess ? <><Check className="mr-1 h-3.5 w-3.5" />{t('saved')}</> : t('saveChanges')}
           </Button>
@@ -164,7 +166,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
       </div>
 
       {/* AI Feedback & Warnings */}
-      {(pendingQuestion.status === 'PENDING-DUPLICATE' || pendingQuestion.isDuplicate || pendingQuestion.aiFeedback) && (
+      {(pendingQuestion.status === 'PENDING-DUPLICATE' || pendingQuestion.status === 'REJECTED' || pendingQuestion.isDuplicate || pendingQuestion.aiFeedback || pendingQuestion.rejectionReason) && (
         <div className="px-6 py-3 space-y-3 border-b border-gray-200 bg-gray-50/50">
           {pendingQuestion.status === 'PENDING-DUPLICATE' && (
             <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg text-sm text-amber-900">
@@ -172,10 +174,22 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
               <span>{t('pendingDuplicateWarning')}</span>
             </div>
           )}
+          {pendingQuestion.status === 'REJECTED' && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+              <span className="text-base shrink-0">❌</span>
+              <span>{t('rejectedWarning')}</span>
+            </div>
+          )}
           {pendingQuestion.isDuplicate && pendingQuestion.status !== 'PENDING-DUPLICATE' && (
             <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
               <span className="text-base shrink-0">&#9888;</span>
               <span>{t('duplicateWarning')}</span>
+            </div>
+          )}
+          {pendingQuestion.rejectionReason && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('rejectionReasonLabel')}</p>
+              <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 whitespace-pre-wrap">{pendingQuestion.rejectionReason}</div>
             </div>
           )}
           {pendingQuestion.aiFeedback && (

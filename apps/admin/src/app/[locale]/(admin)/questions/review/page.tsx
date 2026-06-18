@@ -31,6 +31,9 @@ export default async function ContentReviewPage({ searchParams }: { searchParams
         <Link href="?filter=pending-duplicate" className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'pending-duplicate' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.pendingDuplicates')}
         </Link>
+        <Link href="?filter=rejected" className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'rejected' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+          {t('filters.rejected')}
+        </Link>
       </div>
 
       <ContentReviewPanel questions={questions} categories={categories} />

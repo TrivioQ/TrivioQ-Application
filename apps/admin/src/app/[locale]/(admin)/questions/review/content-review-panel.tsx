@@ -94,6 +94,11 @@ export function ContentReviewPanel({ questions, categories }: { questions: Pendi
                         {t('pendingDuplicateBadge')}
                       </Badge>
                     )}
+                    {q.status === 'REJECTED' && (
+                      <Badge className="text-[10px] bg-red-100 text-red-800 border-red-200 hover:bg-red-100">
+                        {t('rejectedBadge')}
+                      </Badge>
+                    )}
                     {q.isDuplicate && q.status !== 'PENDING-DUPLICATE' && (
                       <Badge variant="destructive" className="text-[10px]">
                         {t('duplicateBadge')}
