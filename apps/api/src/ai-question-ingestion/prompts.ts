@@ -3,15 +3,15 @@
 // Changes to a prompt are automatically reflected in all providers.
 
 export const SCOUT_PROMPT = `You are a strict document classifier. Analyze the provided page image and classify it into one of these categories:
-- "QUESTIONS_WITH_KEYS" — Classify as this if the page contains a distinct grid, list, or table of answer mappings (e.g., "1: A, 2: B" or a large Answer Key table) for multiple questions. This takes PRIORITY. If you see an answer key table, choose this category even if regular questions are also present on the page.
-- "QUESTIONS_WITH_KEY_UNDERNEATH" — ONLY classify as this if the image explicitly contains text like "Answer: A" or "Answer: 2" printed directly below or next to the question.
+- "QUESTIONS_WITH_KEYS" — Classify as this if the page contains a distinct grid, list, or table of answer mappings (e.g., "1: A, 2: B", "Q1) D, Q2) B", or a large Answer Key table) for multiple questions. This takes PRIORITY. If you see an answer key list or table, choose this category even if there is no explicit "Answer Key" header, and even whether regular questions are present on the page or not.
+- "QUESTIONS_WITH_KEY_UNDERNEATH" — ONLY classify as this if the image explicitly contains text like "Answer: A" or "Answer: 2" printed directly below or next to the question (or its multiple-choice options, even if the question stem itself is missing or on the previous page).
 
 CRITICAL: Some pages have questions with answers printed directly below them (e.g. "Answer: C"). NEVER classify these as "QUESTIONS_WITH_KEYS". ONLY classify as "QUESTIONS_WITH_KEYS" if there is a DISTINCT table/grid of answer keys.
 
-- "QUESTIONS" — classify as this if the page strictly contains trivia/quiz questions. Multiple-choice options (e.g., (A), (B), (C), (D)) are just part of the question. Choose this if there are NO answer keys on the page.
-- "OTHER" — anything else (table of contents, blank pages, advertisements, title pages, prefaces, syllabuses, instructional pages, or any page WITHOUT actual questions or answer keys).
+- "QUESTIONS" — classify as this if the page contains trivia/quiz questions, OR if it contains the continuation of a question from a previous page (e.g., just the multiple-choice options like (A), (B), (C), (D)). Choose this if there are NO answer keys on the page.
+- "OTHER" — anything else (table of contents, blank pages, advertisements, title pages, prefaces, syllabuses, instructional pages, or any page WITHOUT actual questions, question continuations, or answer keys).
 
-CRITICAL: If the page does NOT contain any actual questions or answer keys, you MUST classify it as "OTHER".
+CRITICAL: If the page does NOT contain any actual questions, question continuations (like isolated multiple-choice options), or answer keys, you MUST classify it as "OTHER".
 
 Return ONLY a JSON object with this exact schema. Do not include markdown, explanations, or any other text:
 {"classification": "QUESTIONS|QUESTIONS_WITH_KEYS|QUESTIONS_WITH_KEY_UNDERNEATH|OTHER", "confidence": 0.0-1.0}`;
