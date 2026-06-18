@@ -5,6 +5,9 @@
 export const SCOUT_PROMPT = `You are a strict document classifier. Analyze the provided page image and classify it into one of these categories:
 - "QUESTIONS_WITH_KEYS" — Classify as this if the page contains a distinct grid, list, or table of answer mappings (e.g., "1: A, 2: B" or a large Answer Key table) for multiple questions. This takes PRIORITY. If you see an answer key table, choose this category even if regular questions are also present on the page.
 - "QUESTIONS_WITH_KEY_UNDERNEATH" — ONLY classify as this if the image explicitly contains text like "Answer: A" or "Answer: 2" printed directly below or next to the question.
+
+CRITICAL: Some pages have questions with answers printed directly below them (e.g. "Answer: C"). NEVER classify these as "QUESTIONS_WITH_KEYS". ONLY classify as "QUESTIONS_WITH_KEYS" if there is a DISTINCT table/grid of answer keys.
+
 - "QUESTIONS" — classify as this if the page strictly contains trivia/quiz questions. Multiple-choice options (e.g., (A), (B), (C), (D)) are just part of the question. Choose this if there are NO answer keys on the page.
 - "OTHER" — anything else (table of contents, blank pages, advertisements, title pages, prefaces, syllabuses, instructional pages, or any page WITHOUT actual questions or answer keys).
 
@@ -180,8 +183,18 @@ Return a JSON object with this exact schema:
 // Use these helpers when a per-book special instruction should be injected.
 
 /**
- * Returns EXTRACTION_PROMPT optionally prefixed with spatial boundary instructions
- * and a special instruction sourced from the book's instructions.json.
+ * Returns SCOUT_PROMPT optionally prefixed with a special instruction
+ * sourced from the book's instructions.json.
+ */
+export function buildClassificationPrompt(specialInstruction?: string): string {
+  if (!specialInstruction) return SCOUT_PROMPT;
+  return `## Special instruction for this book\n${specialInstruction.trim()}\n\n${SCOUT_PROMPT}`;
+}
+
+/**
+ * Extracts an array of question candidates from an array of images.
+ * Uses `extractionSpecialInstruction` to provide an optional custom directive
+ * sourced from the book's manifest.json.
  */
 export function buildExtractionPrompt(spatialInstructions?: string[], specialInstruction?: string, pageNumbers?: number[]): string {
   let prompt = '';
@@ -206,8 +219,9 @@ export function buildExtractionPrompt(spatialInstructions?: string[], specialIns
 }
 
 /**
- * Returns ENHANCEMENT_PROMPT optionally prefixed with a special instruction
- * sourced from the book's instructions.json, and with the available categories injected.
+ * Classifies an enhanced question.
+ * Uses `classificationSpecialInstruction` to provide an optional custom directive
+ * sourced from the book's manifest.json, and with the available categories injected.
  */
 export function buildEnhancementPrompt(categories: { slug: string; name: string }[], specialInstruction?: string): string {
   const categoryListStr = categories.map((c) => `- "${c.slug}" (${c.name})`).join('\n');

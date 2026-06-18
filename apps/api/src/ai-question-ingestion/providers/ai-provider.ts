@@ -68,8 +68,11 @@ export interface AIProvider {
   /**
    * Classify a single page image.
    * Returns one of: 'QUESTIONS' | 'QUESTIONS_WITH_KEYS' | 'QUESTIONS_WITH_KEY_UNDERNEATH' | 'OTHER'
+   *
+   * @param promptOverride - Optional full prompt to use instead of the default
+   *   SCOUT_PROMPT (e.g. with a book-level special instruction prepended).
    */
-  classifyImage(image: ImageInput): Promise<ClassificationResult>;
+  classifyImage(image: ImageInput, promptOverride?: string): Promise<ClassificationResult>;
 
   /**
    * Extract trivia questions and answer keys from one or more page images.

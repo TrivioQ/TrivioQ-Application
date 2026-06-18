@@ -153,10 +153,10 @@ export abstract class BaseAIProvider {
     throw lastError;
   }
 
-  async classifyImage(image: ImageInput): Promise<ClassificationResult> {
+  async classifyImage(image: ImageInput, promptOverride?: string): Promise<ClassificationResult> {
     const tempStr = process.env.INGESTION_SCOUT_TEMPERATURE;
     const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
-    return this.callWithRetry<ClassificationResult>(SCOUT_PROMPT, [image], 'classifyImage', { temperature });
+    return this.callWithRetry<ClassificationResult>(promptOverride ?? SCOUT_PROMPT, [image], 'classifyImage', { temperature });
   }
 
   async extractFromImages(images: ImageInput[], promptOverride?: string): Promise<ExtractionResult> {

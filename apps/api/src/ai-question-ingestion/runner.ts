@@ -7,7 +7,7 @@ import type { AIProviderName } from './providers';
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 /**
- * Schema for `instructions.json` placed inside each book sub-folder.
+ * Schema for `manifest.json` placed inside each book sub-folder.
  *
  * Example file:
  * ```json
@@ -39,6 +39,11 @@ export interface InstructionsJson {
    * (e.g. "This book contains Indian competitive exam questions.").
    */
   enhancementSpecialInstruction?: string;
+  /**
+   * Optional free-text instruction injected into the classification prompt only
+   * (e.g. "Some pages have inline answers. Do not classify as QUESTIONS_WITH_KEYS.").
+   */
+  classificationSpecialInstruction?: string;
 
   /**
    * Per-phase AI provider overrides for this book.
@@ -62,7 +67,7 @@ export interface InstructionsJson {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const INSTRUCTIONS_FILE = 'instructions.json';
+const MANIFEST_FILE = 'manifest.json';
 const DATA_DIR_NAME = 'data';
 
 // ── Runner ────────────────────────────────────────────────────────────────────
@@ -71,10 +76,10 @@ const DATA_DIR_NAME = 'data';
  * Scans the `ingestion/` directory (resolved relative to the API process cwd)
  * for book sub-folders.
  *
- * For each sub-folder that contains **both** an `instructions.json` and a
+ * For each sub-folder that contains **both** an `manifest.json` and a
  * `.pdf` file the runner will:
  *
- * 1. Parse `instructions.json` to obtain topic, categorySlugs, and an optional
+ * 1. Parse `manifest.json` to obtain topic, categorySlugs, and an optional
  *    specialInstruction.
  * 2. Create a `data/` folder inside that sub-folder (if absent).
  * 3. Convert the PDF to images stored in `data/`.
@@ -90,7 +95,7 @@ export async function runIngestion(options?: { reuploadOnly?: boolean }): Promis
 
   if (!fs.existsSync(ingestionRoot)) {
     console.warn(`[Runner] Ingestion directory not found: ${ingestionRoot}`);
-    console.warn('[Runner] Create it and add sub-folders with instructions.json + a PDF.');
+    console.warn('[Runner] Create it and add sub-folders with manifest.json + a PDF.');
     return;
   }
 
@@ -113,10 +118,10 @@ export async function runIngestion(options?: { reuploadOnly?: boolean }): Promis
     const bookDir = path.join(ingestionRoot, dir.name);
     console.log(`\n[Runner] ── Checking: ${dir.name}`);
 
-    // ── Validate instructions.json ────────────────────────────────────────────
-    const instructionsPath = path.join(bookDir, INSTRUCTIONS_FILE);
+    // ── Validate manifest.json ────────────────────────────────────────────
+    const instructionsPath = path.join(bookDir, MANIFEST_FILE);
     if (!fs.existsSync(instructionsPath)) {
-      console.warn(`[Runner] Skipping — no ${INSTRUCTIONS_FILE} found`);
+      console.warn(`[Runner] Skipping — no ${MANIFEST_FILE} found`);
       skipped++;
       continue;
     }
@@ -125,19 +130,19 @@ export async function runIngestion(options?: { reuploadOnly?: boolean }): Promis
     try {
       instructions = JSON.parse(fs.readFileSync(instructionsPath, 'utf-8')) as InstructionsJson;
     } catch (err) {
-      console.error(`[Runner] Skipping — failed to parse ${INSTRUCTIONS_FILE}:`, err);
+      console.error(`[Runner] Skipping — failed to parse ${MANIFEST_FILE}:`, err);
       skipped++;
       continue;
     }
 
     if (!instructions.bookId) {
-      console.error(`[Runner] Skipping — ${INSTRUCTIONS_FILE} is missing required field (bookId)`);
+      console.error(`[Runner] Skipping — ${MANIFEST_FILE} is missing required field (bookId)`);
       skipped++;
       continue;
     }
 
     if (instructions.categorySlugs !== undefined && (!Array.isArray(instructions.categorySlugs) || instructions.categorySlugs.length === 0)) {
-      console.error(`[Runner] Skipping — ${INSTRUCTIONS_FILE} field "categorySlugs" must be a non-empty array of strings if provided`);
+      console.error(`[Runner] Skipping — ${MANIFEST_FILE} field "categorySlugs" must be a non-empty array of strings if provided`);
       skipped++;
       continue;
     }
@@ -165,12 +170,18 @@ export async function runIngestion(options?: { reuploadOnly?: boolean }): Promis
       console.log(`[Runner] Created data directory: ${dataDir}`);
     }
 
+    const pagesDir = path.join(dataDir, 'pages');
+    if (!fs.existsSync(pagesDir)) {
+      fs.mkdirSync(pagesDir, { recursive: true });
+      console.log(`[Runner] Created pages directory: ${pagesDir}`);
+    }
+
     // ── Convert PDF → images ──────────────────────────────────────────────────
     let imagePaths: string[] = [];
     if (!options?.reuploadOnly) {
       console.log(`[Runner] Converting PDF: ${pdfFiles[0]}`);
       try {
-        imagePaths = await pdfToImage(pdfPath, dataDir);
+        imagePaths = await pdfToImage(pdfPath, pagesDir);
       } catch (err) {
         console.error('[Runner] Failed to convert PDF — skipping book:', err);
         skipped++;
@@ -210,6 +221,7 @@ export async function runIngestion(options?: { reuploadOnly?: boolean }): Promis
         providers: instructions.providers,
         extractionSpecialInstruction: instructions.extractionSpecialInstruction,
         enhancementSpecialInstruction: instructions.enhancementSpecialInstruction,
+        classificationSpecialInstruction: instructions.classificationSpecialInstruction,
       });
 
       await orchestrator.run(options);

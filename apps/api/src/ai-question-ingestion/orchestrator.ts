@@ -6,7 +6,7 @@ import { shuffleArray } from '../utils/shuffle';
 import { reportError } from '../utils/error-reporter';
 import fs from 'fs';
 import { createProvider, type AIProvider, type AIProviderName } from './providers';
-import { buildExtractionPrompt, buildEnhancementPrompt, KEY_EXTRACTION_PROMPT } from './prompts';
+import { buildExtractionPrompt, buildEnhancementPrompt, KEY_EXTRACTION_PROMPT, buildClassificationPrompt } from './prompts';
 
 // ── Re-exports (kept for backwards-compatibility with existing callers) ────────
 export type { ExtractedQuestion, ExtractedAnswerKey, EnhancementResult } from './providers';
@@ -41,6 +41,7 @@ export class IngestionOrchestrator {
   private readonly enhancementProvider: AIProvider;
   private readonly extractionSpecialInstruction?: string;
   private readonly enhancementSpecialInstruction?: string;
+  private readonly classificationSpecialInstruction?: string;
   private readonly callDelayMs: { scout: number; extraction: number; enhancement: number };
 
   constructor(
@@ -83,6 +84,8 @@ export class IngestionOrchestrator {
       extractionSpecialInstruction?: string;
       /** Optional free-text instruction for the enhancement phase. */
       enhancementSpecialInstruction?: string;
+      /** Optional free-text instruction for the classification phase. */
+      classificationSpecialInstruction?: string;
     },
   ) {
     this.state = new IngestionState(bookId, config.outputDir);
@@ -102,6 +105,7 @@ export class IngestionOrchestrator {
 
     this.extractionSpecialInstruction = config.extractionSpecialInstruction;
     this.enhancementSpecialInstruction = config.enhancementSpecialInstruction;
+    this.classificationSpecialInstruction = config.classificationSpecialInstruction;
 
     this.callDelayMs = {
       scout: (process.env.INGESTION_SCOUT_CALL_DELAY_SEC ? parseInt(process.env.INGESTION_SCOUT_CALL_DELAY_SEC, 10) : DEFAULT_CALL_DELAY) * 1000,
@@ -133,10 +137,11 @@ export class IngestionOrchestrator {
     console.log(`[Orchestrator] Starting ingestion for ${this.imagePaths.length} images`);
     console.log(`[Orchestrator] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
     console.log(`[Orchestrator] Providers — scout: ${this.scoutProvider.constructor.name}, extraction: ${this.extractionProvider.constructor.name}, enhancement: ${this.enhancementProvider.constructor.name}`);
-    if (this.extractionSpecialInstruction || this.enhancementSpecialInstruction) {
+    if (this.extractionSpecialInstruction || this.enhancementSpecialInstruction || this.classificationSpecialInstruction) {
       const ei = this.extractionSpecialInstruction?.slice(0, 80);
       const hi = this.enhancementSpecialInstruction?.slice(0, 80);
-      console.log(`[Orchestrator] Special instructions — extraction: ${ei ?? 'none'}, enhancement: ${hi ?? 'none'}`);
+      const ci = this.classificationSpecialInstruction?.slice(0, 80);
+      console.log(`[Orchestrator] Special instructions — classification: ${ci ?? 'none'}, extraction: ${ei ?? 'none'}, enhancement: ${hi ?? 'none'}`);
     }
 
     this.availableCategories = await prisma.category.findMany({
@@ -186,7 +191,8 @@ export class IngestionOrchestrator {
         console.log(`[Scout] Classifying image ${i + 1}...`);
         let classification: ImageType;
         try {
-          const res = await this.scoutProvider.classifyImage(image);
+          const classificationPrompt = buildClassificationPrompt(this.classificationSpecialInstruction);
+          const res = await this.scoutProvider.classifyImage(image, classificationPrompt);
           classification = res.classification;
         } finally {
           this.recordCallTime();

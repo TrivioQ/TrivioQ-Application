@@ -7,21 +7,21 @@ This folder contains the books and documents queued for the AI-powered trivia qu
 To ingest a new book or document:
 1. Create a sub-folder under this `ingestion/` directory (e.g., `sample-book/`).
 2. Place your source PDF file inside that sub-folder. (Only one PDF per folder is processed; if multiple are present, only the first is selected).
-3. Place an `instructions.json` file inside that sub-folder.
+3. Place an `manifest.json` file inside that sub-folder.
 
 Your sub-folder structure should look like this:
 ```
 ingestion/
 └── sample-book/
-    ├── instructions.json
+    ├── manifest.json
     └── your-book-file.pdf
 ```
 
 ---
 
-## Instructions Configuration (`instructions.json`)
+## Instructions Configuration (`manifest.json`)
 
-Each book folder requires an `instructions.json` file to define metadata and optional per-phase AI instructions. Here is a full configuration example:
+Each book folder requires an `manifest.json` file to define metadata and optional per-phase AI instructions. Here is a full configuration example:
 
 ```json
 {
@@ -53,7 +53,7 @@ Each book folder requires an `instructions.json` file to define metadata and opt
 
 ## How to Run Ingestion
 
-Once you have added the PDF files and `instructions.json` configuration, run the following command to start the ingestion process:
+Once you have added the PDF files and `manifest.json` configuration, run the following command to start the ingestion process:
 
 ### From the Workspace Root:
 ```bash
@@ -69,7 +69,7 @@ yarn ingest
 
 ## Environment Variables
 
-All variables are set in `apps/api/.env`. They act as global defaults that `instructions.json` fields take precedence over.
+All variables are set in `apps/api/.env`. They act as global defaults that `manifest.json` fields take precedence over.
 
 ### Providers & Models
 
