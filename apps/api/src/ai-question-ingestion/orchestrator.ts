@@ -362,7 +362,7 @@ export class IngestionOrchestrator {
 
     const startIndex = this.state.getLastProcessedExtractionBatchIndex() + 1;
 
-    if (startIndex > 0 && startIndex <= groups.length) {
+    if (startIndex > 0 && startIndex < groups.length) {
       console.log(`[Extraction] Resuming from batch ${startIndex + 1} of ${groups.length}`);
     }
 
