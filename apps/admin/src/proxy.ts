@@ -7,6 +7,9 @@ const intlMiddleware = createMiddleware({
 });
 
 export async function proxy(req: NextRequest) {
+  // Fix Cloudflare Tunnel missing X-Forwarded-Port header to prevent Next.js from appending :3012
+  req.headers.set('x-forwarded-port', '443');
+
   const { pathname } = req.nextUrl;
 
   // 1. Handle locale routing with next-intl
@@ -30,6 +33,14 @@ export async function proxy(req: NextRequest) {
   // Verify role via internal API
   try {
     const meUrl = new URL('/api/auth/me', req.url);
+    
+    // In production (Docker/Cloudflare), use the container's service name to bypass external routing loops
+    if (process.env.NODE_ENV === 'production') {
+      meUrl.protocol = 'http:';
+      meUrl.hostname = 'admin';
+      meUrl.port = process.env.PORT || '3012';
+    }
+    
     const meRes = await fetch(meUrl.toString(), {
       headers: {
         cookie: req.headers.get('cookie') ?? '',
