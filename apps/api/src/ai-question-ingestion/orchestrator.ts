@@ -579,10 +579,11 @@ export class IngestionOrchestrator {
     // Build the prompt once — optionally prefixed with the book's special instruction, injecting available categories
     const enhancementPrompt = buildEnhancementPrompt(this.availableCategories, this.enhancementSpecialInstruction);
 
-    for (const question of questionsToEnhance) {
+    for (let idx = 0; idx < questionsToEnhance.length; idx++) {
+      const question = questionsToEnhance[idx];
       try {
         await this.delayIfNeeded('enhancement');
-        console.log(`[Enhancement] Enhancing question ${question.id}...`);
+        console.log(`[Enhancement] Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
         let enhanced;
         try {
           enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt);
