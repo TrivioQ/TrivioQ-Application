@@ -37,7 +37,7 @@ export async function proxy(req: NextRequest) {
     // In production (Docker/Cloudflare), use the container's service name to bypass external routing loops
     if (process.env.NODE_ENV === 'production') {
       meUrl.protocol = 'http:';
-      meUrl.hostname = 'admin';
+      meUrl.hostname = '127.0.0.1';
       meUrl.port = process.env.PORT || '3012';
     }
     
