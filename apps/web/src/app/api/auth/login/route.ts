@@ -105,10 +105,9 @@ export async function syncAndRespond(idToken: string, extraData: Record<string, 
     // TODO: this is a temp fix,
     // should be: secure: process.env.NODE_ENV === 'production', sameSite: true
 
-    const isHttps = (process.env.APP_URL ?? '').startsWith('https://');
     const cookieBase = {
       httpOnly: true,
-      secure: isHttps,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax' as const,
       path: '/',
       ...(keepMeLoggedIn ? { maxAge: COOKIE_MAX_AGE_14_DAYS } : {}),

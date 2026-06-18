@@ -79,7 +79,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, idToken, {
     httpOnly: true,
-    secure: (process.env.APP_URL ?? '').startsWith('https://'),
+    secure: process.env.NODE_ENV === 'production',
     path: '/',
     ...(keepMeLoggedIn ? { maxAge: COOKIE_MAX_AGE_14_DAYS } : {}),
   });

@@ -14,7 +14,7 @@ export async function POST(): Promise<NextResponse> {
 
   response.cookies.set(COOKIE_NAME, '', {
     httpOnly: true,
-    secure: (process.env.APP_URL ?? '').startsWith('https://'),
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 0,
     path: '/',
