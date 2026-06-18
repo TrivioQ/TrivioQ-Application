@@ -159,7 +159,7 @@ Follow every rule below:
 Assess the question and assign a difficulty level with keeping the average user in mind:
 - "EASY"   — factual recall, widely known, requires no reasoning
 - "MEDIUM" — requires some domain knowledge or light reasoning
-- "HARD"   — requires specialist knowledge, multi-step reasoning, or is a common misconception trap
+- "HARD"   — requires detailed knowledge, deeper reasoning, or is tricky
 
 ## Topic and Categories
 You must assign a concise \`topic\` (e.g. "World War 2", "Javascript Fundamentals", "Quantum Physics") that best describes the question.
@@ -202,7 +202,7 @@ export function buildExtractionPrompt(spatialInstructions?: string[], specialIns
   if (pageNumbers && pageNumbers.length > 0) {
     prompt += '## Page Numbers for this Batch\n';
     prompt += `The images provided correspond to the following page numbers in order: ${pageNumbers.join(', ')}. `;
-    prompt += `You MUST use these exact page numbers when generating the "id" and "pageNumber" fields for the extracted questions.\n\n`;
+    prompt += 'You MUST use these exact page numbers when generating the "id" and "pageNumber" fields for the extracted questions.\n\n';
   }
 
   if (spatialInstructions && spatialInstructions.length > 0) {
