@@ -19,16 +19,23 @@ export async function proxy(req: NextRequest) {
   // Check if route is public (considering locale prefix)
   const isPublic = pathname.match(/^\/(en)?\/?login/) || pathname.match(/^\/(en)?\/?403/) || pathname.startsWith('/api/auth/me');
 
+  // Inject x-url header so Server Actions can read the current pathname
+  response.headers.set('x-url', pathname);
+
   if (isPublic) {
     return response;
   }
 
-  // Fast pre-check: cookie missing
-  const sessionCookie = req.cookies.get('tq_auth');
-  if (!sessionCookie) {
+  const redirectToLogin = (errorMsg: string, isExpired = false) => {
     const loginUrl = new URL('/en/login', req.url);
-    return NextResponse.redirect(loginUrl);
-  }
+    loginUrl.searchParams.set('callbackUrl', pathname);
+    loginUrl.searchParams.set('error', errorMsg);
+    const res = NextResponse.redirect(loginUrl);
+    if (isExpired) {
+      res.cookies.delete('tq_auth');
+    }
+    return res;
+  };
 
   // Verify role via internal API
   try {
@@ -42,32 +49,24 @@ export async function proxy(req: NextRequest) {
     }
 
     const meRes = await fetch(meUrl.toString(), {
-      headers: {
-        cookie: req.headers.get('cookie') ?? '',
-      },
+      headers: { cookie: req.headers.get('cookie') ?? '' },
     });
 
     if (!meRes.ok) {
       const errorData = await meRes.json().catch(() => ({}));
-      if (meRes.status === 401 && errorData.code === 'auth/id-token-expired') {
-        const loginUrl = new URL('/en/login', req.url);
-        loginUrl.searchParams.set('error', 'Session Expired');
-        const res = NextResponse.redirect(loginUrl);
-        res.cookies.delete('tq_auth');
-        return res;
-      }
-      return NextResponse.redirect(new URL('/en/login?error=Unauthorized Access', req.url));
+      const isExpired = meRes.status === 401 && errorData.code === 'auth/id-token-expired';
+      return redirectToLogin(isExpired ? 'Session Expired' : 'Unauthorized Access', isExpired);
     }
 
     const data = (await meRes.json()) as { role?: string };
     if (data.role !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/en/login?error=Unauthorized Access', req.url));
+      return redirectToLogin('Unauthorized Access');
     }
 
     return response;
   } catch (err) {
     console.error('[middleware] auth check failed exception:', err);
-    return NextResponse.redirect(new URL('/en/login?error=Unauthorized Access', req.url));
+    return redirectToLogin('Unauthorized Access');
   }
 }
 

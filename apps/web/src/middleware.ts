@@ -24,11 +24,13 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
 
   if (isProtected(pathname) && !req.cookies.get('tq_auth')) {
     const loginUrl = new URL('/en/login', req.url);
-    loginUrl.searchParams.set('next', pathname);
+    loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  return intlMiddleware(req);
+  const response = intlMiddleware(req);
+  response.headers.set('x-url', pathname);
+  return response;
 }
 
 export const config = {

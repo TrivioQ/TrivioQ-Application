@@ -1,7 +1,8 @@
 'use server';
 
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getLocale } from 'next-intl/server';
 import { env } from 'env';
 
 const FIREBASE_SIGN_IN_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword';
@@ -84,7 +85,24 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     ...(keepMeLoggedIn ? { maxAge: COOKIE_MAX_AGE_14_DAYS } : {}),
   });
 
-  redirect('/');
+  const locale = await getLocale();
+  const headersList = await headers();
+  const referer = headersList.get('referer');
+  let destination = `/${locale}`;
+
+  if (referer) {
+    try {
+      const url = new URL(referer);
+      const callbackUrl = url.searchParams.get('callbackUrl');
+      if (callbackUrl && callbackUrl.startsWith('/')) {
+        destination = callbackUrl;
+      }
+    } catch (e) {
+      // Ignore invalid URL
+    }
+  }
+
+  redirect(destination);
 }
 
 export async function logoutAction() {
