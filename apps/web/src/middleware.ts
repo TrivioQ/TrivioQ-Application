@@ -17,6 +17,9 @@ function isProtected(pathname: string): boolean {
 }
 
 export async function middleware(req: NextRequest): Promise<NextResponse> {
+  // Fix Cloudflare Tunnel missing X-Forwarded-Port header to prevent Next.js from appending :3011
+  req.headers.set('x-forwarded-port', '443');
+
   const { pathname } = req.nextUrl;
 
   if (isProtected(pathname) && !req.cookies.get('tq_auth')) {
