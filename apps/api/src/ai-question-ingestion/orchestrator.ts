@@ -396,7 +396,7 @@ export class IngestionOrchestrator {
 
           const question: Question = {
             id: uniqueId,
-            text: eq.text,
+            text: eq.text?.trim() ? eq.text : '[Question text missing in extraction]',
             status: initialStatus,
             metadata: {
               choices: eq.choices,
