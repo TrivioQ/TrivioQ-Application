@@ -55,7 +55,10 @@ export async function proxy(req: NextRequest) {
     if (!meRes.ok) {
       const errorData = await meRes.json().catch(() => ({}));
       const isExpired = meRes.status === 401 && errorData.code === 'auth/id-token-expired';
-      return redirectToLogin(isExpired ? 'Session Expired' : 'Unauthorized Access', isExpired);
+      const isNotAuthenticated = meRes.status === 401 && !isExpired;
+      // Show error only for expired sessions or non-admin roles, not for first-time visitors
+      const errorMsg = isExpired ? 'Session Expired' : isNotAuthenticated ? '' : 'Unauthorized Access';
+      return redirectToLogin(errorMsg, isExpired);
     }
 
     const data = (await meRes.json()) as { role?: string };
