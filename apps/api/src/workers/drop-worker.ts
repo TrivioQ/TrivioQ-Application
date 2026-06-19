@@ -1,19 +1,15 @@
 import { Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
-import * as admin from 'firebase-admin';
 import { prisma, DifficultyLevel } from '@trivioq/database';
 import { UserPreferences } from '@trivioq/shared-types';
 import { getSettingNumber } from '../utils/settings';
-
-try {
-  admin.initializeApp();
-} catch {
-  // Already initialized by another worker in the same process
-}
+import { NotificationService } from '../services/notification-service';
 
 const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
   maxRetriesPerRequest: null,
 });
+
+const notificationService = new NotificationService();
 
 interface DropsQueuePayload {
   userId: string;
@@ -100,14 +96,11 @@ const dropWorker = new Worker<DropsQueuePayload>(
 
     console.log(`[DropWorker] Processing job ${job.id} for user ${userId} (mastery=${isMasteryDay})`);
 
-    // 1. Load user
+    // 1. Load user preferences for question selection
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
-        id: true,
         preferences: true,
-        devicePushToken: true,
-        subscriptionTier: true,
       },
     });
 
@@ -178,12 +171,7 @@ const dropWorker = new Worker<DropsQueuePayload>(
 
     console.log(`[DropWorker] Created UserDrop ${userDrop.id} for user ${userId}`);
 
-    // 3b. FCM push notification
-    if (!user.devicePushToken) {
-      console.log(`[DropWorker] No push token for user ${userId} — skipping FCM`);
-      return;
-    }
-
+    // 3b. Load question details for notification
     const question = await prisma.question.findUnique({
       where: { id: questionId },
       select: {
@@ -194,36 +182,21 @@ const dropWorker = new Worker<DropsQueuePayload>(
 
     const category = question?.categories[0]?.name ?? 'Trivia';
     const difficulty = question?.difficultyLevel ?? 'MIXED';
-    const capitalizedDifficulty = difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
 
-    const message: admin.messaging.Message = {
-      notification: {
-        title: '🚨 New TrivioQ Drop!',
-        body: `A ${capitalizedDifficulty} ${category} question is waiting. You have ${dropExpiryMinutes} minutes.`,
-      },
-      data: {
-        dropId: userDrop.id,
-        expirationTimestamp: expirationTime.getTime().toString(),
-      },
-      token: user.devicePushToken,
-    };
+    // 3c. Send notification via NotificationService (handles FCM + DB recording)
+    const result = await notificationService.sendTriviaDropNotification({
+      userId,
+      dropId: userDrop.id,
+      expirationTime,
+      difficulty,
+      category,
+      dropExpiryMinutes,
+    });
 
-    try {
-      const response = await admin.messaging().send(message);
-      console.log(`[DropWorker] FCM sent for drop ${userDrop.id}:`, response);
-    } catch (error: any) {
-      console.error(`[DropWorker] FCM failed for user ${userId}:`, error);
-
-      if (error.code === 'messaging/invalid-registration-token' || error.code === 'messaging/registration-token-not-registered') {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { devicePushToken: null },
-        });
-        console.log(`[DropWorker] Cleared stale push token for user ${userId}`);
-      } else {
-        // Transient FCM error — rethrow so BullMQ can retry
-        throw error;
-      }
+    if (result.fcmSuccess) {
+      console.log(`[DropWorker] Notification sent for drop ${userDrop.id}`);
+    } else if (result.error) {
+      console.warn(`[DropWorker] Notification failed for drop ${userDrop.id}:`, result.error.message);
     }
   },
   {

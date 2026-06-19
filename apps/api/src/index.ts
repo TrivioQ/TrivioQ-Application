@@ -37,6 +37,7 @@ import adminRoutes from './routes/admin';
 import faqRoutes from './routes/faq';
 import legalRoutes from './routes/legal';
 import subscriptionRoutes from './routes/subscription-routes';
+import notificationRoutes from './routes/notifications';
 
 import { env } from './config/env';
 import { getSetting } from './utils/settings';
@@ -56,6 +57,7 @@ app.use('/v1/admin', adminRoutes);
 app.use('/v1/faqs', faqRoutes);
 app.use('/v1/legal', legalRoutes);
 app.use('/v1/subscriptions', subscriptionRoutes);
+app.use('/v1/notifications', notificationRoutes);
 
 app.get('/health', async (req: Request, res: Response) => {
   try {

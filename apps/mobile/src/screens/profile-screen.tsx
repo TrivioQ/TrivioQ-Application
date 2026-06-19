@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useConfirm } from '../components/confirm-modal';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import { useAuth } from '../context/auth-context';
 import apiClient from '../api/client';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
+import { NotificationBell } from '../components/notification-bell';
 
 interface UserProfile {
   email: string;
@@ -45,6 +46,15 @@ export default function ProfileScreen({ navigation }: any) {
     },
     enabled: !!userId,
   });
+
+  // Set up header right with notification bell
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <NotificationBell navigation={navigation} />
+      ),
+    });
+  }, [navigation]);
 
   const handleLogout = async () => {
     const ok = await confirm({

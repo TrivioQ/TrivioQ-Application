@@ -1,7 +1,7 @@
 import { AdminGuard } from '@/components/admin-guard';
 import { ConfirmProvider } from '@/components/ui/confirm-dialog';
 import Link from 'next/link';
-import { LayoutDashboard, Users, HelpCircle, Tags, LogOut, MessageSquareQuote, Settings, Trophy, ClockIcon, EyeIcon } from 'lucide-react';
+import { LayoutDashboard, Users, HelpCircle, Tags, LogOut, MessageSquareQuote, Settings, Trophy, ClockIcon, EyeIcon, Bell } from 'lucide-react';
 import { logoutAction } from '@/app/actions/auth-actions';
 import { getTranslations } from 'next-intl/server';
 
@@ -41,6 +41,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <Link href="/faqs" className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors font-medium">
                 <MessageSquareQuote size={20} className="text-gray-400" />
                 <span>{t('sidebar.faqs')}</span>
+              </Link>
+              <Link href="/notifications" className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors font-medium">
+                <Bell size={20} className="text-gray-400" />
+                <span>Notifications</span>
               </Link>
               <Link href="/bonus-plans" className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors font-medium">
                 <Trophy size={20} className="text-gray-400" />

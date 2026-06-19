@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { View, Text, Button, StyleSheet, ActivityIndicator, TouchableOpacity, Modal } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -6,6 +6,7 @@ import { useAuth } from '../context/auth-context';
 import { QuestionDropPayload } from '@trivioq/shared-types';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
+import { NotificationBell } from '../components/notification-bell';
 
 import apiClient from '../api/client';
 
@@ -74,6 +75,15 @@ export default function HomeDashboard({ navigation }: any) {
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
   const [isPaywallVisible, setIsPaywallVisible] = useState(false);
+
+  // Set up header right with notification bell
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <NotificationBell navigation={navigation} />
+      ),
+    });
+  }, [navigation]);
 
   const onDemandMutation = useMutation({
     mutationFn: async () => {

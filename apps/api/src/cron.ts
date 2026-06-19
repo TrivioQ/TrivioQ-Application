@@ -5,6 +5,7 @@ import Redis from 'ioredis';
 import { prisma } from '@trivioq/database';
 import { distributeBonuses, getWeekStart, getMonthStart } from './utils/scoring';
 import { initDropPlanner } from './services/drop-planner-service';
+import { initNotificationCrons } from './crons/notification-crons';
 
 const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
 const triviaDropsQueue = new Queue('trivia-drops', { connection });
@@ -67,5 +68,8 @@ cron.schedule('10 0 1 * *', async () => {
 
 // ── Daily drop planner — pre-schedules all user drops for the day ─────────────
 initDropPlanner();
+
+// ── Notification cron jobs ─────────────────────────────────────────────────────
+initNotificationCrons();
 
 console.log('node-cron job scheduler initialized.');

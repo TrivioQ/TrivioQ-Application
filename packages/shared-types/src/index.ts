@@ -88,3 +88,93 @@ export interface UserProfile {
   activeWindowEnd: string;
   preferences?: any;
 }
+
+// ============================================================================
+// NOTIFICATION TYPES
+// ============================================================================
+
+export enum NotificationType {
+  TRIVIA_DROP = 'TRIVIA_DROP',
+  SYSTEM_ANNOUNCEMENT = 'SYSTEM_ANNOUNCEMENT',
+  SUBSCRIPTION_REMINDER = 'SUBSCRIPTION_REMINDER',
+  OFFER_PROMOTION = 'OFFER_PROMOTION',
+  CREDIT_ALERT = 'CREDIT_ALERT',
+  ADMIN_MESSAGE = 'ADMIN_MESSAGE',
+}
+
+export enum NotificationChannel {
+  PUSH_MOBILE = 'PUSH_MOBILE',
+  PUSH_WEB = 'PUSH_WEB',
+  EMAIL = 'EMAIL',
+}
+
+export enum NotificationAudience {
+  ALL_USERS = 'ALL_USERS',
+  USER_SEGMENT = 'USER_SEGMENT',
+  SPECIFIC_USERS = 'SPECIFIC_USERS',
+}
+
+export enum NotificationStatus {
+  DRAFT = 'DRAFT',
+  SCHEDULED = 'SCHEDULED',
+  SENDING = 'SENDING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
+export interface NotificationPreferences {
+  triviaDrop: boolean;
+  systemAnnouncement: boolean;
+  subscriptionReminder: boolean;
+  offerPromotion: boolean;
+  creditAlert: boolean;
+  adminMessage: boolean;
+  enablePushNotification: boolean;
+  enableWebPushNotification: boolean;
+  enableEmailNotification: boolean;
+}
+
+export interface UserNotification {
+  id: string;
+  notificationId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  data?: Record<string, any>;
+  isRead: boolean;
+  pushDelivered: boolean;
+  emailDelivered: boolean;
+  readAt?: Date | string | null;
+  clickedAt?: Date | string | null;
+  createdAt: Date | string;
+}
+
+export interface CreateNotificationInput {
+  type: NotificationType;
+  audience: NotificationAudience;
+  title: string;
+  body: string;
+  data?: Record<string, any>;
+  channels: NotificationChannel[];
+  targetUserIds?: string[];
+  targetCriteria?: Record<string, any>;
+  scheduledAt?: Date;
+}
+
+export interface CreateTemplateInput {
+  name: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  emailSubject?: string;
+  emailHtml?: string;
+  channels: NotificationChannel[];
+  variables: string[];
+}
+
+export interface WebPushSubscription {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  browser?: string;
+}

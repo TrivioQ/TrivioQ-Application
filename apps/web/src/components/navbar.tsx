@@ -94,6 +94,7 @@ function UserAvatar({ profilePicture, displayName, email, isPremium, avatarAlt, 
 }
 
 import { ThemeSwitcher } from './theme-switcher';
+import { NotificationBell } from './notification-bell';
 
 // ─── Main Navbar ──────────────────────────────────────────────────────────────
 
@@ -174,6 +175,9 @@ export function Navbar() {
           {/* ── Right side ── */}
           <div className="flex items-center gap-3 shrink-0">
             <ThemeSwitcher />
+
+            {/* Notification Bell - Only show for logged in users */}
+            {isLoggedIn && <NotificationBell />}
 
             {authLoading ? (
               // Skeleton loader

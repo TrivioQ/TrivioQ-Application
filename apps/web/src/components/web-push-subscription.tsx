@@ -1,0 +1,113 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Bell, BellOff, CheckCircle, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  subscribeToPushNotifications,
+  unsubscribeFromPushNotifications,
+  getPushSubscriptionStatus,
+} from '@/lib/webpush';
+
+export function WebPushSubscription() {
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isSupported, setIsSupported] = useState(true);
+  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkSubscription();
+  }, []);
+
+  async function checkSubscription() {
+    const status = await getPushSubscriptionStatus();
+    setIsSupported(status.isSupported);
+    setPermission(status.permission);
+    setIsSubscribed(status.isSubscribed);
+    setLoading(false);
+  }
+
+  async function handleSubscribe() {
+    setLoading(true);
+    const success = await subscribeToPushNotifications();
+    if (success) {
+      setIsSubscribed(true);
+      setPermission('granted');
+    }
+    setLoading(false);
+  }
+
+  async function handleUnsubscribe() {
+    setLoading(true);
+    const success = await unsubscribeFromPushNotifications();
+    if (success) {
+      setIsSubscribed(false);
+    }
+    setLoading(false);
+  }
+
+  if (!isSupported) {
+    return (
+      <div className="p-4 bg-gray-100 rounded-lg">
+        <p className="text-sm text-gray-600">
+          Push notifications are not supported in your browser.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 bg-white rounded-lg border border-gray-200">
+      <div className="flex items-start gap-3">
+        <div className={`p-2 rounded-lg ${isSubscribed ? 'bg-green-100' : 'bg-purple-100'}`}>
+          {isSubscribed ? (
+            <CheckCircle className="h-5 w-5 text-green-600" />
+          ) : (
+            <Bell className="h-5 w-5 text-purple-600" />
+          )}
+        </div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-gray-900">
+            {isSubscribed ? 'Notifications Enabled' : 'Enable Desktop Notifications'}
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            {isSubscribed
+              ? 'You will receive push notifications in your browser even when TrivioQ is not open.'
+              : 'Receive push notifications in your browser for new trivia drops and announcements.'}
+          </p>
+
+          <div className="mt-3">
+            {isSubscribed ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleUnsubscribe}
+                disabled={loading}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <BellOff className="h-4 w-4 mr-2" />
+                Disable Notifications
+              </Button>
+            ) : permission === 'denied' ? (
+              <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                <XCircle className="h-4 w-4" />
+                <span>Notifications blocked. Please enable in your browser settings.</span>
+              </div>
+            ) : (
+              <Button size="sm" onClick={handleSubscribe} disabled={loading}>
+                <Bell className="h-4 w-4 mr-2" />
+                {loading ? 'Enabling...' : 'Enable Notifications'}
+              </Button>
+            )}
+          </div>
+
+          {permission === 'granted' && !isSubscribed && (
+            <p className="text-xs text-gray-500 mt-2">
+              Permission granted but not subscribed. Click enable to complete setup.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

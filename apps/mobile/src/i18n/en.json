@@ -10,7 +10,10 @@
     "confirm": "Confirm",
     "brandName": "TrivioQ",
     "subscription": "Subscription",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "notifications": "Notifications",
+    "enable": "Enable",
+    "disable": "Disable"
   },
   "home": {
     "welcome": "Welcome to TrivioQ!",
@@ -91,6 +94,34 @@
     "freeTier": "🆓 Free",
     "premiumTier": "⭐ Premium",
     "plusTier": "✨ Plus"
+  },
+  "notifications": {
+    "all": "All",
+    "unread": "Unread",
+    "markAllRead": "Mark all read",
+    "markingAll": "Marking...",
+    "loading": "Loading notifications...",
+    "noNotifications": "No notifications",
+    "noNotificationsSub": "You haven't received any notifications yet",
+    "noUnread": "No unread notifications",
+    "noUnreadSub": "All your notifications have been read",
+    "pushEnabled": "Push Notifications Enabled",
+    "pushEnabledSub": "You will now receive push notifications",
+    "pushEnableFailed": "Failed to Enable",
+    "pushEnableFailedSub": "There was a problem enabling push notifications",
+    "pushDisabled": "Push Notifications Disabled",
+    "pushDisabledSub": "You will no longer receive push notifications",
+    "notSupported": "Push notifications not supported on this device",
+    "enablePush": "Enable Push Notifications",
+    "pushEnabledDesc": "Tap to disable push notifications",
+    "pushEnableDesc": "Receive notifications even when the app is closed",
+    "permissionDenied": "Permission denied. Enable in device settings.",
+    "triviaDrop": "New trivia drop available!",
+    "systemAnnouncement": "System announcement",
+    "subscriptionReminder": "Subscription reminder",
+    "offerPromotion": "Special offer",
+    "creditAlert": "Credit alert",
+    "adminMessage": "Message from admin"
   },
   "leaderboard": {
     "title": "Leaderboard",

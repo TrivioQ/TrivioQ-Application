@@ -7,6 +7,7 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/auth-context';
 import { useTheme } from '../context/ThemeContext';
+import { NotificationBell } from '../components/notification-bell';
 
 // Screens
 import LoginScreen from '../screens/login-screen';
@@ -19,6 +20,7 @@ import ProfileScreen from '../screens/profile-screen';
 import TermsScreen from '../screens/terms-screen';
 import PrivacyScreen from '../screens/privacy-screen';
 import SubscriptionScreen from '../screens/subscription-screen';
+import NotificationsScreen from '../screens/notifications-screen';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,6 +37,7 @@ export type AuthStackParamList = {
 export type HomeStackParamList = {
   HomeDashboard: undefined;
   DropActive: { dropId?: string };
+  Notifications: undefined;
 };
 
 export type ProfileStackParamList = {
@@ -42,6 +45,7 @@ export type ProfileStackParamList = {
   Subscription: undefined;
   Terms: undefined;
   Privacy: undefined;
+  Notifications: undefined;
 };
 
 export type RootTabParamList = {
@@ -77,7 +81,11 @@ function HomeStackNavigator() {
         headerTitleStyle: { fontWeight: '800' },
       }}
     >
-      <HomeStack.Screen name="HomeDashboard" component={HomeDashboard} options={{ title: t('common.brandName') }} />
+      <HomeStack.Screen
+        name="HomeDashboard"
+        component={HomeDashboard}
+        options={{ title: t('common.brandName') }}
+      />
       <HomeStack.Screen
         name="DropActive"
         component={DropActive}
@@ -86,6 +94,11 @@ function HomeStackNavigator() {
           presentation: 'modal',
           headerStyle: { backgroundColor: '#1e1b4b' },
         }}
+      />
+      <HomeStack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ title: t('common.notifications') }}
       />
     </HomeStack.Navigator>
   );
@@ -106,10 +119,31 @@ function ProfileStackNavigator() {
         headerTitleStyle: { fontWeight: '800' },
       }}
     >
-      <ProfileStack.Screen name="ProfileHome" component={ProfileScreen} options={{ title: t('common.profile') }} />
-      <ProfileStack.Screen name="Subscription" component={SubscriptionScreen} options={{ title: t('common.subscription') }} />
-      <ProfileStack.Screen name="Terms" component={TermsScreen} options={{ title: t('profile.terms') }} />
-      <ProfileStack.Screen name="Privacy" component={PrivacyScreen} options={{ title: t('profile.privacy') }} />
+      <ProfileStack.Screen
+        name="ProfileHome"
+        component={ProfileScreen}
+        options={{ title: t('common.profile') }}
+      />
+      <ProfileStack.Screen
+        name="Subscription"
+        component={SubscriptionScreen}
+        options={{ title: t('common.subscription') }}
+      />
+      <ProfileStack.Screen
+        name="Terms"
+        component={TermsScreen}
+        options={{ title: t('profile.terms') }}
+      />
+      <ProfileStack.Screen
+        name="Privacy"
+        component={PrivacyScreen}
+        options={{ title: t('profile.privacy') }}
+      />
+      <ProfileStack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ title: t('common.notifications') }}
+      />
     </ProfileStack.Navigator>
   );
 }

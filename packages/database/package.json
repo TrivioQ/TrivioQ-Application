@@ -13,6 +13,7 @@
     "seed-legal": "ts-node -r dotenv/config scripts/seed-legal.ts",
     "seed-settings": "ts-node -r dotenv/config scripts/seed-settings.ts",
     "seed-categories": "ts-node -r dotenv/config scripts/seed-categories.ts",
+    "seed-notifications": "ts-node -r dotenv/config prisma/seed-notifications.ts",
     "seed-server": "yarn db-push && yarn seed-legal && yarn seed-settings && yarn seed-categories",
     "debug": "prisma studio"
   },

@@ -6,6 +6,10 @@ const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', 
   maxRetriesPerRequest: null,
 });
 
+// Import and start additional workers
+import './workers/notification-worker';
+import './workers/email-worker';
+
 const worker = new Worker(
   'trivia-drops',
   async (job) => {
