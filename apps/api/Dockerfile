@@ -118,7 +118,14 @@ RUN pnpm prune --prod --no-optional
 RUN cd packages/database && npx prisma generate
 
 # -----------------------------------------------------------------------------
-# Stage 4: runner — lean production image
+# Stage 4: deployer — isolated production build
+# -----------------------------------------------------------------------------
+FROM builder AS deployer
+WORKDIR /app
+RUN pnpm --filter api deploy --prod /app/out
+
+# -----------------------------------------------------------------------------
+# Stage 5: runner — lean production image
 # -----------------------------------------------------------------------------
 FROM base AS runner
 
@@ -131,22 +138,8 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 WORKDIR /app
 
-# Copy compiled API output
-COPY --from=builder --chown=trivioq:nodejs /app/apps/api/dist ./dist
-
-# Copy workspace package builds (node_modules symlinks point here at runtime)
-COPY --from=builder --chown=trivioq:nodejs /app/packages/database/dist       ./packages/database/dist
-COPY --from=builder --chown=trivioq:nodejs /app/packages/database/prisma     ./packages/database/prisma
-COPY --from=builder --chown=trivioq:nodejs /app/packages/database/package.json ./packages/database/package.json
-COPY --from=builder --chown=trivioq:nodejs /app/packages/shared-types/dist      ./packages/shared-types/dist
-COPY --from=builder --chown=trivioq:nodejs /app/packages/shared-types/package.json ./packages/shared-types/package.json
-
-# Copy the full node_modules (includes symlinks to packages/* above)
-# The Prisma engines for linux-musl are already embedded via binaryTargets
-COPY --from=builder --chown=trivioq:nodejs /app/node_modules ./node_modules
-
-# Copy API's own package.json (needed for module resolution)
-COPY --from=builder --chown=trivioq:nodejs /app/apps/api/package.json ./apps/api/package.json
+# Copy the completely isolated application output from the deployer
+COPY --from=deployer --chown=trivioq:nodejs /app/out ./
 
 # Firebase service account is injected at runtime via volume mount
 # (see docker-compose.yml). Create placeholder dir so the mount works.
