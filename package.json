@@ -1,11 +1,7 @@
 {
   "name": "trivioq",
   "private": true,
-  "packageManager": "yarn@4.3.0",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",

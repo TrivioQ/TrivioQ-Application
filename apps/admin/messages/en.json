@@ -252,7 +252,12 @@
         "confirmRejection": "Confirm Rejection",
         "rejecting": "Rejecting..."
       }
-    }
+    },
+    "noResults": "No results",
+    "showing": "Showing {start}–{end} of {total}",
+    "pageOf": "Page {page} of {totalPages}",
+    "previousPage": "Previous page",
+    "nextPage": "Next page"
   },
   "categories": {
     "title": "Categories",

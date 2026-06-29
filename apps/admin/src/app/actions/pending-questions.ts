@@ -1,6 +1,6 @@
 'use server';
 
-import { PrismaClient, DifficultyLevel } from '@trivioq/database';
+import { PrismaClient, DifficultyLevel, PendingQuestion } from '@trivioq/database';
 import { revalidatePath } from 'next/cache';
 
 const prisma = new PrismaClient();
@@ -40,10 +40,51 @@ export async function updatePendingQuestion(pendingId: string, editedData: EditQ
   }
 }
 
+// ── Types ────────────────────────────────────────────────────────────────────────
+
+export interface PaginatedPendingQuestionsResult {
+  data: PendingQuestionWithMeta[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface PendingQuestionWithMeta extends Omit<PendingQuestion, 'createdAt' | 'updatedAt'> {
+  id: string;
+  topic: string;
+  categorySlugs: string[];
+  difficultyLevel: DifficultyLevel;
+  suggestedText: string;
+  suggestedChoices: any;
+  hint: string | null;
+  explanation: string | null;
+  status: string;
+  rejectionReason: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  aiQualityScore: number | null;
+  aiFeedback: string | null;
+  isDuplicate: boolean;
+  replacesQuestionId: string | null;
+}
+
+export interface PendingQuestionsFilters {
+  filter?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+const PAGE_SIZE = 20;
+
 // ── Fetch ────────────────────────────────────────────────────────────────────────
 
-export async function getPendingQuestions(filter?: string) {
+export async function getPendingQuestions(filters?: PendingQuestionsFilters): Promise<{ success: boolean; data?: PendingQuestionWithMeta[]; error?: string } | PaginatedPendingQuestionsResult> {
   try {
+    const page = filters?.page ?? 1;
+    const pageSize = filters?.pageSize ?? PAGE_SIZE;
+    const filter = filters?.filter;
+
     let where: Record<string, unknown>;
     if (filter === 'ai-validated') {
       where = { isValidated: true, status: 'PENDING' };
@@ -55,12 +96,25 @@ export async function getPendingQuestions(filter?: string) {
       where = { status: 'PENDING' };
     }
 
-    const questions = await prisma.pendingQuestion.findMany({
-      where,
-      orderBy: { createdAt: 'asc' },
-    });
+    const [questions, total] = await Promise.all([
+      prisma.pendingQuestion.findMany({
+        where,
+        orderBy: { createdAt: 'asc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.pendingQuestion.count({ where }),
+    ]);
 
-    return { success: true, data: questions };
+    const totalPages = Math.ceil(total / pageSize);
+
+    return {
+      data: questions,
+      total,
+      page,
+      pageSize,
+      totalPages,
+    };
   } catch (error) {
     console.error('Failed to fetch pending questions:', error);
     return { success: false, error: 'Failed to fetch pending questions' };
