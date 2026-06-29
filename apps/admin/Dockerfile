@@ -57,6 +57,12 @@ RUN pnpm install --frozen-lockfile
 # Generate Prisma client for the Alpine target
 RUN cd packages/database && npx prisma generate
 
+# Create a deterministic copy of the Prisma client for the runner stage
+# since pnpm virtual store paths vary.
+RUN mkdir -p /app/prisma-output && \
+    find /app/node_modules -type d -name ".prisma" | head -n 1 | xargs -I {} cp -r {} /app/prisma-output/ && \
+    find /app/node_modules -type d -name "@prisma" | head -n 1 | xargs -I {} cp -r {} /app/prisma-output/ || true
+
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SENTRY_IGNORE_API_ERRORS=true
 ENV SKIP_ENV_VALIDATION=1
@@ -88,8 +94,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/static ./apps/ad
 COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/public ./apps/admin/public
 
 # Prisma client engines (needed at runtime for DB queries from admin)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma  ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma-output/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma-output/@prisma  ./node_modules/@prisma
 
 USER nextjs
 
