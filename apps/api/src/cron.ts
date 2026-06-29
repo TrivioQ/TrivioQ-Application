@@ -7,7 +7,7 @@ import { distributeBonuses, getWeekStart, getMonthStart } from './utils/scoring'
 import { initDropPlanner } from './services/drop-planner-service';
 import { initNotificationCrons } from './crons/notification-crons';
 
-const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+const connection: any = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
 const triviaDropsQueue = new Queue('trivia-drops', { connection });
 
 // ── Trivia drop scheduler — runs every 15 mins ────────────────────────────────

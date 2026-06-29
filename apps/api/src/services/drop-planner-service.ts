@@ -10,8 +10,8 @@ interface DropsQueuePayload {
   dailyLimit: number;
 }
 
-const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
-const dropsQueue = new Queue<DropsQueuePayload>('drops-queue', { connection });
+const connection: any = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+const dropsQueue = new Queue<DropsQueuePayload, any, string>('drops-queue', { connection });
 
 /**
  * Calculates how many milliseconds until a given UTC wall-clock time (DateTime)

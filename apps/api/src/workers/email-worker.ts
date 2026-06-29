@@ -102,7 +102,7 @@ const emailWorker = new Worker<EmailJobData>(
     }
   },
   {
-    connection,
+    connection: connection as any,
     concurrency: 10,
   }
 );

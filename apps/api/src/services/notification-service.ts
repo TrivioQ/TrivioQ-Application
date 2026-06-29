@@ -59,8 +59,8 @@ export class NotificationService {
       maxRetriesPerRequest: null,
     });
 
-    this.notificationQueue = new Queue('notifications', { connection });
-    this.emailQueue = new Queue('emails', { connection });
+    this.notificationQueue = new Queue('notifications', { connection: connection as any });
+    this.emailQueue = new Queue('emails', { connection: connection as any });
   }
 
   /**
@@ -167,7 +167,7 @@ export class NotificationService {
       // Update notification status
       await prisma.userNotification.update({
         where: { id: userNotification.id },
-        data: { pushDelivered: false, pushError: error.message },
+        data: { pushDelivered: false },
       });
 
       return { notification, userNotification, fcmSuccess: false, error };
@@ -276,6 +276,38 @@ export class NotificationService {
   async createAndSend(input: Omit<CreateNotificationInput, 'scheduledAt'>) {
     return this.create({
       ...input,
+      scheduledAt: new Date(),
+    });
+  }
+
+  /**
+   * Helper to create and immediately send a notification to a specific user (used by cron jobs)
+   */
+  async createAndQueueNotification(input: {
+    userId: string;
+    type: any;
+    title: string;
+    body: string;
+    data?: Record<string, any>;
+    channels: { push: boolean; email: boolean };
+  }) {
+    const channelList: NotificationChannel[] = [];
+    if (input.channels.push) {
+      channelList.push(NotificationChannel.PUSH_MOBILE);
+      channelList.push(NotificationChannel.PUSH_WEB);
+    }
+    if (input.channels.email) {
+      channelList.push(NotificationChannel.EMAIL);
+    }
+
+    return this.create({
+      type: input.type as NotificationType,
+      audience: NotificationAudience.SPECIFIC_USERS,
+      title: input.title,
+      body: input.body,
+      data: input.data,
+      channels: channelList,
+      targetUserIds: [input.userId],
       scheduledAt: new Date(),
     });
   }
@@ -462,10 +494,7 @@ export class NotificationService {
   ) {
     return prisma.webPushSubscription.upsert({
       where: {
-        userId_endpoint: {
-          userId,
-          endpoint: subscription.endpoint,
-        },
+        endpoint: subscription.endpoint,
       },
       update: {
         p256dh: subscription.p256dh,

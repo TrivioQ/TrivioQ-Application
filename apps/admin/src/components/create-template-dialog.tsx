@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Sparkles } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 export function CreateTemplateDialog() {
   const [open, setOpen] = useState(false);
@@ -86,11 +86,9 @@ export function CreateTemplateDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          New Template
-        </Button>
+      <DialogTrigger render={<Button />}>
+        <Plus className="h-4 w-4 mr-2" />
+        New Template
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -118,9 +116,11 @@ export function CreateTemplateDialog() {
             <Label>Type</Label>
             <Select
               value={formData.type}
-              onValueChange={(value) =>
-                setFormData({ ...formData, type: value })
-              }
+              onValueChange={(value) => {
+                if (value !== null) {
+                  setFormData({ ...formData, type: value });
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue />

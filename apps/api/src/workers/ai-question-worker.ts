@@ -38,7 +38,7 @@ const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', 
 });
 
 export const aiQuestionQueue = new Queue<AiQuestionJobPayload>(QUEUE_NAME, {
-  connection,
+  connection: connection as any,
 });
 
 // Initialize Gemini API client
@@ -223,7 +223,7 @@ async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promi
 
 // ── Worker ───────────────────────────────────────────────────────────────────────
 
-const aiQuestionWorker = new Worker<AiQuestionJobPayload>(QUEUE_NAME, handleAiQuestionGeneration, { connection, concurrency: 3 });
+const aiQuestionWorker = new Worker<AiQuestionJobPayload>(QUEUE_NAME, handleAiQuestionGeneration, { connection: connection as any, concurrency: 3 });
 
 aiQuestionWorker.on('completed', (job) => {
   console.log(`[AIQuestionWorker] Job ${job.id} completed`);

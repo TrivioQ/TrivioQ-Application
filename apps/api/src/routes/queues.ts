@@ -9,7 +9,7 @@ import { prisma } from '@trivioq/database';
 
 const router = Router();
 
-const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
+const connection: any = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
   maxRetriesPerRequest: null,
 });
 

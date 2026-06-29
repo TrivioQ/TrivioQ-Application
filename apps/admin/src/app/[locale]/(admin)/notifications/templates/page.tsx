@@ -1,7 +1,6 @@
 'use client';
 
 import { use } from 'react';
-import { useEffect, useState } from 'react';
 import { TemplateList } from '@/components/template-list';
 import { CreateTemplateDialog } from '@/components/create-template-dialog';
 import { Sparkles } from 'lucide-react';

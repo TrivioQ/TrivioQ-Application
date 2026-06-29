@@ -65,12 +65,12 @@ export function TemplateList() {
   }
 
   async function handleToggleActive(id: string, currentStatus: boolean) {
-    const confirmed = await confirm(
-      currentStatus ? 'Deactivate Template' : 'Activate Template',
-      currentStatus
+    const confirmed = await confirm({
+      title: currentStatus ? 'Deactivate Template' : 'Activate Template',
+      message: currentStatus
         ? 'Are you sure you want to deactivate this template?'
         : 'Are you sure you want to activate this template?'
-    );
+    });
     if (!confirmed) return;
 
     try {
@@ -87,10 +87,10 @@ export function TemplateList() {
   }
 
   async function handleDelete(id: string) {
-    const confirmed = await confirm(
-      'Delete Template',
-      'Are you sure you want to delete this template? This cannot be undone.'
-    );
+    const confirmed = await confirm({
+      title: 'Delete Template',
+      message: 'Are you sure you want to delete this template? This cannot be undone.'
+    });
     if (!confirmed) return;
 
     try {
@@ -163,13 +163,13 @@ export function TemplateList() {
               <TableCell>
                 <div className="flex items-center gap-1">
                   {template.channels.includes('PUSH_MOBILE') && (
-                    <Smartphone className="h-4 w-4 text-gray-500" title="Mobile Push" />
+                    <span title="Mobile Push"><Smartphone className="h-4 w-4 text-gray-500" /></span>
                   )}
                   {template.channels.includes('PUSH_WEB') && (
-                    <Bell className="h-4 w-4 text-gray-500" title="Web Push" />
+                    <span title="Web Push"><Bell className="h-4 w-4 text-gray-500" /></span>
                   )}
                   {template.channels.includes('EMAIL') && (
-                    <Mail className="h-4 w-4 text-gray-500" title="Email" />
+                    <span title="Email"><Mail className="h-4 w-4 text-gray-500" /></span>
                   )}
                 </div>
               </TableCell>
@@ -183,10 +183,8 @@ export function TemplateList() {
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                  <DropdownMenuTrigger render={<Button variant="ghost" size="sm" />}>
+                    <MoreHorizontal className="h-4 w-4" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>

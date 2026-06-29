@@ -1,4 +1,4 @@
-import webPush, { PushMessage } from 'web-push';
+import webPush from 'web-push';
 import { prisma } from '@trivioq/database';
 
 // VAPID keys should be generated once and stored in environment variables
@@ -38,6 +38,23 @@ export interface PushResult {
   success: boolean;
   endpoint?: string;
   error?: string;
+}
+
+export interface PushMessage {
+  notification: {
+    title: string;
+    body: string;
+    icon?: string;
+    badge?: string;
+    data?: Record<string, any>;
+    actions?: Array<{
+      action: string;
+      title: string;
+      icon?: string;
+    }>;
+    tag?: string;
+    requireInteraction?: boolean;
+  };
 }
 
 export class WebPushService {
@@ -111,6 +128,7 @@ export class WebPushService {
         data: payload.data,
         tag: payload.tag,
         requireInteraction: payload.requireInteraction ?? false,
+        actions: payload.actions,
       },
     };
 

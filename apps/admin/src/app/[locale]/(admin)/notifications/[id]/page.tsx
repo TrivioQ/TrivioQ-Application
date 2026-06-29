@@ -34,7 +34,7 @@ export default function NotificationDetailPage({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetch() {
+    async function fetchDetails() {
       try {
         const [notifRes, analyticsRes] = await Promise.all([
           fetch(`/api/admin/notifications/${id}`),
@@ -51,7 +51,7 @@ export default function NotificationDetailPage({
         setLoading(false);
       }
     }
-    fetch();
+    fetchDetails();
   }, [id]);
 
   if (loading) {

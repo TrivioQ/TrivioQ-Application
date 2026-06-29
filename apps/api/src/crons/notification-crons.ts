@@ -5,7 +5,7 @@
 
 import cron from 'node-cron';
 import { prisma } from '@trivioq/database';
-import { NotificationService } from '../services/notification-service';
+import { notificationService } from '../services/notification-service';
 import { NotificationType } from '@trivioq/shared-types';
 
 // ── Subscription Expiry Reminders ──────────────────────────────────────────────
@@ -22,32 +22,29 @@ export function initSubscriptionReminderCron() {
     console.log('[subscription-reminder-cron] Sending subscription expiry reminders...');
     try {
       const now = new Date();
-      const notificationService = new NotificationService(prisma);
-
-      // Find subscriptions expiring in 7, 3, and 1 days
-      const expiringSoon = await prisma.subscription.findMany({
+      // Find users with premium subscriptions expiring in 7, 3, and 1 days
+      const expiringSoon = await prisma.user.findMany({
         where: {
-          endDate: {
+          subscriptionTier: { not: 'FREE' },
+          subscriptionExpiresAt: {
             gte: now,
             lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // Next 7 days
           },
-          status: 'ACTIVE',
-        },
-        include: {
-          user: true,
         },
       });
 
-      for (const subscription of expiringSoon) {
+      for (const user of expiringSoon) {
         const daysUntilExpiry = Math.ceil(
-          (subscription.endDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)
+          (user.subscriptionExpiresAt!.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)
         );
 
         // Skip if already reminded today
         const recentReminder = await prisma.userNotification.findFirst({
           where: {
-            userId: subscription.userId,
-            type: 'SUBSCRIPTION_REMINDER' as NotificationType,
+            userId: user.id,
+            notification: {
+              type: 'SUBSCRIPTION_REMINDER' as any,
+            },
             createdAt: {
               gte: new Date(now.getTime() - 24 * 60 * 60 * 1000),
             },
@@ -71,14 +68,14 @@ export function initSubscriptionReminderCron() {
         }
 
         await notificationService.createAndQueueNotification({
-          userId: subscription.userId,
+          userId: user.id,
           type: 'SUBSCRIPTION_REMINDER',
           title,
           body,
           data: {
-            subscriptionId: subscription.id,
+            subscriptionId: user.id,
             daysUntilExpiry,
-            tier: subscription.tier,
+            tier: user.subscriptionTier,
           },
           channels: {
             push: true,
@@ -86,7 +83,7 @@ export function initSubscriptionReminderCron() {
           },
         });
 
-        console.log(`Sent subscription reminder to user ${subscription.userId} (${daysUntilExpiry} days)`);
+        console.log(`Sent subscription reminder to user ${user.id} (${daysUntilExpiry} days)`);
       }
 
       console.log(`[subscription-reminder-cron] Completed. Processed ${expiringSoon.length} subscriptions.`);
@@ -110,38 +107,52 @@ export function initReengagementCron() {
     console.log('[reengagement-cron] Sending re-engagement notifications...');
     try {
       const now = new Date();
-      const notificationService = new NotificationService(prisma);
-
-      // Find users who haven't answered in 3, 7, or 14 days
+      // Find users who have at least one answered drop, but none in the last 3 days
       const inactiveUsers = await prisma.user.findMany({
         where: {
-          lastAnsweredAt: {
-            lte: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+          role: 'USER',
+          drops: {
+            some: {
+              isAnswered: true,
+            },
           },
-          // Only send to users who have previously answered
-          lastAnsweredAt: { not: null },
-        },
-        include: {
-          subscription: {
-            where: { status: 'ACTIVE' },
-            orderBy: { createdAt: 'desc' },
-            take: 1,
+          NOT: {
+            drops: {
+              some: {
+                isAnswered: true,
+                answeredAt: {
+                  gt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+                },
+              },
+            },
           },
         },
       });
 
       for (const user of inactiveUsers) {
-        if (!user.lastAnsweredAt) continue;
+        const latestDrop = await prisma.userDrop.findFirst({
+          where: {
+            userId: user.id,
+            isAnswered: true,
+          },
+          orderBy: {
+            answeredAt: 'desc',
+          },
+        });
+
+        if (!latestDrop || !latestDrop.answeredAt) continue;
 
         const daysInactive = Math.ceil(
-          (now.getTime() - user.lastAnsweredAt.getTime()) / (24 * 60 * 60 * 1000)
+          (now.getTime() - latestDrop.answeredAt.getTime()) / (24 * 60 * 60 * 1000)
         );
 
         // Skip if already sent a re-engagement notification in the last 2 days
         const recentNotification = await prisma.userNotification.findFirst({
           where: {
             userId: user.id,
-            type: { in: ['SYSTEM_ANNOUNCEMENT', 'OFFER_PROMOTION'] as NotificationType[] },
+            notification: {
+              type: { in: ['SYSTEM_ANNOUNCEMENT', 'OFFER_PROMOTION'] as any },
+            },
             createdAt: {
               gte: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
             },
@@ -152,7 +163,7 @@ export function initReengagementCron() {
 
         let title: string;
         let body: string;
-        let type: NotificationType = 'SYSTEM_ANNOUNCEMENT';
+        let type: any = 'SYSTEM_ANNOUNCEMENT';
 
         if (daysInactive >= 14) {
           title = 'We Miss You! 🎁';
@@ -200,33 +211,31 @@ export function initDailyTriviaReminderCron() {
     console.log('[daily-trivia-cron] Sending daily trivia reminders...');
     try {
       const now = new Date();
-      const notificationService = new NotificationService(prisma);
-
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       // Find users who haven't answered today but have an active window now
       const usersWithoutAnswer = await prisma.user.findMany({
         where: {
-          // User's active window includes now
           activeWindowStart: { lte: now },
           activeWindowEnd: { gte: now },
-          // Hasn't answered today (assuming lastAnsweredAt is before today)
-          OR: [
-            { lastAnsweredAt: null },
-            {
-              lastAnsweredAt: {
-                lt: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+          role: 'USER',
+          NOT: {
+            drops: {
+              some: {
+                isAnswered: true,
+                answeredAt: { gte: todayStart },
               },
             },
-          ],
+          },
         },
       });
 
       for (const user of usersWithoutAnswer) {
         // Skip if user already has an active drop they haven't answered
-        const activeDrop = await prisma.questionDrop.findFirst({
+        const activeDrop = await prisma.userDrop.findFirst({
           where: {
             userId: user.id,
-            status: 'PENDING',
-            expiresAt: { gt: now },
+            isAnswered: false,
+            expirationTime: { gt: now },
           },
         });
 
@@ -235,7 +244,9 @@ export function initDailyTriviaReminderCron() {
           const recentDropReminder = await prisma.userNotification.findFirst({
             where: {
               userId: user.id,
-              type: 'TRIVIA_DROP' as NotificationType,
+              notification: {
+                type: 'TRIVIA_DROP' as any,
+              },
               createdAt: {
                 gte: new Date(now.getTime() - 4 * 60 * 60 * 1000), // Last 4 hours
               },
@@ -273,40 +284,47 @@ export function initWeeklySummaryCron() {
     console.log('[weekly-summary-cron] Sending weekly summaries...');
     try {
       const now = new Date();
-      const notificationService = new NotificationService(prisma);
       const weekStart = new Date(now);
       weekStart.setDate(weekStart.getDate() - 7);
 
       // Get users who have been active this week
       const activeUsers = await prisma.user.findMany({
         where: {
-          lastAnsweredAt: { gte: weekStart },
+          drops: {
+            some: {
+              isAnswered: true,
+              answeredAt: { gte: weekStart },
+            },
+          },
         },
       });
 
       for (const user of activeUsers) {
         // Calculate weekly stats
-        const answersThisWeek = await prisma.questionAnswer.count({
+        const answersThisWeek = await prisma.userDrop.count({
           where: {
             userId: user.id,
-            createdAt: { gte: weekStart },
+            isAnswered: true,
+            answeredAt: { gte: weekStart },
           },
         });
 
-        const correctAnswers = await prisma.questionAnswer.count({
+        const correctAnswers = await prisma.userDrop.count({
           where: {
             userId: user.id,
-            createdAt: { gte: weekStart },
-            isCorrect: true,
+            isAnswered: true,
+            wasCorrect: true,
+            answeredAt: { gte: weekStart },
           },
         });
 
-        const pointsEarned = await prisma.questionAnswer.aggregate({
+        const pointsEarned = await prisma.userDrop.aggregate({
           where: {
             userId: user.id,
-            createdAt: { gte: weekStart },
+            isAnswered: true,
+            answeredAt: { gte: weekStart },
           },
-          _sum: { pointsEarned: true },
+          _sum: { pointsAwarded: true },
         });
 
         if (answersThisWeek > 0) {
@@ -316,12 +334,12 @@ export function initWeeklySummaryCron() {
             userId: user.id,
             type: 'SYSTEM_ANNOUNCEMENT',
             title: 'Your Weekly Summary 📊',
-            body: `This week: ${answersThisWeek} questions, ${accuracy}% accuracy, +${pointsEarned._sum.pointsEarned || 0} points!`,
+            body: `This week: ${answersThisWeek} questions, ${accuracy}% accuracy, +${pointsEarned._sum.pointsAwarded || 0} points!`,
             data: {
               answersThisWeek,
               correctAnswers,
               accuracy,
-              pointsEarned: pointsEarned._sum.pointsEarned || 0,
+              pointsEarned: pointsEarned._sum.pointsAwarded || 0,
             },
             channels: { push: true, email: true },
           });

@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
-import { requireAuth, requireAdmin } from '../middleware/auth';
+import { requireAuth } from '../middleware/firebase-auth';
+import { requireAdmin } from '../middleware/require-admin';
 import { notificationService } from '../services/notification-service';
 import { NotificationType, NotificationAudience, NotificationChannel } from '@prisma/client';
 
@@ -104,7 +105,7 @@ router.post('/', requireAdmin, async (req: Request, res: Response) => {
       targetUserIds,
       targetCriteria,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
-      createdBy: req.user?.email,
+      createdBy: (req as any).user?.email,
     });
 
     res.status(201).json({ notification });
@@ -146,7 +147,7 @@ router.post('/from-template', requireAdmin, async (req: Request, res: Response) 
       targetUserIds,
       targetCriteria,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
-      createdBy: req.user?.email,
+      createdBy: (req as any).user?.email,
     });
 
     res.status(201).json({ notification });
@@ -335,7 +336,7 @@ router.get('/inbox', requireAuth, async (req: Request, res: Response) => {
   try {
     const { limit = '50', offset = '0' } = req.query;
     const result = await notificationService.getInbox(
-      req.user!.id,
+      (req as any).userId,
       parseInt(limit as string),
       parseInt(offset as string)
     );
@@ -356,7 +357,7 @@ router.post('/:id/read', requireAuth, async (req: Request, res: Response) => {
     const userNotification = await (global as any).prisma.userNotification.findFirst({
       where: {
         id: req.params.id,
-        userId: req.user!.id,
+        userId: (req as any).userId,
       },
     });
 
@@ -378,7 +379,7 @@ router.post('/:id/read', requireAuth, async (req: Request, res: Response) => {
  */
 router.post('/read-all', requireAuth, async (req: Request, res: Response) => {
   try {
-    await notificationService.markAllAsRead(req.user!.id);
+    await notificationService.markAllAsRead((req as any).userId);
     res.json({ message: 'All notifications marked as read' });
   } catch (error: any) {
     console.error('Error marking all as read:', error);
@@ -392,7 +393,7 @@ router.post('/read-all', requireAuth, async (req: Request, res: Response) => {
  */
 router.get('/preferences', requireAuth, async (req: Request, res: Response) => {
   try {
-    const preferences = await notificationService.getPreferences(req.user!.id);
+    const preferences = await notificationService.getPreferences((req as any).userId);
     res.json({ preferences });
   } catch (error: any) {
     console.error('Error getting preferences:', error);
@@ -406,7 +407,7 @@ router.get('/preferences', requireAuth, async (req: Request, res: Response) => {
  */
 router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
   try {
-    const preferences = await notificationService.updatePreferences(req.user!.id, req.body);
+    const preferences = await notificationService.updatePreferences((req as any).userId, req.body);
     res.json({ preferences });
   } catch (error: any) {
     console.error('Error updating preferences:', error);
@@ -428,7 +429,7 @@ router.post('/webpush/subscribe', requireAuth, async (req: Request, res: Respons
       });
     }
 
-    const subscription = await notificationService.subscribeWebPush(req.user!.id, {
+    const subscription = await notificationService.subscribeWebPush((req as any).userId, {
       endpoint,
       p256dh,
       auth,
@@ -454,7 +455,7 @@ router.delete('/webpush/subscribe', requireAuth, async (req: Request, res: Respo
       return res.status(400).json({ error: 'Missing required field: endpoint' });
     }
 
-    await notificationService.unsubscribeWebPush(req.user!.id, endpoint);
+    await notificationService.unsubscribeWebPush((req as any).userId, endpoint);
     res.json({ message: 'Unsubscribed from web push' });
   } catch (error: any) {
     console.error('Error unsubscribing from web push:', error);

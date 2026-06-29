@@ -79,10 +79,10 @@ export function NotificationList() {
   }
 
   async function handleSend(id: string) {
-    const confirmed = await confirm(
-      'Send Notification',
-      'Are you sure you want to send this notification now?'
-    );
+    const confirmed = await confirm({
+      title: 'Send Notification',
+      message: 'Are you sure you want to send this notification now?'
+    });
     if (!confirmed) return;
 
     try {
@@ -97,10 +97,10 @@ export function NotificationList() {
   }
 
   async function handleDelete(id: string) {
-    const confirmed = await confirm(
-      'Delete Notification',
-      'Are you sure you want to delete this notification? This cannot be undone.'
-    );
+    const confirmed = await confirm({
+      title: 'Delete Notification',
+      message: 'Are you sure you want to delete this notification? This cannot be undone.'
+    });
     if (!confirmed) return;
 
     try {
@@ -168,13 +168,13 @@ export function NotificationList() {
               <TableCell>
                 <div className="flex items-center gap-1">
                   {notification.channels.includes('PUSH_MOBILE') && (
-                    <Smartphone className="h-4 w-4 text-gray-500" title="Mobile Push" />
+                    <span title="Mobile Push"><Smartphone className="h-4 w-4 text-gray-500" /></span>
                   )}
                   {notification.channels.includes('PUSH_WEB') && (
-                    <Bell className="h-4 w-4 text-gray-500" title="Web Push" />
+                    <span title="Web Push"><Bell className="h-4 w-4 text-gray-500" /></span>
                   )}
                   {notification.channels.includes('EMAIL') && (
-                    <Mail className="h-4 w-4 text-gray-500" title="Email" />
+                    <span title="Email"><Mail className="h-4 w-4 text-gray-500" /></span>
                   )}
                 </div>
               </TableCell>
@@ -191,17 +191,13 @@ export function NotificationList() {
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                  <DropdownMenuTrigger render={<Button variant="ghost" size="sm" />}>
+                    <MoreHorizontal className="h-4 w-4" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <a href={`/notifications/${notification.id}`}>
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </a>
+                    <DropdownMenuItem render={<a href={`/notifications/${notification.id}`} />}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Details
                     </DropdownMenuItem>
                     {notification.status === 'DRAFT' && (
                       <DropdownMenuItem onClick={() => handleSend(notification.id)}>

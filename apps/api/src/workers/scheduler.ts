@@ -7,7 +7,7 @@ import { getSettingNumber } from '../utils/settings';
 
 const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
 const dispatchNotificationsQueue = new Queue('dispatch-notifications', {
-  connection,
+  connection: connection as any,
 });
 
 // Helper to determine if a user should receive a drop right now

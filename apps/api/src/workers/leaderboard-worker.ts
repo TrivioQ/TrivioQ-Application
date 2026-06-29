@@ -8,7 +8,7 @@ const QUEUE_NAME = 'weekly-leaderboard';
 const FALLBACK_REWARDS = [1000, 800, 600, 400, 200, 100, 100, 100, 50, 50];
 
 const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', { maxRetriesPerRequest: null });
-const leaderboardQueue = new Queue(QUEUE_NAME, { connection });
+const leaderboardQueue = new Queue(QUEUE_NAME, { connection: connection as any });
 
 // ── Core logic ────────────────────────────────────────────────────────────────
 
@@ -77,7 +77,7 @@ const leaderboardWorker = new Worker(
   async () => {
     await processWeeklyLeaderboard();
   },
-  { connection, concurrency: 1 },
+  { connection: connection as any, concurrency: 1 },
 );
 
 leaderboardWorker.on('completed', (job) => {

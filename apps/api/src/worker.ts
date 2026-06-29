@@ -19,7 +19,7 @@ const worker = new Worker(
     // In a real application, you might select a random question
     // and create a UserDrop record in the database using prisma.
   },
-  { connection },
+  { connection: connection as any },
 );
 
 worker.on('completed', (job) => {

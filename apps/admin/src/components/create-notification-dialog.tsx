@@ -68,7 +68,8 @@ export function CreateNotificationDialog() {
     }
   };
 
-  const handleTemplateSelect = async (templateId: string) => {
+  const handleTemplateSelect = async (templateId: string | null) => {
+    if (!templateId) return;
     setSelectedTemplate(templateId);
     const template = templates.find((t) => t.id === templateId);
     if (template) {
@@ -91,11 +92,9 @@ export function CreateNotificationDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Notification
-        </Button>
+      <DialogTrigger render={<Button />}>
+        <Plus className="h-4 w-4 mr-2" />
+        Create Notification
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -153,9 +152,11 @@ export function CreateNotificationDialog() {
             <Label>Type</Label>
             <Select
               value={formData.type}
-              onValueChange={(value) =>
-                setFormData({ ...formData, type: value })
-              }
+              onValueChange={(value) => {
+                if (value !== null) {
+                  setFormData({ ...formData, type: value });
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -180,9 +181,11 @@ export function CreateNotificationDialog() {
             <Label>Audience</Label>
             <Select
               value={formData.audience}
-              onValueChange={(value) =>
-                setFormData({ ...formData, audience: value })
-              }
+              onValueChange={(value) => {
+                if (value !== null) {
+                  setFormData({ ...formData, audience: value });
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue />
