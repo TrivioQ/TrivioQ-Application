@@ -123,6 +123,7 @@ RUN cd packages/database && npx prisma generate
 FROM builder AS deployer
 WORKDIR /app
 RUN pnpm --filter api deploy --prod /app/out
+RUN cd /app/out/node_modules/@trivioq/database && npx prisma generate
 
 # -----------------------------------------------------------------------------
 # Stage 5: runner — lean production image

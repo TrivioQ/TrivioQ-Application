@@ -104,7 +104,7 @@ services:
     restart: "no"               # exits after running — intentional
     command: >
       sh -c "
-        cd /app/packages/database &&
+        cd /app/node_modules/@trivioq/database &&
         npx prisma migrate deploy
       "
     environment:
