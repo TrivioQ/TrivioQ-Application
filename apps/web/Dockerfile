@@ -20,8 +20,7 @@ WORKDIR /app
 # -----------------------------------------------------------------------------
 FROM base AS deps
 
-COPY package.json yarn.lock turbo.json .yarnrc.yml ./
-COPY .yarn ./.yarn
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .npmrc ./
 
 # Copy all workspace package manifests
 COPY apps/api/package.json              ./apps/api/package.json
@@ -31,7 +30,7 @@ COPY apps/mobile/package.json           ./apps/mobile/package.json
 COPY packages/database/package.json     ./packages/database/package.json
 COPY packages/shared-types/package.json  ./packages/shared-types/package.json
 
-RUN yarn install
+RUN pnpm install --frozen-lockfile
 
 # -----------------------------------------------------------------------------
 # Stage 3: builder — Next.js build
@@ -39,10 +38,10 @@ RUN yarn install
 FROM base AS builder
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/.yarn        ./.yarn
-COPY --from=deps /app/.yarnrc.yml  ./.yarnrc.yml
-COPY --from=deps /app/package.json ./package.json
-COPY --from=deps /app/yarn.lock    ./yarn.lock
+COPY --from=deps /app/.npmrc          ./.npmrc
+COPY --from=deps /app/package.json    ./package.json
+COPY --from=deps /app/pnpm-lock.yaml  ./pnpm-lock.yaml
+COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
 COPY packages/shared-types   ./packages/shared-types
 COPY apps/web                ./apps/web
@@ -51,8 +50,8 @@ COPY apps/admin/package.json ./apps/admin/package.json
 COPY apps/mobile/package.json ./apps/mobile/package.json
 COPY packages/database/package.json ./packages/database/package.json
 
-# Align the Yarn install state with the copied source files
-RUN yarn install
+# Align the pnpm install state with the copied source files
+RUN pnpm install --frozen-lockfile
 
 # Sentry source-map upload requires SENTRY_AUTH_TOKEN; in Docker builds we
 # skip it — uploads should happen in CI, not container builds.
@@ -63,7 +62,7 @@ ENV SKIP_ENV_VALIDATION=1
 # Build — all required env vars must be provided as build-args or .env
 # (NEXT_PUBLIC_* vars are baked in at build time by Next.js)
 WORKDIR /app/apps/web
-RUN yarn build
+RUN pnpm run build
 
 # -----------------------------------------------------------------------------
 # Stage 4: runner — minimal production image

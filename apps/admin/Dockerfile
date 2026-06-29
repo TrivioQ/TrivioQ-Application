@@ -21,8 +21,7 @@ WORKDIR /app
 # -----------------------------------------------------------------------------
 FROM base AS deps
 
-COPY package.json yarn.lock turbo.json .yarnrc.yml ./
-COPY .yarn ./.yarn
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .npmrc ./
 
 # Copy all workspace package manifests
 COPY apps/api/package.json              ./apps/api/package.json
@@ -32,7 +31,7 @@ COPY apps/mobile/package.json           ./apps/mobile/package.json
 COPY packages/database/package.json     ./packages/database/package.json
 COPY packages/shared-types/package.json  ./packages/shared-types/package.json
 
-RUN yarn install
+RUN pnpm install --frozen-lockfile
 
 # -----------------------------------------------------------------------------
 # Stage 3: builder — Prisma generate + Next.js build
@@ -40,10 +39,10 @@ RUN yarn install
 FROM base AS builder
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/.yarn        ./.yarn
-COPY --from=deps /app/.yarnrc.yml  ./.yarnrc.yml
-COPY --from=deps /app/package.json ./package.json
-COPY --from=deps /app/yarn.lock    ./yarn.lock
+COPY --from=deps /app/.npmrc          ./.npmrc
+COPY --from=deps /app/package.json    ./package.json
+COPY --from=deps /app/pnpm-lock.yaml  ./pnpm-lock.yaml
+COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
 COPY packages/database       ./packages/database
 COPY packages/shared-types   ./packages/shared-types
@@ -52,8 +51,8 @@ COPY apps/api/package.json   ./apps/api/package.json
 COPY apps/web/package.json   ./apps/web/package.json
 COPY apps/mobile/package.json ./apps/mobile/package.json
 
-# Align the Yarn install state with the copied source files
-RUN yarn install
+# Align the pnpm install state with the copied source files
+RUN pnpm install --frozen-lockfile
 
 # Generate Prisma client for the Alpine target
 RUN cd packages/database && npx prisma generate
@@ -63,7 +62,7 @@ ENV SENTRY_IGNORE_API_ERRORS=true
 ENV SKIP_ENV_VALIDATION=1
 
 WORKDIR /app/apps/admin
-RUN yarn build
+RUN pnpm run build
 
 # -----------------------------------------------------------------------------
 # Stage 4: runner — minimal production image

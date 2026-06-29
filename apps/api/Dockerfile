@@ -1,7 +1,7 @@
 # =============================================================================
 # TrivioQ API — Multi-Stage Docker Build
 # =============================================================================
-# This Dockerfile handles the Yarn Berry monorepo workspace correctly:
+# This Dockerfile handles the pnpm monorepo workspace correctly:
 #   1. deps    — installs all workspace dependencies
 #   2. builder — compiles workspace packages to JS, then compiles the API
 #   3. runner  — minimal production image with only runtime artifacts
@@ -15,7 +15,7 @@ FROM node:20-alpine AS base
 # OpenSSL is required by Prisma on Alpine (musl libc variant)
 RUN apk add --no-cache libc6-compat openssl
 
-# Enable Corepack so Yarn Berry (v4) is available from the packageManager field
+# Enable Corepack so pnpm is available from the packageManager field
 RUN corepack enable
 
 WORKDIR /app
@@ -25,9 +25,8 @@ WORKDIR /app
 # -----------------------------------------------------------------------------
 FROM base AS deps
 
-# Copy Yarn Berry configuration and lockfile first (cache layer)
-COPY package.json yarn.lock turbo.json .yarnrc.yml ./
-COPY .yarn ./.yarn
+# Copy pnpm configuration and lockfile first (cache layer)
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .npmrc ./
 
 # Copy all workspace package manifests so Yarn can resolve the graph
 COPY apps/api/package.json              ./apps/api/package.json
@@ -38,7 +37,7 @@ COPY packages/database/package.json     ./packages/database/package.json
 COPY packages/shared-types/package.json  ./packages/shared-types/package.json
 
 # Install all dependencies (including devDependencies needed for build)
-RUN yarn install
+RUN pnpm install --frozen-lockfile
 
 # -----------------------------------------------------------------------------
 # Stage 3: builder — compile workspace packages then the API
@@ -46,10 +45,10 @@ RUN yarn install
 FROM base AS builder
 
 COPY --from=deps /app/node_modules    ./node_modules
-COPY --from=deps /app/.yarn           ./.yarn
-COPY --from=deps /app/.yarnrc.yml     ./.yarnrc.yml
+COPY --from=deps /app/.npmrc          ./.npmrc
 COPY --from=deps /app/package.json    ./package.json
-COPY --from=deps /app/yarn.lock       ./yarn.lock
+COPY --from=deps /app/pnpm-lock.yaml  ./pnpm-lock.yaml
+COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
 # Copy all source code
 COPY packages/database    ./packages/database
@@ -59,8 +58,8 @@ COPY apps/web/package.json   ./apps/web/package.json
 COPY apps/admin/package.json ./apps/admin/package.json
 COPY apps/mobile/package.json ./apps/mobile/package.json
 
-# Align the Yarn install state with the copied source files
-RUN yarn install
+# Align the pnpm install state with the copied source files
+RUN pnpm install --frozen-lockfile
 
 # ── Step 1: Generate Prisma Client ──────────────────────────────────────────
 # Must happen before compiling any package that imports @prisma/client
@@ -113,7 +112,7 @@ RUN cd packages/shared-types && \
 RUN cd apps/api && npx tsc
 
 # ── Step 5: Prune devDependencies for smaller image ──────────────────────────
-RUN cd apps/api && yarn workspaces focus --production
+RUN pnpm prune --prod --no-optional
 
 # ── Step 6: Regenerate Prisma Client (focus might clean it up) ───────────────
 RUN cd packages/database && npx prisma generate
