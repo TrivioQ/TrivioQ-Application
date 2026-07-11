@@ -48,6 +48,13 @@ export interface PaginatedPendingQuestionsResult {
   page: number;
   pageSize: number;
   totalPages: number;
+  counts?: {
+    unvalidated: number;
+    aiValidated: number;
+    aiRejected: number;
+    pendingDuplicate: number;
+    rejected: number;
+  };
 }
 
 export interface PendingQuestionWithMeta extends Omit<PendingQuestion, 'createdAt' | 'updatedAt'> {
@@ -98,7 +105,7 @@ export async function getPendingQuestions(filters?: PendingQuestionsFilters): Pr
       where = { status: 'PENDING' };
     }
 
-    const [questions, total] = await Promise.all([
+    const [questions, total, statusCounts] = await Promise.all([
       prisma.pendingQuestion.findMany({
         where,
         orderBy: { createdAt: 'asc' },
@@ -106,7 +113,27 @@ export async function getPendingQuestions(filters?: PendingQuestionsFilters): Pr
         take: pageSize,
       }),
       prisma.pendingQuestion.count({ where }),
+      prisma.pendingQuestion.groupBy({
+        by: ['status'],
+        _count: true,
+      }),
     ]);
+
+    const counts = {
+      unvalidated: 0,
+      aiValidated: 0,
+      aiRejected: 0,
+      pendingDuplicate: 0,
+      rejected: 0,
+    };
+
+    statusCounts.forEach((item) => {
+      if (item.status === 'PENDING') counts.unvalidated = item._count;
+      else if (item.status === 'AI-APPROVED') counts.aiValidated = item._count;
+      else if (item.status === 'AI-REJECTED') counts.aiRejected = item._count;
+      else if (item.status === 'PENDING-DUPLICATE') counts.pendingDuplicate = item._count;
+      else if (item.status === 'REJECTED') counts.rejected = item._count;
+    });
 
     const totalPages = Math.ceil(total / pageSize);
 
@@ -116,6 +143,7 @@ export async function getPendingQuestions(filters?: PendingQuestionsFilters): Pr
       page,
       pageSize,
       totalPages,
+      counts,
     };
   } catch (error) {
     console.error('Failed to fetch pending questions:', error);

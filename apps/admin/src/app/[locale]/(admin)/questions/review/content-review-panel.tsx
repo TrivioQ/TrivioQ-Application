@@ -45,6 +45,13 @@ interface PaginatedResult {
   page: number;
   pageSize: number;
   totalPages: number;
+  counts?: {
+    unvalidated: number;
+    aiValidated: number;
+    aiRejected: number;
+    pendingDuplicate: number;
+    rejected: number;
+  };
 }
 
 interface ContentReviewPanelProps {
@@ -131,31 +138,51 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
     return { className: 'bg-red-100 text-red-800', label: t('scoreBadge.low', { score }) };
   }
 
-  const currentCount = total - (questions.length - pendingQuestions.length);
+  const activeTabDiff = questions.length - pendingQuestions.length;
+  const counts = result.counts || {
+    unvalidated: !filter ? total : 0,
+    aiValidated: filter === 'ai-validated' ? total : 0,
+    aiRejected: filter === 'ai-rejected' ? total : 0,
+    pendingDuplicate: filter === 'pending-duplicate' ? total : 0,
+    rejected: filter === 'rejected' ? total : 0,
+  };
+
+  const displayCount = (tab: string, baseCount: number) => {
+    if (
+      (tab === 'unvalidated' && !filter) ||
+      (tab === 'aiValidated' && filter === 'ai-validated') ||
+      (tab === 'aiRejected' && filter === 'ai-rejected') ||
+      (tab === 'pendingDuplicate' && filter === 'pending-duplicate') ||
+      (tab === 'rejected' && filter === 'rejected')
+    ) {
+      return Math.max(0, baseCount - activeTabDiff);
+    }
+    return baseCount;
+  };
 
   return (
     <div className="space-y-4">
       {/* Filter Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit overflow-x-auto max-w-full">
         <Link href="?" className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${!filter ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.unvalidated')}
-          {!filter && <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">{currentCount}</span>}
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${!filter ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('unvalidated', counts.unvalidated)}</span>
         </Link>
         <Link href="?filter=ai-validated" className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-validated' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.aiValidated')}
-          {filter === 'ai-validated' && <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">{currentCount}</span>}
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'ai-validated' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('aiValidated', counts.aiValidated)}</span>
         </Link>
         <Link href="?filter=ai-rejected" className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-rejected' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.aiRejected')}
-          {filter === 'ai-rejected' && <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">{currentCount}</span>}
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'ai-rejected' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('aiRejected', counts.aiRejected)}</span>
         </Link>
         <Link href="?filter=pending-duplicate" className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'pending-duplicate' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.pendingDuplicates')}
-          {filter === 'pending-duplicate' && <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">{currentCount}</span>}
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'pending-duplicate' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('pendingDuplicate', counts.pendingDuplicate)}</span>
         </Link>
         <Link href="?filter=rejected" className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'rejected' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.rejected')}
-          {filter === 'rejected' && <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">{currentCount}</span>}
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'rejected' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('rejected', counts.rejected)}</span>
         </Link>
       </div>
 

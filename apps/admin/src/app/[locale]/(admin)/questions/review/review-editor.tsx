@@ -111,6 +111,11 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
 
   const handleApprove = () => {
     startTransition(async () => {
+      const saveRes = await updatePendingQuestion(pendingQuestion.id, buildPayload());
+      if (!saveRes.success) {
+        alert(saveRes.error);
+        return;
+      }
       const res = await approvePendingQuestion(pendingQuestion.id, buildPayload());
       if (res.success) {
         onComplete(pendingQuestion.id);
@@ -122,6 +127,11 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
 
   const handleReject = () => {
     startTransition(async () => {
+      const saveRes = await updatePendingQuestion(pendingQuestion.id, buildPayload());
+      if (!saveRes.success) {
+        alert(saveRes.error);
+        return;
+      }
       const res = await rejectPendingQuestion(pendingQuestion.id, rejectionReason || undefined);
       if (res.success) {
         setRejectDialogOpen(false);
@@ -135,6 +145,11 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
 
   const handleRequeue = () => {
     startTransition(async () => {
+      const saveRes = await updatePendingQuestion(pendingQuestion.id, buildPayload());
+      if (!saveRes.success) {
+        alert(saveRes.error);
+        return;
+      }
       const res = await requeuePendingQuestion(pendingQuestion.id);
       if (res.success) {
         onComplete(pendingQuestion.id);
