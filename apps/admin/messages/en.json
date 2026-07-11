@@ -199,6 +199,7 @@
     "filters": {
       "unvalidated": "Unvalidated",
       "aiValidated": "AI Validated",
+      "aiRejected": "AI Rejected",
       "pendingDuplicates": "Pending Duplicates",
       "rejected": "Rejected"
     },
