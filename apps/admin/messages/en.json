@@ -453,6 +453,75 @@
     "prev": "Prev",
     "next": "Next"
   },
+  "notifications": {
+    "inbox": {
+      "pageTitle": "Notifications",
+      "loading": "Loading notifications...",
+      "allCaughtUp": "All caught up!",
+      "youHaveUnread": "You have {count} unread notification{plural}",
+      "markAllRead": "Mark all read",
+      "all": "All",
+      "unread": "Unread",
+      "noUnread": "No unread notifications",
+      "noNotifications": "No notifications",
+      "allReadMessage": "All your notifications have been read",
+      "noneYetMessage": "You haven't received any notifications yet"
+    },
+    "center": {
+      "title": "Notifications",
+      "markAllRead": "Mark all read",
+      "loading": "Loading notifications...",
+      "noneYet": "No notifications yet",
+      "viewAll": "View all notifications →"
+    },
+    "templates": {
+      "pageTitle": "Notification Templates",
+      "aboutTitle": "About Templates",
+      "aboutDesc": "Templates allow you to create reusable notification formats with placeholders like {{userName}}, {{expiryDate}}, etc. When creating a notification from a template, these variables are replaced with actual values."
+    },
+    "detail": {
+      "loading": "Loading notification details...",
+      "notFound": "Notification not found",
+      "backLink": "← Back to Notifications",
+      "contentTitle": "Notification Content",
+      "titleLabel": "Title",
+      "messageLabel": "Message",
+      "audienceLabel": "Audience",
+      "channelsLabel": "Channels",
+      "createdLabel": "Created",
+      "sentAtLabel": "Sent At",
+      "deliveryTitle": "Delivery Progress",
+      "deliveredLabel": "Delivered"
+    },
+    "list": {
+      "loading": "Loading notifications...",
+      "noneYet": "No notifications yet",
+      "createPrompt": "Create your first notification to get started",
+      "sendConfirmTitle": "Send Notification",
+      "sendConfirmMsg": "Are you sure you want to send this notification now?",
+      "deleteConfirmTitle": "Delete Notification",
+      "deleteConfirmMsg": "Are you sure you want to delete this notification? This cannot be undone.",
+      "viewDetails": "View Details",
+      "sendNow": "Send Now",
+      "delete": "Delete"
+    },
+    "templatesList": {
+      "loading": "Loading templates...",
+      "noneYet": "No templates yet",
+      "createPrompt": "Create your first template to get started",
+      "toggleActiveOn": "Activate Template",
+      "toggleActiveOff": "Deactivate Template",
+      "toggleActiveOnMsg": "Are you sure you want to activate this template?",
+      "toggleActiveOffMsg": "Are you sure you want to deactivate this template?",
+      "deleteConfirmTitle": "Delete Template",
+      "deleteConfirmMsg": "Are you sure you want to delete this template? This cannot be undone.",
+      "edit": "Edit Template",
+      "duplicate": "Duplicate",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "delete": "Delete"
+    }
+  },
   "system": {
     "jobLogs": {
       "title": "Job Logs",

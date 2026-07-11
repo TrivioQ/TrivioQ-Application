@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Bell, Mail, Smartphone, Send, Eye, Trash2 } from 'lucide-react';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useTranslations } from 'next-intl';
 
 interface Notification {
   id: string;
@@ -60,6 +61,7 @@ export function NotificationList() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const confirm = useConfirm();
+  const t = useTranslations('notifications.list');
 
   useEffect(() => {
     fetchNotifications();
@@ -80,8 +82,8 @@ export function NotificationList() {
 
   async function handleSend(id: string) {
     const confirmed = await confirm({
-      title: 'Send Notification',
-      message: 'Are you sure you want to send this notification now?'
+      title: t('sendConfirmTitle'),
+      message: t('sendConfirmMsg')
     });
     if (!confirmed) return;
 
@@ -98,8 +100,8 @@ export function NotificationList() {
 
   async function handleDelete(id: string) {
     const confirmed = await confirm({
-      title: 'Delete Notification',
-      message: 'Are you sure you want to delete this notification? This cannot be undone.'
+      title: t('deleteConfirmTitle'),
+      message: t('deleteConfirmMsg')
     });
     if (!confirmed) return;
 
@@ -117,7 +119,7 @@ export function NotificationList() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
-        Loading notifications...
+        {t('loading')}
       </div>
     );
   }
@@ -126,9 +128,9 @@ export function NotificationList() {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
         <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900">No notifications yet</h3>
+        <h3 className="text-lg font-medium text-gray-900">{t('noneYet')}</h3>
         <p className="text-gray-500 mt-1">
-          Create your first notification to get started
+          {t('createPrompt')}
         </p>
       </div>
     );
@@ -197,12 +199,12 @@ export function NotificationList() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem render={<a href={`/notifications/${notification.id}`} />}>
                       <Eye className="h-4 w-4 mr-2" />
-                      View Details
+                      {t('viewDetails')}
                     </DropdownMenuItem>
                     {notification.status === 'DRAFT' && (
                       <DropdownMenuItem onClick={() => handleSend(notification.id)}>
                         <Send className="h-4 w-4 mr-2" />
-                        Send Now
+                        {t('sendNow')}
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem
@@ -210,7 +212,7 @@ export function NotificationList() {
                       className="text-red-600"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      {t('delete')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

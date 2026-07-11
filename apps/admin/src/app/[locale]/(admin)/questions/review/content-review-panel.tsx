@@ -50,7 +50,7 @@ interface ContentReviewPanelProps {
   filter?: string;
 }
 
-export function ContentReviewPanel({ questions, categories, result, filter }: ContentReviewPanelProps) {
+export function ContentReviewPanel({ questions, categories, result }: ContentReviewPanelProps) {
   const t = useTranslations('review');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pendingQuestions, setPendingQuestions] = useState(questions);
@@ -88,7 +88,9 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
           <div className="px-4 py-3 border-b border-gray-200 bg-white">
             <p className="text-sm font-semibold text-gray-700">
               {t('pendingQuestions')}
-              <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">{pendingQuestions.length}</span>
+              <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                {total - (questions.length - pendingQuestions.length)}
+              </span>
             </p>
           </div>
 

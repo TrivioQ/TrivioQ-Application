@@ -6,6 +6,7 @@ import { ArrowLeft, Bell, Mail, Smartphone, Users, CheckCircle, Eye, TrendingUp 
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
 
 interface Notification {
   id: string;
@@ -32,6 +33,7 @@ export default function NotificationDetailPage({
   const [notification, setNotification] = useState<Notification | null>(null);
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations('notifications.detail');
 
   useEffect(() => {
     async function fetchDetails() {
@@ -57,7 +59,7 @@ export default function NotificationDetailPage({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
-        Loading notification details...
+        {t('loading')}
       </div>
     );
   }
@@ -65,7 +67,7 @@ export default function NotificationDetailPage({
   if (!notification) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-xl font-semibold text-gray-900">Notification not found</h2>
+        <h2 className="text-xl font-semibold text-gray-900">{t('notFound')}</h2>
         <Link href={`/${locale}/notifications`} className="text-purple-600 hover:underline mt-2 inline-block">
           ← Back to Notifications
         </Link>
@@ -81,7 +83,7 @@ export default function NotificationDetailPage({
         className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Notifications
+        {t('backLink')}
       </Link>
 
       {/* Header */}
@@ -140,24 +142,24 @@ export default function NotificationDetailPage({
       {/* Content Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Notification Content</CardTitle>
+          <CardTitle>{t('contentTitle')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700">Title</label>
+            <label className="text-sm font-medium text-gray-700">{t('titleLabel')}</label>
             <p className="mt-1 text-gray-900">{notification.title}</p>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Message</label>
+            <label className="text-sm font-medium text-gray-700">{t('messageLabel')}</label>
             <p className="mt-1 text-gray-900 whitespace-pre-wrap">{notification.body}</p>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Audience</label>
+              <label className="text-sm font-medium text-gray-700">{t('audienceLabel')}</label>
               <p className="mt-1">{notification.audience.replace(/_/g, ' ')}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Channels</label>
+              <label className="text-sm font-medium text-gray-700">{t('channelsLabel')}</label>
               <div className="flex gap-2 mt-1">
                 {notification.channels.map((channel) => (
                   <Badge key={channel} variant="outline">
@@ -167,14 +169,14 @@ export default function NotificationDetailPage({
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Created</label>
+              <label className="text-sm font-medium text-gray-700">{t('createdLabel')}</label>
               <p className="mt-1">
                 {new Date(notification.createdAt).toLocaleString()}
               </p>
             </div>
             {notification.sentAt && (
               <div>
-                <label className="text-sm font-medium text-gray-700">Sent At</label>
+                <label className="text-sm font-medium text-gray-700">{t('sentAtLabel')}</label>
                 <p className="mt-1">
                   {new Date(notification.sentAt).toLocaleString()}
                 </p>
@@ -187,12 +189,12 @@ export default function NotificationDetailPage({
       {/* Delivery Progress */}
       <Card>
         <CardHeader>
-          <CardTitle>Delivery Progress</CardTitle>
+          <CardTitle>{t('deliveryTitle')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Delivered</span>
+              <span className="text-gray-600">{t('deliveredLabel')}</span>
               <span className="font-medium">
                 {notification.deliveredCount} / {notification.totalRecipients}
               </span>

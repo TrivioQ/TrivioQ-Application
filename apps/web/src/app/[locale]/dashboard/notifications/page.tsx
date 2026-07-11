@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { Bell, Check, Mail, Wifi } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface UserNotification {
   id: string;
@@ -29,6 +30,7 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const t = useTranslations('notifications');
 
   useEffect(() => {
     fetchNotifications();
@@ -80,7 +82,7 @@ export default function NotificationsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-500">Loading notifications...</p>
+          <p className="text-gray-500">{t('loading')}</p>
         </div>
       </div>
     );
@@ -92,13 +94,13 @@ export default function NotificationsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
-            <p className="text-gray-500 mt-1">{unreadCount > 0 ? `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('pageTitle')}</h1>
+            <p className="text-gray-500 mt-1">{unreadCount > 0 ? t('youHaveUnread', { count: unreadCount, plural: unreadCount > 1 ? 's' : '' }) : t('allCaughtUp')}</p>
           </div>
           {unreadCount > 0 && (
             <button onClick={handleMarkAllAsRead} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-gray-200 bg-white px-3 py-1.5 text-gray-900 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:pointer-events-none">
               <Check className="h-4 w-4 mr-2" />
-              Mark all read
+              {t('markAllRead')}
             </button>
           )}
         </div>
@@ -106,10 +108,10 @@ export default function NotificationsPage() {
         {/* Filter Tabs */}
         <div className="flex gap-2 mb-6">
           <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}>
-            All ({notifications.length})
+            {t('all')} ({notifications.length})
           </button>
           <button onClick={() => setFilter('unread')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'unread' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}>
-            Unread ({unreadCount})
+            {t('unread')} ({unreadCount})
           </button>
         </div>
 
@@ -118,8 +120,8 @@ export default function NotificationsPage() {
           {filteredNotifications.length === 0 ? (
             <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
               <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900">{filter === 'unread' ? 'No unread notifications' : 'No notifications'}</h3>
-              <p className="text-gray-500 mt-1">{filter === 'unread' ? 'All your notifications have been read' : "You haven't received any notifications yet"}</p>
+              <h3 className="text-lg font-medium text-gray-900">{filter === 'unread' ? t('noUnread') : t('noNotifications')}</h3>
+              <p className="text-gray-500 mt-1">{filter === 'unread' ? t('allReadMessage') : t('noneYetMessage')}</p>
             </div>
           ) : (
             filteredNotifications.map((notification) => (

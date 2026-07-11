@@ -4,6 +4,7 @@ import { use } from 'react';
 import { TemplateList } from '@/components/template-list';
 import { CreateTemplateDialog } from '@/components/create-template-dialog';
 import { Sparkles } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function TemplatesPage({
   params,
@@ -11,6 +12,7 @@ export default function TemplatesPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = use(params);
+  const t = useTranslations('notifications.templates');
 
   return (
     <div className="space-y-6">
@@ -21,7 +23,7 @@ export default function TemplatesPage({
             <Sparkles className="h-6 w-6 text-amber-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Notification Templates</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('pageTitle')}</h1>
             <p className="text-sm text-gray-500">
               Reusable templates with variable substitution
             </p>
@@ -35,12 +37,9 @@ export default function TemplatesPage({
         <div className="flex items-start gap-3">
           <Sparkles className="h-5 w-5 text-blue-600 mt-0.5" />
           <div>
-            <h3 className="font-medium text-blue-900">About Templates</h3>
+            <h3 className="font-medium text-blue-900">{t('aboutTitle')}</h3>
             <p className="text-sm text-blue-700 mt-1">
-              Templates allow you to create reusable notification formats with placeholders like{' '}
-              <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs">{'{{userName}}'}</code>,{' '}
-              <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs">{'{{expiryDate}}'}</code>, etc.
-              When creating a notification from a template, these variables are replaced with actual values.
+              {t('aboutDesc')}
             </p>
           </div>
         </div>

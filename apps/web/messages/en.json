@@ -391,5 +391,37 @@
     "unexpectedError": "An unexpected error occurred.",
     "authenticationFailed": "Authentication failed",
     "requestFailed": "Request failed with status {status}"
+  },
+  "notifications": {
+    "pageTitle": "Notifications",
+    "loading": "Loading notifications...",
+    "allCaughtUp": "All caught up!",
+    "youHaveUnread": "You have {count} unread notification{plural}",
+    "markAllRead": "Mark all read",
+    "all": "All",
+    "unread": "Unread",
+    "noUnread": "No unread notifications",
+    "noNotifications": "No notifications",
+    "allReadMessage": "All your notifications have been read",
+    "noneYetMessage": "You haven't received any notifications yet",
+    "center": {
+      "title": "Notifications",
+      "markAllRead": "Mark all read",
+      "loading": "Loading notifications...",
+      "noneYet": "No notifications yet",
+      "viewAll": "View all notifications →"
+    }
+  },
+  "webPush": {
+    "notSupported": "Push notifications are not supported in your browser.",
+    "enabledTitle": "Notifications Enabled",
+    "enableTitle": "Enable Desktop Notifications",
+    "enabledDesc": "You will receive push notifications in your browser even when TrivioQ is not open.",
+    "enableDesc": "Receive push notifications in your browser for new trivia drops and announcements.",
+    "disableButton": "Disable Notifications",
+    "blockedMessage": "Notifications blocked. Please enable in your browser settings.",
+    "enableButton": "Enable Notifications",
+    "enabling": "Enabling...",
+    "permissionGrantedNote": "Permission granted but not subscribed. Click enable to complete setup."
   }
 }

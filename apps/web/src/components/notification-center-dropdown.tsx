@@ -3,6 +3,7 @@
 import { format } from 'date-fns';
 import { Bell, X } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 interface UserNotification {
   id: string;
@@ -31,10 +32,12 @@ const typeIcons: Record<string, string> = {
 };
 
 export function NotificationCenterDropdown({ notifications, loading, onMarkAsRead, onMarkAllAsRead, onClose }: NotificationCenterDropdownProps) {
+  const t = useTranslations('notifications.center');
+
   if (loading) {
     return (
       <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-20 overflow-hidden">
-        <div className="p-4 text-center text-gray-500">Loading notifications...</div>
+        <div className="p-4 text-center text-gray-500">{t('loading')}</div>
       </div>
     );
   }
@@ -43,10 +46,10 @@ export function NotificationCenterDropdown({ notifications, loading, onMarkAsRea
     <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-20 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 className="font-semibold text-gray-900">Notifications</h3>
+        <h3 className="font-semibold text-gray-900">{t('title')}</h3>
         <div className="flex items-center gap-2">
           <button onClick={onMarkAllAsRead} className="text-xs text-purple-600 hover:text-purple-700 font-medium">
-            Mark all read
+            {t('markAllRead')}
           </button>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="h-4 w-4" />
@@ -59,7 +62,7 @@ export function NotificationCenterDropdown({ notifications, loading, onMarkAsRea
         {notifications.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             <Bell className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm">No notifications yet</p>
+            <p className="text-sm">{t('noneYet')}</p>
           </div>
         ) : (
           <ul>
@@ -85,7 +88,7 @@ export function NotificationCenterDropdown({ notifications, loading, onMarkAsRea
       {/* Footer */}
       <div className="p-3 border-t border-gray-200 bg-gray-50">
         <Link href="/dashboard/notifications" className="text-sm text-purple-600 hover:text-purple-700 font-medium text-center block">
-          View all notifications →
+          {t('viewAll')}
         </Link>
       </div>
     </div>

@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Edit, Trash2, Copy, Mail, Bell, Smartphone } from 'lucide-react';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useTranslations } from 'next-intl';
 
 interface Template {
   id: string;
@@ -46,6 +47,7 @@ export function TemplateList() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const confirm = useConfirm();
+  const t = useTranslations('notifications.templatesList');
 
   useEffect(() => {
     fetchTemplates();
@@ -66,10 +68,10 @@ export function TemplateList() {
 
   async function handleToggleActive(id: string, currentStatus: boolean) {
     const confirmed = await confirm({
-      title: currentStatus ? 'Deactivate Template' : 'Activate Template',
+      title: currentStatus ? t('toggleActiveOff') : t('toggleActiveOn'),
       message: currentStatus
-        ? 'Are you sure you want to deactivate this template?'
-        : 'Are you sure you want to activate this template?'
+        ? t('toggleActiveOffMsg')
+        : t('toggleActiveOnMsg')
     });
     if (!confirmed) return;
 
@@ -88,8 +90,8 @@ export function TemplateList() {
 
   async function handleDelete(id: string) {
     const confirmed = await confirm({
-      title: 'Delete Template',
-      message: 'Are you sure you want to delete this template? This cannot be undone.'
+      title: t('deleteConfirmTitle'),
+      message: t('deleteConfirmMsg')
     });
     if (!confirmed) return;
 
@@ -107,7 +109,7 @@ export function TemplateList() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
-        Loading templates...
+        {t('loading')}
       </div>
     );
   }
@@ -116,9 +118,9 @@ export function TemplateList() {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
         <Sparkles className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900">No templates yet</h3>
+        <h3 className="text-lg font-medium text-gray-900">{t('noneYet')}</h3>
         <p className="text-gray-500 mt-1">
-          Create your first template to get started
+          {t('createPrompt')}
         </p>
       </div>
     );
@@ -189,21 +191,21 @@ export function TemplateList() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit Template
+                      {t('edit')}
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Copy className="h-4 w-4 mr-2" />
-                      Duplicate
+                      {t('duplicate')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleToggleActive(template.id, template.isActive)}>
-                      {template.isActive ? 'Deactivate' : 'Activate'}
+                      {template.isActive ? t('deactivate') : t('activate')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleDelete(template.id)}
                       className="text-red-600"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      {t('delete')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
