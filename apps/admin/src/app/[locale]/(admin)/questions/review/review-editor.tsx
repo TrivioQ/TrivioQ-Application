@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
-import { approvePendingQuestion, rejectPendingQuestion, updatePendingQuestion, type EditQuestionPayload } from '@/app/actions/pending-questions';
+import { approvePendingQuestion, rejectPendingQuestion, requeuePendingQuestion, updatePendingQuestion, type EditQuestionPayload } from '@/app/actions/pending-questions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -133,6 +133,17 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
     });
   };
 
+  const handleRequeue = () => {
+    startTransition(async () => {
+      const res = await requeuePendingQuestion(pendingQuestion.id);
+      if (res.success) {
+        onComplete(pendingQuestion.id);
+      } else {
+        alert(res.error);
+      }
+    });
+  };
+
 
 
   return (
@@ -149,9 +160,15 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {pendingQuestion.status !== 'REJECTED' && (
+          {pendingQuestion.status !== 'REJECTED' && pendingQuestion.status !== 'AI-REJECTED' && (
             <Button variant="outline" size="sm" onClick={() => setRejectDialogOpen(true)} disabled={isPending}>
               {t('reject')}
+            </Button>
+          )}
+          {pendingQuestion.status === 'AI-REJECTED' && (
+            <Button variant="outline" size="sm" onClick={handleRequeue} disabled={isPending}
+              className="border-orange-300 text-orange-700 hover:bg-orange-50">
+              {isPending ? 'Re-queuing…' : 'Re-queue for Validation'}
             </Button>
           )}
           <Button variant="secondary" size="sm" onClick={handleSave} disabled={isPending}>
@@ -166,7 +183,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
       </div>
 
       {/* AI Feedback & Warnings */}
-      {(pendingQuestion.status === 'PENDING-DUPLICATE' || pendingQuestion.status === 'REJECTED' || pendingQuestion.isDuplicate || pendingQuestion.aiFeedback || pendingQuestion.rejectionReason) && (
+      {(pendingQuestion.status === 'PENDING-DUPLICATE' || pendingQuestion.status === 'REJECTED' || pendingQuestion.status === 'AI-REJECTED' || pendingQuestion.isDuplicate || pendingQuestion.aiFeedback || pendingQuestion.rejectionReason) && (
         <div className="px-6 py-3 space-y-3 border-b border-gray-200 bg-gray-50/50">
           {pendingQuestion.status === 'PENDING-DUPLICATE' && (
             <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg text-sm text-amber-900">
@@ -178,6 +195,12 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
             <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
               <span className="text-base shrink-0">❌</span>
               <span>{t('rejectedWarning')}</span>
+            </div>
+          )}
+          {pendingQuestion.status === 'AI-REJECTED' && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-orange-50 border border-orange-300 rounded-lg text-sm text-orange-900">
+              <span className="text-base shrink-0">🤖</span>
+              <span><strong>AI Validation Failed:</strong> Edit the question and click &ldquo;Re-queue for Validation&rdquo; to resubmit for nightly review.</span>
             </div>
           )}
           {pendingQuestion.isDuplicate && pendingQuestion.status !== 'PENDING-DUPLICATE' && (

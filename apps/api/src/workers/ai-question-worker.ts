@@ -165,7 +165,6 @@ async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promi
       explanation: q.explanation,
       status: 'PENDING' as const,
       isDuplicate: false,
-      isValidated: false,
       aiQualityScore: undefined as number | undefined,
       aiFeedback: undefined as string | undefined,
     })),
@@ -177,7 +176,6 @@ async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promi
   for (let i = 0; i < rows.length; i++) {
     if (duplicateFlags[i]) {
       rows[i].isDuplicate = true;
-      rows[i].isValidated = true;
     }
   }
 
@@ -206,11 +204,7 @@ async function handleAiQuestionGeneration(job: Job<AiQuestionJobPayload>): Promi
     }
   }
 
-  // 7. Mark all questions as validated and batch insert
-  for (const row of rows) {
-    row.isValidated = true;
-  }
-
+  // 7. Batch insert
   try {
     await prisma.pendingQuestion.createMany({ data: rows as any });
 

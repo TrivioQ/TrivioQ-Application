@@ -6,6 +6,7 @@ import { prisma } from '@trivioq/database';
 import { distributeBonuses, getWeekStart, getMonthStart } from './utils/scoring';
 import { initDropPlanner } from './services/drop-planner-service';
 import { initNotificationCrons } from './crons/notification-crons';
+import { initQuestionValidationCron } from './crons/question-validation-cron';
 
 const connection: any = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
 const triviaDropsQueue = new Queue('trivia-drops', { connection });
@@ -71,5 +72,8 @@ initDropPlanner();
 
 // ── Notification cron jobs ─────────────────────────────────────────────────────
 initNotificationCrons();
+
+// ── Nightly AI question validation — runs daily at 9:00 PM UTC ───────────────
+initQuestionValidationCron();
 
 console.log('node-cron job scheduler initialized.');

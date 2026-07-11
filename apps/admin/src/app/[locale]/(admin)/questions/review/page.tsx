@@ -39,6 +39,9 @@ export default async function ContentReviewPage({ searchParams }: { searchParams
         <Link href="?filter=ai-validated" className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-validated' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.aiValidated')}
         </Link>
+        <Link href="?filter=ai-rejected" className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-rejected' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+          {t('filters.aiRejected')}
+        </Link>
         <Link href="?filter=pending-duplicate" className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'pending-duplicate' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.pendingDuplicates')}
         </Link>

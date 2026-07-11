@@ -87,7 +87,9 @@ export async function getPendingQuestions(filters?: PendingQuestionsFilters): Pr
 
     let where: Record<string, unknown>;
     if (filter === 'ai-validated') {
-      where = { isValidated: true, status: 'PENDING' };
+      where = { status: 'AI-APPROVED' };
+    } else if (filter === 'ai-rejected') {
+      where = { status: 'AI-REJECTED' };
     } else if (filter === 'pending-duplicate') {
       where = { status: 'PENDING-DUPLICATE' };
     } else if (filter === 'rejected') {
@@ -225,5 +227,30 @@ export async function rejectPendingQuestion(pendingId: string, reason?: string) 
   } catch (error) {
     console.error('Failed to reject pending question:', error);
     return { success: false, error: 'Failed to reject pending question' };
+  }
+}
+
+// ── Re-queue (AI-Rejected → PENDING) ─────────────────────────────────────────────
+
+/**
+ * Resets an AI-REJECTED question back to PENDING so it is picked up
+ * by the next nightly validation cron run.
+ * Clears aiFeedback so the next run produces a fresh result.
+ */
+export async function requeuePendingQuestion(pendingId: string) {
+  try {
+    await prisma.pendingQuestion.update({
+      where: { id: pendingId },
+      data: {
+        status: 'PENDING',
+        aiFeedback: null,
+      },
+    });
+
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to re-queue pending question:', error);
+    return { success: false, error: 'Failed to re-queue pending question' };
   }
 }

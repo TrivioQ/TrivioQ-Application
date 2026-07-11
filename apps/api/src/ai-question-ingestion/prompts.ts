@@ -230,3 +230,72 @@ export function buildEnhancementPrompt(categories: { slug: string; name: string 
   if (!specialInstruction) return basePrompt;
   return `## Special instruction for this book\n${specialInstruction.trim()}\n\n${basePrompt}`;
 }
+
+// ── Validation Prompt ─────────────────────────────────────────────────────────
+// Used by the nightly AI validation cron job to evaluate pending questions
+// across three independent dimensions before they are surfaced to human reviewers.
+
+/**
+ * The structured result returned by the AI when VALIDATION_PROMPT is used.
+ * Cast from the raw provider response via (result as unknown as ValidationResult).
+ */
+export interface ValidationResult {
+  factCheck: {
+    /** True if the question text and the marked correct answer are factually accurate. */
+    passed: boolean;
+    /** Explanation if false, otherwise null. */
+    rationale: string | null;
+  };
+  validity: {
+    /** True if the question is well-formed, unambiguous, and answerable solely from the choices. */
+    passed: boolean;
+    rationale: string | null;
+  };
+  completeness: {
+    /** True if exactly one choice is correct and at least two distractors are plausible. */
+    passed: boolean;
+    rationale: string | null;
+  };
+  /** True only when ALL three dimensions pass. */
+  overallPassed: boolean;
+  /** One-sentence summary written to aiFeedback in the DB. */
+  summary: string;
+}
+
+export const VALIDATION_PROMPT = `You are a strict trivia question validator. Evaluate the given trivia question and its choices across THREE independent dimensions and return a structured JSON result.
+
+## Dimension 1 — Fact Check
+Verify that:
+- The question text itself is factually accurate.
+- The choice marked as correct is definitively the right answer.
+- No other choice could also be considered correct.
+Set factCheck.passed = false if ANY of the above fail.
+
+## Dimension 2 — Validity
+Verify that:
+- The question is clearly worded and unambiguous.
+- It can be answered from the given choices without requiring external context.
+- It is a standalone question (not dependent on a passage or image not provided).
+Set validity.passed = false if ANY of the above fail.
+
+## Dimension 3 — Completeness
+Verify that:
+- Exactly one choice is marked as correct.
+- All choices are meaningfully different from each other.
+Set completeness.passed = false if ANY of the above fail.
+
+## CRITICAL — Anti-Hallucination Rules
+- Do NOT guess or fabricate facts. If you are unsure, set the dimension to passed = false and explain.
+- Stick to verifiable, well-known facts only.
+
+## Output Format
+Return ONLY a JSON object matching this exact schema. Do not include markdown, explanations, or any text outside the JSON:
+{
+  "factCheck":    { "passed": true,  "rationale": null },
+  "validity":     { "passed": true,  "rationale": null },
+  "completeness": { "passed": true,  "rationale": null },
+  "overallPassed": true,
+  "summary": "One-sentence summary of the validation outcome."
+}
+
+Set overallPassed = true ONLY when ALL three dimensions pass. The "summary" field must be a single sentence suitable for display in an admin portal.`;
