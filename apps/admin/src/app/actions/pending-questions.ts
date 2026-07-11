@@ -254,3 +254,101 @@ export async function requeuePendingQuestion(pendingId: string) {
     return { success: false, error: 'Failed to re-queue pending question' };
   }
 }
+
+// ── Bulk Actions ─────────────────────────────────────────────────────────────────
+
+export async function bulkRejectPendingQuestions(pendingIds: string[], reason?: string) {
+  try {
+    await prisma.pendingQuestion.updateMany({
+      where: { id: { in: pendingIds } },
+      data: {
+        status: 'REJECTED',
+        rejectionReason: reason ?? null,
+      },
+    });
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to bulk reject pending questions:', error);
+    return { success: false, error: 'Failed to bulk reject pending questions' };
+  }
+}
+
+export async function bulkApprovePendingQuestions(pendingIds: string[]) {
+  try {
+    const results = await prisma.$transaction(async (tx) => {
+      const pendingQuestions = await tx.pendingQuestion.findMany({
+        where: { id: { in: pendingIds } },
+      });
+
+      const processedIds: string[] = [];
+
+      for (const pendingQuestion of pendingQuestions) {
+        let questionId: string;
+        
+        // Parse the choices stored as JSON
+        const choices = (pendingQuestion.suggestedChoices as any[]) || [];
+
+        if (pendingQuestion.status === 'PENDING-DUPLICATE' && pendingQuestion.replacesQuestionId) {
+          const liveId = pendingQuestion.replacesQuestionId;
+          await tx.choice.deleteMany({ where: { questionId: liveId } });
+          const updated = await tx.question.update({
+            where: { id: liveId },
+            data: {
+              questionText: pendingQuestion.suggestedText,
+              difficultyLevel: pendingQuestion.difficultyLevel,
+              hintText: pendingQuestion.hint ?? null,
+              explanationText: pendingQuestion.explanation ?? null,
+              choices: {
+                create: choices.map((c: any, idx: number) => ({
+                  text: c.text,
+                  order: c.order ?? idx,
+                  isCorrect: c.isCorrect,
+                })),
+              },
+              categories: {
+                set: pendingQuestion.categorySlugs.map((slug) => ({ slug })),
+              },
+            },
+          });
+          questionId = updated.id;
+        } else {
+          const created = await tx.question.create({
+            data: {
+              questionText: pendingQuestion.suggestedText,
+              difficultyLevel: pendingQuestion.difficultyLevel,
+              hintText: pendingQuestion.hint,
+              explanationText: pendingQuestion.explanation,
+              choices: {
+                create: choices.map((c: any, idx: number) => ({
+                  text: c.text,
+                  order: c.order ?? idx,
+                  isCorrect: c.isCorrect,
+                })),
+              },
+              categories: {
+                connect: pendingQuestion.categorySlugs.map((slug) => ({ slug })),
+              },
+            },
+          });
+          questionId = created.id;
+        }
+
+        await tx.pendingQuestion.update({
+          where: { id: pendingQuestion.id },
+          data: { status: 'APPROVED' },
+        });
+
+        processedIds.push(questionId);
+      }
+      return processedIds;
+    });
+
+    revalidatePath('/');
+    revalidatePath('/questions');
+    return { success: true, count: results.length };
+  } catch (error) {
+    console.error('Failed to bulk approve pending questions:', error);
+    return { success: false, error: 'Failed to bulk approve pending questions' };
+  }
+}

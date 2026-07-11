@@ -204,6 +204,10 @@
       "rejected": "Rejected"
     },
     "pendingQuestions": "Pending Questions",
+    "bulkActions": "Bulk Actions",
+    "selectAll": "Select All",
+    "approveSelected": "Approve Selected",
+    "rejectSelected": "Reject Selected",
     "noPending": "No pending questions to review.",
     "selectPrompt": "Select a question from the list to review.",
     "duplicateBadge": "DUPLICATE",

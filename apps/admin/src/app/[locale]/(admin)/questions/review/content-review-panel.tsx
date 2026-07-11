@@ -9,8 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTableParams } from '@/hooks/use-table-params';
 import { buttonVariants } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-
+import { ChevronLeft, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
+import { bulkApprovePendingQuestions, bulkRejectPendingQuestions } from '@/app/actions/pending-questions';
+import { useTransition } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
 interface PendingQuestion {
   id: string;
   topic: string;
@@ -56,6 +59,8 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pendingQuestions, setPendingQuestions] = useState(questions);
   const [prevQuestionsProp, setPrevQuestionsProp] = useState(questions);
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set());
+  const [isBulkUpdating, startBulkTransition] = useTransition();
   const { pushParams, isPending } = useTableParams();
 
   const { page, totalPages, total, pageSize } = result;
@@ -65,6 +70,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
     setPrevQuestionsProp(questions);
     setPendingQuestions(questions);
     setSelectedId(null);
+    setSelectedQuestionIds(new Set());
   }
 
   const selected = pendingQuestions.find((q) => q.id === selectedId) ?? null;
@@ -72,6 +78,50 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
   const handleComplete = (id: string) => {
     setPendingQuestions((prev) => prev.filter((q) => q.id !== id));
     setSelectedId(null);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedQuestionIds.size === pendingQuestions.length && pendingQuestions.length > 0) {
+      setSelectedQuestionIds(new Set());
+    } else {
+      setSelectedQuestionIds(new Set(pendingQuestions.map((q) => q.id)));
+    }
+  };
+
+  const toggleSelect = (id: string, checked: boolean) => {
+    setSelectedQuestionIds((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
+  };
+
+  const handleBulkApprove = () => {
+    startBulkTransition(async () => {
+      const ids = Array.from(selectedQuestionIds);
+      const res = await bulkApprovePendingQuestions(ids);
+      if (res.success) {
+        setPendingQuestions((prev) => prev.filter((q) => !ids.includes(q.id)));
+        setSelectedQuestionIds(new Set());
+        if (selectedId && ids.includes(selectedId)) setSelectedId(null);
+      }
+    });
+  };
+
+  const handleBulkReject = () => {
+    startBulkTransition(async () => {
+      const ids = Array.from(selectedQuestionIds);
+      const res = await bulkRejectPendingQuestions(ids);
+      if (res.success) {
+        setPendingQuestions((prev) => prev.filter((q) => !ids.includes(q.id)));
+        setSelectedQuestionIds(new Set());
+        if (selectedId && ids.includes(selectedId)) setSelectedId(null);
+      }
+    });
   };
 
   function scoreBadge(score: number | null) {
@@ -112,10 +162,34 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
       <div className="flex gap-0 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden h-[calc(100vh-220px)] min-h-[600px]">
         {/* ── Left: Question List ── */}
         <aside className="w-80 flex-shrink-0 border-r border-gray-200 bg-gray-50/50 flex flex-col">
-          <div className="px-4 py-3 border-b border-gray-200 bg-white">
-            <p className="text-sm font-semibold text-gray-700">
-              Questions
-            </p>
+          <div className="px-4 py-3 border-b border-gray-200 bg-white flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Checkbox 
+                checked={selectedQuestionIds.size === pendingQuestions.length && pendingQuestions.length > 0} 
+                onCheckedChange={toggleSelectAll} 
+                aria-label={t('selectAll')}
+              />
+              <p className="text-sm font-semibold text-gray-700">
+                {t('pendingQuestions')}
+              </p>
+            </div>
+            
+            {selectedQuestionIds.size > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger className={buttonVariants({ variant: 'outline', size: 'sm', className: 'h-7 text-xs px-2 gap-1' })} disabled={isBulkUpdating}>
+                  {isBulkUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckSquare className="h-3 w-3" />}
+                  {t('bulkActions')}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleBulkApprove} className="text-green-600 focus:text-green-700">
+                    {t('approveSelected')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleBulkReject} className="text-red-600 focus:text-red-700">
+                    {t('rejectSelected')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           {pendingQuestions.length === 0 ? (
@@ -123,8 +197,14 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
           ) : (
             <ul className="flex-1 overflow-y-auto divide-y divide-gray-100">
               {pendingQuestions.map((q) => (
-                <li key={q.id}>
-                  <button onClick={() => setSelectedId(q.id)} className={cn('w-full text-left px-4 py-3 transition-colors hover:bg-gray-100', selectedId === q.id && 'bg-blue-50 border-l-2 border-l-blue-500 hover:bg-blue-50', q.isDuplicate && q.status !== 'PENDING-DUPLICATE' && 'opacity-50 grayscale')}>
+                <li key={q.id} className="relative group">
+                  <div className="absolute left-3 top-3.5 z-10" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedQuestionIds.has(q.id)}
+                      onCheckedChange={(checked) => toggleSelect(q.id, checked === true)}
+                    />
+                  </div>
+                  <button onClick={() => setSelectedId(q.id)} className={cn('w-full text-left pl-10 pr-4 py-3 transition-colors hover:bg-gray-100', selectedId === q.id && 'bg-blue-50 border-l-2 border-l-blue-500 hover:bg-blue-50', q.isDuplicate && q.status !== 'PENDING-DUPLICATE' && 'opacity-50 grayscale')}>
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-medium text-gray-900 truncate">{q.topic}</p>
                       <div className="flex gap-1 flex-wrap">
