@@ -197,7 +197,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
                 aria-label={t('selectAll')}
               />
               <p className="text-sm font-semibold text-gray-700">
-                {t('pendingQuestions')}
+                {t('selectAll')}
               </p>
             </div>
             
