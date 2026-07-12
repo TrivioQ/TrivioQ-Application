@@ -1,15 +1,21 @@
 import { getTranslations } from 'next-intl/server';
-import { getDashboardMetrics, getDailyActiveUsers, getCategoryPopularity } from '@/app/actions/dashboard-actions';
+import { getDashboardMetrics, getDailyActiveUsers, getCategoryPopularity, getQuestionStats } from '@/app/actions/dashboard-actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Zap, Star, Target } from 'lucide-react';
 import { DailyActiveUsersChart } from '@/components/charts/daily-active-users-chart';
 import { CategoryPopularityChart } from '@/components/charts/category-popularity-chart';
+import { QuestionsStatsSection } from '@/components/charts/questions-stats-section';
 
 export default async function DashboardPage() {
   const t = await getTranslations('dashboard');
 
   // Fetch all data concurrently
-  const [metrics, dauData, categoryData] = await Promise.all([getDashboardMetrics(), getDailyActiveUsers(), getCategoryPopularity()]);
+  const [metrics, dauData, categoryData, questionStats] = await Promise.all([
+    getDashboardMetrics(),
+    getDailyActiveUsers(),
+    getCategoryPopularity(),
+    getQuestionStats(),
+  ]);
 
   const cards = [
     {
@@ -108,6 +114,9 @@ export default async function DashboardPage() {
           <CardContent>{categoryData.length === 0 ? <div className="flex h-[280px] items-center justify-center text-sm text-gray-400">{t('categories.empty')}</div> : <CategoryPopularityChart data={categoryData} />}</CardContent>
         </Card>
       </div>
+
+      {/* ── Question Bank Stats ── */}
+      <QuestionsStatsSection stats={questionStats} />
     </div>
   );
 }

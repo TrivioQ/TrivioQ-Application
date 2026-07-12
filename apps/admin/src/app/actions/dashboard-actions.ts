@@ -106,3 +106,31 @@ export async function getCategoryPopularity(): Promise<CategoryPopularity[]> {
     questions: c._count.questions,
   }));
 }
+
+export type QuestionStats = {
+  totalQuestions: number;
+  byCategory: { id: string; name: string; count: number }[];
+};
+
+export async function getQuestionStats(): Promise<QuestionStats> {
+  const [totalQuestions, categories] = await Promise.all([
+    prisma.question.count(),
+    prisma.category.findMany({
+      select: {
+        id: true,
+        name: true,
+        _count: { select: { questions: true } },
+      },
+      orderBy: { name: 'asc' },
+    }),
+  ]);
+
+  return {
+    totalQuestions,
+    byCategory: categories.map((c) => ({
+      id: c.id,
+      name: c.name,
+      count: c._count.questions,
+    })),
+  };
+}
