@@ -17,7 +17,7 @@ export type UserRow = {
   username: string;
   displayName?: string | null;
   email: string;
-  dateOfBirth?: Date | null;
+  dateOfBirth?: string | null;
   subscriptionTier: SubscriptionTier;
   subscriptionExpiresAt?: Date | null;
   currentStreak: number;
@@ -78,9 +78,9 @@ export const columns: ColumnDef<UserRow>[] = [
     accessorKey: 'dateOfBirth',
     header: () => <DateOfBirthHeader />,
     cell: ({ row }) => {
-      const dob = row.getValue('dateOfBirth') as Date | null | undefined;
+      const dob = row.getValue('dateOfBirth') as string | null | undefined;
       if (!dob) return <span className="text-gray-400">—</span>;
-      return new Date(dob).toLocaleDateString('en-CA'); // YYYY-MM-DD
+      return dob;
     },
   },
   {

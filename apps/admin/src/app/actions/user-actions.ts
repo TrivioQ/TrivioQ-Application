@@ -99,7 +99,7 @@ export async function updateUser(
           email: data.email,
           username: data.username,
           displayName: data.displayName,
-          dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
+          dateOfBirth: data.dateOfBirth || undefined,
           subscriptionTier: data.subscriptionTier,
           subscriptionExpiresAt: data.subscriptionTier === 'FREE' ? null : (data.subscriptionExpiresAt ? new Date(data.subscriptionExpiresAt) : undefined),
           activeWindowStart: new Date(data.activeWindowStart),

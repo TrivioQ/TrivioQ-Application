@@ -30,7 +30,7 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
   const [email, setEmail] = useState(user.email);
   const [username, setUsername] = useState(user.username);
   const [displayName, setDisplayName] = useState(user.displayName ?? '');
-  const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '');
+  const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth || '');
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>(user.subscriptionTier);
   const [subscriptionExpiresAt, setSubscriptionExpiresAt] = useState(user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt).toISOString().split('T')[0] : '');
   const [activeWindowStart, setActiveWindowStart] = useState(toTimeString(user.activeWindowStart));
@@ -44,7 +44,7 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
       setEmail(user.email);
       setUsername(user.username);
       setDisplayName(user.displayName ?? '');
-      setDateOfBirth(user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '');
+      setDateOfBirth(user.dateOfBirth || '');
       setSubscriptionTier(user.subscriptionTier);
       setSubscriptionExpiresAt(user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt).toISOString().split('T')[0] : '');
       setActiveWindowStart(toTimeString(user.activeWindowStart));

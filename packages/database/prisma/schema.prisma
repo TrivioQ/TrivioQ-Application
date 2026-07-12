@@ -14,7 +14,7 @@ model User {
   email             String       @unique
   username          String       @unique
   displayName       String?
-  dateOfBirth       DateTime?
+  dateOfBirth       String?
   profilePicture    String?
   activeWindowStart DateTime
   activeWindowEnd   DateTime

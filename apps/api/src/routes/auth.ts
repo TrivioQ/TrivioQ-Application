@@ -34,7 +34,7 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
 
     // ── Brand new user — validate and persist with username + displayName ─────
     let username: string;
-    let dob: Date;
+    let dob: string;
     let displayName: string;
 
     if (!requestedUsername) {
@@ -60,8 +60,9 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
       }
       username = candidateUsername;
       displayName = requestedDisplayName?.trim() || email.split('@')[0];
-      // Default DOB to 18 years ago
-      dob = new Date(now.getFullYear() - 18, now.getMonth(), now.getDate());
+      // Default DOB to 18 years ago as YYYY-MM-DD
+      const date18YearsAgo = new Date(now.getFullYear() - 18, now.getMonth(), now.getDate());
+      dob = date18YearsAgo.toISOString().split('T')[0];
     } else {
       username = requestedUsername.toLowerCase().trim();
 
@@ -87,7 +88,8 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
       if (parsedDob > minAgeDate) {
         return res.status(400).json({ error: 'You must be at least 13 years old to create an account.' });
       }
-      dob = parsedDob;
+      // Set the string natively for DB insertion
+      dob = requestedDob;
       displayName = requestedDisplayName?.trim() || username;
     }
 

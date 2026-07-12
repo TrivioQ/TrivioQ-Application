@@ -113,7 +113,7 @@ export default function ProfileScreen({ navigation }: any) {
             <Text style={styles.menuIcon}>🎂</Text>
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoLabel}>{t('profile.dateOfBirth')}</Text>
-              <Text style={styles.infoValue}>{new Date(data.dateOfBirth).toLocaleDateString('en-CA', { timeZone: 'UTC' })}</Text>
+              <Text style={styles.infoValue}>{data.dateOfBirth}</Text>
             </View>
           </View>
         )}

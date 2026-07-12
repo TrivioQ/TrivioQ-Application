@@ -141,7 +141,7 @@ async function main() {
               email: faker.internet.email(),
               username: faker.internet.userName(),
               displayName: faker.person.fullName(),
-              dateOfBirth: faker.date.birthdate({ min: 18, max: 65, mode: 'age' }),
+              dateOfBirth: faker.date.birthdate({ min: 18, max: 65, mode: 'age' }).toISOString().split('T')[0],
               profilePicture: faker.image.avatar(),
               currentStreak,
               subscriptionTier: tier,
