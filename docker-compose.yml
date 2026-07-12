@@ -128,7 +128,7 @@ services:
     container_name: trivioq-api
     restart: unless-stopped
     env_file:
-      - apps/api/.env           # copy from .env.docker.example; fill all values
+      - .env
     environment:
       NODE_ENV:      production
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
@@ -140,7 +140,7 @@ services:
       - "3013:3013"
     volumes:
       # Firebase service account injected at runtime — never baked into the image
-      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
     networks:
       - trivioq-network
     depends_on:
@@ -166,14 +166,14 @@ services:
     container_name: trivioq-worker-cron
     restart: unless-stopped
     env_file:
-      - apps/api/.env           # copy from .env.docker.example; fill all values
+      - .env
     environment:
       NODE_ENV:      production
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL:     redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
-      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
     networks:
       - trivioq-network
     depends_on:
@@ -192,14 +192,14 @@ services:
     container_name: trivioq-worker-scheduler
     restart: unless-stopped
     env_file:
-      - apps/api/.env           # copy from .env.docker.example; fill all values
+      - .env
     environment:
       NODE_ENV:      production
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL:     redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
-      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
     networks:
       - trivioq-network
     depends_on:
@@ -218,14 +218,14 @@ services:
     container_name: trivioq-worker-dispatcher
     restart: unless-stopped
     env_file:
-      - apps/api/.env           # copy from .env.docker.example; fill all values
+      - .env
     environment:
       NODE_ENV:      production
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL:     redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
-      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
     networks:
       - trivioq-network
     depends_on:
@@ -244,14 +244,14 @@ services:
     container_name: trivioq-worker-drop
     restart: unless-stopped
     env_file:
-      - apps/api/.env           # copy from .env.docker.example; fill all values
+      - .env
     environment:
       NODE_ENV:      production
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL:     redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
-      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
     networks:
       - trivioq-network
     depends_on:
@@ -270,14 +270,14 @@ services:
     container_name: trivioq-worker-notification
     restart: unless-stopped
     env_file:
-      - apps/api/.env           # copy from .env.docker.example; fill all values
+      - .env
     environment:
       NODE_ENV:      production
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL:     redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
-      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./apps/api/firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
     networks:
       - trivioq-network
     depends_on:
@@ -296,7 +296,7 @@ services:
     container_name: trivioq-worker-email
     restart: unless-stopped
     env_file:
-      - apps/api/.env           # copy from .env.docker.example; fill all values
+      - .env
     environment:
       NODE_ENV:      production
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
@@ -324,7 +324,7 @@ services:
     container_name: trivioq-web
     restart: unless-stopped
     env_file:
-      - apps/web/.env           # copy from .env.docker.example; fill all values
+      - .env
     environment:
       NODE_ENV: production
       PORT:     3011
@@ -358,7 +358,7 @@ services:
     container_name: trivioq-admin
     restart: unless-stopped
     env_file:
-      - apps/admin/.env         # copy from .env.docker.example; fill all values
+      - .env
     environment:
       NODE_ENV:     production
       PORT:         3012

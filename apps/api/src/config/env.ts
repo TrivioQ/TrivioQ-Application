@@ -1,8 +1,10 @@
 import dotenv from 'dotenv';
+import path from 'path';
 import { z } from 'zod';
 
-// Load environment variables from .env file
-dotenv.config();
+// Load environment variables from the monorepo root .env
+// __dirname at runtime = apps/api/dist/config/ → 4 levels up = repo root
+dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
 // Define the schema for environment variables
 const envSchema = z.object({

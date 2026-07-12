@@ -10,7 +10,11 @@
  *   INGESTION_AI_PROVIDER  — "google" | "nvidia"  (default: "google")
  *   INGESTION_DIR          — path relative to cwd  (default: "ingestion")
  */
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+// Load from the monorepo root .env
+// ts-node: __dirname = apps/api/src/ → 3 levels up = repo root
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 import { runIngestion } from './ai-question-ingestion/runner';
 
 const reuploadOnly = process.argv.includes('--reupload');
