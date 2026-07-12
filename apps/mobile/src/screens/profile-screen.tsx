@@ -50,9 +50,7 @@ export default function ProfileScreen({ navigation }: any) {
   // Set up header right with notification bell
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <NotificationBell navigation={navigation} />
-      ),
+      headerRight: () => <NotificationBell navigation={navigation} />,
     });
   }, [navigation]);
 
@@ -115,7 +113,7 @@ export default function ProfileScreen({ navigation }: any) {
             <Text style={styles.menuIcon}>🎂</Text>
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoLabel}>{t('profile.dateOfBirth')}</Text>
-              <Text style={styles.infoValue}>{new Date(data.dateOfBirth).toLocaleDateString('en-CA')}</Text>
+              <Text style={styles.infoValue}>{new Date(data.dateOfBirth).toLocaleDateString('en-CA', { timeZone: 'UTC' })}</Text>
             </View>
           </View>
         )}
