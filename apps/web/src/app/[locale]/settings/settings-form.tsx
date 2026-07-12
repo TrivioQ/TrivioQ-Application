@@ -8,9 +8,9 @@ import { makeAPICallV1 } from '@/lib/api';
 import { useAuth } from '@/context/auth-provider';
 import { useConfirm } from '@/components/confirm-modal';
 
-interface Preferences {
-  difficultyPercentages: Record<string, number>;
-}
+// interface Preferences {
+//   difficultyPercentages: Record<string, number>;
+// }
 
 // Convert a UTC DateTime ISO string from the DB column to a "HH:MM" string for <input type="time">
 function isoToHHMM(iso: string | undefined | null): string {
@@ -28,15 +28,18 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
   const [isPending, setIsPending] = useState(false);
   const confirm = useConfirm();
 
-  const initialPrefs: Preferences = initialUser.preferences || {
-    difficultyPercentages: { EASY: 40, MEDIUM: 40, HARD: 20 },
-  };
+  // TEMPORARILY HIDDEN: difficulty selection is locked to fixed defaults for all users
+  const DEFAULT_DIFFICULTY = { EASY: 20, MEDIUM: 70, HARD: 10 };
+  // const initialPrefs: Preferences = initialUser.preferences || {
+  //   difficultyPercentages: DEFAULT_DIFFICULTY,
+  // };
 
   const [displayName, setDisplayName] = useState(initialUser.displayName || '');
   // Active window is authoritative in the User DB columns, not the preferences JSON blob
   const [activeStart, setActiveStart] = useState(isoToHHMM(initialUser.activeWindowStart));
   const [activeEnd, setActiveEnd] = useState(isoToHHMM(initialUser.activeWindowEnd));
-  const [difficulty, setDifficulty] = useState(initialPrefs.difficultyPercentages);
+  // TEMPORARILY HIDDEN: always use the fixed default difficulty, ignoring any saved user preference
+  const [difficulty] = useState(DEFAULT_DIFFICULTY);
 
   // Password change state
   const [oldPassword, setOldPassword] = useState('');
@@ -181,29 +184,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
         </button>
       </section>
 
-      {/* ── Difficulty Preferences ── */}
-      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-indigo-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
-        <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('difficultyTitle')}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t('difficultyDesc')}</p>
-        </div>
-
-        <div className="space-y-4">
-          {(['EASY', 'MEDIUM', 'HARD'] as const).map((level) => (
-            <div key={level} className="flex items-center gap-4">
-              <label className="w-20 text-sm font-bold text-gray-400">{t(`difficultyLabels.${level}`)}</label>
-              <input type="range" min="0" max="100" step="5" value={difficulty[level] || 0} onChange={(e) => setDifficulty({ ...difficulty, [level]: parseInt(e.target.value) })} className="flex-1 h-2 bg-gray-200 dark:bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-              <span className="w-12 text-right text-sm font-mono font-bold text-gray-900 dark:text-white">{difficulty[level] || 0}%</span>
-            </div>
-          ))}
-          <div className="pt-2 flex justify-between items-center">
-            <p className={`text-xs font-bold ${Math.abs(Object.values(difficulty).reduce((a, b) => a + b, 0) - 100) < 0.1 ? 'text-green-400' : 'text-red-400'}`}>{t('total', { pct: Object.values(difficulty).reduce((a, b) => a + b, 0) })}</p>
-            <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
-              {t('saveDifficulty')}
-            </button>
-          </div>
-        </div>
-      </section>
+      {/* ── Difficulty Preferences ── TEMPORARILY HIDDEN: fixed defaults used for all users (Easy:20%, Medium:70%, Hard:10%) */}
 
       {/* ── Security / Change Password (if email) ── */}
       {isEmailUser && (

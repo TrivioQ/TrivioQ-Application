@@ -12,6 +12,11 @@
     "clean": "turbo run clean",
     "ingest": "turbo run ingest --filter api"
   },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "18.2.79"
+    }
+  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.59.0",
     "@typescript-eslint/parser": "^8.59.0",

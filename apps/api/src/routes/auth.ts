@@ -128,6 +128,9 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
           activeWindowStart,
           activeWindowEnd,
           lastLogin: now,
+          preferences: {
+            difficultyPercentages: { EASY: 20, MEDIUM: 70, HARD: 10 },
+          },
           ...(referredById ? { referredById } : {}),
         },
       });

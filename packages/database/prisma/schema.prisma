@@ -31,7 +31,7 @@ model User {
   onDemandTokens           Int              @default(0)
   referredById             String?
   points                   Int              @default(0)
-  preferences              Json?
+  preferences              Json?            @default("{\"difficultyPercentages\": {\"EASY\": 20, \"MEDIUM\": 70, \"HARD\": 10}}")
   devicePushToken          String?
   role                     Role             @default(USER)
   drops                UserDrop[]

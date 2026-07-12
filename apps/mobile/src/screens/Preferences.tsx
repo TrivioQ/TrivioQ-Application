@@ -23,9 +23,10 @@ export default function Preferences({ navigation }: any) {
 
   const [activeWindowStart, setActiveWindowStart] = useState('09:00');
   const [activeWindowEnd, setActiveWindowEnd] = useState('17:00');
-  const [easyWeight, setEasyWeight] = useState('0.5');
-  const [mediumWeight, setMediumWeight] = useState('0.3');
-  const [hardWeight, setHardWeight] = useState('0.2');
+  // TEMPORARILY HIDDEN: difficulty selection is locked to fixed defaults for all users (Easy:20%, Medium:70%, Hard:10%)
+  const [easyWeight] = useState('0.2');
+  const [mediumWeight] = useState('0.7');
+  const [hardWeight] = useState('0.1');
 
   const { data, isLoading } = useQuery({
     queryKey: ['userMe', userId],
@@ -45,12 +46,7 @@ export default function Preferences({ navigation }: any) {
         const d = new Date(data.activeWindowEnd);
         setActiveWindowEnd(`${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`);
       }
-      if (data.preferences?.categoryPercentages) {
-        const p = data.preferences.categoryPercentages;
-        setEasyWeight((p.easy || 0.5).toString());
-        setMediumWeight((p.medium || 0.3).toString());
-        setHardWeight((p.hard || 0.2).toString());
-      }
+      // TEMPORARILY HIDDEN: difficulty weights are ignored from server, fixed defaults are used
       if (data.preferences?.theme && data.preferences.theme !== theme) {
         setTheme(data.preferences.theme as Theme);
       }
@@ -117,11 +113,9 @@ export default function Preferences({ navigation }: any) {
     { label: 'System', value: 'system', iconName: 'monitor' },
   ];
 
-  const SafeBlurView = BlurView as any;
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <SafeBlurView intensity={isDark ? 30 : 60} tint={isDark ? 'dark' : 'light'} style={styles.glassCard}>
+      <BlurView intensity={isDark ? 30 : 60} tint={isDark ? 'dark' : 'light'} style={styles.glassCard}>
         <Text style={styles.header}>App Theme</Text>
         <View style={styles.themeRow}>
           {themes.map((tItem) => {
@@ -151,29 +145,14 @@ export default function Preferences({ navigation }: any) {
           </View>
         </View>
 
-        <Text style={styles.header}>{t('preferences.diffHeader')}</Text>
-
-        <View style={styles.inputGroupFull}>
-          <Text style={styles.label}>{t('preferences.easyLabel')}</Text>
-          <TextInput style={styles.input} value={easyWeight} onChangeText={setEasyWeight} keyboardType="numeric" />
-        </View>
-
-        <View style={styles.inputGroupFull}>
-          <Text style={styles.label}>{t('preferences.mediumLabel')}</Text>
-          <TextInput style={styles.input} value={mediumWeight} onChangeText={setMediumWeight} keyboardType="numeric" />
-        </View>
-
-        <View style={styles.inputGroupFull}>
-          <Text style={styles.label}>{t('preferences.hardLabel')}</Text>
-          <TextInput style={styles.input} value={hardWeight} onChangeText={setHardWeight} keyboardType="numeric" />
-        </View>
+        {/* Difficulty weights — TEMPORARILY HIDDEN for all users; fixed defaults (Easy:20%, Medium:70%, Hard:10%) are sent silently */}
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={mutation.isPending}>
             <Text style={styles.saveButtonText}>{mutation.isPending ? t('preferences.saving') : t('preferences.save')}</Text>
           </TouchableOpacity>
         </View>
-      </SafeBlurView>
+      </BlurView>
     </ScrollView>
   );
 }
