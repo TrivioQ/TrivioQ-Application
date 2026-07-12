@@ -131,6 +131,7 @@ services:
       - .env
     environment:
       NODE_ENV:      production
+      PORT:          3013
       DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_HOST:    redis
       REDIS_PORT:    6379
