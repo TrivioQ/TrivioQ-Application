@@ -203,7 +203,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
             
             {selectedQuestionIds.size > 0 && (
               <DropdownMenu>
-                <DropdownMenuTrigger className={buttonVariants({ variant: 'outline', size: 'sm', className: 'h-7 text-xs px-2 gap-1' })} disabled={isBulkUpdating}>
+                <DropdownMenuTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm', className: 'h-7 text-xs px-2 gap-1' }), isBulkUpdating && 'opacity-50 pointer-events-none')}>
                   {isBulkUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckSquare className="h-3 w-3" />}
                   {t('bulkActions')}
                 </DropdownMenuTrigger>

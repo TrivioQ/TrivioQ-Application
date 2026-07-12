@@ -329,9 +329,9 @@ export async function bulkApprovePendingQuestions(pendingIds: string[]) {
               explanationText: pendingQuestion.explanation ?? null,
               choices: {
                 create: choices.map((c: any, idx: number) => ({
-                  text: c.text,
-                  order: c.order ?? idx,
-                  isCorrect: c.isCorrect,
+                  text: String(c.text ?? ''),
+                  order: typeof c.order === 'number' ? c.order : idx,
+                  isCorrect: Boolean(c.isCorrect),
                 })),
               },
               categories: {
@@ -349,9 +349,9 @@ export async function bulkApprovePendingQuestions(pendingIds: string[]) {
               explanationText: pendingQuestion.explanation,
               choices: {
                 create: choices.map((c: any, idx: number) => ({
-                  text: c.text,
-                  order: c.order ?? idx,
-                  isCorrect: c.isCorrect,
+                  text: String(c.text ?? ''),
+                  order: typeof c.order === 'number' ? c.order : idx,
+                  isCorrect: Boolean(c.isCorrect),
                 })),
               },
               categories: {
