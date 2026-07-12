@@ -15,7 +15,7 @@ const categories = [
     description: "Questions about India's physical features, rivers, climate, states, union territories, and wildlife.",
   },
   {
-    name: 'Indian Polity & Constitution',
+    name: 'Indian Politics & Constitution',
     slug: 'indian-polity',
     description: 'Trivia on the Constitution of India, government structure, parliament, judiciary, and civic laws.',
   },
