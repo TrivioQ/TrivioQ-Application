@@ -6,6 +6,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import apiClient from '../api/client';
 
 // Configure how notifications are handled when app is foregrounded
@@ -14,6 +15,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -48,9 +51,7 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
     }
 
     try {
-      const projectId =
-        require('../../app.json').expo?.extra?.eas?.projectId ??
-        require('../../package.json').expo?.name;
+      const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
 
       if (!projectId) {
         console.error('Could not find project ID for push notifications');
@@ -91,7 +92,7 @@ export async function subscribeToPushNotifications(): Promise<boolean> {
       deviceType: Platform.OS,
     });
 
-    if (!response.ok) {
+    if (response.status < 200 || response.status >= 300) {
       throw new Error('Failed to save push subscription');
     }
 
@@ -163,12 +164,7 @@ export async function scheduleLocalNotification(title: string, body: string, dat
 /**
  * Schedule a notification for a specific time
  */
-export async function scheduleNotificationForTime(
-  title: string,
-  body: string,
-  triggerDate: Date,
-  data?: any
-) {
+export async function scheduleNotificationForTime(title: string, body: string, triggerDate: Date, data?: any) {
   const trigger = {
     type: Notifications.SchedulableTriggerInputTypes.DATE,
     channelId: 'default',

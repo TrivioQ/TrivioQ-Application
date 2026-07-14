@@ -1,13 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  ActivityIndicator,
-  TouchableOpacity,
-  RefreshControl,
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../context/ThemeContext';
@@ -36,7 +28,7 @@ const typeIcons: Record<string, string> = {
   ADMIN_MESSAGE: '💬',
 };
 
-export default function NotificationsScreen({ navigation }: any) {
+export default function NotificationsScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
@@ -44,7 +36,11 @@ export default function NotificationsScreen({ navigation }: any) {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: notifications, isLoading, refetch } = useQuery<UserNotification[]>({
+  const {
+    data: notifications,
+    isLoading,
+    refetch,
+  } = useQuery<UserNotification[]>({
     queryKey: ['notifications'],
     queryFn: async () => {
       const response = await apiClient.get('/api/v1/notifications/inbox?limit=100');
@@ -85,21 +81,12 @@ export default function NotificationsScreen({ navigation }: any) {
     markAllAsReadMutation.mutate();
   };
 
-  const filteredNotifications = filter === 'unread'
-    ? (notifications || []).filter((n) => !n.isRead)
-    : (notifications || []);
+  const filteredNotifications = filter === 'unread' ? (notifications || []).filter((n) => !n.isRead) : notifications || [];
 
   const unreadCount = (notifications || []).filter((n) => !n.isRead).length;
 
   const renderNotification = ({ item }: { item: UserNotification }) => (
-    <TouchableOpacity
-      style={[
-        styles.notificationCard,
-        !item.isRead && styles.unreadCard,
-      ]}
-      onPress={() => handleMarkAsRead(item.id)}
-      activeOpacity={0.7}
-    >
+    <TouchableOpacity style={[styles.notificationCard, !item.isRead && styles.unreadCard]} onPress={() => handleMarkAsRead(item.id)} activeOpacity={0.7}>
       <View style={styles.notificationRow}>
         <Text style={styles.typeIcon}>{typeIcons[item.type] || '🔔'}</Text>
         <View style={styles.notificationContent}>
@@ -122,12 +109,8 @@ export default function NotificationsScreen({ navigation }: any) {
               })}
             </Text>
             <View style={styles.deliveryIndicators}>
-              {item.pushDelivered && (
-                <Ionicons name="wifi" size={12} color={colors.textSecondary} />
-              )}
-              {item.emailDelivered && (
-                <Ionicons name="mail" size={12} color={colors.textSecondary} style={{ marginLeft: 4 }} />
-              )}
+              {item.pushDelivered && <Ionicons name="wifi" size={12} color={colors.textSecondary} />}
+              {item.emailDelivered && <Ionicons name="mail" size={12} color={colors.textSecondary} style={{ marginLeft: 4 }} />}
             </View>
           </View>
         </View>
@@ -140,38 +123,20 @@ export default function NotificationsScreen({ navigation }: any) {
       {/* Header with filter tabs and mark all read */}
       <View style={styles.header}>
         <View style={styles.filterTabs}>
-          <TouchableOpacity
-            style={[styles.filterTab, filter === 'all' && styles.filterTabActive]}
-            onPress={() => setFilter('all')}
-          >
-            <Text
-              style={[
-                styles.filterTabText,
-                filter === 'all' && styles.filterTabTextActive,
-              ]}
-            >
+          <TouchableOpacity style={[styles.filterTab, filter === 'all' && styles.filterTabActive]} onPress={() => setFilter('all')}>
+            <Text style={[styles.filterTabText, filter === 'all' && styles.filterTabTextActive]}>
               {t('notifications.all')} ({(notifications || []).length})
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.filterTab, filter === 'unread' && styles.filterTabActive]}
-            onPress={() => setFilter('unread')}
-          >
-            <Text
-              style={[
-                styles.filterTabText,
-                filter === 'unread' && styles.filterTabTextActive,
-              ]}
-            >
+          <TouchableOpacity style={[styles.filterTab, filter === 'unread' && styles.filterTabActive]} onPress={() => setFilter('unread')}>
+            <Text style={[styles.filterTabText, filter === 'unread' && styles.filterTabTextActive]}>
               {t('notifications.unread')} ({unreadCount})
             </Text>
           </TouchableOpacity>
         </View>
         {unreadCount > 0 && (
           <TouchableOpacity onPress={handleMarkAllAsRead} disabled={markAllAsReadMutation.isPending}>
-            <Text style={styles.markAllRead}>
-              {markAllAsReadMutation.isPending ? t('notifications.markingAll') : t('notifications.markAllRead')}
-            </Text>
+            <Text style={styles.markAllRead}>{markAllAsReadMutation.isPending ? t('notifications.markingAll') : t('notifications.markAllRead')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -184,31 +149,12 @@ export default function NotificationsScreen({ navigation }: any) {
         </View>
       ) : filteredNotifications.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="bell-outline" size={64} color={colors.textSecondary} />
-          <Text style={styles.emptyTitle}>
-            {filter === 'unread' ? t('notifications.noUnread') : t('notifications.noNotifications')}
-          </Text>
-          <Text style={styles.emptySubtitle}>
-            {filter === 'unread'
-              ? t('notifications.noUnreadSub')
-              : t('notifications.noNotificationsSub')}
-          </Text>
+          <Ionicons name="notifications-outline" size={64} color={colors.textSecondary} />
+          <Text style={styles.emptyTitle}>{filter === 'unread' ? t('notifications.noUnread') : t('notifications.noNotifications')}</Text>
+          <Text style={styles.emptySubtitle}>{filter === 'unread' ? t('notifications.noUnreadSub') : t('notifications.noNotificationsSub')}</Text>
         </View>
       ) : (
-        <FlatList
-          data={filteredNotifications}
-          renderItem={renderNotification}
-          keyExtractor={(item) => item.id}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={colors.brand}
-              colors={[colors.brand]}
-            />
-          }
-          contentContainerStyle={styles.listContent}
-        />
+        <FlatList data={filteredNotifications} renderItem={renderNotification} keyExtractor={(item) => item.id} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} colors={[colors.brand]} />} contentContainerStyle={styles.listContent} />
       )}
     </View>
   );

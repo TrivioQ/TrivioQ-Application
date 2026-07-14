@@ -1,42 +1,41 @@
-# #!/bin/sh
-# . "$(dirname "$0")/_/husky.sh"
+#!/bin/sh
 
-# echo "==========================================="
-# echo " Prisma Pre-commit Check "
-# echo "==========================================="
-# echo "Running prisma migrate dev to ensure schema changes are migrated..."
+echo "==========================================="
+echo " Prisma Pre-commit Check "
+echo "==========================================="
+echo "Running prisma migrate status to ensure schema changes are migrated..."
 
-# # We use the existing db-migrate script from the database package which correctly loads .env
-# pnpm --filter @trivioq/database db-migrate
+# Check if there are unmigrated schema changes using prisma migrate status
+pnpm --filter @trivioq/database exec dotenv -e ../../.env -- prisma migrate status
 
-# if [ $? -ne 0 ]; then
-#   echo ""
-#   echo "❌ Error: Prisma migrate dev failed."
-#   echo "You likely have un-migrated schema changes. Please run 'pnpm --filter @trivioq/database db-migrate' manually to name your migration before committing."
-#   exit 1
-# fi
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Error: Prisma migrate status failed."
+  echo "You likely have un-migrated schema changes. Please run 'pnpm --filter @trivioq/database db-migrate' manually to name your migration before committing."
+  exit 1
+fi
 
-# echo ""
-# echo "==========================================="
-# echo " Linting Check "
-# echo "==========================================="
-# pnpm lint
+echo ""
+echo "==========================================="
+echo " Linting Check "
+echo "==========================================="
+pnpm lint
 
-# if [ $? -ne 0 ]; then
-#   echo ""
-#   echo "❌ Error: Linting failed. Please fix the linting errors before committing."
-#   exit 1
-# fi
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Error: Linting failed. Please fix the linting errors before committing."
+  exit 1
+fi
 
-# echo ""
-# echo "==========================================="
-# echo " Type Check "
-# echo "==========================================="
-# # Run tsc --noEmit across all packages (excluding shared-types which doesn't have a tsconfig)
-# pnpm -r --filter="!@trivioq/shared-types" exec tsc --noEmit
+echo ""
+echo "==========================================="
+echo " Type Check "
+echo "==========================================="
+# Run tsc --noEmit across all packages (excluding shared-types which doesn't have a tsconfig)
+pnpm -r --filter="!@trivioq/shared-types" exec tsc --noEmit
 
-# if [ $? -ne 0 ]; then
-#   echo ""
-#   echo "❌ Error: Type check failed. Please fix the TypeScript errors before committing."
-#   exit 1
-# fi
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Error: Type check failed. Please fix the TypeScript errors before committing."
+  exit 1
+fi

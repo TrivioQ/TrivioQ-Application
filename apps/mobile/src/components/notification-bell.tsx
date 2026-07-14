@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
@@ -79,89 +79,47 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
 
   return (
     <>
-      <TouchableOpacity
-        style={styles.bellContainer}
-        onPress={() => setIsVisible(true)}
-      >
-        <Ionicons name="bell-outline" size={24} color={colors.textPrimary} />
+      <TouchableOpacity style={styles.bellContainer} onPress={() => setIsVisible(true)}>
+        <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
         {unreadCount > 0 && (
           <View style={[styles.badge, { backgroundColor: colors.error }]}>
-            <Text style={styles.badgeText}>
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </Text>
+            <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
           </View>
         )}
       </TouchableOpacity>
 
-      <Modal
-        visible={isVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setIsVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setIsVisible(false)}
-        >
-          <TouchableOpacity
-            style={[styles.dropdown, { backgroundColor: colors.bgPrimary, borderColor: colors.borderColor }]}
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
+      <Modal visible={isVisible} transparent animationType="fade" onRequestClose={() => setIsVisible(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setIsVisible(false)}>
+          <TouchableOpacity style={[styles.dropdown, { backgroundColor: colors.bgPrimary, borderColor: colors.borderColor }]} activeOpacity={1} onPress={(e) => e.stopPropagation()}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={[styles.title, { color: colors.textPrimary }]}>
-                Notifications
-              </Text>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>Notifications</Text>
               <TouchableOpacity onPress={() => markAllAsReadMutation.mutate()}>
-                <Text style={[styles.markAllRead, { color: colors.brand }]}>
-                  Mark all read
-                </Text>
+                <Text style={[styles.markAllRead, { color: colors.brand }]}>Mark all read</Text>
               </TouchableOpacity>
             </View>
 
             {/* Notifications list */}
             {!notifications || notifications.length === 0 ? (
               <View style={styles.empty}>
-                <Ionicons name="bell-outline" size={48} color={colors.textSecondary} />
-                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                  No notifications yet
-                </Text>
+                <Ionicons name="notifications-outline" size={48} color={colors.textSecondary} />
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No notifications yet</Text>
               </View>
             ) : (
               <FlatList
                 data={notifications}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={[
-                      styles.notificationItem,
-                      !item.isRead && { backgroundColor: colors.brand + '10' },
-                    ]}
-                    onPress={() => handleNotificationPress(item.id)}
-                  >
+                  <TouchableOpacity style={[styles.notificationItem, !item.isRead && { backgroundColor: colors.brand + '10' }]} onPress={() => handleNotificationPress(item.id)}>
                     <Text style={styles.typeIcon}>{typeIcons[item.type] || '🔔'}</Text>
                     <View style={styles.content}>
                       <View style={styles.titleRow}>
-                        <Text
-                          style={[
-                            styles.notificationTitle,
-                            { color: colors.textPrimary },
-                            !item.isRead && styles.unreadTitle,
-                          ]}
-                          numberOfLines={1}
-                        >
+                        <Text style={[styles.notificationTitle, { color: colors.textPrimary }, !item.isRead && styles.unreadTitle]} numberOfLines={1}>
                           {item.title}
                         </Text>
-                        {!item.isRead && (
-                          <View style={[styles.unreadDot, { backgroundColor: colors.brand }]} />
-                        )}
+                        {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: colors.brand }]} />}
                       </View>
-                      <Text
-                        style={[styles.notificationBody, { color: colors.textSecondary }]}
-                        numberOfLines={2}
-                      >
+                      <Text style={[styles.notificationBody, { color: colors.textSecondary }]} numberOfLines={2}>
                         {item.body}
                       </Text>
                       <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
@@ -180,13 +138,8 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
             )}
 
             {/* Footer */}
-            <TouchableOpacity
-              style={[styles.footer, { backgroundColor: colors.bgSecondary }]}
-              onPress={handleViewAll}
-            >
-              <Text style={[styles.footerText, { color: colors.brand }]}>
-                View all notifications →
-              </Text>
+            <TouchableOpacity style={[styles.footer, { backgroundColor: colors.bgSecondary }]} onPress={handleViewAll}>
+              <Text style={[styles.footerText, { color: colors.brand }]}>View all notifications →</Text>
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
@@ -195,6 +148,7 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     bellContainer: {
