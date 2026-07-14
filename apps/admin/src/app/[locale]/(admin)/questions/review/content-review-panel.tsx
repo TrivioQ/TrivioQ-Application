@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { DifficultyLevel } from '@trivioq/database';
@@ -11,9 +11,10 @@ import { useTableParams } from '@/hooks/use-table-params';
 import { buttonVariants } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
 import { bulkApprovePendingQuestions, bulkRejectPendingQuestions } from '@/app/actions/pending-questions';
-import { useTransition } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
+
+
 interface PendingQuestion {
   id: string;
   topic: string;
@@ -191,16 +192,16 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
         <aside className="w-80 flex-shrink-0 border-r border-gray-200 bg-gray-50/50 flex flex-col">
           <div className="px-4 py-3 border-b border-gray-200 bg-white flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Checkbox 
-                checked={selectedQuestionIds.size === pendingQuestions.length && pendingQuestions.length > 0} 
-                onCheckedChange={toggleSelectAll} 
+              <Checkbox
+                checked={selectedQuestionIds.size === pendingQuestions.length && pendingQuestions.length > 0}
+                onCheckedChange={toggleSelectAll}
                 aria-label={t('selectAll')}
               />
               <p className="text-sm font-semibold text-gray-700">
                 {t('selectAll')}
               </p>
             </div>
-            
+
             {selectedQuestionIds.size > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm', className: 'h-7 text-xs px-2 gap-1' }), isBulkUpdating && 'opacity-50 pointer-events-none')}>
