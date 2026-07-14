@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TrivioQ Admin Dashboard (`/apps/admin`)
 
-## Getting Started
+The internal admin portal for managing the TrivioQ application platform. Restricted to users elevated to the `ADMIN` role.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🛠 Stack & Architecture
+
+- **Framework**: Next.js 16 (App Router)
+- **Runtime & UI**: React 19, TailwindCSS 4, Shadcn UI (Radix UI)
+- **Database Integration**: Directly queries PostgreSQL database using the shared `@trivioq/database` Prisma package.
+- **Authentication**: Firebase Admin SDK. Sessions are verified via secure HTTP-only cookies mapped to database-level `firebaseUid` and `role` fields.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Ensure you have configured the environment variables in `apps/admin/.env` (or `.env.local`).
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/trivioq?schema=public"
+API_URL="http://localhost:8080"
+FIREBASE_API_KEY="..."
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Running Locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To run the Next.js development server on port `3012` (with hot-reloading):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+From the workspace root:
 
-## Learn More
+```bash
+pnpm --filter admin dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Or from within the `apps/admin` directory:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3012](http://localhost:3012) in your browser to view the application.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛠 Available Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+From the `apps/admin` directory, you can run:
+
+| Command      | Description                                   |
+| :----------- | :-------------------------------------------- |
+| `pnpm dev`   | Starts the Next.js dev server on port `3012`. |
+| `pnpm build` | Compiles the production application.          |
+| `pnpm start` | Starts the production server on port `3012`.  |
+| `pnpm lint`  | Runs ESLint rules over the source directory.  |
+
+---
+
+## 🏗 Key Features
+
+- **User Catalog**: Search, filter, and view user details (streaks, subscription tier, history).
+- **Trivia Question Ingestion & Management**: Inspect questions, filter by category/difficulty, and check ingested questions.
+- **Platform Diagnostics**: Direct database lookup to verify timezone boundaries, scheduler active windows, and drop queues.
+- **Role Elevation**: Elevate local users to `ADMIN` (requires first seeding or manually running `pnpm make-admin` in the database package).

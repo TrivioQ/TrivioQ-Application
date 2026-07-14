@@ -5,7 +5,7 @@ You are an expert AI coding assistant specialized in full-stack TypeScript devel
 ## Project Architecture
 - **Naming Convention**: All filenames MUST be lowercase and use hyphens (`-`) for multiple words (e.g., `user-profile.tsx`). Exceptions are allowed only where mandatory (e.g., `README.md`, `.env.example`, or specific framework files like `layout.tsx`).
 - **Localization (i18n)**: All user-facing text MUST be localized. Never hardcode strings in UI components. Use the appropriate i18n hook (e.g., `useTranslations` in Web/Admin, `useTranslation` in Mobile) and add the strings to the corresponding translation files (e.g., `en.json`).
-- **Monorepo**: Turbo + Yarn Workspaces
+- **Monorepo**: Turbo + pnpm Workspaces
 - **Apps**:
   - `apps/api`: Express.js backend.
   - `apps/mobile`: React Native (Expo/CLI) mobile app.
@@ -44,21 +44,22 @@ You are an expert AI coding assistant specialized in full-stack TypeScript devel
 ### 5. Database (@trivioq/database)
 - **Workflow**: 
   - Modify `prisma/schema.prisma`.
-  - Run `yarn db-push` (for local dev) or `npx prisma migrate dev`.
-  - Always run `npx prisma generate` after schema changes.
-- **Seeding**: Use `yarn seed-mock-data`, `yarn seed-legal`, or `yarn seed-settings`.
+  - Run `pnpm db-push` (for local dev) or `pnpm db-migrate`.
+  - Always run `pnpm generate` after schema changes.
+- **Seeding**: Use `pnpm seed-mock-data`, `pnpm seed-legal`, `pnpm seed-settings`, or `pnpm seed-server`.
 
 ## Coding Guidelines
 
 ### AI Interaction
 - **Planning**: For complex tasks, research first, then create an `implementation_plan.md`.
 - **Aesthetics**: UI changes must be premium, high-fidelity, and follow modern design trends (gradients, micro-animations, consistent spacing).
+- **Formatting**: Use Prettier with `printWidth: 120` to automatically wrap long lines. Keep complex conditionals, multi-prop JSX tags, and array/object definitions split across multiple lines for readability, while allowing simple type definitions, function parameters, and assignments to stay on a single line if under 120 characters.
 - **Refactoring**: When modifying files, preserve existing comments and documentation unless explicitly asked to change them.
 - **Environment**: Always use `dotenv` or Zod-validated env configs (see `apps/api/src/config/env.ts`).
 
 ### Common Commands
-- **Root**: `yarn build`, `yarn dev`, `yarn lint`.
-- **Database**: `cd packages/database && yarn seed-server`.
+- **Root**: `pnpm build`, `pnpm dev`, `pnpm lint`.
+- **Database**: `cd packages/database && pnpm seed-server` or `pnpm --filter @trivioq/database seed-server`.
 - **Mobile**: `cd apps/mobile && npx expo start`.
 
 ## UI/UX Philosophy

@@ -6,7 +6,7 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/apps/api",
-      "runtimeExecutable": "yarn",
+      "runtimeExecutable": "pnpm",
       "runtimeArgs": ["run", "dev"],
       "env": {
         "NODE_OPTIONS": "--inspect"
@@ -19,7 +19,7 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/apps/web",
-      "runtimeExecutable": "yarn",
+      "runtimeExecutable": "pnpm",
       "runtimeArgs": ["run", "dev"],
       "env": {
         "NODE_OPTIONS": "--inspect"
@@ -39,7 +39,7 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/apps/admin",
-      "runtimeExecutable": "yarn",
+      "runtimeExecutable": "pnpm",
       "runtimeArgs": ["run", "dev"],
       "env": {
         "NODE_OPTIONS": "--inspect"
@@ -57,8 +57,8 @@
     {
       "name": "Debug Mobile App (Expo)",
       "type": "expo",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/apps/mobile"
+      "request": "attach",
+      "projectRoot": "${workspaceFolder}/apps/mobile"
     }
   ],
   "compounds": [

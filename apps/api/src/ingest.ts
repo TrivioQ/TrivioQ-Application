@@ -2,7 +2,7 @@
  * Ingestion entry-point.
  *
  * Run with:
- *   yarn ingest
+ *   pnpm ingest
  *   # or
  *   npx ts-node -r dotenv/config src/ingest.ts
  *

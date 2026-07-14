@@ -27,7 +27,7 @@ This project is structured as a **Turborepo** (Monorepo), allowing seamless code
 ### 1. Prerequisites
 
 - **Node.js** (v18+)
-- **Yarn** (v4.3.0 is configured as the package manager)
+- **pnpm** (v9.15.0 is configured as the package manager)
 - **PostgreSQL** (Running locally or via a cloud provider)
 - **Redis** (Required for the BullMQ task queue)
 
@@ -60,10 +60,10 @@ DATABASE_URL="postgresql://user:password@localhost:5432/trivioq?schema=public"
 
 ### 3. Installation
 
-Install all dependencies using Yarn from the root directory:
+Install all dependencies using pnpm from the root directory:
 
 ```bash
-yarn install
+pnpm install
 ```
 
 ### 4. Database Setup
@@ -71,8 +71,8 @@ yarn install
 To initialize the database schema and generate the shared Prisma Client:
 
 ```bash
-cd packages/database
-npx prisma migrate dev --name init
+# From the root directory:
+pnpm --filter @trivioq/database db-migrate
 ```
 
 ### 5. Running the Application
@@ -80,7 +80,7 @@ npx prisma migrate dev --name init
 Turborepo makes it incredibly easy to start everything simultaneously. From the root directory, run:
 
 ```bash
-yarn dev
+pnpm dev
 ```
 
 This single command spins up the Next.js web app, the React Native Expo bundler, and the Node.js Express backend in parallel!
@@ -96,7 +96,7 @@ For development purposes, you can use the following utility scripts in the `pack
 To quickly populate your local database with 500+ questions, 100 users, and historical data:
 
 ```bash
-yarn workspace @trivioq/database run seed-mock-data
+pnpm --filter @trivioq/database seed-mock-data
 ```
 
 ### Granting Admin Privileges
@@ -104,7 +104,7 @@ yarn workspace @trivioq/database run seed-mock-data
 To access the Admin Portal (`apps/admin`), your user must have the `ADMIN` role. Use this script to elevate an existing user:
 
 ```bash
-yarn workspace @trivioq/database run make-admin <email>
+pnpm --filter @trivioq/database make-admin <email>
 ```
 
 ### AI Question Ingestion (Background Processing)
@@ -112,20 +112,23 @@ yarn workspace @trivioq/database run make-admin <email>
 When running the question ingestion script on a remote server, it is recommended to run it inside a persistent terminal multiplexer (`tmux`) so the process continues running even if your host machine closes the terminal or shuts down.
 
 **Create a new tmux session:**
+
 ```bash
 tmux new -s ingest-session
 ```
 
 **Start the ingestion process:**
+
 ```bash
-# Navigate to apps/api and run:
-npx ts-node -r dotenv/config src/ingest.ts
+# From the root directory:
+pnpm ingest
 ```
 
 **Detach from the session:**
 Press `Ctrl + B`, then release and press `D`. You can now safely close your local terminal.
 
 **Re-attach to the session later:**
+
 ```bash
 tmux attach -t ingest-session
 ```
@@ -160,13 +163,13 @@ The repository strictly adheres to modern styling guidelines, utilizing ESLint (
 To format all code instantly:
 
 ```bash
-yarn format
+pnpm format
 ```
 
 To run lint checks across all packages:
 
 ```bash
-yarn lint
+pnpm lint
 ```
 
 VS Code is already configured to automatically run `eslint --fix` and Prettier whenever you save a file. Happy coding!
