@@ -52,6 +52,11 @@ const categories = [
     description: 'Trivia on major global historical events, ancient civilizations, world wars, revolutions, and world leaders.',
   },
   {
+    name: 'Animals and Nature',
+    slug: 'animals-nature',
+    description: 'Trivia on wildlife, ecosystems, plants, environmental science, and the natural world.',
+  },
+  {
     name: 'World Geography',
     slug: 'world-geography',
     description: 'Questions about continents, countries, capitals, oceans, major rivers, mountains, and global landmarks.',
