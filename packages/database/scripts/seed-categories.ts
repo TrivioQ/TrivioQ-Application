@@ -16,7 +16,7 @@ const categories = [
   },
   {
     name: 'Indian Politics & Constitution',
-    slug: 'indian-polity',
+    slug: 'indian-politics',
     description: 'Trivia on the Constitution of India, government structure, parliament, judiciary, and civic laws.',
   },
   {
@@ -40,21 +40,21 @@ const categories = [
     description: 'Trivia on sports in India, focusing on Cricket (IPL, ICC stats), Hockey, Kabaddi, and Olympic achievements.',
   },
   {
+    name: 'Indian Literature',
+    slug: 'indian-literature',
+    description: 'Trivia on Indian epics, classical Sanskrit works, regional literature, and modern Indian authors.',
+  },
+  {
     name: 'Indian Current Affairs',
     slug: 'indian-current-affairs',
     description: 'Recent news, events, government schemes, awards, and developments in India.',
   },
 
-  // International/Global Categories
+  // Global & Geopolitics
   {
     name: 'World History',
     slug: 'world-history',
     description: 'Trivia on major global historical events, ancient civilizations, world wars, revolutions, and world leaders.',
-  },
-  {
-    name: 'Animals and Nature',
-    slug: 'animals-nature',
-    description: 'Trivia on wildlife, ecosystems, plants, environmental science, and the natural world.',
   },
   {
     name: 'World Geography',
@@ -62,29 +62,14 @@ const categories = [
     description: 'Questions about continents, countries, capitals, oceans, major rivers, mountains, and global landmarks.',
   },
   {
-    name: 'World Literature & Art',
-    slug: 'world-literature',
-    description: 'Trivia on classical and modern literature, poetry, famous authors, masterpieces of art, and movements.',
-  },
-  {
-    name: 'Global Pop Culture & Entertainment',
-    slug: 'global-pop-culture',
-    description: 'Questions about Hollywood, global music, television series, gaming, internet culture, and celebrities.',
-  },
-  {
-    name: 'Science & Technology',
-    slug: 'science-tech',
-    description: 'General science questions covering physics, chemistry, biology, medicine, space exploration, and computer science.',
-  },
-  {
-    name: 'International Sports',
-    slug: 'international-sports',
-    description: 'Trivia on global sporting events like the Olympics, FIFA World Cup, Tennis Grand Slams, F1, and world-class athletes.',
-  },
-  {
     name: 'International Relations & Organizations',
     slug: 'international-relations',
     description: 'Questions on global geopolitics, international treaties, and alliances (UN, WHO, WTO, NATO, etc.).',
+  },
+  {
+    name: 'Global Politics',
+    slug: 'global-politics',
+    description: 'Trivia on global political systems, foreign policy, governments, elections, and political ideologies.',
   },
   {
     name: 'Global Economy & Business',
@@ -92,21 +77,43 @@ const categories = [
     description: 'Trivia on global financial markets, multinational corporations, famous entrepreneurs, and economic concepts.',
   },
 
-  // Space & Science Extension
+  // Culture, Art & Literature (Global)
   {
-    name: 'Space',
-    slug: 'space',
-    description: 'Trivia on astronomy, planets, stars, galaxies, and space exploration.',
+    name: 'Global Art & Culture',
+    slug: 'global-art-culture',
+    description: 'Trivia covering global art movements, architecture, classical music, traditions, and cultural heritage.',
   },
   {
-    name: 'Human Body',
-    slug: 'human-body',
-    description: 'Questions about human anatomy, organ systems, physiological processes, and health.',
+    name: 'Global Literature',
+    slug: 'global-literature',
+    description: 'Questions on classical and modern world literature, famous authors, poetry, novels, and plays.',
   },
   {
-    name: 'Plants and Flowers',
-    slug: 'plants-flowers',
-    description: 'Trivia on botany, plant species, flowers, agriculture, and plant ecology.',
+    name: 'Global Pop Culture & Entertainment',
+    slug: 'global-pop-culture',
+    description: 'Questions about Hollywood, global music, television series, gaming, internet culture, and celebrities.',
+  },
+
+  // Science, Nature & Space
+  {
+    name: 'Space & Astronomy',
+    slug: 'space-astronomy',
+    description: 'Trivia on astronomy, planets, stars, galaxies, cosmology, and space exploration.',
+  },
+  {
+    name: 'Life Sciences & Medicine',
+    slug: 'life-sciences-medicine',
+    description: 'Questions about human anatomy, organ systems, biological processes, health, genetics, and biomedical technology.',
+  },
+  {
+    name: 'Environmental & Earth Sciences',
+    slug: 'environmental-earth-sciences',
+    description: 'Questions on ecology, conservation, earth science, climate change, and geological formations.',
+  },
+  {
+    name: 'Plants & Forestry',
+    slug: 'plants-forestry',
+    description: 'Trivia on botany, plant species, forestry, flowers, agriculture, and plant ecology.',
   },
   {
     name: 'Marine Biology',
@@ -114,37 +121,27 @@ const categories = [
     description: 'Trivia on ocean ecosystems, marine organisms, coral reefs, and marine life behavior.',
   },
   {
-    name: 'Oceanography & Geography',
-    slug: 'oceanography-geography',
-    description: 'Questions about the physical and chemical properties of oceans, marine geography, currents, and tides.',
-  },
-  {
     name: 'Nautical History & Exploration',
     slug: 'nautical-history-exploration',
     description: 'Trivia on maritime history, famous voyages, explorers, shipwrecks, and navigation.',
   },
   {
-    name: 'Environmental Science',
-    slug: 'environmental-science',
-    description: 'Questions on ecology, conservation, climate change, pollution, and sustainable ecosystems.',
-  },
-  {
-    name: 'Food Science',
+    name: 'Food Science & Nutrition',
     slug: 'food-science',
     description: 'Trivia on the chemistry, microbiology, nutrition, processing, and preservation of food.',
   },
   {
-    name: 'Biomedical Science',
-    slug: 'biomedical-science',
-    description: 'Questions on genetics, immunology, pharmacology, disease mechanisms, and medical technology.',
-  },
-  {
     name: 'Physical Sciences',
     slug: 'physical-sciences',
-    description: 'Trivia covering physics, chemistry, geology, and basic physical sciences.',
+    description: 'Trivia covering physics, chemistry, basic geology, and physical science principles.',
+  },
+  {
+    name: 'General Science & Tech',
+    slug: 'science-tech',
+    description: 'General science questions covering basic physics, chemistry, biology, medicine, space exploration, and computer science.',
   },
 
-  // Mythology & Religion
+  // Mythology, History & Religion
   {
     name: 'Indian Mythology',
     slug: 'indian-mythology',
@@ -176,8 +173,8 @@ const categories = [
     description: 'Questions on Mesopotamian, Egyptian, Persian, Arabian, and other Middle Eastern myths.',
   },
   {
-    name: 'Religions',
-    slug: 'religions',
+    name: 'Religions & Beliefs',
+    slug: 'religions-beliefs',
     description: 'Trivia on major world religions, their histories, sacred texts, beliefs, and practices.',
   },
 
@@ -186,6 +183,38 @@ const categories = [
     name: 'Personal Finance',
     slug: 'personal-finance',
     description: 'Questions about budgeting, saving, investing, credit, taxes, and smart money management.',
+  },
+
+  // Expanded General Categories
+  {
+    name: 'Philosophy & Psychology',
+    slug: 'philosophy-psychology',
+    description: 'Trivia on famous philosophers, schools of thought, ethics, cognitive biases, psychological theories, and experiments.',
+  },
+  {
+    name: 'Gaming & Esports',
+    slug: 'gaming-esports',
+    description: 'Questions on video game history, console wars, tabletop board games, role-playing games (RPGs), and competitive esports.',
+  },
+  {
+    name: 'Languages & Linguistics',
+    slug: 'languages-linguistics',
+    description: 'Trivia on word origins (etymology), language families, writing systems, grammar, and famous idioms.',
+  },
+  {
+    name: 'Law & True Crime',
+    slug: 'law-true-crime',
+    description: 'Questions on landmark legal cases, famous trials, criminology, history of law enforcement, and true crime cases.',
+  },
+  {
+    name: 'Fashion & Design',
+    slug: 'fashion-design',
+    description: 'Trivia on the history of fashion, iconic designers, design movements, styling, and haute couture.',
+  },
+  {
+    name: 'Automotive & Transportation',
+    slug: 'automotive-transportation',
+    description: 'Questions about cars, aviation history, trains, ships, automotive engineering, and transportation history.',
   },
 
   // Software & Technology Categories
