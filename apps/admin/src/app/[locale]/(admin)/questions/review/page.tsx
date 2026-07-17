@@ -6,16 +6,18 @@ import { getTranslations } from 'next-intl/server';
 type SearchParams = {
   filter?: string;
   page?: string;
+  pageSize?: string;
 };
 
 export default async function ContentReviewPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const { filter, page: pageStr } = await searchParams;
+  const { filter, page: pageStr, pageSize: pageSizeStr } = await searchParams;
   const t = await getTranslations('review');
 
   const page = Math.max(1, parseInt(pageStr ?? '1', 10));
+  const pageSize = Math.max(1, parseInt(pageSizeStr ?? '25', 10));
 
   const [questionsResult, categoriesResult] = await Promise.all([
-    getPendingQuestions({ filter, page }),
+    getPendingQuestions({ filter, page, pageSize }),
     getCategories(),
   ]);
 
@@ -29,9 +31,6 @@ export default async function ContentReviewPage({ searchParams }: { searchParams
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
         <p className="text-gray-500 mt-2">{t('description')}</p>
       </div>
-
-
-
       <ContentReviewPanel questions={questions} categories={categories} result={result} filter={filter} />
     </div>
   );

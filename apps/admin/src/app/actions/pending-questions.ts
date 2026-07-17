@@ -82,7 +82,7 @@ export interface PendingQuestionsFilters {
   pageSize?: number;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 25;
 
 // ── Fetch ────────────────────────────────────────────────────────────────────────
 

@@ -13,6 +13,7 @@ import { ChevronLeft, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
 import { bulkApprovePendingQuestions, bulkRejectPendingQuestions } from '@/app/actions/pending-questions';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 interface PendingQuestion {
@@ -289,24 +290,39 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
       {/* Pagination */}
       <div className={`flex items-center justify-between text-sm text-gray-600 transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
         <span>{total === 0 ? t('noResults') : t('showing', { start: (page - 1) * pageSize + 1, end: Math.min(page * pageSize, total), total })}</span>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => pushParams({ page: String(page - 1) })}
-            disabled={page <= 1 || isPending}
-            className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
-            aria-label={t('previousPage')}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <span className="font-medium">{t('pageOf', { page, totalPages })}</span>
-          <button
-            onClick={() => pushParams({ page: String(page + 1) })}
-            disabled={page >= totalPages || isPending}
-            className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
-            aria-label={t('nextPage')}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">Rows per page:</span>
+            <Select value={String(pageSize)} onValueChange={(v) => pushParams({ pageSize: v, page: '1' })}>
+              <SelectTrigger size="sm" className="w-16">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => pushParams({ page: String(page - 1) })}
+              disabled={page <= 1 || isPending}
+              className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
+              aria-label={t('previousPage')}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="font-medium">{t('pageOf', { page, totalPages })}</span>
+            <button
+              onClick={() => pushParams({ page: String(page + 1) })}
+              disabled={page >= totalPages || isPending}
+              className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
+              aria-label={t('nextPage')}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
