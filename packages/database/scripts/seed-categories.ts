@@ -92,6 +92,102 @@ const categories = [
     description: 'Trivia on global financial markets, multinational corporations, famous entrepreneurs, and economic concepts.',
   },
 
+  // Space & Science Extension
+  {
+    name: 'Space',
+    slug: 'space',
+    description: 'Trivia on astronomy, planets, stars, galaxies, and space exploration.',
+  },
+  {
+    name: 'Human Body',
+    slug: 'human-body',
+    description: 'Questions about human anatomy, organ systems, physiological processes, and health.',
+  },
+  {
+    name: 'Plants and Flowers',
+    slug: 'plants-flowers',
+    description: 'Trivia on botany, plant species, flowers, agriculture, and plant ecology.',
+  },
+  {
+    name: 'Marine Biology',
+    slug: 'marine-biology',
+    description: 'Trivia on ocean ecosystems, marine organisms, coral reefs, and marine life behavior.',
+  },
+  {
+    name: 'Oceanography & Geography',
+    slug: 'oceanography-geography',
+    description: 'Questions about the physical and chemical properties of oceans, marine geography, currents, and tides.',
+  },
+  {
+    name: 'Nautical History & Exploration',
+    slug: 'nautical-history-exploration',
+    description: 'Trivia on maritime history, famous voyages, explorers, shipwrecks, and navigation.',
+  },
+  {
+    name: 'Environmental Science',
+    slug: 'environmental-science',
+    description: 'Questions on ecology, conservation, climate change, pollution, and sustainable ecosystems.',
+  },
+  {
+    name: 'Food Science',
+    slug: 'food-science',
+    description: 'Trivia on the chemistry, microbiology, nutrition, processing, and preservation of food.',
+  },
+  {
+    name: 'Biomedical Science',
+    slug: 'biomedical-science',
+    description: 'Questions on genetics, immunology, pharmacology, disease mechanisms, and medical technology.',
+  },
+  {
+    name: 'Physical Sciences',
+    slug: 'physical-sciences',
+    description: 'Trivia covering physics, chemistry, geology, and basic physical sciences.',
+  },
+
+  // Mythology & Religion
+  {
+    name: 'Indian Mythology',
+    slug: 'indian-mythology',
+    description: 'Trivia on Hindu, Buddhist, Jain, and other mythology, legends, and epics of India.',
+  },
+  {
+    name: 'European Mythology',
+    slug: 'european-mythology',
+    description: 'Questions on Greek, Roman, Norse, Celtic, and other European mythological traditions.',
+  },
+  {
+    name: 'American Mythology',
+    slug: 'american-mythology',
+    description: 'Trivia on Native American, Mesoamerican, South American, and folklore traditions of the Americas.',
+  },
+  {
+    name: 'African Mythology',
+    slug: 'african-mythology',
+    description: 'Questions on various folklore, deities, and myths from diverse African cultures and regions.',
+  },
+  {
+    name: 'Asian Mythology',
+    slug: 'asian-mythology',
+    description: 'Trivia on Chinese, Japanese, Korean, Southeast Asian, and other regional Asian myths and folklore.',
+  },
+  {
+    name: 'Middle Eastern Mythology',
+    slug: 'middle-eastern-mythology',
+    description: 'Questions on Mesopotamian, Egyptian, Persian, Arabian, and other Middle Eastern myths.',
+  },
+  {
+    name: 'Religions',
+    slug: 'religions',
+    description: 'Trivia on major world religions, their histories, sacred texts, beliefs, and practices.',
+  },
+
+  // General & Personal
+  {
+    name: 'Personal Finance',
+    slug: 'personal-finance',
+    description: 'Questions about budgeting, saving, investing, credit, taxes, and smart money management.',
+  },
+
   // Software & Technology Categories
   {
     name: 'Computer Science & Algorithms',

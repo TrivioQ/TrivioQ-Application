@@ -41,6 +41,10 @@ export interface ExtractionResult {
   answerKeys: ExtractedAnswerKey[];
 }
 
+export interface SummarizationResult {
+  summary: string;
+}
+
 export interface EnhancementResult {
   topic: string;
   categorySlugs: string[];
@@ -89,4 +93,18 @@ export interface AIProvider {
    *   ENHANCEMENT_PROMPT (e.g. with a book-level special instruction prepended).
    */
   enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult>;
+
+  /**
+   * Summarize an image.
+   *
+   * @param promptOverride - Optional full prompt to use instead of the default SUMMARIZE_IMAGE_PROMPT.
+   */
+  summarizeImage(image: ImageInput, promptOverride?: string): Promise<SummarizationResult>;
+
+  /**
+   * Extract trivia questions and answer keys from text.
+   *
+   * @param promptOverride - Optional full prompt to use.
+   */
+  extractFromText(text: string, promptOverride?: string): Promise<ExtractionResult>;
 }

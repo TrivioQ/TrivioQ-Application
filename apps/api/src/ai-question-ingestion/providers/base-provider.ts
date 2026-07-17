@@ -1,6 +1,6 @@
 import { ImageInput } from './ai-provider';
-import { SCOUT_PROMPT, EXTRACTION_PROMPT, ENHANCEMENT_PROMPT } from '../prompts';
-import type { ClassificationResult, EnhancementResult, ExtractionResult } from './ai-provider';
+import { SCOUT_PROMPT, EXTRACTION_PROMPT, ENHANCEMENT_PROMPT, SUMMARIZE_IMAGE_PROMPT, QUIZ_GENERATION_FROM_TEXT_PROMPT } from '../prompts';
+import type { ClassificationResult, EnhancementResult, ExtractionResult, SummarizationResult } from './ai-provider';
 
 export class ApiRateLimitError extends Error {
   constructor(
@@ -42,12 +42,19 @@ export abstract class BaseAIProvider {
   // ---------------------------------------------------------------------------
 
   protected stripMarkdownFences(text: string): string {
-    if (text.startsWith('```json')) {
-      return text.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    // Try to extract content inside ```json ... ``` or ``` ... ```
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      return jsonMatch[1];
     }
-    if (text.startsWith('```')) {
-      return text.replace(/^```\s*/, '').replace(/\s*```$/, '');
+
+    // If no markdown fences are found, try to extract the first { to the last }
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      return text.substring(firstBrace, lastBrace + 1);
     }
+
     return text;
   }
 
@@ -170,5 +177,18 @@ export abstract class BaseAIProvider {
     const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
     const prompt = `${promptOverride ?? ENHANCEMENT_PROMPT}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}`;
     return this.callWithRetry<EnhancementResult>(prompt, [], 'enhanceQuestion', { temperature });
+  }
+
+  async summarizeImage(image: ImageInput, promptOverride?: string): Promise<SummarizationResult> {
+    const tempStr = process.env.INGESTION_SUMMARIZATION_TEMPERATURE;
+    const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
+    return this.callWithRetry<SummarizationResult>(promptOverride ?? SUMMARIZE_IMAGE_PROMPT, [image], 'summarizeImage', { temperature });
+  }
+
+  async extractFromText(text: string, promptOverride?: string): Promise<ExtractionResult> {
+    const tempStr = process.env.INGESTION_EXTRACTION_TEMPERATURE;
+    const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
+    const prompt = `${promptOverride ?? QUIZ_GENERATION_FROM_TEXT_PROMPT}\n\n## Content to use for Generation\n\n${text}`;
+    return this.callWithRetry<ExtractionResult>(prompt, [], 'extractFromText', { temperature });
   }
 }

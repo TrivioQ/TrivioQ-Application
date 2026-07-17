@@ -22,6 +22,8 @@ import type { AIProviderName } from './providers';
 export interface InstructionsJson {
   /** Unique identifier for this book (used as state-file prefix). */
   bookId: string;
+  /** Process type to use for this book (e.g. 'question-extraction'). Defaults to 'question-extraction'. */
+  processType?: string;
   /** Human-readable topic passed to the database row. */
   topic?: string;
   /**
@@ -44,6 +46,10 @@ export interface InstructionsJson {
    * (e.g. "Some pages have inline answers. Do not classify as QUESTIONS_WITH_KEYS.").
    */
   classificationSpecialInstruction?: string;
+  /**
+   * Optional free-text instruction injected into the summarization prompt only.
+   */
+  summarizationSpecialInstruction?: string;
 
   /**
    * Per-phase AI provider overrides for this book.
@@ -62,6 +68,8 @@ export interface InstructionsJson {
     scout?: AIProviderName;
     extraction?: AIProviderName;
     enhancement?: AIProviderName;
+    generation?: AIProviderName;
+    summarization?: AIProviderName;
   };
 }
 
@@ -215,6 +223,7 @@ export async function runIngestion(options?: { reuploadOnly?: boolean }): Promis
     try {
       const orchestrator = new IngestionOrchestrator(instructions.bookId, imagePaths, {
         outputDir: dataDir,
+        processType: instructions.processType ?? 'question-extraction',
         topic: instructions.topic ?? '',
         categorySlugs: instructions.categorySlugs ?? [],
         aiProvider,
@@ -222,6 +231,7 @@ export async function runIngestion(options?: { reuploadOnly?: boolean }): Promis
         extractionSpecialInstruction: instructions.extractionSpecialInstruction,
         enhancementSpecialInstruction: instructions.enhancementSpecialInstruction,
         classificationSpecialInstruction: instructions.classificationSpecialInstruction,
+        summarizationSpecialInstruction: instructions.summarizationSpecialInstruction,
       });
 
       await orchestrator.run(options);

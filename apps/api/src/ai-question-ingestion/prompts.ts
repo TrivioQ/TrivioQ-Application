@@ -131,11 +131,17 @@ Return a JSON object with this exact schema. The examples below show the expecte
   ]
 }`;
 
-export const ENHANCEMENT_PROMPT = `You are a trivia question enhancer. Given a trivia question with its choices (which may already contain Markdown, LaTeX math, or tables), generate a hint, an explanation, an AI quality score, a difficulty level, a topic, and 1-2 category slugs.
+export const ENHANCEMENT_PROMPT = `You are a trivia question enhancer. Given a trivia question with its choices (which may already contain Markdown, LaTeX math, or tables), generate a hint, an explanation, an AI quality score, a difficulty level, a topic, and 1-3 category slugs.
 
 ## CRITICAL — Fact Checking & Anti-Hallucination
 STRICT ANTI-HALLUCINATION RULE: Do not hallucinate or fabricate any facts in your hint or explanation. Stick strictly to verified, factual data.
 Perform a strict fact check on the question and the provided choices. Ensure that the question is factually accurate and the option marked as correct is indeed the true answer. If there are factual errors or the marked answer is wrong, record this in factCheckRationale and set isFactuallyCorrect to false. If everything is accurate, set isFactuallyCorrect to true.
+
+## CRITICAL — AI Quality Score & Standalone Requirement
+The "aiQualityScore" should reflect the overall quality of the trivia question (0-100).
+- **Penalty Rule:** Give a score of LESS THAN 50 to any question that references "the text", "the page", "the section", or relies on the user having read the specific source material. Trivia questions must be 100% standalone and answerable without the book's context.
+- Excellent, standalone factual questions should score 75-100.
+- Questions with poor phrasing, typos, or that are not standalone should score below 50.
 
 ## CRITICAL — Markdown compatibility rules
 Both "hint" and "explanation" fields MUST be written in **GitHub-Flavored Markdown (GFM)**.
@@ -177,6 +183,56 @@ Return a JSON object with this exact schema:
   "difficulty": "EASY|MEDIUM|HARD",
   "isFactuallyCorrect": true,
   "factCheckRationale": "Reasoning if factually incorrect, otherwise null"
+}`;
+
+export const SUMMARIZE_IMAGE_PROMPT = `You are an expert encyclopedic summarizer. Analyze the provided page image and extract all textual and visual content into a highly detailed, comprehensive text summary.
+
+## CRITICAL RULES
+- Extract and summarize all key facts, statistics, scientific names, behavioral traits, habitats, classification details, and any other educational information.
+- Describe any relevant diagrams, maps, or pictures that contain factual information in detail.
+- Present the information as a flat, exhaustive bulleted list of standalone facts.
+- Do NOT hallucinate information. Only extract information visible on the provided page.
+- Do NOT generate questions; simply summarize the facts.
+
+Your entire response MUST be a raw, valid JSON object. Do NOT include markdown formatting, markdown code blocks (e.g., \`\`\`json), or any conversational text before or after the JSON.
+Return a JSON object with this exact schema:
+{
+  "summary": "Detailed summary text here..."
+}`;
+
+export const QUIZ_GENERATION_FROM_TEXT_PROMPT = `You are an expert quiz master. Your task is to generate high-quality multiple-choice trivia questions based entirely on the provided summary text.
+
+## CRITICAL RULES
+- Output a maximum of 10 questions depending on content density.
+- Output a minimum of 0 questions if the summary does not contain valid information for generating questions.
+- Focus on key educational facts: scientific names, unique characteristics, habitats, specific behaviors, visual features described in the text, or statistics.
+- Ensure questions are standalone and make sense without context (e.g., instead of "What size does this animal grow to?", use "What size does the Goliath Beetle grow to?").
+- NEVER refer to "the text", "the summary", or "the passage" in your questions. The end-user will not see the summary text. Ask direct factual questions instead (e.g., instead of "According to the text, what is...?", use "What is...?").
+- Formulate the questions in such a way that the user understands them easily — neither too technical nor too layman.
+- Create questions with varying difficulty levels (easy, medium, hard).
+- DO NOT fabricate facts. Every question MUST be a valid question backed by the factual content in the provided summary.
+- Provide exactly 4 choices per question. Make the incorrect options (distractors) plausible but definitively wrong based on the summary content.
+- Mark exactly one correct option with isCorrect: true. All other options must be isCorrect: false.
+- All "text" fields (question and options) must be in GitHub-Flavored Markdown (GFM).
+- Your entire response MUST be a raw, valid JSON object. Do NOT include markdown formatting, markdown code blocks, or any conversational text.
+
+Return a JSON object with this exact schema:
+{
+  "questions": [
+    {
+      "id": "gen_p<pageNumber>_<seq>",
+      "text": "Question text here (Markdown)",
+      "source_fact": "The exact fact from the summary that this question is based on",
+      "choices": [
+        { "text": "Option A (Markdown)", "isCorrect": false },
+        { "text": "Option B (Markdown)", "isCorrect": true },
+        { "text": "Option C (Markdown)", "isCorrect": false },
+        { "text": "Option D (Markdown)", "isCorrect": false }
+      ],
+      "pageNumber": <pageNumber>,
+      "originalQuestionNumber": null
+    }
+  ]
 }`;
 
 // ── Prompt builders ───────────────────────────────────────────────────────────
@@ -229,6 +285,37 @@ export function buildEnhancementPrompt(categories: { slug: string; name: string 
 
   if (!specialInstruction) return basePrompt;
   return `## Special instruction for this book\n${specialInstruction.trim()}\n\n${basePrompt}`;
+}
+
+/**
+ * Constructs the prompt for summarizing an image.
+ */
+export function buildSummarizeImagePrompt(specialInstruction?: string): string {
+  let prompt = '';
+
+  if (specialInstruction) {
+    prompt += `## Special instruction for this book\n${specialInstruction.trim()}\n\n`;
+  }
+
+  return prompt + SUMMARIZE_IMAGE_PROMPT;
+}
+
+/**
+ * Constructs the prompt for generating quiz questions from text.
+ */
+export function buildQuizGenerationFromTextPrompt(specialInstruction?: string, pageNumber?: number): string {
+  let prompt = '';
+
+  if (pageNumber !== undefined) {
+    prompt += '## Page Number\n';
+    prompt += `The generated questions correspond to page ${pageNumber}. You MUST use this page number when generating the "id" and "pageNumber" fields for the generated questions.\n\n`;
+  }
+
+  if (specialInstruction) {
+    prompt += `## Special instruction for this book\n${specialInstruction.trim()}\n\n`;
+  }
+
+  return prompt + QUIZ_GENERATION_FROM_TEXT_PROMPT;
 }
 
 // ── Validation Prompt ─────────────────────────────────────────────────────────
