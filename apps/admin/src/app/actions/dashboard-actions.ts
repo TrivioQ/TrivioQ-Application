@@ -1,6 +1,6 @@
 'use server';
 
-import { PrismaClient } from '@trivioq/database';
+import { PrismaClient, AgeRating } from '@trivioq/database';
 
 const prisma = new PrismaClient();
 
@@ -108,57 +108,31 @@ export async function getCategoryPopularity(): Promise<CategoryPopularity[]> {
 }
 
 export type DifficultyBreakdown = { level: 'EASY' | 'MEDIUM' | 'HARD'; count: number };
-export type CategoryDifficultyBreakdown = {
-  id: string;
-  name: string;
-  easy: number;
-  medium: number;
-  hard: number;
-  total: number;
-};
 
 export type QuestionStats = {
   totalQuestions: number;
-  byCategory: { id: string; name: string; count: number }[];
   byDifficulty: DifficultyBreakdown[];
-  byCategoryAndDifficulty: CategoryDifficultyBreakdown[];
+  categories: { id: string; name: string }[];
 };
 
-export async function getQuestionStats(): Promise<QuestionStats> {
-  const [totalQuestions, categories, difficultyGroups, categoryDifficultyGroups] = await Promise.all([
-    prisma.question.count(),
+export async function getFilteredQuestionStats(filters: { categoryIds?: string[]; ageRatings?: AgeRating[] } = {}) {
+  const where: any = {};
+  if (filters.categoryIds && filters.categoryIds.length > 0) {
+    where.categories = { some: { id: { in: filters.categoryIds } } };
+  }
+  if (filters.ageRatings && filters.ageRatings.length > 0) {
+    where.ageRating = { in: filters.ageRatings };
+  }
 
-    prisma.category.findMany({
-      select: {
-        id: true,
-        name: true,
-        _count: { select: { questions: true } },
-      },
-      orderBy: { name: 'asc' },
-    }),
-
-    // Count questions per difficulty level (no categoryId scalar — this is fine)
+  const [totalQuestions, difficultyGroups] = await Promise.all([
+    prisma.question.count({ where }),
     prisma.question.groupBy({
       by: ['difficultyLevel'],
+      where,
       _count: true,
     }),
-
-    // Count questions per (category, difficulty) via raw SQL —
-    // Question ↔ Category is many-to-many; Prisma creates the implicit join table
-    // "_CategoryToQuestion" with columns "A" (categoryId) and "B" (questionId).
-    prisma.$queryRaw<{ categoryId: string; difficulty: string; count: bigint }[]>`
-      SELECT
-        j."A"                    AS "categoryId",
-        q."difficultyLevel"      AS difficulty,
-        COUNT(*)                 AS count
-      FROM "_CategoryToQuestion" j
-      JOIN "Question" q ON q.id = j."B"
-      GROUP BY j."A", q."difficultyLevel"
-      ORDER BY j."A", q."difficultyLevel"
-    `,
   ]);
 
-  // Build byDifficulty in canonical order
   const difficultyMap = new Map(difficultyGroups.map((g) => [g.difficultyLevel, g._count]));
   const byDifficulty: DifficultyBreakdown[] = [
     { level: 'EASY',   count: difficultyMap.get('EASY')   ?? 0 },
@@ -166,32 +140,18 @@ export async function getQuestionStats(): Promise<QuestionStats> {
     { level: 'HARD',   count: difficultyMap.get('HARD')   ?? 0 },
   ];
 
-  // Build byCategoryAndDifficulty — merge category names in
-  const categoryNameMap = new Map(categories.map((c) => [c.id, c.name]));
-  const cdMap = new Map<string, CategoryDifficultyBreakdown>();
-  for (const row of categoryDifficultyGroups) {
-    const name = categoryNameMap.get(row.categoryId) ?? row.categoryId;
-    if (!cdMap.has(row.categoryId)) {
-      cdMap.set(row.categoryId, { id: row.categoryId, name, easy: 0, medium: 0, hard: 0, total: 0 });
-    }
-    const entry = cdMap.get(row.categoryId)!;
-    const n = Number(row.count);
-    if (row.difficulty === 'EASY')   entry.easy   = n;
-    else if (row.difficulty === 'MEDIUM') entry.medium = n;
-    else if (row.difficulty === 'HARD')   entry.hard   = n;
-    entry.total += n;
-  }
-  const byCategoryAndDifficulty = [...cdMap.values()].sort((a, b) => a.name.localeCompare(b.name));
+  return { totalQuestions, byDifficulty };
+}
+
+export async function getQuestionStats(): Promise<QuestionStats> {
+  const [baseStats, categories] = await Promise.all([
+    getFilteredQuestionStats({}),
+    prisma.category.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } }),
+  ]);
 
   return {
-    totalQuestions,
-    byCategory: categories.map((c) => ({
-      id: c.id,
-      name: c.name,
-      count: c._count.questions,
-    })),
-    byDifficulty,
-    byCategoryAndDifficulty,
+    ...baseStats,
+    categories,
   };
 }
 
