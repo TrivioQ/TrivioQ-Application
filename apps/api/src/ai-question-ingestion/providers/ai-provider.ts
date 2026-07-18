@@ -42,7 +42,7 @@ export interface ExtractionResult {
 }
 
 export interface SummarizationResult {
-  summary: string;
+  summary: string[];
 }
 
 export interface EnhancementResult {

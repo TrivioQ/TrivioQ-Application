@@ -10,16 +10,18 @@
 export { GoogleProvider } from './google-provider';
 export { NvidiaProvider } from './nvidia-provider';
 export { DeepseekProvider } from './deepseek-provider';
+export { LocalProvider } from './local-provider';
 export type { AIProvider, ClassificationResult, EnhancementResult, ExtractionResult, ExtractedAnswerKey, ExtractedChoice, ExtractedQuestion, ImageInput } from './ai-provider';
 
 import type { AIProvider } from './ai-provider';
 import { GoogleProvider } from './google-provider';
 import { NvidiaProvider } from './nvidia-provider';
 import { DeepseekProvider } from './deepseek-provider';
+import { LocalProvider } from './local-provider';
 
 // Union of all supported provider names.
 // Add your new provider name here when extending.
-export type AIProviderName = 'google' | 'nvidia' | 'deepseek';
+export type AIProviderName = 'google' | 'nvidia' | 'deepseek' | 'local';
 
 /**
  * Instantiates the requested AI provider.
@@ -33,6 +35,8 @@ export function createProvider(name: AIProviderName = 'google', model?: string):
       return new DeepseekProvider(model);
     case 'nvidia':
       return new NvidiaProvider(model);
+    case 'local':
+      return new LocalProvider(model);
     case 'google':
     default:
       return new GoogleProvider(model);

@@ -131,17 +131,35 @@ Return a JSON object with this exact schema. The examples below show the expecte
   ]
 }`;
 
-export const ENHANCEMENT_PROMPT = `You are a trivia question enhancer. Given a trivia question with its choices (which may already contain Markdown, LaTeX math, or tables), generate a hint, an explanation, an AI quality score, a difficulty level, a topic, and 1-3 category slugs.
+export const ENHANCEMENT_PROMPT = `You are a trivia question quality reviewer and enhancer. Given a trivia question with its choices, generate a hint, an explanation, an AI quality score, a difficulty level, a topic, and 1-3 category slugs.
 
 ## CRITICAL — Fact Checking & Anti-Hallucination
 STRICT ANTI-HALLUCINATION RULE: Do not hallucinate or fabricate any facts in your hint or explanation. Stick strictly to verified, factual data.
-Perform a strict fact check on the question and the provided choices. Ensure that the question is factually accurate and the option marked as correct is indeed the true answer. If there are factual errors or the marked answer is wrong, record this in factCheckRationale and set isFactuallyCorrect to false. If everything is accurate, set isFactuallyCorrect to true.
+Perform a strict fact check on the question and the provided choices. Verify that the question is factually accurate AND that the option marked as correct is unambiguously the true answer.
+- If everything is accurate, set \`isFactuallyCorrect: true\` and write a brief confidence statement in \`factCheckRationale\` (e.g., "Confirmed: the cheetah's top speed of ~120 km/h is well documented.").
+- If there are factual errors or the marked answer is wrong, set \`isFactuallyCorrect: false\` and explain the error in \`factCheckRationale\`.
+- \`factCheckRationale\` must NEVER be null. Always provide a short statement regardless of outcome.
 
-## CRITICAL — AI Quality Score & Standalone Requirement
-The "aiQualityScore" should reflect the overall quality of the trivia question (0-100).
-- **Penalty Rule:** Give a score of LESS THAN 50 to any question that references "the text", "the page", "the section", or relies on the user having read the specific source material. Trivia questions must be 100% standalone and answerable without the book's context.
-- Excellent, standalone factual questions should score 75-100.
-- Questions with poor phrasing, typos, or that are not standalone should score below 50.
+## CRITICAL — AI Quality Score
+The "aiQualityScore" (0–100) reflects the standalone educational quality of the trivia question. Apply the full rubric below:
+
+**90–100 (Excellent):** Specific, standalone, factually correct question with a surprising or interesting fact. Well-crafted distractors that are plausible but clearly wrong. No ambiguity.
+**75–89 (Good):** Solid standalone question. Fact is accurate. Distractors are reasonable. Minor phrasing issues or slightly generic topic.
+**50–74 (Average):** The question works but has one of: vague distractors, slightly generic phrasing, or a fact that is too obvious. Still acceptable for a trivia app.
+**25–49 (Poor):** Significant issues — question is not fully standalone, references "the text/page/summary", has lazy distractors (e.g., "None of the above"), or fact is hard to verify.
+**0–24 (Reject):** Fundamentally broken — factually wrong, completely context-dependent, or the correct answer is indeterminate.
+
+**Additional deductions:**
+- Deduct 20 points if the question references "the text", "the page", "the section", "the image", or relies on source material context.
+- Deduct 10 points if all distractors are obviously unrelated to the correct answer's category or unit (e.g., mixing apples and oranges).
+- Deduct 10 points if the hint gives away the answer or names the correct answer directly.
+
+## CRITICAL — Hint Quality
+The hint must be a genuinely helpful nudge without giving away the answer:
+- Do NOT name, describe, or closely paraphrase the correct answer option.
+- Do NOT hint at the answer's category too specifically if it makes the correct answer trivially obvious.
+- Do NOT repeat words from the question stem that directly point to the answer.
+- Keep it to 1–2 sentences. It should narrow down the choices without eliminating all wrong answers.
 
 ## CRITICAL — Markdown compatibility rules
 Both "hint" and "explanation" fields MUST be written in **GitHub-Flavored Markdown (GFM)**.
@@ -153,7 +171,7 @@ Follow every rule below:
 
 1. **Mathematical formulas** — Always write math in standard LaTeX notation:
    Inline: \`$E = mc^2$\`
-   Block:  \`$$\frac{a}{b}$$\`
+   Block:  \`$$\\frac{a}{b}$$\`
 2. **Tables** — use GFM pipe-table syntax if comparisons or data need to be displayed; never use HTML \`<table>\` tags.
 3. **Code / data values** — wrap in backticks or fenced code blocks.
 4. **Bold / italic** — \`**bold**\` and \`*italic*\` only; no HTML tags.
@@ -162,58 +180,65 @@ Follow every rule below:
 7. Keep the explanation concise (2–3 sentences) and accurate.
 
 ## Difficulty classification
-Assess the question and assign a difficulty level with keeping the average user in mind:
-- "EASY"   — factual recall, widely known, requires no reasoning
-- "MEDIUM" — requires some domain knowledge or light reasoning
-- "HARD"   — requires detailed knowledge, deeper reasoning, or is tricky
+Assess the question independently and assign a difficulty level with the average general-knowledge quiz player in mind:
+- "EASY"   — factual recall, widely known, requires no reasoning (e.g., "What is the fastest land animal?")
+- "MEDIUM" — requires some domain knowledge or light reasoning (e.g., "What is the approximate top speed of a cheetah?")
+- "HARD"   — requires detailed, specific knowledge or is tricky (e.g., "Over what distance can a cheetah sustain its maximum sprint speed?")
 
 ## Topic and Categories
-You must assign a concise \`topic\` (e.g. "World War 2", "Javascript Fundamentals", "Quantum Physics") that best describes the question.
-You must also assign an array of \`categorySlugs\` consisting of minimum 1 and maximum 2 slugs chosen from the [AVAILABLE CATEGORIES] list provided below. Choose the most relevant ones.
+- \`topic\`: A **specific** subject string describing the precise concept or entity the question is about (e.g., "Cheetah Locomotion", "Vertebrate Classification", "Earth's Ecosystems"). Do NOT use generic topics like "Animals" or "Science" — those belong in categories.
+- \`categorySlugs\`: 1–2 slugs chosen from the [AVAILABLE CATEGORIES] list. These are the broad domain(s) the question belongs to. Choose the most relevant ones.
 
 [AVAILABLE_CATEGORIES_PLACEHOLDER]
 
 Return a JSON object with this exact schema:
 {
-  "topic": "A short, concise topic string",
+  "topic": "A specific subject string (not a generic domain label)",
   "categorySlugs": ["slug1", "slug2"],
-  "hint": "A short, helpful clue without giving away the answer (compatible Markdown)",
+  "hint": "A helpful 1-2 sentence clue that does not reveal the answer",
   "explanation": "A concise 2-3 sentence explanation of why the correct answer is right (compatible Markdown)",
   "aiQualityScore": 75,
   "difficulty": "EASY|MEDIUM|HARD",
   "isFactuallyCorrect": true,
-  "factCheckRationale": "Reasoning if factually incorrect, otherwise null"
+  "factCheckRationale": "Always populated — brief confirmation if correct, error description if not"
 }`;
 
-export const SUMMARIZE_IMAGE_PROMPT = `You are an expert encyclopedic summarizer. Analyze the provided page image and extract all textual and visual content into a highly detailed, comprehensive text summary.
+export const SUMMARIZE_IMAGE_PROMPT = `You are an expert encyclopedic fact extractor. Your task is to read the provided page image and extract every discrete, standalone educational fact it contains.
 
 ## CRITICAL RULES
-- Extract and summarize all key facts, statistics, scientific names, behavioral traits, habitats, classification details, and any other educational information.
-- Describe any relevant diagrams, maps, or pictures that contain factual information in detail.
-- Present the information as a flat, exhaustive bulleted list of standalone facts.
-- Do NOT hallucinate information. Only extract information visible on the provided page.
-- Do NOT generate questions; simply summarize the facts.
+- Each bullet must be a self-contained, standalone factual statement (e.g., "The cheetah can reach speeds of up to 120 km/h" not "The image shows a cheetah").
+- Prioritize specific, precise, and quiz-worthy facts: scientific names, numerical statistics, record-breakers, unique adaptations, life-cycle details, classifications, habitats, and behaviors.
+- Explicitly extract ALL numeric data: counts, sizes, speeds, weights, temperatures, percentages, depths, dates, and durations.
+- Describe factual content from diagrams, charts, maps, or infographics (e.g., "The diagram shows that 9.5% of Earth's land surface is savanna"). Do NOT describe the image's visual layout or style.
+- SKIP pages that are purely navigational (tables of contents, indexes, glossaries, covers) — return an empty array for those.
+- Do NOT write meta-observations like "The image is a page from..." or "The page features...". Output ONLY content-level facts.
+- Do NOT hallucinate information. Only extract facts explicitly visible on the page.
+- Do NOT generate questions.
 
 Your entire response MUST be a raw, valid JSON object. Do NOT include markdown formatting, markdown code blocks (e.g., \`\`\`json), or any conversational text before or after the JSON.
 Return a JSON object with this exact schema:
 {
-  "summary": "Detailed summary text here..."
+  "summary": [
+    "Fact 1 (a specific, standalone educational fact)",
+    "Fact 2 (a specific, standalone educational fact)"
+  ]
 }`;
 
-export const QUIZ_GENERATION_FROM_TEXT_PROMPT = `You are an expert quiz master. Your task is to generate high-quality multiple-choice trivia questions based entirely on the provided summary text.
+export const QUIZ_GENERATION_FROM_TEXT_PROMPT = `You are an expert trivia question writer. Your task is to generate high-quality, engaging multiple-choice trivia questions based entirely on the provided facts.
 
 ## CRITICAL RULES
-- Output a maximum of 10 questions depending on content density.
-- Output a minimum of 0 questions if the summary does not contain valid information for generating questions.
-- Focus on key educational facts: scientific names, unique characteristics, habitats, specific behaviors, visual features described in the text, or statistics.
-- Ensure questions are standalone and make sense without context (e.g., instead of "What size does this animal grow to?", use "What size does the Goliath Beetle grow to?").
-- NEVER refer to "the text", "the summary", or "the passage" in your questions. The end-user will not see the summary text. Ask direct factual questions instead (e.g., instead of "According to the text, what is...?", use "What is...?").
-- Formulate the questions in such a way that the user understands them easily — neither too technical nor too layman.
-- Create questions with varying difficulty levels (easy, medium, hard).
-- DO NOT fabricate facts. Every question MUST be a valid question backed by the factual content in the provided summary.
-- Provide exactly 4 choices per question. Make the incorrect options (distractors) plausible but definitively wrong based on the summary content.
+- Output a maximum of the top 10 highest-quality questions. Prioritize facts that are specific, surprising, and quiz-worthy. Generate fewer than 10 if there are not enough distinct, high-quality facts.
+- Output an empty questions array if the facts do not contain valid trivia material (e.g., the page was a table of contents or index).
+- Prefer facts with specific, verifiable details: scientific names, numerical statistics, record-breakers, unique adaptations, and biological classifications make for the best trivia.
+- Each question MUST be derived from a different source fact. Do NOT write two questions about the same fact or topic.
+- Ensure every question is 100% self-contained. It must make complete sense with no surrounding context (e.g., instead of "What size does this animal grow to?", use "What size does the Goliath Beetle grow to?").
+- NEVER refer to "the text", "the summary", "the passage", or "the image" in questions. Ask direct, encyclopedic factual questions.
+- Write questions in plain, conversational English. Do NOT use markdown formatting (no bold, italics, backticks, or bullet points) in question or answer text.
+- Enforce a balanced difficulty spread across generated questions: approximately one-third EASY, one-third MEDIUM, and one-third HARD.
+- DO NOT fabricate facts. Every question MUST be directly and unambiguously supported by the provided facts.
+- Provide exactly 4 answer choices per question. Distractors must be plausible (same category/unit as the correct answer) but clearly wrong based on the facts.
+- Randomize the position of the correct answer — do not always place it in the same slot.
 - Mark exactly one correct option with isCorrect: true. All other options must be isCorrect: false.
-- All "text" fields (question and options) must be in GitHub-Flavored Markdown (GFM).
 - Your entire response MUST be a raw, valid JSON object. Do NOT include markdown formatting, markdown code blocks, or any conversational text.
 
 Return a JSON object with this exact schema:
@@ -221,15 +246,16 @@ Return a JSON object with this exact schema:
   "questions": [
     {
       "id": "gen_p<pageNumber>_<seq>",
-      "text": "Question text here (Markdown)",
+      "text": "Question text here (plain text, no markdown)",
       "source_fact": "The exact fact from the summary that this question is based on",
       "choices": [
-        { "text": "Option A (Markdown)", "isCorrect": false },
-        { "text": "Option B (Markdown)", "isCorrect": true },
-        { "text": "Option C (Markdown)", "isCorrect": false },
-        { "text": "Option D (Markdown)", "isCorrect": false }
+        { "text": "Option A (plain text)", "isCorrect": false },
+        { "text": "Option B (plain text)", "isCorrect": true },
+        { "text": "Option C (plain text)", "isCorrect": false },
+        { "text": "Option D (plain text)", "isCorrect": false }
       ],
       "pageNumber": <pageNumber>,
+      "difficulty": "EASY" | "MEDIUM" | "HARD",
       "originalQuestionNumber": null
     }
   ]
