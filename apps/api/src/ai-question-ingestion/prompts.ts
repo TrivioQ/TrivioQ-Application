@@ -187,7 +187,7 @@ Assess the question independently and assign a difficulty level with the average
 
 ## Topic and Categories
 - \`topic\`: A **specific** subject string describing the precise concept or entity the question is about (e.g., "Cheetah Locomotion", "Vertebrate Classification", "Earth's Ecosystems"). Do NOT use generic topics like "Animals" or "Science" — those belong in categories.
-- \`categorySlugs\`: 1–2 slugs chosen from the [AVAILABLE CATEGORIES] list. These are the broad domain(s) the question belongs to. Choose the most relevant ones.
+- \`categorySlugs\`: 1–3 slugs chosen ONLY from the [AVAILABLE CATEGORIES] list below. You MUST NOT invent, hallucinate, or use any category slugs that are not exactly as they appear in the provided list. Choose the most relevant ones.
 
 ## Age Rating
 - \`ageRating\`: Classify the question as "ALL" (safe for 13+), "TEEN" (16+ due to mild mature themes), or "MATURE" (18+ only). Default to "ALL" unless the content genuinely warrants a higher rating.
