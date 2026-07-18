@@ -373,13 +373,19 @@ export interface ValidationResult {
     passed: boolean;
     rationale: string | null;
   };
-  /** True only when ALL three dimensions pass. */
+  ageRating: {
+    /** True if the question is appropriate for the assigned age rating. */
+    passed: boolean;
+    rationale: string | null;
+  };
+  /** True only when ALL four dimensions pass. */
   overallPassed: boolean;
   /** One-sentence summary written to aiFeedback in the DB. */
   summary: string;
 }
 
-export const VALIDATION_PROMPT = `You are a strict trivia question validator. Evaluate the given trivia question and its choices across THREE independent dimensions and return a structured JSON result.
+export function buildValidationPrompt(targetAgeRating: string): string {
+  return `You are a strict trivia question validator. Evaluate the given trivia question and its choices across FOUR independent dimensions and return a structured JSON result.
 
 ## Dimension 1 — Fact Check
 Verify that:
@@ -401,6 +407,13 @@ Verify that:
 - All choices are meaningfully different from each other.
 Set completeness.passed = false if ANY of the above fail.
 
+## Dimension 4 — Age Rating (Target: ${targetAgeRating})
+Verify that:
+- The content of the question and its choices is appropriate for the target age rating (${targetAgeRating}).
+- The difficulty and vocabulary are suitable for the target age group.
+- There is no inappropriate, mature, or offensive content that violates the age guidelines.
+Set ageRating.passed = false if ANY of the above fail.
+
 ## CRITICAL — Anti-Hallucination Rules
 - Do NOT guess or fabricate facts. If you are unsure, set the dimension to passed = false and explain.
 - Stick to verifiable, well-known facts only.
@@ -411,8 +424,10 @@ Return ONLY a JSON object matching this exact schema. Do not include markdown, e
   "factCheck":    { "passed": true,  "rationale": null },
   "validity":     { "passed": true,  "rationale": null },
   "completeness": { "passed": true,  "rationale": null },
+  "ageRating":    { "passed": true,  "rationale": null },
   "overallPassed": true,
   "summary": "One-sentence summary of the validation outcome."
 }
 
-Set overallPassed = true ONLY when ALL three dimensions pass. The "summary" field must be a single sentence suitable for display in an admin portal.`;
+Set overallPassed = true ONLY when ALL four dimensions pass. The "summary" field must be a single sentence suitable for display in an admin portal.`;
+}

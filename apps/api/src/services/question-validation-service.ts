@@ -17,7 +17,7 @@
 
 import { prisma } from '@trivioq/database';
 import { createProvider, type AIProviderName } from '../ai-question-ingestion/providers';
-import { VALIDATION_PROMPT, type ValidationResult } from '../ai-question-ingestion/prompts';
+import { buildValidationPrompt, type ValidationResult } from '../ai-question-ingestion/prompts';
 import { reportError } from '../utils/error-reporter';
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -71,7 +71,7 @@ export async function runQuestionValidation(): Promise<void> {
       // Call the AI provider. enhanceQuestion() accepts a promptOverride and appends
       // the question + choices automatically. We cast the raw JSON response to
       // ValidationResult because the prompt instructs a different schema.
-      const rawResult = await provider.enhanceQuestion(question.suggestedText, choices, VALIDATION_PROMPT);
+      const rawResult = await provider.enhanceQuestion(question.suggestedText, choices, buildValidationPrompt(question.ageRating));
       const result = rawResult as unknown as ValidationResult;
 
       if (result.overallPassed) {
