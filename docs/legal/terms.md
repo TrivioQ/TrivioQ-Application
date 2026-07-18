@@ -16,7 +16,7 @@ For questions about these Terms, contact us at **legal@enatostech.com**.
 
 ## 2. Eligibility
 
-You must be at least **8 years of age** to use TrivioQ. If you are under 18, you represent that you have your parent or guardian's permission. We do not knowingly collect personal data from children under 8. If we become aware that a user is under 8, we will immediately terminate that account and delete associated data.
+You must be at least **13 years of age** to use TrivioQ. If you are under 18, you represent that you have your parent or guardian's permission. We do not knowingly collect personal data from children under 13. If we become aware that a user is under 13, we will immediately terminate that account and delete associated data.
 
 By using TrivioQ, you represent and warrant that you meet the eligibility requirements above.
 

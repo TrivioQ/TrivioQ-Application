@@ -174,7 +174,7 @@
     "usernameLabel": "Username",
     "usernamePlaceholder": "letters, numbers, underscores, periods",
     "dateOfBirthLabel": "Date of Birth",
-    "dateOfBirthHint": "Format: YYYY-MM-DD — you must be at least 8 years old",
+    "dateOfBirthHint": "Format: YYYY-MM-DD — you must be at least 13 years old",
     "referralCodeLabel": "Referral Code",
     "referralCodePlaceholder": "Referral code (optional)",
     "createButton": "Create Account",
@@ -182,7 +182,7 @@
     "signInLink": "Sign In",
     "signupMissingFields": "Please fill in all required fields.",
     "invalidDateFormat": "Please enter your date of birth in YYYY-MM-DD format.",
-    "ageTooYoung": "You must be at least 8 years old to create an account.",
+    "ageTooYoung": "You must be at least 13 years old to create an account.",
     "signupFailed": "Sign-up failed. Please try again."
   }
 }

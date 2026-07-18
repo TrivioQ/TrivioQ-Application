@@ -41,7 +41,7 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
     }
 
     const minAgeDate = new Date();
-    minAgeDate.setFullYear(minAgeDate.getFullYear() - 8);
+    minAgeDate.setFullYear(minAgeDate.getFullYear() - 13);
     if (dob > minAgeDate) {
       toast({ message: t('auth.ageTooYoung'), type: 'error' });
       return;

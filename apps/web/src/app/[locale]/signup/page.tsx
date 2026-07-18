@@ -103,7 +103,7 @@ export default function SignupPage() {
               <label className="sr-only" htmlFor="dateOfBirth">
                 {t('dateOfBirthLabel')}
               </label>
-              <input id="dateOfBirth" type="date" required max={new Date(new Date().setFullYear(new Date().getFullYear() - 8)).toISOString().split('T')[0]} className={inputClass} placeholder={t('dateOfBirthLabel')} value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} disabled={isPending} />
+              <input id="dateOfBirth" type="date" required max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]} className={inputClass} placeholder={t('dateOfBirthLabel')} value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} disabled={isPending} />
             </div>
 
             {/* Referral Code (optional) */}

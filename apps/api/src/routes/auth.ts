@@ -84,9 +84,9 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
         return res.status(400).json({ error: 'Invalid date of birth.' });
       }
 
-      const minAgeDate = new Date(now.getFullYear() - 8, now.getMonth(), now.getDate());
+      const minAgeDate = new Date(now.getFullYear() - 13, now.getMonth(), now.getDate());
       if (parsedDob > minAgeDate) {
-        return res.status(400).json({ error: 'You must be at least 8 years old to create an account.' });
+        return res.status(400).json({ error: 'You must be at least 13 years old to create an account.' });
       }
       // Set the string natively for DB insertion
       dob = requestedDob;
