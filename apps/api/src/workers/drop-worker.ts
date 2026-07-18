@@ -119,10 +119,14 @@ const dropWorker = new Worker<DropsQueuePayload>(
     if (user.dateOfBirth) {
       const dob = new Date(user.dateOfBirth);
       if (!isNaN(dob.getTime())) {
-        const ageDifMs = Date.now() - dob.getTime();
-        const ageDate = new Date(ageDifMs); 
-        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-        
+        // Precise age calculation: subtract one year if the birthday hasn't
+        // occurred yet this calendar year, avoiding the off-by-one error that
+        // the epoch-subtraction trick produces on boundary dates.
+        const today = new Date();
+        let age = today.getUTCFullYear() - dob.getUTCFullYear();
+        const hasBirthdayPassed = today.getUTCMonth() > dob.getUTCMonth() || (today.getUTCMonth() === dob.getUTCMonth() && today.getUTCDate() >= dob.getUTCDate());
+        if (!hasBirthdayPassed) age--;
+
         if (age >= 18) {
           allowedRatings = ['ALL', 'TEEN', 'MATURE'];
         } else if (age >= 16) {

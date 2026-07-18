@@ -96,6 +96,16 @@ const categories = [
 
   // Science, Nature & Space
   {
+    name: 'Animals & Wildlife',
+    slug: 'animals-wildlife',
+    description: 'Trivia on zoology, animal behavior, habitats, terrestrial wildlife, birds, and insects.',
+  },
+  {
+    name: 'Dinosaurs & Prehistoric Life',
+    slug: 'dinosaurs-prehistoric-life',
+    description: 'Questions about dinosaurs, paleontology, prehistoric eras, and extinct species.',
+  },
+  {
     name: 'Space & Astronomy',
     slug: 'space-astronomy',
     description: 'Trivia on astronomy, planets, stars, galaxies, cosmology, and space exploration.',
@@ -134,6 +144,16 @@ const categories = [
     name: 'Physical Sciences',
     slug: 'physical-sciences',
     description: 'Trivia covering physics, chemistry, basic geology, and physical science principles.',
+  },
+  {
+    name: 'Inventions & Discoveries',
+    slug: 'inventions-discoveries',
+    description: 'Questions on the history of science, famous inventors, groundbreaking discoveries, and patents.',
+  },
+  {
+    name: 'Mathematics & Logic',
+    slug: 'mathematics-logic',
+    description: 'Trivia on mathematical concepts, famous mathematicians, probability, geometry, and logic puzzles.',
   },
   {
     name: 'General Science & Tech',

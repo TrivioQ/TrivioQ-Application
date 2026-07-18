@@ -190,7 +190,14 @@ Assess the question independently and assign a difficulty level with the average
 - \`categorySlugs\`: 1–3 slugs chosen ONLY from the [AVAILABLE CATEGORIES] list below. You MUST NOT invent, hallucinate, or use any category slugs that are not exactly as they appear in the provided list. Choose the most relevant ones.
 
 ## Age Rating
-- \`ageRating\`: Classify the question as "ALL" (safe for 13+), "TEEN" (16+ due to mild mature themes), or "MATURE" (18+ only). Default to "ALL" unless the content genuinely warrants a higher rating.
+Classify the question into exactly one of the three tiers below. Default to "ALL" unless the content clearly meets a higher tier's criteria.
+
+- **"ALL"** (default) — educational, factual, or general-knowledge content safe for any age (13+).
+  Examples: animal biology, geography, history of art, space science, sports records.
+- **"TEEN"** — questions that involve mild mature themes appropriate for ages 16+ but not requiring adult classification.
+  Examples: questions about alcohol/drug history in a historical/scientific context (e.g., "In which year was Prohibition enacted in the US?"), mild wartime violence (e.g., "How many soldiers died in the Battle of the Somme?"), basic human reproduction or anatomy in an educational setting.
+- **"MATURE"** — questions explicitly about adult-only content (18+). Use this tier sparingly and only when the content is unambiguously adult.
+  Examples: explicit drug use culture, graphic descriptions of violence, adult sexual content or practices.
 
 [AVAILABLE_CATEGORIES_PLACEHOLDER]
 

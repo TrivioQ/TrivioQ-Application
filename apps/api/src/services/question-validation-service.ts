@@ -85,15 +85,23 @@ export async function runQuestionValidation(): Promise<void> {
         passed++;
         console.log(`[question-validation] ✓ APPROVED — id: ${question.id} | ${result.summary}`);
       } else {
+        // Build a combined feedback string that includes the ageRating rationale
+        // when the dimension failed, so human reviewers understand the rejection reason.
+        const ageRatingFailed = !result.ageRating?.passed && result.ageRating?.rationale;
+        const feedback = ageRatingFailed ? `${result.summary} [Age Rating: ${result.ageRating.rationale}]` : result.summary;
+
         await prisma.pendingQuestion.update({
           where: { id: question.id },
           data: {
             status: 'AI-REJECTED',
-            aiFeedback: result.summary,
+            aiFeedback: feedback,
+            // If the AI determined the age rating is wrong, conservatively bump it
+            // to MATURE so a human must explicitly downgrade it before re-approval.
+            ...(ageRatingFailed ? { ageRating: 'MATURE' } : {}),
           },
         });
         failed++;
-        console.log(`[question-validation] ✗ REJECTED — id: ${question.id} | ${result.summary}`);
+        console.log(`[question-validation] ✗ REJECTED — id: ${question.id} | ${feedback}`);
       }
     } catch (error) {
       errors++;

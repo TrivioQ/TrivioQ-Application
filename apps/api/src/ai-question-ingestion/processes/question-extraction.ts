@@ -1,4 +1,4 @@
-import { prisma, DifficultyLevel, AgeRating } from '@trivioq/database';
+import { prisma } from '@trivioq/database';
 import { IngestionState, Question } from '../utils/state-manager';
 import { checkIsDuplicate } from '../../utils/check-is-duplicate';
 import { checkPendingDuplicate } from '../../utils/check-pending-duplicate';
@@ -7,6 +7,7 @@ import { reportError } from '../../utils/error-reporter';
 import fs from 'fs';
 import { createProvider, type AIProvider, type AIProviderName } from '../providers';
 import { buildExtractionPrompt, buildEnhancementPrompt, KEY_EXTRACTION_PROMPT, buildClassificationPrompt } from '../prompts';
+import { sanitiseDifficulty, sanitiseAgeRating } from '../utils/sanitise';
 
 // ── Re-exports (kept for backwards-compatibility with existing callers) ────────
 export type { ExtractedQuestion, ExtractedAnswerKey, EnhancementResult } from '../providers';
@@ -18,26 +19,6 @@ export type ImageType = 'QUESTIONS' | 'QUESTIONS_WITH_KEYS' | 'QUESTIONS_WITH_KE
 // ── Configuration ─────────────────────────────────────────────────────────────
 
 const DEFAULT_CALL_DELAY = 10;
-const VALID_DIFFICULTIES: DifficultyLevel[] = ['EASY', 'MEDIUM', 'HARD'];
-
-/** Validate an AI-returned difficulty string; falls back to MEDIUM if invalid. */
-function sanitiseDifficulty(raw: string | undefined): DifficultyLevel {
-  if (raw && (VALID_DIFFICULTIES as string[]).includes(raw)) {
-    return raw as DifficultyLevel;
-  }
-  console.warn(`[QuestionExtraction] Invalid difficulty "${raw}" — defaulting to MEDIUM`);
-  return 'MEDIUM';
-}
-
-const VALID_AGE_RATINGS: AgeRating[] = ['ALL', 'TEEN', 'MATURE'];
-
-/** Validate an AI-returned age rating string; falls back to ALL if invalid. */
-function sanitiseAgeRating(raw: string | undefined): AgeRating {
-  if (raw && (VALID_AGE_RATINGS as string[]).includes(raw)) {
-    return raw as AgeRating;
-  }
-  return 'ALL';
-}
 
 // ── Orchestrator ──────────────────────────────────────────────────────────────
 
@@ -122,6 +103,10 @@ export class QuestionExtractionProcess implements IngestionProcess {
       select: { slug: true, name: true },
     });
     console.log(`[QuestionExtraction] Fetched ${this.availableCategories.length} categories from DB`);
+
+    if (this.availableCategories.length === 0) {
+      throw new Error('No categories found in the database. Please run the database seeder first (`pnpm --filter @trivioq/database seed-categories`).');
+    }
 
     if (options?.reuploadOnly) {
       console.log('[QuestionExtraction] Reupload mode: preparing questions for upload...');
@@ -605,6 +590,8 @@ export class QuestionExtractionProcess implements IngestionProcess {
             categorySlugs: enhanced.categorySlugs,
             // Store the AI-inferred difficulty; sanitised before upload
             difficulty: sanitiseDifficulty(enhanced.difficulty),
+            // Store the AI-inferred age rating; sanitised before upload
+            ageRating: sanitiseAgeRating(enhanced.ageRating),
             isFactuallyCorrect: enhanced.isFactuallyCorrect,
             factCheckRationale: enhanced.factCheckRationale,
           },

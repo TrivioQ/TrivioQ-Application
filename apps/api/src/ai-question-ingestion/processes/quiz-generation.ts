@@ -1,4 +1,4 @@
-import { prisma, DifficultyLevel, AgeRating } from '@trivioq/database';
+import { prisma } from '@trivioq/database';
 import { IngestionState, Question } from '../utils/state-manager';
 import { checkIsDuplicate } from '../../utils/check-is-duplicate';
 import { checkPendingDuplicate } from '../../utils/check-pending-duplicate';
@@ -7,27 +7,10 @@ import { reportError } from '../../utils/error-reporter';
 import fs from 'fs';
 import { createProvider, type AIProvider, type AIProviderName } from '../providers';
 import { buildQuizGenerationFromTextPrompt, buildSummarizeImagePrompt, buildEnhancementPrompt } from '../prompts';
+import { sanitiseDifficulty, sanitiseAgeRating } from '../utils/sanitise';
 import { OrchestratorConfig, IngestionProcess } from './process.interface';
 
 const DEFAULT_CALL_DELAY = 10;
-const VALID_DIFFICULTIES: DifficultyLevel[] = ['EASY', 'MEDIUM', 'HARD'];
-
-function sanitiseDifficulty(raw: string | undefined): DifficultyLevel {
-  if (raw && (VALID_DIFFICULTIES as string[]).includes(raw)) {
-    return raw as DifficultyLevel;
-  }
-  console.warn(`[QuizGeneration] Invalid difficulty "${raw}" — defaulting to MEDIUM`);
-  return 'MEDIUM';
-}
-
-const VALID_AGE_RATINGS: AgeRating[] = ['ALL', 'TEEN', 'MATURE'];
-
-function sanitiseAgeRating(raw: string | undefined): AgeRating {
-  if (raw && (VALID_AGE_RATINGS as string[]).includes(raw)) {
-    return raw as AgeRating;
-  }
-  return 'ALL';
-}
 
 export class QuizGenerationProcess implements IngestionProcess {
   private readonly state: IngestionState;
@@ -104,6 +87,10 @@ export class QuizGenerationProcess implements IngestionProcess {
       select: { slug: true, name: true },
     });
     console.log(`[QuizGeneration] Fetched ${this.availableCategories.length} categories from DB`);
+
+    if (this.availableCategories.length === 0) {
+      throw new Error('No categories found in the database. Please run the database seeder first (`pnpm --filter @trivioq/database seed-categories`).');
+    }
 
     if (options?.reuploadOnly) {
       console.log('[QuizGeneration] Reupload mode: preparing questions for upload...');
@@ -243,6 +230,8 @@ export class QuizGenerationProcess implements IngestionProcess {
             topic: enhanced.topic,
             categorySlugs: enhanced.categorySlugs,
             difficulty: sanitiseDifficulty(enhanced.difficulty),
+            // Store the AI-inferred age rating; sanitised before upload
+            ageRating: sanitiseAgeRating(enhanced.ageRating),
             isFactuallyCorrect: enhanced.isFactuallyCorrect,
             factCheckRationale: enhanced.factCheckRationale,
           },
