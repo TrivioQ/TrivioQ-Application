@@ -161,7 +161,6 @@ export class QuizGenerationProcess implements IngestionProcess {
         let generated;
         try {
           const summaryText = summarization.summary.join('\n- ');
-          console.log(`[Generation] Summary:\n- ${summaryText}`);
           generated = await this.generationProvider.extractFromText(summaryText, generationPrompt);
         } finally {
           this.recordCallTime();
