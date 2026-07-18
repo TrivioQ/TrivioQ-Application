@@ -114,6 +114,12 @@ enum FriendshipStatus {
   BLOCKED
 }
 
+enum AgeRating {
+  ALL
+  TEEN
+  MATURE
+}
+
 enum SubscriptionTier {
   FREE
   PREMIUM
@@ -143,6 +149,7 @@ model Question {
   choices         Choice[]
   explanationText String?
   hintText        String?
+  ageRating       AgeRating       @default(ALL)
   drops           UserDrop[]
 }
 
@@ -220,6 +227,7 @@ model PendingQuestion {
   isDuplicate     Boolean  @default(false)
   aiQualityScore      Int?
   aiFeedback          String?
+  ageRating           AgeRating @default(ALL)
   replacesQuestionId  String?  // set when status = 'PENDING-DUPLICATE'; points to the live Question.id to replace on approval
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

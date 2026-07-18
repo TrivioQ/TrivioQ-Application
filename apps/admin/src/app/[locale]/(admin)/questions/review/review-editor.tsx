@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DifficultyLevel } from '@trivioq/database';
+import { DifficultyLevel, AgeRating } from '@trivioq/database';
 import type { SuggestedChoice } from '@trivioq/shared-types';
 import { formatDistanceToNow } from 'date-fns';
 import { Check } from 'lucide-react';
@@ -31,6 +31,7 @@ interface PendingQuestion {
   aiQualityScore: number | null;
   isDuplicate: boolean;
   replacesQuestionId: string | null;
+  ageRating: AgeRating;
 }
 
 interface Category {
@@ -63,6 +64,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
 
   const [questionText, setQuestionText] = useState(pendingQuestion.suggestedText);
   const [difficultyLevel, setDifficultyLevel] = useState<DifficultyLevel>(pendingQuestion.difficultyLevel ?? 'EASY');
+  const [ageRating, setAgeRating] = useState<AgeRating>(pendingQuestion.ageRating ?? 'ALL');
   const [choices, setChoices] = useState(() => parseChoices(pendingQuestion.suggestedChoices));
   const [hintText, setHintText] = useState(pendingQuestion.hint ?? '');
   const [explanationText, setExplanationText] = useState(pendingQuestion.explanation ?? '');
@@ -95,6 +97,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
     choices: choices.map((c, idx) => ({ ...c, order: c.order ?? idx })),
     hintText: hintText || undefined,
     explanationText: explanationText || undefined,
+    ageRating,
   });
 
   const handleSave = () => {
@@ -247,19 +250,34 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
           <Textarea id="questionText" value={questionText} onChange={(e) => setQuestionText(e.target.value)} className="resize-none" rows={3} />
         </div>
 
-        {/* Difficulty */}
-        <div className="space-y-1.5">
-          <Label>{t('difficultyLevel')}</Label>
-          <Select value={difficultyLevel} onValueChange={(val) => setDifficultyLevel(val as DifficultyLevel)}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="EASY">{t('easy')}</SelectItem>
-              <SelectItem value="MEDIUM">{t('medium')}</SelectItem>
-              <SelectItem value="HARD">{t('hard')}</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Difficulty & Age Rating */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label>{t('difficultyLevel')}</Label>
+            <Select value={difficultyLevel} onValueChange={(val) => setDifficultyLevel(val as DifficultyLevel)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="EASY">{t('easy')}</SelectItem>
+                <SelectItem value="MEDIUM">{t('medium')}</SelectItem>
+                <SelectItem value="HARD">{t('hard')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('ageRating')}</Label>
+            <Select value={ageRating} onValueChange={(val) => setAgeRating(val as AgeRating)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">{t('ratingAll')}</SelectItem>
+                <SelectItem value="TEEN">{t('ratingTeen')}</SelectItem>
+                <SelectItem value="MATURE">{t('ratingMature')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Category */}

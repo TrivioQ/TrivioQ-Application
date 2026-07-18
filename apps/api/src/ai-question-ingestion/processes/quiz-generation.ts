@@ -1,4 +1,4 @@
-import { prisma, DifficultyLevel } from '@trivioq/database';
+import { prisma, DifficultyLevel, AgeRating } from '@trivioq/database';
 import { IngestionState, Question } from '../utils/state-manager';
 import { checkIsDuplicate } from '../../utils/check-is-duplicate';
 import { checkPendingDuplicate } from '../../utils/check-pending-duplicate';
@@ -18,6 +18,15 @@ function sanitiseDifficulty(raw: string | undefined): DifficultyLevel {
   }
   console.warn(`[QuizGeneration] Invalid difficulty "${raw}" — defaulting to MEDIUM`);
   return 'MEDIUM';
+}
+
+const VALID_AGE_RATINGS: AgeRating[] = ['ALL', 'TEEN', 'MATURE'];
+
+function sanitiseAgeRating(raw: string | undefined): AgeRating {
+  if (raw && (VALID_AGE_RATINGS as string[]).includes(raw)) {
+    return raw as AgeRating;
+  }
+  return 'ALL';
 }
 
 export class QuizGenerationProcess implements IngestionProcess {
@@ -283,6 +292,7 @@ export class QuizGenerationProcess implements IngestionProcess {
                   explanation: (q.metadata?.explanation as string) ?? null,
                   aiQualityScore: newScore,
                   aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
+                  ageRating: sanitiseAgeRating(q.metadata?.ageRating as string | undefined),
                 },
               });
             } else {
@@ -307,6 +317,7 @@ export class QuizGenerationProcess implements IngestionProcess {
                   explanation: (q.metadata?.explanation as string) ?? null,
                   aiQualityScore: newScore,
                   aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
+                  ageRating: sanitiseAgeRating(q.metadata?.ageRating as string | undefined),
                 },
               });
             } else {
@@ -344,6 +355,7 @@ export class QuizGenerationProcess implements IngestionProcess {
               isDuplicate: true,
               aiQualityScore: newScore,
               aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
+              ageRating: sanitiseAgeRating(q.metadata?.ageRating as string | undefined),
               replacesQuestionId: liveQuestionId,
             } as any,
           });
@@ -361,6 +373,7 @@ export class QuizGenerationProcess implements IngestionProcess {
               isDuplicate: false,
               aiQualityScore: newScore,
               aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
+              ageRating: sanitiseAgeRating(q.metadata?.ageRating as string | undefined),
             } as any,
           });
 

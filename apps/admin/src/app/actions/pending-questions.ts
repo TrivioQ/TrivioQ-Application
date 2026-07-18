@@ -1,6 +1,6 @@
 'use server';
 
-import { PrismaClient, DifficultyLevel, PendingQuestion } from '@trivioq/database';
+import { PrismaClient, DifficultyLevel, PendingQuestion, AgeRating } from '@trivioq/database';
 import { revalidatePath } from 'next/cache';
 
 const prisma = new PrismaClient();
@@ -14,6 +14,7 @@ export interface EditQuestionPayload {
   choices: { text: string; order: number; isCorrect: boolean }[];
   hintText?: string;
   explanationText?: string;
+  ageRating: AgeRating;
 }
 
 // ── Update (save edits without approving) ────────────────────────────────────────
@@ -29,6 +30,7 @@ export async function updatePendingQuestion(pendingId: string, editedData: EditQ
         suggestedChoices: editedData.choices,
         hint: editedData.hintText ?? null,
         explanation: editedData.explanationText ?? null,
+        ageRating: editedData.ageRating,
       },
     });
 
@@ -74,6 +76,7 @@ export interface PendingQuestionWithMeta extends Omit<PendingQuestion, 'createdA
   aiFeedback: string | null;
   isDuplicate: boolean;
   replacesQuestionId: string | null;
+  ageRating: AgeRating;
 }
 
 export interface PendingQuestionsFilters {
@@ -178,6 +181,7 @@ export async function approvePendingQuestion(pendingId: string, editedData: Edit
             difficultyLevel: editedData.difficultyLevel,
             hintText: editedData.hintText ?? null,
             explanationText: editedData.explanationText ?? null,
+            ageRating: editedData.ageRating,
             choices: {
               create: editedData.choices.map((c, idx) => ({
                 text: c.text,
@@ -201,6 +205,7 @@ export async function approvePendingQuestion(pendingId: string, editedData: Edit
             difficultyLevel: editedData.difficultyLevel,
             hintText: editedData.hintText,
             explanationText: editedData.explanationText,
+            ageRating: editedData.ageRating,
             choices: {
               create: editedData.choices.map((c, idx) => ({
                 text: c.text,
@@ -327,6 +332,7 @@ export async function bulkApprovePendingQuestions(pendingIds: string[]) {
               difficultyLevel: pendingQuestion.difficultyLevel,
               hintText: pendingQuestion.hint ?? null,
               explanationText: pendingQuestion.explanation ?? null,
+              ageRating: pendingQuestion.ageRating,
               choices: {
                 create: choices.map((c: any, idx: number) => ({
                   text: String(c.text ?? ''),
@@ -347,6 +353,7 @@ export async function bulkApprovePendingQuestions(pendingIds: string[]) {
               difficultyLevel: pendingQuestion.difficultyLevel,
               hintText: pendingQuestion.hint,
               explanationText: pendingQuestion.explanation,
+              ageRating: pendingQuestion.ageRating,
               choices: {
                 create: choices.map((c: any, idx: number) => ({
                   text: String(c.text ?? ''),

@@ -189,6 +189,9 @@ Assess the question independently and assign a difficulty level with the average
 - \`topic\`: A **specific** subject string describing the precise concept or entity the question is about (e.g., "Cheetah Locomotion", "Vertebrate Classification", "Earth's Ecosystems"). Do NOT use generic topics like "Animals" or "Science" — those belong in categories.
 - \`categorySlugs\`: 1–2 slugs chosen from the [AVAILABLE CATEGORIES] list. These are the broad domain(s) the question belongs to. Choose the most relevant ones.
 
+## Age Rating
+- \`ageRating\`: Classify the question as "ALL" (safe for 13+), "TEEN" (16+ due to mild mature themes), or "MATURE" (18+ only). Default to "ALL" unless the content genuinely warrants a higher rating.
+
 [AVAILABLE_CATEGORIES_PLACEHOLDER]
 
 Return a JSON object with this exact schema:
@@ -199,6 +202,7 @@ Return a JSON object with this exact schema:
   "explanation": "A concise 2-3 sentence explanation of why the correct answer is right (compatible Markdown)",
   "aiQualityScore": 75,
   "difficulty": "EASY|MEDIUM|HARD",
+  "ageRating": "ALL|TEEN|MATURE",
   "isFactuallyCorrect": true,
   "factCheckRationale": "Always populated — brief confirmation if correct, error description if not"
 }`;

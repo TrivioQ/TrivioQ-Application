@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { DifficultyLevel } from '@trivioq/database';
+import { DifficultyLevel, AgeRating } from '@trivioq/database';
 import { ReviewEditor } from './review-editor';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -33,6 +33,7 @@ interface PendingQuestion {
   aiFeedback: string | null;
   isDuplicate: boolean;
   replacesQuestionId: string | null;
+  ageRating: AgeRating;
 }
 
 interface Category {

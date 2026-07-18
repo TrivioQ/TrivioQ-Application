@@ -1,6 +1,6 @@
 import { Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
-import { prisma, DifficultyLevel } from '@trivioq/database';
+import { prisma, DifficultyLevel, AgeRating } from '@trivioq/database';
 import { UserPreferences } from '@trivioq/shared-types';
 import { getSettingNumber } from '../utils/settings';
 import { NotificationService } from '../services/notification-service';
@@ -19,7 +19,7 @@ interface DropsQueuePayload {
 
 // ── Mastery day: pick 1 question the user has already seen, in strict priority ─
 
-async function pickMasteryQuestion(userId: string, sevenDaysAgo: Date): Promise<string | null> {
+async function pickMasteryQuestion(userId: string, sevenDaysAgo: Date, allowedRatings: AgeRating[]): Promise<string | null> {
   // Priority 1: questions answered incorrectly (Mistakes)
   // Priority 2: questions viewed but not answered (Missed)
   // Priority 3: questions answered correctly (Reinforcement)
@@ -31,6 +31,7 @@ async function pickMasteryQuestion(userId: string, sevenDaysAgo: Date): Promise<
         userId,
         isViewed: true,
         createdAt: { gte: sevenDaysAgo },
+        question: { ageRating: { in: allowedRatings } },
         ...(filter.wasCorrect !== undefined ? { isAnswered: filter.isAnswered, wasCorrect: filter.wasCorrect } : { isAnswered: filter.isAnswered }),
       },
       select: { questionId: true },
@@ -62,7 +63,7 @@ function rollDifficulty(percentages: Record<string, number>): DifficultyLevel {
   return DIFFICULTY_ORDER.reduce((best, lvl) => ((percentages[lvl] ?? 0) >= (percentages[best] ?? 0) ? lvl : best));
 }
 
-async function pickStandardQuestion(userId: string, categoryIds: string[], startDifficulty: DifficultyLevel): Promise<string | null> {
+async function pickStandardQuestion(userId: string, categoryIds: string[], startDifficulty: DifficultyLevel, allowedRatings: AgeRating[]): Promise<string | null> {
   // Waterfall: try startDifficulty first, then the others in descending weight order
   const remaining = DIFFICULTY_ORDER.filter((d) => d !== startDifficulty);
   const tryOrder = [startDifficulty, ...remaining];
@@ -71,6 +72,7 @@ async function pickStandardQuestion(userId: string, categoryIds: string[], start
     const question = await prisma.question.findFirst({
       where: {
         difficultyLevel: difficulty,
+        ageRating: { in: allowedRatings },
         ...(categoryIds.length > 0 && {
           categories: { some: { id: { in: categoryIds } } },
         }),
@@ -101,6 +103,7 @@ const dropWorker = new Worker<DropsQueuePayload>(
       where: { id: userId },
       select: {
         preferences: true,
+        dateOfBirth: true,
       },
     });
 
@@ -111,12 +114,29 @@ const dropWorker = new Worker<DropsQueuePayload>(
 
     const prefs = user.preferences as unknown as UserPreferences | null;
 
+    // ── Calculate Age Ratings ─────────────────────────────────────────────────
+    let allowedRatings: AgeRating[] = ['ALL'];
+    if (user.dateOfBirth) {
+      const dob = new Date(user.dateOfBirth);
+      if (!isNaN(dob.getTime())) {
+        const ageDifMs = Date.now() - dob.getTime();
+        const ageDate = new Date(ageDifMs); 
+        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        
+        if (age >= 18) {
+          allowedRatings = ['ALL', 'TEEN', 'MATURE'];
+        } else if (age >= 16) {
+          allowedRatings = ['ALL', 'TEEN'];
+        }
+      }
+    }
+
     // ── Part 1: Mastery Day ───────────────────────────────────────────────────
     let questionId: string | null = null;
 
     if (isMasteryDay) {
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      questionId = await pickMasteryQuestion(userId, sevenDaysAgo);
+      questionId = await pickMasteryQuestion(userId, sevenDaysAgo, allowedRatings);
 
       if (questionId) {
         console.log(`[DropWorker] Mastery question selected: ${questionId} for user ${userId}`);
@@ -145,7 +165,7 @@ const dropWorker = new Worker<DropsQueuePayload>(
       const targetDifficulty = rollDifficulty(difficultyPercentages);
       console.log(`[DropWorker] Rolled difficulty ${targetDifficulty} for user ${userId}`);
 
-      questionId = await pickStandardQuestion(userId, categoryIds, targetDifficulty);
+      questionId = await pickStandardQuestion(userId, categoryIds, targetDifficulty, allowedRatings);
     }
 
     if (!questionId) {
