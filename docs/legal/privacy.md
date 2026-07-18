@@ -89,7 +89,7 @@ When you grant notification permission, we store your device push token to route
 
 ## 8. Children's Privacy
 
-TrivioQ is not directed to children under the age of **13**. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and you believe your child has provided us with personal data without your consent, please contact us at **privacy@enatostech.com** and we will promptly delete that information.
+TrivioQ is not directed to children under the age of **8**. We do not knowingly collect personal information from children under 8. If you are a parent or guardian and you believe your child has provided us with personal data without your consent, please contact us at **privacy@enatostech.com** and we will promptly delete that information.
 
 ---
 

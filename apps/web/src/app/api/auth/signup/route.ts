@@ -58,9 +58,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const minAgeDate = new Date();
-  minAgeDate.setFullYear(minAgeDate.getFullYear() - 13);
+  minAgeDate.setFullYear(minAgeDate.getFullYear() - 8);
   if (dob > minAgeDate) {
-    return NextResponse.json({ message: 'You must be at least 13 years old to create an account.' }, { status: 400 });
+    return NextResponse.json({ message: 'You must be at least 8 years old to create an account.' }, { status: 400 });
   }
 
   // ── Step 1: Create account with Firebase REST API (server-side) ───────────
