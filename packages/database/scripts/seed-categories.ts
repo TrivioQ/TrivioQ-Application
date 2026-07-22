@@ -131,6 +131,16 @@ const categories = [
     description: 'Trivia on ocean ecosystems, marine organisms, coral reefs, and marine life behavior.',
   },
   {
+    name: 'Zoology & Classification',
+    slug: 'zoology-classification',
+    description: 'Questions about the scientific classification of living organisms (taxonomy), major animal phyla (vertebrates, invertebrates, arthropods, mollusks, cnidaria, sponges), and the principles used to group species by shared characteristics.',
+  },
+  {
+    name: 'Evolution & Natural History',
+    slug: 'evolution-natural-history',
+    description: 'Questions about biological evolution, natural selection, the origin of life, mass extinction events, the rise of major animal groups, and the deep history of life on Earth.',
+  },
+  {
     name: 'Nautical History & Exploration',
     slug: 'nautical-history-exploration',
     description: 'Trivia on maritime history, famous voyages, explorers, shipwrecks, and navigation.',

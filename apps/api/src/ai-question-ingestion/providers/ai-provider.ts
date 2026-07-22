@@ -55,6 +55,15 @@ export interface EnhancementResult {
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
   isFactuallyCorrect: boolean;
   factCheckRationale: string | null;
+  /**
+   * `true` when the question's answer is only meaningful in the context of the specific
+   * source document being processed (e.g. "Who published this encyclopedia?", "How many
+   * glossary entries does this book have?"). Such questions are discarded before upload.
+   *
+   * `false` for genuine world-knowledge questions — even those that reference real authors,
+   * publishers, or books as subjects (e.g. "Which publisher released Sapiens?").
+   */
+  isSelfReferential: boolean;
 }
 
 // ── Provider interface ────────────────────────────────────────────────────────

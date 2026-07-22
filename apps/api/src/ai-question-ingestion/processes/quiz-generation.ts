@@ -234,6 +234,8 @@ export class QuizGenerationProcess implements IngestionProcess {
             ageRating: sanitiseAgeRating(enhanced.ageRating),
             isFactuallyCorrect: enhanced.isFactuallyCorrect,
             factCheckRationale: enhanced.factCheckRationale,
+            // Flag questions that are only meaningful in the context of the source document
+            isSelfReferential: enhanced.isSelfReferential,
           },
         });
 
@@ -257,6 +259,16 @@ export class QuizGenerationProcess implements IngestionProcess {
 
     for (const q of readyQuestions) {
       try {
+        // ── Self-referential guard ────────────────────────────────────────────
+        // Questions flagged as self-referential are about the source document
+        // itself (e.g. publisher, glossary count) and have no standalone trivia
+        // value. Mark as uploaded so they are never retried, but skip DB write.
+        if (q.metadata?.isSelfReferential === true) {
+          console.log(`[Upload] Skipping self-referential question ${q.id} — not meaningful outside source document`);
+          this.state.updateStatus(q.id, 'UPLOADED');
+          continue;
+        }
+
         const newScore: number = (q.metadata?.aiQualityScore as number) ?? 0;
 
         const pendingCheck = await checkPendingDuplicate(q.text);

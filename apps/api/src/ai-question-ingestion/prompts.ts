@@ -199,6 +199,27 @@ Classify the question into exactly one of the three tiers below. Default to "ALL
 - **"MATURE"** — questions explicitly about adult-only content (18+). Use this tier sparingly and only when the content is unambiguously adult.
   Examples: explicit drug use culture, graphic descriptions of violence, adult sexual content or practices.
 
+## CRITICAL — Self-Referential Question Detection
+Set \`isSelfReferential: true\` if the question's correct answer is **only meaningful because of the specific source document being processed** — i.e., the question is about the book/publication itself as an artifact, not about any real-world fact.
+
+Ask yourself: *"If I removed the source document from existence, would this question and answer still be valid world-knowledge trivia?"*
+- If **NO** → \`isSelfReferential: true\` (discard)
+- If **YES** → \`isSelfReferential: false\` (keep)
+
+**\`isSelfReferential: true\` examples (discard):**
+- "Who published this encyclopedia?" → Only answerable by reading this book's cover.
+- "How many glossary entries does this book have?" → Artifact of this document's structure.
+- "What is shown on the cover of this book?" → Meaningless without this specific book.
+- "How many record-breakers are listed in this publication's life stories section?" → Internal document metric.
+
+**\`isSelfReferential: false\` examples (keep — these are real-world trivia):**
+- "Which publisher released *Sapiens* by Yuval Noah Harari?" → A verifiable real-world fact.
+- "Who wrote the biography of Nelson Mandela titled *Long Walk to Freedom*?" → Real-world literary knowledge.
+- "What year was Charles Darwin's *On the Origin of Species* first published?" → Historical fact.
+- "Which author wrote the *Harry Potter* series?" → General knowledge.
+
+When \`isSelfReferential: true\`, also set \`aiQualityScore\` to 0–5 to reflect the question's lack of standalone value.
+
 [AVAILABLE_CATEGORIES_PLACEHOLDER]
 
 Return a JSON object with this exact schema:
@@ -211,7 +232,8 @@ Return a JSON object with this exact schema:
   "difficulty": "EASY|MEDIUM|HARD",
   "ageRating": "ALL|TEEN|MATURE",
   "isFactuallyCorrect": true,
-  "factCheckRationale": "Always populated — brief confirmation if correct, error description if not"
+  "factCheckRationale": "Always populated — brief confirmation if correct, error description if not",
+  "isSelfReferential": false
 }`;
 
 export const SUMMARIZE_IMAGE_PROMPT = `You are an expert encyclopedic fact extractor. Your task is to read the provided page image and extract every discrete, standalone educational fact it contains.
