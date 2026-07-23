@@ -91,18 +91,14 @@ leaderboardWorker.on('failed', (job, err) => {
 // ── Cron trigger — 23:59 UTC every Sunday ─────────────────────────────────────
 
 export function initLeaderboardWorker(): void {
-  cron.schedule(
-    '59 23 * * 0',
-    async () => {
-      try {
-        await leaderboardQueue.add('process-weekly-leaderboard', {});
-        console.log('[LeaderboardWorker] Queued weekly leaderboard job');
-      } catch (error) {
-        console.error('[LeaderboardWorker] Failed to queue weekly leaderboard job:', error);
-      }
-    },
-    { timezone: 'UTC' },
-  );
+  cron.schedule('59 23 * * 0', async () => {
+    try {
+      await leaderboardQueue.add('process-weekly-leaderboard', {});
+      console.log('[LeaderboardWorker] Queued weekly leaderboard job');
+    } catch (error) {
+      console.error('[LeaderboardWorker] Failed to queue weekly leaderboard job:', error);
+    }
+  });
 
   console.log('[LeaderboardWorker] Initialized — will run at 23:59 UTC every Sunday');
 }

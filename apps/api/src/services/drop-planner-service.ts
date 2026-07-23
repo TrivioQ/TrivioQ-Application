@@ -85,17 +85,13 @@ export async function scheduleDailyDrops(): Promise<void> {
 
 // ── Daily drop planner — runs every day at 00:00 UTC ─────────────────────────
 export function initDropPlanner(): void {
-  cron.schedule(
-    '0 0 * * *',
-    async () => {
-      try {
-        await scheduleDailyDrops();
-      } catch (error) {
-        console.error('[DropPlanner] Fatal error in scheduleDailyDrops:', error);
-      }
-    },
-    { timezone: 'UTC' },
-  );
+  cron.schedule('0 0 * * *', async () => {
+    try {
+      await scheduleDailyDrops();
+    } catch (error) {
+      console.error('[DropPlanner] Fatal error in scheduleDailyDrops:', error);
+    }
+  });
 
   console.log('[DropPlanner] initialized — will run daily at 00:00 UTC');
 }
