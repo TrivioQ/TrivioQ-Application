@@ -1,6 +1,6 @@
 'use server';
 
-import { PrismaClient, DifficultyLevel } from '@trivioq/database';
+import { PrismaClient, DifficultyLevel, AgeRating } from '@trivioq/database';
 import { revalidatePath } from 'next/cache';
 
 const prisma = new PrismaClient();
@@ -11,6 +11,7 @@ export type QuestionFilters = {
   search?: string;
   difficulties?: DifficultyLevel[];
   categoryIds?: string[];
+  ageRatings?: AgeRating[];
   page?: number;
   pageSize?: number;
   sortBy?: string;
@@ -29,6 +30,7 @@ export type PaginatedQuestionsResult = {
     id: string;
     questionText: string;
     difficultyLevel: DifficultyLevel;
+    ageRating: AgeRating;
     categories: { id: string; name: string }[];
     choices: QuestionChoice[];
     explanationText: string | null;
@@ -41,12 +43,13 @@ export type PaginatedQuestionsResult = {
 };
 
 export async function getQuestions(filters: QuestionFilters = {}): Promise<PaginatedQuestionsResult> {
-  const { search, difficulties, categoryIds, page = 1, pageSize = PAGE_SIZE, sortBy = 'id', sortOrder = 'desc' } = filters;
+  const { search, difficulties, categoryIds, ageRatings, page = 1, pageSize = PAGE_SIZE, sortBy = 'id', sortOrder = 'desc' } = filters;
 
   const where = {
     ...(search ? { questionText: { contains: search, mode: 'insensitive' as const } } : {}),
     ...(difficulties && difficulties.length > 0 ? { difficultyLevel: { in: difficulties } } : {}),
     ...(categoryIds && categoryIds.length > 0 ? { categories: { some: { id: { in: categoryIds } } } } : {}),
+    ...(ageRatings && ageRatings.length > 0 ? { ageRating: { in: ageRatings } } : {}),
   };
 
   const skip = (page - 1) * pageSize;

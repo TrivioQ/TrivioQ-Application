@@ -83,6 +83,10 @@ export interface PendingQuestionsFilters {
   filter?: string;
   page?: number;
   pageSize?: number;
+  search?: string;
+  difficulties?: DifficultyLevel[];
+  ageRatings?: AgeRating[];
+  categorySlugs?: string[];
 }
 
 const PAGE_SIZE = 25;
@@ -95,17 +99,38 @@ export async function getPendingQuestions(filters?: PendingQuestionsFilters): Pr
     const pageSize = filters?.pageSize ?? PAGE_SIZE;
     const filter = filters?.filter;
 
-    let where: Record<string, unknown>;
+    const baseWhere: any = {};
+
+    if (filters?.search) {
+      baseWhere.OR = [
+        { suggestedText: { contains: filters.search, mode: 'insensitive' } },
+        { topic: { contains: filters.search, mode: 'insensitive' } },
+      ];
+    }
+    
+    if (filters?.difficulties && filters.difficulties.length > 0) {
+      baseWhere.difficultyLevel = { in: filters.difficulties };
+    }
+    
+    if (filters?.ageRatings && filters.ageRatings.length > 0) {
+      baseWhere.ageRating = { in: filters.ageRatings };
+    }
+    
+    if (filters?.categorySlugs && filters.categorySlugs.length > 0) {
+      baseWhere.categorySlugs = { hasSome: filters.categorySlugs };
+    }
+
+    const where: any = { ...baseWhere };
     if (filter === 'ai-validated') {
-      where = { status: 'AI-APPROVED' };
+      where.status = 'AI-APPROVED';
     } else if (filter === 'ai-rejected') {
-      where = { status: 'AI-REJECTED' };
+      where.status = 'AI-REJECTED';
     } else if (filter === 'pending-duplicate') {
-      where = { status: 'PENDING-DUPLICATE' };
+      where.status = 'PENDING-DUPLICATE';
     } else if (filter === 'rejected') {
-      where = { status: 'REJECTED' };
+      where.status = 'REJECTED';
     } else {
-      where = { status: 'PENDING' };
+      where.status = 'PENDING';
     }
 
     const [questions, total, statusCounts] = await Promise.all([
@@ -119,6 +144,7 @@ export async function getPendingQuestions(filters?: PendingQuestionsFilters): Pr
       prisma.pendingQuestion.groupBy({
         by: ['status'],
         _count: true,
+        where: baseWhere,
       }),
     ]);
 

@@ -71,7 +71,18 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
   const [prevQuestionsProp, setPrevQuestionsProp] = useState(questions);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set());
   const [isBulkUpdating, startBulkTransition] = useTransition();
-  const { pushParams, isPending } = useTableParams();
+  const { pushParams, isPending, searchParams } = useTableParams();
+
+  const createTabHref = (filterVal?: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', '1'); // reset to page 1 on tab switch
+    if (filterVal) {
+      params.set('filter', filterVal);
+    } else {
+      params.delete('filter');
+    }
+    return `?${params.toString()}`;
+  };
 
   const { page, totalPages, total, pageSize } = result;
 
@@ -167,23 +178,23 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
     <div className="space-y-4">
       {/* Filter Tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit overflow-x-auto max-w-full">
-        <Link href="?" className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${!filter ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+        <Link href={createTabHref()} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${!filter ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.unvalidated')}
           <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${!filter ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('unvalidated', counts.unvalidated)}</span>
         </Link>
-        <Link href="?filter=ai-validated" className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-validated' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+        <Link href={createTabHref('ai-validated')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-validated' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.aiValidated')}
           <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'ai-validated' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('aiValidated', counts.aiValidated)}</span>
         </Link>
-        <Link href="?filter=ai-rejected" className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-rejected' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+        <Link href={createTabHref('ai-rejected')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-rejected' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.aiRejected')}
           <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'ai-rejected' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('aiRejected', counts.aiRejected)}</span>
         </Link>
-        <Link href="?filter=pending-duplicate" className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'pending-duplicate' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+        <Link href={createTabHref('pending-duplicate')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'pending-duplicate' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.pendingDuplicates')}
           <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'pending-duplicate' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('pendingDuplicate', counts.pendingDuplicate)}</span>
         </Link>
-        <Link href="?filter=rejected" className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'rejected' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+        <Link href={createTabHref('rejected')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'rejected' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
           {t('filters.rejected')}
           <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'rejected' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('rejected', counts.rejected)}</span>
         </Link>

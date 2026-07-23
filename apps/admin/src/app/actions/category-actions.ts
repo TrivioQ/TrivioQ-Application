@@ -11,13 +11,22 @@ export type CategoryFilters = {
   pageSize?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  hasQuestions?: string;
 };
 
 export async function getCategories(filters: CategoryFilters = {}) {
-  const { search, page = 1, pageSize = 20, sortBy = 'name', sortOrder = 'asc' } = filters;
+  const { search, page = 1, pageSize = 20, sortBy = 'name', sortOrder = 'asc', hasQuestions } = filters;
   try {
     const where = {
-      ...(search ? { name: { contains: search, mode: 'insensitive' as const } } : {}),
+      ...(search ? {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' as const } },
+          { slug: { contains: search, mode: 'insensitive' as const } },
+          { description: { contains: search, mode: 'insensitive' as const } },
+        ]
+      } : {}),
+      ...(hasQuestions === 'true' ? { questions: { some: {} } } : {}),
+      ...(hasQuestions === 'false' ? { questions: { none: {} } } : {}),
     };
     const skip = (page - 1) * pageSize;
 
@@ -62,11 +71,14 @@ export async function createCategory(data: { name: string; slug: string; descrip
   }
 }
 
-export async function updateCategory(id: string, data: { name: string; slug: string; description?: string }) {
+export async function updateCategory(id: string, data: { name: string; slug?: string; description?: string }) {
   try {
     const category = await prisma.category.update({
       where: { id },
-      data,
+      data: {
+        name: data.name,
+        description: data.description,
+      },
     });
     revalidatePath('/categories');
     return { success: true, data: category };
@@ -78,8 +90,19 @@ export async function updateCategory(id: string, data: { name: string; slug: str
 
 export async function deleteCategory(id: string) {
   try {
-    // Prisma implicit many-to-many relationships automatically handle disconnecting the relations.
-    // The link in the underlying join table (_CategoryToQuestion) will be deleted without deleting the Question.
+    const category = await prisma.category.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: { questions: true }
+        }
+      }
+    });
+
+    if (category && category._count.questions > 0) {
+      return { success: false, error: 'Cannot delete category associated with questions.' };
+    }
+
     await prisma.category.delete({
       where: { id },
     });

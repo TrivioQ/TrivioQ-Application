@@ -5,7 +5,7 @@ import { MoreHorizontal, Pencil, Trash, ArrowUpDown, ArrowUp, ArrowDown } from '
 import { buttonVariants } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { DifficultyLevel } from '@trivioq/database';
+import { DifficultyLevel, AgeRating } from '@trivioq/database';
 import { deleteQuestion, getCategories } from '@/app/actions/question-actions';
 import { useState, useTransition, useEffect } from 'react';
 import { QuestionModal } from './question-modal';
@@ -16,6 +16,7 @@ export type QuestionRow = {
   id: string;
   questionText: string;
   difficultyLevel: DifficultyLevel;
+  ageRating: AgeRating;
   categories: { id: string; name: string }[];
   choices: { id: string; text: string; order: number; isCorrect: boolean }[];
   explanationText: string | null;
@@ -81,6 +82,19 @@ export const columns: ColumnDef<QuestionRow>[] = [
         HARD: 'bg-red-100 text-red-800 hover:bg-red-100',
       };
       return <Badge className={colors[diff] || 'bg-gray-100 text-gray-800'}>{diff}</Badge>;
+    },
+  },
+  {
+    accessorKey: 'ageRating',
+    header: (props) => <HeaderCell {...props} label="columns.ageRating" />,
+    cell: ({ row }) => {
+      const rating = row.getValue('ageRating') as string;
+      const colors: Record<string, string> = {
+        ALL: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+        TEEN: 'bg-purple-100 text-purple-800 hover:bg-purple-100',
+        MATURE: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
+      };
+      return <Badge className={colors[rating] || 'bg-gray-100 text-gray-800'}>{rating}</Badge>;
     },
   },
   {

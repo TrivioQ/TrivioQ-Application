@@ -89,7 +89,7 @@ export function CategoryModal({ category, onOpenChange, open }: { category?: Cat
 
           <div className="space-y-2">
             <Label htmlFor="slug">{t('createModal.slug')}</Label>
-            <Input id="slug" required value={slug} onChange={(e) => setSlug(e.target.value)} placeholder={t('createModal.slugPlaceholder')} />
+            <Input id="slug" required value={slug} onChange={(e) => setSlug(e.target.value)} placeholder={t('createModal.slugPlaceholder')} disabled={!!category} />
           </div>
 
           <div className="space-y-2">

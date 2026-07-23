@@ -119,6 +119,7 @@
     "columns": {
       "question": "Question",
       "difficulty": "Difficulty",
+      "ageRating": "Age Rating",
       "categories": "Categories"
     },
     "empty": "No questions match your filters.",
@@ -129,6 +130,7 @@
     "nextPage": "Next page",
     "filters": {
       "difficulty": "Difficulty",
+      "ageRating": "Age Rating",
       "categories": "Categories",
       "searchCategory": "Search category…",
       "noCategoryFound": "No category found.",

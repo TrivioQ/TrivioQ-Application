@@ -118,7 +118,7 @@ function CategoryActions({ category }: { category: CategoryRow }) {
             <DropdownMenuItem onClick={() => setEditOpen(true)} className="cursor-pointer">
               <Pencil className="mr-2 h-4 w-4" /> {t('actions.editCategory')}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-red-600 focus:text-red-600">
+            <DropdownMenuItem onClick={handleDelete} disabled={category._count.questions > 0} className="cursor-pointer text-red-600 focus:text-red-600 data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed">
               <Trash className="mr-2 h-4 w-4" /> {t('actions.deleteCategory')}
             </DropdownMenuItem>
           </DropdownMenuGroup>
