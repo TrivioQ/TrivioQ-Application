@@ -4,8 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 import { useTheme, Theme } from '../context/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Monitor } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export function ThemeSwitcher() {
+  const t = useTranslations('theme');
   const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -21,16 +23,16 @@ export function ThemeSwitcher() {
   }, []);
 
   const themes: { value: Theme; label: string; icon: React.ReactNode }[] = [
-    { value: 'light', label: 'Light', icon: <Sun className="w-4 h-4" /> },
-    { value: 'dark', label: 'Dark', icon: <Moon className="w-4 h-4" /> },
-    { value: 'system', label: 'System', icon: <Monitor className="w-4 h-4" /> },
+    { value: 'light', label: t('light'), icon: <Sun className="w-4 h-4" /> },
+    { value: 'dark', label: t('dark'), icon: <Moon className="w-4 h-4" /> },
+    { value: 'system', label: t('system'), icon: <Monitor className="w-4 h-4" /> },
   ];
 
-  const currentTheme = themes.find((t) => t.value === theme) || themes[2];
+  const currentTheme = themes.find((item) => item.value === theme) || themes[2];
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 dark:bg-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-700 transition-colors border border-white/20 dark:border-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400" aria-label="Toggle theme">
+      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 dark:bg-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-700 transition-colors border border-white/20 dark:border-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400" aria-label={t('toggle')}>
         <span className="text-sm">{currentTheme.icon}</span>
       </button>
 

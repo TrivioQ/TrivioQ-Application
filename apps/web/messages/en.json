@@ -189,6 +189,8 @@
     "leaderboard": "Leaderboard",
     "yourAnswer": "Your Answer:",
     "correctAnswer": "Correct Answer:",
+    "resultCorrectTitle": "Correct",
+    "resultIncorrectTitle": "Incorrect",
     "diffLabels": {
       "EASY": "Easy",
       "MEDIUM": "Medium",
@@ -404,6 +406,9 @@
     "noNotifications": "No notifications",
     "allReadMessage": "All your notifications have been read",
     "noneYetMessage": "You haven't received any notifications yet",
+    "pushDelivered": "Push delivered",
+    "emailDelivered": "Email delivered",
+    "readAt": "Read {date}",
     "center": {
       "title": "Notifications",
       "markAllRead": "Mark all read",
@@ -423,5 +428,16 @@
     "enableButton": "Enable Notifications",
     "enabling": "Enabling...",
     "permissionGrantedNote": "Permission granted but not subscribed. Click enable to complete setup."
+  },
+  "notFound": {
+    "title": "404",
+    "message": "The page you are looking for does not exist or has been moved.",
+    "goHome": "Go to Homepage →"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "toggle": "Toggle theme"
   }
 }

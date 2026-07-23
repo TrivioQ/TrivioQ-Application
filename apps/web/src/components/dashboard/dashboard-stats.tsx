@@ -168,11 +168,11 @@ export function DashboardStats() {
                         <Eye className="w-5 h-5 text-gray-400" />
                       </span>
                     ) : drop.wasCorrect ? (
-                      <span title="Correct">
+                      <span title={t('resultCorrectTitle')}>
                         <CheckCircle2 className="w-5 h-5 text-green-500" />
                       </span>
                     ) : (
-                      <span title="Incorrect">
+                      <span title={t('resultIncorrectTitle')}>
                         <XCircle className="w-5 h-5 text-red-500" />
                       </span>
                     )}

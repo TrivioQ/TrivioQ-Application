@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 type ConfirmOptions = {
   title: string;
@@ -16,6 +17,7 @@ type ConfirmFn = (options: ConfirmOptions) => Promise<boolean>;
 const ConfirmContext = createContext<ConfirmFn | null>(null);
 
 export function ConfirmProvider({ children }: { children: any }) {
+  const commonT = useTranslations('common');
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<ConfirmOptions>({ title: '', message: '' });
   const resolveRef = useRef<((value: boolean) => void) | null>(null);
@@ -48,10 +50,10 @@ export function ConfirmProvider({ children }: { children: any }) {
                 <p className="text-gray-400 leading-relaxed mb-8">{options.message}</p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-end">
                   <button onClick={() => handleClose(false)} className="px-6 py-3 rounded-2xl text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                    {options.cancelLabel ?? 'Cancel'}
+                    {options.cancelLabel ?? commonT('cancel')}
                   </button>
                   <button onClick={() => handleClose(true)} className={`px-8 py-3 rounded-2xl text-sm font-bold text-white shadow-lg transition-all ${options.isDestructive ? 'bg-red-500 hover:bg-red-400 shadow-red-500/20' : 'bg-indigo-500 hover:bg-indigo-400 shadow-indigo-500/20'}`}>
-                    {options.confirmLabel ?? 'Confirm'}
+                    {options.confirmLabel ?? commonT('confirm')}
                   </button>
                 </div>
               </motion.div>

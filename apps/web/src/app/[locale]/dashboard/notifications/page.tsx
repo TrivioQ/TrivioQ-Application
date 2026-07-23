@@ -140,19 +140,19 @@ export default function NotificationsPage() {
                       <span className="text-xs text-gray-400">{format(new Date(notification.createdAt), 'MMM d, yyyy HH:mm')}</span>
                       <div className="flex items-center gap-2">
                         {notification.pushDelivered && (
-                          <div className="flex items-center gap-1 text-xs text-gray-400" title="Push delivered">
+                          <div className="flex items-center gap-1 text-xs text-gray-400" title={t('pushDelivered')}>
                             <Wifi className="h-3 w-3" />
                           </div>
                         )}
                         {notification.emailDelivered && (
-                          <div className="flex items-center gap-1 text-xs text-gray-400" title="Email delivered">
+                          <div className="flex items-center gap-1 text-xs text-gray-400" title={t('emailDelivered')}>
                             <Mail className="h-3 w-3" />
                           </div>
                         )}
                       </div>
                     </div>
 
-                    {notification.readAt && <p className="text-xs text-gray-400 mt-2">Read {format(new Date(notification.readAt), 'MMM d, HH:mm')}</p>}
+                    {notification.readAt && <p className="text-xs text-gray-400 mt-2">{t('readAt', { date: format(new Date(notification.readAt), 'MMM d, HH:mm') })}</p>}
                   </div>
                 </div>
               </div>
