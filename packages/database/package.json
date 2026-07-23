@@ -13,7 +13,7 @@
     "seed-legal": "dotenv -e ../../.env -- ts-node scripts/seed-legal.ts",
     "seed-settings": "dotenv -e ../../.env -- ts-node scripts/seed-settings.ts",
     "seed-categories": "dotenv -e ../../.env -- ts-node scripts/seed-categories.ts",
-    "seed-notifications": "dotenv -e ../../.env -- ts-node prisma/seed-notifications.ts",
+    "seed-notifications": "dotenv -e ../../.env -- ts-node scripts/seed-notifications.ts",
     "seed-server": "pnpm db-push && pnpm seed-legal && pnpm seed-settings && pnpm seed-categories",
     "debug": "dotenv -e ../../.env -- prisma studio"
   },
