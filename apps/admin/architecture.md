@@ -60,7 +60,13 @@ From the `apps/admin` directory, you can run:
 
 ## 🏗 Key Features
 
-- **User Catalog**: Search, filter, and view user details (streaks, subscription tier, history).
-- **Trivia Question Ingestion & Management**: Inspect questions, filter by category/difficulty, and check ingested questions.
-- **Platform Diagnostics**: Direct database lookup to verify timezone boundaries, scheduler active windows, and drop queues.
-- **Role Elevation**: Elevate local users to `ADMIN` (requires first seeding or manually running `pnpm make-admin` in the database package).
+- **Dashboard:** Overview metrics and system status.
+- **App Settings:** Global configuration for the platform.
+- **Bonus Plans:** Management of user bonus or promotional plans.
+- **Categories:** CRUD operations for trivia question categories.
+- **FAQs:** Management of frequently asked questions.
+- **Notifications:** Creation and dispatching of push notifications to users.
+- **Questions:** Content management system for trivia questions (reviewing, editing, approving).
+- **Subscription History:** Monitoring user subscription states and payment history.
+- **System:** System logs and advanced configuration.
+- **Users:** User account management, bans, and role assignments.
