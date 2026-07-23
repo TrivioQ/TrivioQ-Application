@@ -13,7 +13,7 @@ const connection: any = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:63
   maxRetriesPerRequest: null,
 });
 
-const queues = [new Queue('ai-question-generation', { connection }), new Queue('trivia-drops', { connection }), new Queue('dispatch-notifications', { connection }), new Queue('weekly-leaderboard', { connection }), new Queue('drops-queue', { connection })];
+const queues = [new Queue('ai-question-generation', { connection }), new Queue('drops-queue', { connection }), new Queue('weekly-leaderboard', { connection })];
 
 const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath('/admin/queues');
