@@ -117,16 +117,21 @@ export default function ProfileScreen({ navigation }: any) {
             </View>
           </View>
         )}
-        {[
-          { icon: '⚙️', label: t('profile.preferences') },
-          { icon: '🔔', label: t('profile.notifications') },
-        ].map((item) => (
-          <TouchableOpacity key={item.label} style={styles.menuItem} activeOpacity={0.7}>
-            <Text style={styles.menuIcon}>{item.icon}</Text>
-            <Text style={styles.menuLabel}>{item.label}</Text>
-            <Text style={styles.menuChevron}>›</Text>
-          </TouchableOpacity>
-        ))}
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Preferences')}>
+          <Text style={styles.menuIcon}>⚙️</Text>
+          <Text style={styles.menuLabel}>{t('profile.preferences')}</Text>
+          <Text style={styles.menuChevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Notifications')}>
+          <Text style={styles.menuIcon}>🔔</Text>
+          <Text style={styles.menuLabel}>{t('profile.notifications')}</Text>
+          <Text style={styles.menuChevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('ScoreHistory')}>
+          <Text style={styles.menuIcon}>📊</Text>
+          <Text style={styles.menuLabel}>{t('profile.scoreHistory')}</Text>
+          <Text style={styles.menuChevron}>›</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -134,6 +139,15 @@ export default function ProfileScreen({ navigation }: any) {
         <TouchableOpacity style={[styles.menuItem, styles.upgradeItem]} activeOpacity={0.7} onPress={() => navigation.navigate('Subscription')}>
           <Text style={styles.menuIcon}>👑</Text>
           <Text style={[styles.menuLabel, { color: '#a78bfa' }]}>{isPaid ? t('profile.manageSubscription') : t('profile.upgradePremium')}</Text>
+          <Text style={styles.menuChevron}>›</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>{t('profile.help')}</Text>
+        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('FAQ')}>
+          <Text style={styles.menuIcon}>❓</Text>
+          <Text style={styles.menuLabel}>{t('profile.faq')}</Text>
           <Text style={styles.menuChevron}>›</Text>
         </TouchableOpacity>
       </View>
