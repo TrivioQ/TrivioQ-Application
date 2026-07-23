@@ -186,7 +186,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
           {pendingQuestion.status === 'AI-REJECTED' && (
             <Button variant="outline" size="sm" onClick={handleRequeue} disabled={isPending}
               className="border-orange-300 text-orange-700 hover:bg-orange-50">
-              {isPending ? 'Re-queuing…' : 'Re-queue for Validation'}
+              {isPending ? t('requeueing') : t('requeue')}
             </Button>
           )}
           <Button variant="secondary" size="sm" onClick={handleSave} disabled={isPending}>
@@ -218,7 +218,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
           {pendingQuestion.status === 'AI-REJECTED' && (
             <div className="flex items-center gap-2 px-3 py-2 bg-orange-50 border border-orange-300 rounded-lg text-sm text-orange-900">
               <span className="text-base shrink-0">🤖</span>
-              <span><strong>AI Validation Failed:</strong> Edit the question and click &ldquo;Re-queue for Validation&rdquo; to resubmit for nightly review.</span>
+              <span>{t('aiValidationFailedWarning')}</span>
             </div>
           )}
           {pendingQuestion.isDuplicate && pendingQuestion.status !== 'PENDING-DUPLICATE' && (
@@ -299,7 +299,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
           {categorySlugs.length < 2 && (
             <Select onValueChange={addCategory} value="">
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Add category..." />
+                <SelectValue placeholder={t('addCategoryPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {categories.filter(c => !categorySlugs.includes(c.slug)).map((cat) => (

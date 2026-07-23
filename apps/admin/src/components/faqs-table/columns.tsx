@@ -68,6 +68,7 @@ export const columns: ColumnDef<FAQRow>[] = [
 
 function FAQActions({ faq }: { faq: FAQRow }) {
   const t = useTranslations('faqs');
+  const tc = useTranslations('common');
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
   const confirm = useConfirm();
@@ -96,7 +97,7 @@ function FAQActions({ faq }: { faq: FAQRow }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{tc('actions')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setEditOpen(true)} className="cursor-pointer">
               <Pencil className="mr-2 h-4 w-4" /> {t('actions.editFAQ')}

@@ -85,6 +85,7 @@ export const columns: ColumnDef<CategoryRow>[] = [
 
 function CategoryActions({ category }: { category: CategoryRow }) {
   const t = useTranslations('categories');
+  const tc = useTranslations('common');
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
   const confirm = useConfirm();
@@ -113,7 +114,7 @@ function CategoryActions({ category }: { category: CategoryRow }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{tc('actions')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setEditOpen(true)} className="cursor-pointer">
               <Pencil className="mr-2 h-4 w-4" /> {t('actions.editCategory')}

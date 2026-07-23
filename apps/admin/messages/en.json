@@ -212,6 +212,7 @@
     "rejectSelected": "Reject Selected",
     "noPending": "No pending questions to review.",
     "selectPrompt": "Select a question from the list to review.",
+    "aiRejectedBadge": "AI REJECTED",
     "duplicateBadge": "DUPLICATE",
     "pendingDuplicateBadge": "PENDING DUPLICATE",
     "rejectedBadge": "REJECTED",
@@ -225,6 +226,7 @@
       "duplicateWarning": "DUPLICATE DETECTED — This question appears to be a duplicate of an existing question. Review carefully before approving.",
       "pendingDuplicateWarning": "⚡ HIGHER-QUALITY VERSION — Approving will replace the existing live question with this improved version.",
       "rejectedWarning": "REJECTED — This question was previously rejected. You can modify and approve it.",
+      "aiValidationFailedWarning": "AI Validation Failed: Edit the question and click \"Re-queue for Validation\" to resubmit for nightly review.",
       "rejectionReasonLabel": "Rejection Reason",
       "aiFeedback": "AI Feedback",
       "questionText": "Question Text",
@@ -237,6 +239,7 @@
       "ratingTeen": "Teen (16+)",
       "ratingMature": "Mature (18+)",
       "category": "Category",
+      "addCategoryPlaceholder": "Add category...",
       "slugLabel": "Slug: {slug}",
       "noCategoryMatch": "No existing category matches \"{slug}\" — the category slug must match an existing category.",
       "choicesLabel": "Choices — select the radio button to mark the correct answer",
@@ -247,6 +250,8 @@
       "explanationLabel": "Explanation (Optional)",
       "explanationPlaceholder": "Explain why the answer is correct...",
       "reject": "Reject",
+      "requeue": "Re-queue for Validation",
+      "requeueing": "Re-queuing…",
       "saveChanges": "Save Changes",
       "saving": "Saving...",
       "saved": "Saved",
@@ -273,6 +278,12 @@
   "categories": {
     "title": "Categories",
     "description": "Manage your trivia categories. Categories organize questions across the application.",
+    "usageFilter": {
+      "placeholder": "Usage",
+      "all": "All Categories",
+      "inUse": "In Use",
+      "unused": "Unused"
+    },
     "columns": {
       "name": "Name",
       "slug": "Slug",

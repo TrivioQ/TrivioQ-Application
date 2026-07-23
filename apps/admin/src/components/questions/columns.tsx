@@ -110,6 +110,7 @@ export const columns: ColumnDef<QuestionRow>[] = [
 
 function QuestionActions({ question }: { question: QuestionRow }) {
   const t = useTranslations('questions');
+  const tc = useTranslations('common');
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
@@ -147,7 +148,7 @@ function QuestionActions({ question }: { question: QuestionRow }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{tc('actions')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setEditOpen(true)} className="cursor-pointer">
               <Pencil className="mr-2 h-4 w-4" /> {t('actions.editQuestion')}

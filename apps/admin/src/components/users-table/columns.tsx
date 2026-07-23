@@ -106,6 +106,7 @@ export const columns: ColumnDef<UserRow>[] = [
 
 function UserActions({ user }: { user: UserRow }) {
   const t = useTranslations('users');
+  const tc = useTranslations('common');
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
   const confirm = useConfirm();
@@ -134,7 +135,7 @@ function UserActions({ user }: { user: UserRow }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{tc('actions')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setEditOpen(true)} className="cursor-pointer">
               <Pencil className="mr-2 h-4 w-4" /> {t('actions.editUser')}

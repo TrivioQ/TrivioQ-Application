@@ -270,7 +270,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
                       )}
                       {q.status === 'AI-REJECTED' && (
                         <Badge className="text-[10px] bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-100">
-                          AI Rejected
+                          {t('aiRejectedBadge')}
                         </Badge>
                       )}
                       {q.isDuplicate && q.status !== 'PENDING-DUPLICATE' && (
