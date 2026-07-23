@@ -15,11 +15,12 @@ import type { AIProviderName } from './providers';
  *   "bookId":             "world-history-vol1",
  *   "topic":              "World History",
  *   "categorySlugs":      ["history", "geography"],
- *   "specialInstruction": "Focus only on chapters 3–6. Ignore appendices."
+ *   "specialInstruction": "Focus only on chapters 3–6. Ignore appendices.",
+ *   "pages":              { "from": 5, "to": 40 }
  * }
  * ```
  */
-export interface InstructionsJson {
+export interface ManifestJson {
   /** Unique identifier for this book (used as state-file prefix). */
   bookId: string;
   /** Process type to use for this book (e.g. 'question-extraction'). Defaults to 'question-extraction'. */
@@ -71,6 +72,30 @@ export interface InstructionsJson {
     generation?: AIProviderName;
     summarization?: AIProviderName;
   };
+
+  /**
+   * Optional page range to limit which pages of the PDF are converted to
+   * images and sent for AI processing.
+   *
+   * When omitted, all pages are converted (default behaviour).
+   *
+   * Example:
+   * ```json
+   * "pages": { "from": 5, "to": 40 }
+   * ```
+   */
+  pages?: {
+    /**
+     * 1-based first page to extract (inclusive).
+     * Defaults to 1 when only `to` is provided.
+     */
+    from?: number;
+    /**
+     * 1-based last page to extract (inclusive).
+     * Defaults to the last page of the PDF when only `from` is provided.
+     */
+    to?: number;
+  };
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -90,7 +115,8 @@ const DATA_DIR_NAME = 'data';
  * 1. Parse `manifest.json` to obtain topic, categorySlugs, and an optional
  *    specialInstruction.
  * 2. Create a `data/` folder inside that sub-folder (if absent).
- * 3. Convert the PDF to images stored in `data/`.
+ * 3. Convert the PDF to images stored in `data/` (optionally limited to the
+ *    page range specified by `pages.from` / `pages.to`).
  * 4. Run `IngestionOrchestrator` with those images — sequentially, one book at
  *    a time.
  *
@@ -127,32 +153,51 @@ export async function runIngestion(options?: { reuploadOnly?: boolean }): Promis
     console.log(`\n[Runner] ── Checking: ${dir.name}`);
 
     // ── Validate manifest.json ────────────────────────────────────────────
-    const instructionsPath = path.join(bookDir, MANIFEST_FILE);
-    if (!fs.existsSync(instructionsPath)) {
+    const manifestPath = path.join(bookDir, MANIFEST_FILE);
+    if (!fs.existsSync(manifestPath)) {
       console.warn(`[Runner] Skipping — no ${MANIFEST_FILE} found`);
       skipped++;
       continue;
     }
 
-    let instructions: InstructionsJson;
+    let manifest: ManifestJson;
     try {
-      instructions = JSON.parse(fs.readFileSync(instructionsPath, 'utf-8')) as InstructionsJson;
+      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as ManifestJson;
     } catch (err) {
       console.error(`[Runner] Skipping — failed to parse ${MANIFEST_FILE}:`, err);
       skipped++;
       continue;
     }
 
-    if (!instructions.bookId) {
+    if (!manifest.bookId) {
       console.error(`[Runner] Skipping — ${MANIFEST_FILE} is missing required field (bookId)`);
       skipped++;
       continue;
     }
 
-    if (instructions.categorySlugs !== undefined && (!Array.isArray(instructions.categorySlugs) || instructions.categorySlugs.length === 0)) {
+    if (manifest.categorySlugs !== undefined && (!Array.isArray(manifest.categorySlugs) || manifest.categorySlugs.length === 0)) {
       console.error(`[Runner] Skipping — ${MANIFEST_FILE} field "categorySlugs" must be a non-empty array of strings if provided`);
       skipped++;
       continue;
+    }
+
+    // ── Validate pages range (if provided) ───────────────────────────────────
+    if (manifest.pages !== undefined) {
+      const { from, to } = manifest.pages;
+      const fromValid = from === undefined || (Number.isInteger(from) && from >= 1);
+      const toValid = to === undefined || (Number.isInteger(to) && to >= 1);
+
+      if (!fromValid || !toValid) {
+        console.error(`[Runner] Skipping — ${MANIFEST_FILE} field "pages.from" and "pages.to" must be positive integers when provided`);
+        skipped++;
+        continue;
+      }
+
+      if (from !== undefined && to !== undefined && from > to) {
+        console.error(`[Runner] Skipping — ${MANIFEST_FILE} field "pages.from" (${from}) must be less than or equal to "pages.to" (${to})`);
+        skipped++;
+        continue;
+      }
     }
 
     // ── Locate PDF ────────────────────────────────────────────────────────────
@@ -188,8 +233,21 @@ export async function runIngestion(options?: { reuploadOnly?: boolean }): Promis
     let imagePaths: string[] = [];
     if (!options?.reuploadOnly) {
       console.log(`[Runner] Converting PDF: ${pdfFiles[0]}`);
+
+      // Log the effective page range
+      if (manifest.pages?.from !== undefined || manifest.pages?.to !== undefined) {
+        const fromLabel = manifest.pages.from ?? 1;
+        const toLabel = manifest.pages.to !== undefined ? String(manifest.pages.to) : 'last';
+        console.log(`[Runner] Page range: ${fromLabel} → ${toLabel}`);
+      } else {
+        console.log('[Runner] Page range: all pages');
+      }
+
       try {
-        imagePaths = await pdfToImage(pdfPath, pagesDir);
+        imagePaths = await pdfToImage(pdfPath, pagesDir, {
+          fromPage: manifest.pages?.from,
+          toPage: manifest.pages?.to,
+        });
       } catch (err) {
         console.error('[Runner] Failed to convert PDF — skipping book:', err);
         skipped++;
@@ -207,31 +265,31 @@ export async function runIngestion(options?: { reuploadOnly?: boolean }): Promis
       console.log(`[Runner] Reupload mode: skipping PDF conversion for ${pdfFiles[0]}`);
     }
 
-    console.log(`[Runner] bookId: ${instructions.bookId}`);
-    if (instructions.topic) {
-      console.log(`[Runner] topic: ${instructions.topic}`);
+    console.log(`[Runner] bookId: ${manifest.bookId}`);
+    if (manifest.topic) {
+      console.log(`[Runner] topic: ${manifest.topic}`);
     } else {
       console.log('[Runner] topic: to be auto-detected');
     }
-    if (instructions.categorySlugs) {
-      console.log(`[Runner] categorySlugs: ${instructions.categorySlugs.join(', ')}`);
+    if (manifest.categorySlugs) {
+      console.log(`[Runner] categorySlugs: ${manifest.categorySlugs.join(', ')}`);
     } else {
       console.log('[Runner] categorySlugs: to be selected from all DB categories');
     }
 
     // ── Run orchestrator (sequential — awaited fully before next book) ─────────
     try {
-      const orchestrator = new IngestionOrchestrator(instructions.bookId, imagePaths, {
+      const orchestrator = new IngestionOrchestrator(manifest.bookId, imagePaths, {
         outputDir: dataDir,
-        processType: instructions.processType ?? 'question-extraction',
-        topic: instructions.topic ?? '',
-        categorySlugs: instructions.categorySlugs ?? [],
+        processType: manifest.processType ?? 'question-extraction',
+        topic: manifest.topic ?? '',
+        categorySlugs: manifest.categorySlugs ?? [],
         aiProvider,
-        providers: instructions.providers,
-        extractionSpecialInstruction: instructions.extractionSpecialInstruction,
-        enhancementSpecialInstruction: instructions.enhancementSpecialInstruction,
-        classificationSpecialInstruction: instructions.classificationSpecialInstruction,
-        summarizationSpecialInstruction: instructions.summarizationSpecialInstruction,
+        providers: manifest.providers,
+        extractionSpecialInstruction: manifest.extractionSpecialInstruction,
+        enhancementSpecialInstruction: manifest.enhancementSpecialInstruction,
+        classificationSpecialInstruction: manifest.classificationSpecialInstruction,
+        summarizationSpecialInstruction: manifest.summarizationSpecialInstruction,
       });
 
       await orchestrator.run(options);
