@@ -3,15 +3,20 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import type { DifficultyBreakdown } from '@/app/actions/dashboard-actions';
 
+import { useTranslations } from 'next-intl';
+
 const DIFFICULTY_CONFIG = {
-  EASY:   { label: 'Easy',   color: '#22c55e' },
-  MEDIUM: { label: 'Medium', color: '#f59e0b' },
-  HARD:   { label: 'Hard',   color: '#ef4444' },
+  EASY:   { key: 'easy',   color: '#22c55e' },
+  MEDIUM: { key: 'medium', color: '#f59e0b' },
+  HARD:   { key: 'hard',   color: '#ef4444' },
 } as const;
 
 export function DifficultyChart({ data }: { data: DifficultyBreakdown[] }) {
+  const tq = useTranslations('questions.createModal');
+  const t = useTranslations('dashboard.questionsExplorer');
+
   const chartData = data.map((d) => ({
-    name: DIFFICULTY_CONFIG[d.level].label,
+    name: tq(DIFFICULTY_CONFIG[d.level].key as any),
     count: d.count,
     color: DIFFICULTY_CONFIG[d.level].color,
   }));
@@ -35,7 +40,7 @@ export function DifficultyChart({ data }: { data: DifficultyBreakdown[] }) {
         />
         <Tooltip
           contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-          formatter={(value) => [value, 'Questions']}
+          formatter={(value) => [value, t('questionsUnit')]}
           cursor={{ fill: '#f9fafb' }}
         />
         <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={80}>

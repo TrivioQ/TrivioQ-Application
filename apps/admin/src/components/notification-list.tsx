@@ -141,14 +141,14 @@ export function NotificationList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Type</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Audience</TableHead>
-            <TableHead>Channels</TableHead>
-            <TableHead>Recipients</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t('columns.type')}</TableHead>
+            <TableHead>{t('columns.title')}</TableHead>
+            <TableHead>{t('columns.audience')}</TableHead>
+            <TableHead>{t('columns.channels')}</TableHead>
+            <TableHead>{t('columns.recipients')}</TableHead>
+            <TableHead>{t('columns.status')}</TableHead>
+            <TableHead>{t('columns.created')}</TableHead>
+            <TableHead className="text-right">{t('columns.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -170,13 +170,13 @@ export function NotificationList() {
               <TableCell>
                 <div className="flex items-center gap-1">
                   {notification.channels.includes('PUSH_MOBILE') && (
-                    <span title="Mobile Push"><Smartphone className="h-4 w-4 text-gray-500" /></span>
+                    <span title={t('channelTitles.mobilePush')}><Smartphone className="h-4 w-4 text-gray-500" /></span>
                   )}
                   {notification.channels.includes('PUSH_WEB') && (
-                    <span title="Web Push"><Bell className="h-4 w-4 text-gray-500" /></span>
+                    <span title={t('channelTitles.webPush')}><Bell className="h-4 w-4 text-gray-500" /></span>
                   )}
                   {notification.channels.includes('EMAIL') && (
-                    <span title="Email"><Mail className="h-4 w-4 text-gray-500" /></span>
+                    <span title={t('channelTitles.email')}><Mail className="h-4 w-4 text-gray-500" /></span>
                   )}
                 </div>
               </TableCell>

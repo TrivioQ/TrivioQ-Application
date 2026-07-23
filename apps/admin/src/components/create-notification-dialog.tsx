@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Sparkles } from 'lucide-react';
 
+import { useTranslations } from 'next-intl';
+
 interface Template {
   id: string;
   name: string;
@@ -38,6 +40,20 @@ export function CreateNotificationDialog() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(false);
+  const t = useTranslations('notifications.createModal');
+
+  useEffect(() => {
+    if (open) {
+      fetch('/api/admin/notifications/templates')
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setTemplates(data);
+          }
+        })
+        .catch((err) => console.error('Failed to fetch templates:', err));
+    }
+  }, [open]);
 
   const [formData, setFormData] = useState({
     type: 'SYSTEM_ANNOUNCEMENT',
@@ -94,13 +110,13 @@ export function CreateNotificationDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button />}>
         <Plus className="h-4 w-4 mr-2" />
-        Create Notification
+        {t('trigger')}
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Notification</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
-            Create and send notifications to users via push and email.
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -116,31 +132,31 @@ export function CreateNotificationDialog() {
             />
             <label htmlFor="use-template" className="text-sm font-medium flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-amber-500" />
-              Use a template
+              {t('useTemplate')}
             </label>
           </div>
 
           {useTemplate && (
             <div className="space-y-2">
-              <Label>Template</Label>
+              <Label>{t('templateLabel')}</Label>
               <Select onValueChange={handleTemplateSelect} value={selectedTemplate}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a template" />
+                  <SelectValue placeholder={t('selectTemplatePlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="welcome">Welcome</SelectItem>
+                  <SelectItem value="welcome">{t('templateOptions.welcome')}</SelectItem>
                   <SelectItem value="subscription-expiring-7d">
-                    Subscription Expiring (7 days)
+                    {t('templateOptions.subscriptionExpiring7d')}
                   </SelectItem>
                   <SelectItem value="subscription-expiring-1d">
-                    Subscription Expiring (1 day)
+                    {t('templateOptions.subscriptionExpiring1d')}
                   </SelectItem>
-                  <SelectItem value="credits-added">Credits Added</SelectItem>
-                  <SelectItem value="offer-promotion">Offer Promotion</SelectItem>
-                  <SelectItem value="leaderboard-winner">Leaderboard Winner</SelectItem>
-                  <SelectItem value="admin-message">Admin Message</SelectItem>
+                  <SelectItem value="credits-added">{t('templateOptions.creditsAdded')}</SelectItem>
+                  <SelectItem value="offer-promotion">{t('templateOptions.offerPromotion')}</SelectItem>
+                  <SelectItem value="leaderboard-winner">{t('templateOptions.leaderboardWinner')}</SelectItem>
+                  <SelectItem value="admin-message">{t('templateOptions.adminMessage')}</SelectItem>
                   <SelectItem value="new-feature-announcement">
-                    New Feature Announcement
+                    {t('templateOptions.newFeatureAnnouncement')}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -149,7 +165,7 @@ export function CreateNotificationDialog() {
 
           {/* Notification Type */}
           <div className="space-y-2">
-            <Label>Type</Label>
+            <Label>{t('typeLabel')}</Label>
             <Select
               value={formData.type}
               onValueChange={(value) => {
@@ -162,23 +178,23 @@ export function CreateNotificationDialog() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="TRIVIA_DROP">Trivia Drop</SelectItem>
+                <SelectItem value="TRIVIA_DROP">{t('types.triviaDrop')}</SelectItem>
                 <SelectItem value="SYSTEM_ANNOUNCEMENT">
-                  System Announcement
+                  {t('types.systemAnnouncement')}
                 </SelectItem>
                 <SelectItem value="SUBSCRIPTION_REMINDER">
-                  Subscription Reminder
+                  {t('types.subscriptionReminder')}
                 </SelectItem>
-                <SelectItem value="OFFER_PROMOTION">Offer Promotion</SelectItem>
-                <SelectItem value="CREDIT_ALERT">Credit Alert</SelectItem>
-                <SelectItem value="ADMIN_MESSAGE">Admin Message</SelectItem>
+                <SelectItem value="OFFER_PROMOTION">{t('types.offerPromotion')}</SelectItem>
+                <SelectItem value="CREDIT_ALERT">{t('types.creditAlert')}</SelectItem>
+                <SelectItem value="ADMIN_MESSAGE">{t('types.adminMessage')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Audience */}
           <div className="space-y-2">
-            <Label>Audience</Label>
+            <Label>{t('audienceLabel')}</Label>
             <Select
               value={formData.audience}
               onValueChange={(value) => {
@@ -191,18 +207,18 @@ export function CreateNotificationDialog() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL_USERS">All Users</SelectItem>
-                <SelectItem value="USER_SEGMENT">User Segment</SelectItem>
-                <SelectItem value="SPECIFIC_USERS">Specific Users</SelectItem>
+                <SelectItem value="ALL_USERS">{t('audiences.allUsers')}</SelectItem>
+                <SelectItem value="USER_SEGMENT">{t('audiences.userSegment')}</SelectItem>
+                <SelectItem value="SPECIFIC_USERS">{t('audiences.specificUsers')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Title */}
           <div className="space-y-2">
-            <Label>Title</Label>
+            <Label>{t('titleLabel')}</Label>
             <Input
-              placeholder="Enter notification title"
+              placeholder={t('titlePlaceholder')}
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
@@ -212,9 +228,9 @@ export function CreateNotificationDialog() {
 
           {/* Body */}
           <div className="space-y-2">
-            <Label>Message</Label>
+            <Label>{t('messageLabel')}</Label>
             <Textarea
-              placeholder="Enter notification message"
+              placeholder={t('messagePlaceholder')}
               rows={4}
               value={formData.body}
               onChange={(e) =>
@@ -225,7 +241,7 @@ export function CreateNotificationDialog() {
 
           {/* Channels */}
           <div className="space-y-2">
-            <Label>Delivery Channels</Label>
+            <Label>{t('deliveryChannels')}</Label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2">
                 <Checkbox
@@ -233,7 +249,7 @@ export function CreateNotificationDialog() {
                   onCheckedChange={() => toggleChannel('PUSH_MOBILE')}
                 />
                 <span className="text-sm flex items-center gap-1">
-                  📱 Mobile Push
+                  📱 {t('mobilePush')}
                 </span>
               </label>
               <label className="flex items-center gap-2">
@@ -242,7 +258,7 @@ export function CreateNotificationDialog() {
                   onCheckedChange={() => toggleChannel('PUSH_WEB')}
                 />
                 <span className="text-sm flex items-center gap-1">
-                  🔔 Web Push
+                  🔔 {t('webPush')}
                 </span>
               </label>
               <label className="flex items-center gap-2">
@@ -251,7 +267,7 @@ export function CreateNotificationDialog() {
                   onCheckedChange={() => toggleChannel('EMAIL')}
                 />
                 <span className="text-sm flex items-center gap-1">
-                  📧 Email
+                  📧 {t('email')}
                 </span>
               </label>
             </div>
@@ -260,10 +276,10 @@ export function CreateNotificationDialog() {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Creating...' : 'Create Notification'}
+            {loading ? t('creating') : t('create')}
           </Button>
         </DialogFooter>
       </DialogContent>

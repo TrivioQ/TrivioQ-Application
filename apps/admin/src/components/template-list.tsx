@@ -48,6 +48,7 @@ export function TemplateList() {
   const [loading, setLoading] = useState(true);
   const confirm = useConfirm();
   const t = useTranslations('notifications.templatesList');
+  const tc = useTranslations('common');
 
   useEffect(() => {
     fetchTemplates();
@@ -131,14 +132,14 @@ export function TemplateList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Variables</TableHead>
-            <TableHead>Channels</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t('columns.name')}</TableHead>
+            <TableHead>{t('columns.type')}</TableHead>
+            <TableHead>{t('columns.title')}</TableHead>
+            <TableHead>{t('columns.variables')}</TableHead>
+            <TableHead>{t('columns.channels')}</TableHead>
+            <TableHead>{t('columns.status')}</TableHead>
+            <TableHead>{t('columns.created')}</TableHead>
+            <TableHead className="text-right">{t('columns.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -165,19 +166,19 @@ export function TemplateList() {
               <TableCell>
                 <div className="flex items-center gap-1">
                   {template.channels.includes('PUSH_MOBILE') && (
-                    <span title="Mobile Push"><Smartphone className="h-4 w-4 text-gray-500" /></span>
+                    <span title={t('channelTitles.mobilePush')}><Smartphone className="h-4 w-4 text-gray-500" /></span>
                   )}
                   {template.channels.includes('PUSH_WEB') && (
-                    <span title="Web Push"><Bell className="h-4 w-4 text-gray-500" /></span>
+                    <span title={t('channelTitles.webPush')}><Bell className="h-4 w-4 text-gray-500" /></span>
                   )}
                   {template.channels.includes('EMAIL') && (
-                    <span title="Email"><Mail className="h-4 w-4 text-gray-500" /></span>
+                    <span title={t('channelTitles.email')}><Mail className="h-4 w-4 text-gray-500" /></span>
                   )}
                 </div>
               </TableCell>
               <TableCell>
                 <Badge className={template.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                  {template.isActive ? 'Active' : 'Inactive'}
+                  {template.isActive ? tc('active') : tc('inactive')}
                 </Badge>
               </TableCell>
               <TableCell className="text-sm text-gray-500">

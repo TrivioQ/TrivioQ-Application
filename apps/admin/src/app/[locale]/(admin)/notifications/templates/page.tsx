@@ -1,17 +1,11 @@
 'use client';
 
-import { use } from 'react';
 import { TemplateList } from '@/components/template-list';
 import { CreateTemplateDialog } from '@/components/create-template-dialog';
 import { Sparkles } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
-export default function TemplatesPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = use(params);
+export default function TemplatesPage() {
   const t = useTranslations('notifications.templates');
 
   return (
@@ -25,7 +19,7 @@ export default function TemplatesPage({
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{t('pageTitle')}</h1>
             <p className="text-sm text-gray-500">
-              Reusable templates with variable substitution
+              {t('subtitle')}
             </p>
           </div>
         </div>

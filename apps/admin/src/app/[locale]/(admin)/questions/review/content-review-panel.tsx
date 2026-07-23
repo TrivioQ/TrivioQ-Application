@@ -304,7 +304,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
         <span>{total === 0 ? t('noResults') : t('showing', { start: (page - 1) * pageSize + 1, end: Math.min(page * pageSize, total), total })}</span>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Rows per page:</span>
+            <span className="text-xs text-gray-500">{t('rowsPerPage')}</span>
             <Select value={String(pageSize)} onValueChange={(v) => pushParams({ pageSize: v, page: '1' })}>
               <SelectTrigger size="sm" className="w-16">
                 <SelectValue />

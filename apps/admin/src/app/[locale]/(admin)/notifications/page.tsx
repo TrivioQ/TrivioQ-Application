@@ -3,8 +3,10 @@
 import { use } from 'react';
 import { NotificationList } from '@/components/notification-list';
 import { CreateNotificationDialog } from '@/components/create-notification-dialog';
-import { Bell, Plus } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import Link from 'next/link';
+
+import { useTranslations } from 'next-intl';
 
 export default function NotificationsPage({
   params,
@@ -12,6 +14,7 @@ export default function NotificationsPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = use(params);
+  const t = useTranslations('notifications');
 
   return (
     <div className="space-y-6">
@@ -22,9 +25,9 @@ export default function NotificationsPage({
             <Bell className="h-6 w-6 text-purple-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('pageTitle')}</h1>
             <p className="text-sm text-gray-500">
-              Manage and send notifications to users
+              {t('pageDescription')}
             </p>
           </div>
         </div>
@@ -33,7 +36,7 @@ export default function NotificationsPage({
             href={`/${locale}/notifications/templates`}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            Templates
+            {t('templatesButton')}
           </Link>
           <CreateNotificationDialog />
         </div>
@@ -42,27 +45,27 @@ export default function NotificationsPage({
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Sent"
+          title={t('stats.totalSent')}
           value="--"
-          description="All time notifications"
+          description={t('stats.allTimeNotifications')}
           color="purple"
         />
         <StatCard
-          title="Delivered"
+          title={t('stats.delivered')}
           value="--"
-          description="Successfully delivered"
+          description={t('stats.successfullyDelivered')}
           color="green"
         />
         <StatCard
-          title="Open Rate"
+          title={t('stats.openRate')}
           value="--%"
-          description="Average open rate"
+          description={t('stats.averageOpenRate')}
           color="blue"
         />
         <StatCard
-          title="Click Rate"
+          title={t('stats.clickRate')}
           value="--%"
-          description="Average click rate"
+          description={t('stats.averageClickRate')}
           color="amber"
         />
       </div>

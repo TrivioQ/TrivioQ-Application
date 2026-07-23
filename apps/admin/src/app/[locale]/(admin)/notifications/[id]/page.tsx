@@ -2,10 +2,10 @@
 
 import { use } from 'react';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Bell, Mail, Smartphone, Users, CheckCircle, Eye, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Bell, Users, CheckCircle, Eye, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 
 interface Notification {
@@ -110,29 +110,29 @@ export default function NotificationDetailPage({
       {analytics && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <AnalyticsCard
-            title="Total Recipients"
+            title={t('analytics.totalRecipients')}
             value={analytics.totalRecipients.toLocaleString()}
             icon={Users}
             color="blue"
           />
           <AnalyticsCard
-            title="Delivered"
+            title={t('analytics.delivered')}
             value={analytics.deliveredCount.toLocaleString()}
-            description={`${analytics.deliveryRate.toFixed(1)}% delivery rate`}
+            description={t('analytics.deliveryRate', { rate: analytics.deliveryRate.toFixed(1) })}
             icon={CheckCircle}
             color="green"
           />
           <AnalyticsCard
-            title="Opened"
+            title={t('analytics.opened')}
             value={analytics.readCount.toLocaleString()}
-            description={`${analytics.readRate.toFixed(1)}% open rate`}
+            description={t('analytics.openRate', { rate: analytics.readRate.toFixed(1) })}
             icon={Eye}
             color="purple"
           />
           <AnalyticsCard
-            title="Clicked"
+            title={t('analytics.clicked')}
             value={analytics.clickedCount.toLocaleString()}
-            description={`${analytics.clickRate.toFixed(1)}% click rate`}
+            description={t('analytics.clickRate', { rate: analytics.clickRate.toFixed(1) })}
             icon={TrendingUp}
             color="amber"
           />

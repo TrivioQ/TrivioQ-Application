@@ -17,20 +17,25 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+import { useTranslations } from 'next-intl';
+
 interface Props {
   stats: QuestionStats;
 }
 
 const DIFFICULTY_BADGE = {
-  EASY:   { label: 'Easy',   className: 'bg-green-100 text-green-700' },
-  MEDIUM: { label: 'Medium', className: 'bg-amber-100 text-amber-700' },
-  HARD:   { label: 'Hard',   className: 'bg-red-100 text-red-700' },
+  EASY:   { key: 'easy',   className: 'bg-green-100 text-green-700' },
+  MEDIUM: { key: 'medium', className: 'bg-amber-100 text-amber-700' },
+  HARD:   { key: 'hard',   className: 'bg-red-100 text-red-700' },
 } as const;
 
 export function QuestionsStatsSection({ stats }: Props) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedAgeRatings, setSelectedAgeRatings] = useState<AgeRating[]>([]);
   const [isPending, startTransition] = useTransition();
+
+  const t = useTranslations('dashboard.questionsExplorer');
+  const tq = useTranslations('questions.createModal');
 
   // Local state for the chart to reflect the filtered data immediately while transitioning
   const [filteredStats, setFilteredStats] = useState<{ totalQuestions: number; byDifficulty: DifficultyBreakdown[] }>({
@@ -73,9 +78,9 @@ export function QuestionsStatsSection({ stats }: Props) {
       {/* Section heading */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Question Explorer</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('title')}</h2>
           <p className="text-sm text-gray-500">
-            Filter and analyze your question bank
+            {t('description')}
           </p>
         </div>
       </div>
@@ -91,11 +96,11 @@ export function QuestionsStatsSection({ stats }: Props) {
                 </div>
                 {hasFilters && (
                   <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 cursor-pointer" onClick={clearFilters}>
-                    Clear Filters
+                    {t('clearFilters')}
                   </Badge>
                 )}
               </div>
-              <CardTitle className="mt-3 text-sm font-medium text-gray-600">Matching Questions</CardTitle>
+              <CardTitle className="mt-3 text-sm font-medium text-gray-600">{t('matchingQuestions')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-3xl font-bold text-gray-900 tracking-tight">
@@ -109,7 +114,7 @@ export function QuestionsStatsSection({ stats }: Props) {
                   return (
                     <div key={d.level} className="flex items-center justify-between gap-2">
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cfg.className}`}>
-                        {cfg.label}
+                        {tq(cfg.key as any)}
                       </span>
                       <span className="text-sm font-semibold text-gray-900">
                         {d.count.toLocaleString()}
@@ -125,27 +130,27 @@ export function QuestionsStatsSection({ stats }: Props) {
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-gray-500" />
-                <CardTitle className="text-sm font-semibold text-gray-700">Filters</CardTitle>
+                <CardTitle className="text-sm font-semibold text-gray-700">{t('filters')}</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4 pt-2 pb-4">
               {/* Category Filter */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-500">Categories</label>
+                <label className="text-xs font-medium text-gray-500">{t('categories')}</label>
                 <DropdownMenu>
                   <DropdownMenuTrigger className="w-full justify-start font-normal text-sm overflow-hidden text-ellipsis whitespace-nowrap h-9 inline-flex items-center rounded-md border border-gray-300 bg-white px-3 shadow-sm hover:bg-gray-50 focus:outline-none">
                     {selectedCategories.length === 0 
-                      ? 'All Categories' 
-                      : `${selectedCategories.length} selected`}
+                      ? t('allCategories')
+                      : t('categoriesSelected', { count: selectedCategories.length })}
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56 max-h-64 overflow-y-auto" align="start">
-                    <DropdownMenuLabel>Filter by Category</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t('filterByCategory')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuCheckboxItem
                       checked={selectedCategories.length === 0}
                       onCheckedChange={() => setSelectedCategories([])}
                     >
-                      All Categories
+                      {t('allCategories')}
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuSeparator />
                     {stats.categories.map((c) => (
@@ -164,21 +169,21 @@ export function QuestionsStatsSection({ stats }: Props) {
 
               {/* Age Rating Filter */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-500">Age Rating</label>
+                <label className="text-xs font-medium text-gray-500">{t('ageRating')}</label>
                 <DropdownMenu>
                   <DropdownMenuTrigger className="w-full justify-start font-normal text-sm overflow-hidden text-ellipsis whitespace-nowrap h-9 inline-flex items-center rounded-md border border-gray-300 bg-white px-3 shadow-sm hover:bg-gray-50 focus:outline-none">
                     {selectedAgeRatings.length === 0 
-                      ? 'All Ratings' 
-                      : `${selectedAgeRatings.length} selected`}
+                      ? t('allRatings') 
+                      : t('categoriesSelected', { count: selectedAgeRatings.length })}
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="start">
-                    <DropdownMenuLabel>Filter by Rating</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t('filterByRating')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuCheckboxItem
                       checked={selectedAgeRatings.length === 0}
                       onCheckedChange={() => setSelectedAgeRatings([])}
                     >
-                      All Ratings
+                      {t('allRatings')}
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuSeparator />
                     {(['ALL', 'TEEN', 'MATURE'] as AgeRating[]).map((r) => (
@@ -188,7 +193,7 @@ export function QuestionsStatsSection({ stats }: Props) {
                         onSelect={(e) => e.preventDefault()}
                         onCheckedChange={() => toggleAgeRating(r)}
                       >
-                        {r === 'ALL' ? 'All Ages' : r === 'TEEN' ? 'Teen' : 'Mature'}
+                        {r === 'ALL' ? t('allAges') : r === 'TEEN' ? t('teen') : t('mature')}
                       </DropdownMenuCheckboxItem>
                     ))}
                   </DropdownMenuContent>
@@ -204,10 +209,10 @@ export function QuestionsStatsSection({ stats }: Props) {
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle className="text-base font-semibold text-gray-900">
-                  Difficulty Distribution
+                  {t('difficultyDistribution')}
                 </CardTitle>
                 <CardDescription className="mt-1">
-                  Showing difficulty breakdown based on your active filters.
+                  {t('difficultyDescription')}
                 </CardDescription>
               </div>
             </div>
@@ -216,7 +221,7 @@ export function QuestionsStatsSection({ stats }: Props) {
             <div className={`transition-opacity duration-200 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
               {filteredStats.byDifficulty.every((d) => d.count === 0) ? (
                 <div className="flex h-[320px] items-center justify-center text-sm text-gray-400">
-                  No questions match your filters
+                  {t('noQuestionsMatch')}
                 </div>
               ) : (
                 <div className="h-[320px]">

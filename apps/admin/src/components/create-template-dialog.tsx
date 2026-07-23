@@ -24,9 +24,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
 
+import { useTranslations } from 'next-intl';
+
 export function CreateTemplateDialog() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const t = useTranslations('notifications.createTemplateModal');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -88,22 +91,22 @@ export function CreateTemplateDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button />}>
         <Plus className="h-4 w-4 mr-2" />
-        New Template
+        {t('trigger')}
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Notification Template</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
-            Create a reusable template with variable placeholders.
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           {/* Template Name */}
           <div className="space-y-2">
-            <Label>Template Name</Label>
+            <Label>{t('nameLabel')}</Label>
             <Input
-              placeholder="e.g., subscription-expiring-7d"
+              placeholder={t('namePlaceholder')}
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
@@ -113,7 +116,7 @@ export function CreateTemplateDialog() {
 
           {/* Template Type */}
           <div className="space-y-2">
-            <Label>Type</Label>
+            <Label>{t('typeLabel')}</Label>
             <Select
               value={formData.type}
               onValueChange={(value) => {
@@ -126,25 +129,25 @@ export function CreateTemplateDialog() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="TRIVIA_DROP">Trivia Drop</SelectItem>
+                <SelectItem value="TRIVIA_DROP">{t('types.triviaDrop')}</SelectItem>
                 <SelectItem value="SYSTEM_ANNOUNCEMENT">
-                  System Announcement
+                  {t('types.systemAnnouncement')}
                 </SelectItem>
                 <SelectItem value="SUBSCRIPTION_REMINDER">
-                  Subscription Reminder
+                  {t('types.subscriptionReminder')}
                 </SelectItem>
-                <SelectItem value="OFFER_PROMOTION">Offer Promotion</SelectItem>
-                <SelectItem value="CREDIT_ALERT">Credit Alert</SelectItem>
-                <SelectItem value="ADMIN_MESSAGE">Admin Message</SelectItem>
+                <SelectItem value="OFFER_PROMOTION">{t('types.offerPromotion')}</SelectItem>
+                <SelectItem value="CREDIT_ALERT">{t('types.creditAlert')}</SelectItem>
+                <SelectItem value="ADMIN_MESSAGE">{t('types.adminMessage')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Title */}
           <div className="space-y-2">
-            <Label>Title (supports variables)</Label>
+            <Label>{t('titleLabel')}</Label>
             <Input
-              placeholder="e.g., Your subscription expires in {{daysRemaining}} days"
+              placeholder={t('titlePlaceholder')}
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
@@ -154,9 +157,9 @@ export function CreateTemplateDialog() {
 
           {/* Body */}
           <div className="space-y-2">
-            <Label>Message Body (supports variables)</Label>
+            <Label>{t('messageBodyLabel')}</Label>
             <Textarea
-              placeholder="Enter the notification message"
+              placeholder={t('messageBodyPlaceholder')}
               rows={4}
               value={formData.body}
               onChange={(e) =>
@@ -167,9 +170,9 @@ export function CreateTemplateDialog() {
 
           {/* Email Subject */}
           <div className="space-y-2">
-            <Label>Email Subject (optional, supports variables)</Label>
+            <Label>{t('emailSubjectLabel')}</Label>
             <Input
-              placeholder="e.g., Don't miss out! Expires in {{daysRemaining}} days"
+              placeholder={t('emailSubjectPlaceholder')}
               value={formData.emailSubject}
               onChange={(e) =>
                 setFormData({ ...formData, emailSubject: e.target.value })
@@ -179,16 +182,16 @@ export function CreateTemplateDialog() {
 
           {/* Variables */}
           <div className="space-y-2">
-            <Label>Variables</Label>
+            <Label>{t('variablesLabel')}</Label>
             <div className="flex gap-2">
               <Input
-                placeholder="e.g., userName, expiryDate"
+                placeholder={t('variablesPlaceholder')}
                 value={variableInput}
                 onChange={(e) => setVariableInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddVariable())}
               />
               <Button type="button" variant="outline" onClick={handleAddVariable}>
-                Add
+                {t('addVariable')}
               </Button>
             </div>
             {formData.variables.length > 0 && (
@@ -208,7 +211,7 @@ export function CreateTemplateDialog() {
 
           {/* Channels */}
           <div className="space-y-2">
-            <Label>Default Delivery Channels</Label>
+            <Label>{t('defaultDeliveryChannels')}</Label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2">
                 <Checkbox
@@ -216,7 +219,7 @@ export function CreateTemplateDialog() {
                   onCheckedChange={() => toggleChannel('PUSH_MOBILE')}
                 />
                 <span className="text-sm flex items-center gap-1">
-                  📱 Mobile Push
+                  📱 {t('mobilePush')}
                 </span>
               </label>
               <label className="flex items-center gap-2">
@@ -225,7 +228,7 @@ export function CreateTemplateDialog() {
                   onCheckedChange={() => toggleChannel('PUSH_WEB')}
                 />
                 <span className="text-sm flex items-center gap-1">
-                  🔔 Web Push
+                  🔔 {t('webPush')}
                 </span>
               </label>
               <label className="flex items-center gap-2">
@@ -234,7 +237,7 @@ export function CreateTemplateDialog() {
                   onCheckedChange={() => toggleChannel('EMAIL')}
                 />
                 <span className="text-sm flex items-center gap-1">
-                  📧 Email
+                  📧 {t('email')}
                 </span>
               </label>
             </div>
@@ -243,10 +246,10 @@ export function CreateTemplateDialog() {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Creating...' : 'Create Template'}
+            {loading ? t('creating') : t('create')}
           </Button>
         </DialogFooter>
       </DialogContent>

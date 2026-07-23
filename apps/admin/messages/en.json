@@ -24,6 +24,7 @@
     "saving": "Saving...",
     "noResults": "No results.",
     "confirm": "Confirm",
+    "close": "Close",
     "searchPlaceholder": "Search…",
     "showing": "Showing {from}–{to} of {total}",
     "pageOf": "Page {current} of {total}"
@@ -50,6 +51,28 @@
       "title": "Category Popularity",
       "description": "Top 10 categories by number of assigned questions",
       "empty": "No categories with questions yet."
+    },
+    "questionsExplorer": {
+      "title": "Question Explorer",
+      "description": "Filter and analyze your question bank",
+      "clearFilters": "Clear Filters",
+      "matchingQuestions": "Matching Questions",
+      "filters": "Filters",
+      "categories": "Categories",
+      "allCategories": "All Categories",
+      "categoriesSelected": "{count} selected",
+      "filterByCategory": "Filter by Category",
+      "ageRating": "Age Rating",
+      "allRatings": "All Ratings",
+      "filterByRating": "Filter by Rating",
+      "allAges": "All Ages",
+      "teen": "Teen",
+      "mature": "Mature",
+      "difficultyDistribution": "Difficulty Distribution",
+      "difficultyDescription": "Showing difficulty breakdown based on your active filters.",
+      "noQuestionsMatch": "No questions match your filters",
+      "questionsUnit": "Questions",
+      "activeUsersUnit": "Active Users"
     }
   },
   "layout": {
@@ -62,6 +85,7 @@
       "reviewQuestions": "Review Questions",
       "categories": "Categories",
       "faqs": "FAQs",
+      "notifications": "Notifications",
       "bonusPlans": "Bonus Plans",
       "appSettings": "App Settings",
       "subscriptionHistory": "Sub. History",
@@ -270,6 +294,7 @@
       }
     },
     "noResults": "No results",
+    "rowsPerPage": "Rows per page:",
     "showing": "Showing {start}–{end} of {total}",
     "pageOf": "Page {page} of {totalPages}",
     "previousPage": "Previous page",
@@ -475,6 +500,19 @@
     "next": "Next"
   },
   "notifications": {
+    "pageTitle": "Notifications",
+    "pageDescription": "Manage and send notifications to users",
+    "templatesButton": "Templates",
+    "stats": {
+      "totalSent": "Total Sent",
+      "allTimeNotifications": "All time notifications",
+      "delivered": "Delivered",
+      "successfullyDelivered": "Successfully delivered",
+      "openRate": "Open Rate",
+      "averageOpenRate": "Average open rate",
+      "clickRate": "Click Rate",
+      "averageClickRate": "Average click rate"
+    },
     "inbox": {
       "pageTitle": "Notifications",
       "loading": "Loading notifications...",
@@ -497,6 +535,7 @@
     },
     "templates": {
       "pageTitle": "Notification Templates",
+      "subtitle": "Reusable templates with variable substitution",
       "aboutTitle": "About Templates",
       "aboutDesc": "Templates allow you to create reusable notification formats with placeholders like {{userName}}, {{expiryDate}}, etc. When creating a notification from a template, these variables are replaced with actual values."
     },
@@ -512,7 +551,16 @@
       "createdLabel": "Created",
       "sentAtLabel": "Sent At",
       "deliveryTitle": "Delivery Progress",
-      "deliveredLabel": "Delivered"
+      "deliveredLabel": "Delivered",
+      "analytics": {
+        "totalRecipients": "Total Recipients",
+        "delivered": "Delivered",
+        "opened": "Opened",
+        "clicked": "Clicked",
+        "deliveryRate": "{rate}% delivery rate",
+        "openRate": "{rate}% open rate",
+        "clickRate": "{rate}% click rate"
+      }
     },
     "list": {
       "loading": "Loading notifications...",
@@ -524,7 +572,22 @@
       "deleteConfirmMsg": "Are you sure you want to delete this notification? This cannot be undone.",
       "viewDetails": "View Details",
       "sendNow": "Send Now",
-      "delete": "Delete"
+      "delete": "Delete",
+      "columns": {
+        "type": "Type",
+        "title": "Title",
+        "audience": "Audience",
+        "channels": "Channels",
+        "recipients": "Recipients",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "channelTitles": {
+        "mobilePush": "Mobile Push",
+        "webPush": "Web Push",
+        "email": "Email"
+      }
     },
     "templatesList": {
       "loading": "Loading templates...",
@@ -540,7 +603,98 @@
       "duplicate": "Duplicate",
       "deactivate": "Deactivate",
       "activate": "Activate",
-      "delete": "Delete"
+      "delete": "Delete",
+      "columns": {
+        "name": "Name",
+        "type": "Type",
+        "title": "Title",
+        "variables": "Variables",
+        "channels": "Channels",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "channelTitles": {
+        "mobilePush": "Mobile Push",
+        "webPush": "Web Push",
+        "email": "Email"
+      }
+    },
+    "createModal": {
+      "trigger": "Create Notification",
+      "title": "Create Notification",
+      "description": "Create and send notifications to users via push and email.",
+      "useTemplate": "Use a template",
+      "templateLabel": "Template",
+      "selectTemplatePlaceholder": "Select a template",
+      "typeLabel": "Type",
+      "audienceLabel": "Audience",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Enter notification title",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Enter notification message",
+      "deliveryChannels": "Delivery Channels",
+      "mobilePush": "Mobile Push",
+      "webPush": "Web Push",
+      "email": "Email",
+      "cancel": "Cancel",
+      "create": "Create Notification",
+      "creating": "Creating...",
+      "types": {
+        "triviaDrop": "Trivia Drop",
+        "systemAnnouncement": "System Announcement",
+        "subscriptionReminder": "Subscription Reminder",
+        "offerPromotion": "Offer Promotion",
+        "creditAlert": "Credit Alert",
+        "adminMessage": "Admin Message"
+      },
+      "audiences": {
+        "allUsers": "All Users",
+        "userSegment": "User Segment",
+        "specificUsers": "Specific Users"
+      },
+      "templateOptions": {
+        "welcome": "Welcome",
+        "subscriptionExpiring7d": "Subscription Expiring (7 days)",
+        "subscriptionExpiring1d": "Subscription Expiring (1 day)",
+        "creditsAdded": "Credits Added",
+        "offerPromotion": "Offer Promotion",
+        "leaderboardWinner": "Leaderboard Winner",
+        "adminMessage": "Admin Message",
+        "newFeatureAnnouncement": "New Feature Announcement"
+      }
+    },
+    "createTemplateModal": {
+      "trigger": "New Template",
+      "title": "Create Notification Template",
+      "description": "Create a reusable template with variable placeholders.",
+      "nameLabel": "Template Name",
+      "namePlaceholder": "e.g., subscription-expiring-7d",
+      "typeLabel": "Type",
+      "types": {
+        "triviaDrop": "Trivia Drop",
+        "systemAnnouncement": "System Announcement",
+        "subscriptionReminder": "Subscription Reminder",
+        "offerPromotion": "Offer Promotion",
+        "creditAlert": "Credit Alert",
+        "adminMessage": "Admin Message"
+      },
+      "titleLabel": "Title (supports variables)",
+      "titlePlaceholder": "e.g., Your subscription expires in {{daysRemaining}} days",
+      "messageBodyLabel": "Message Body (supports variables)",
+      "messageBodyPlaceholder": "Enter the notification message",
+      "emailSubjectLabel": "Email Subject (optional, supports variables)",
+      "emailSubjectPlaceholder": "e.g., Don't miss out! Expires in {{daysRemaining}} days",
+      "variablesLabel": "Variables",
+      "variablesPlaceholder": "e.g., userName, expiryDate",
+      "addVariable": "Add",
+      "defaultDeliveryChannels": "Default Delivery Channels",
+      "mobilePush": "Mobile Push",
+      "webPush": "Web Push",
+      "email": "Email",
+      "cancel": "Cancel",
+      "create": "Create Template",
+      "creating": "Creating..."
     }
   },
   "system": {
