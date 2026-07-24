@@ -44,15 +44,15 @@ export default async function ScoreHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen py-20 px-6 sm:px-8 text-gray-900 dark:text-white selection:bg-teal-500 selection:text-gray-900 dark:text-white">
+    <div className="min-h-screen py-20 px-6 sm:px-8 text-gray-900 dark:text-white selection:bg-brand-500 selection:text-gray-900 dark:text-white">
       <div className="max-w-4xl mx-auto space-y-12">
         {/* ── Header ── */}
         <div className="space-y-4">
-          <Link href="/dashboard" className="group inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-teal-400 hover:text-blue-500 dark:text-teal-300 transition-colors">
+          <Link href="/dashboard" className="group inline-flex items-center gap-2 text-sm font-semibold text-brand-400 hover:text-brand-300 transition-colors">
             <span className="group-hover:-translate-x-1 transition-transform">←</span> {t('backToDashboard')}
           </Link>
           <div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-teal-400 to-purple-400">{t('title')}</h1>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-brand-400 to-brand-400">{t('title')}</h1>
             <p className="mt-3 text-gray-600 dark:text-gray-400 text-lg">{t('subtitle')}</p>
           </div>
         </div>
@@ -61,7 +61,7 @@ export default async function ScoreHistoryPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { label: t('easyLabel'), pts: t('easyPts'), color: 'from-green-500/10 to-green-500/5 border-green-500/20 text-green-400' },
-            { label: t('mediumLabel'), pts: t('mediumPts'), color: 'from-yellow-500/10 to-yellow-500/5 border-yellow-500/20 text-yellow-400' },
+            { label: t('mediumLabel'), pts: t('mediumPts'), color: 'from-brand-500/10 to-brand-500/5 border-brand-500/20 text-brand-400' },
             { label: t('hardLabel'), pts: t('hardPts'), color: 'from-red-500/10 to-red-500/5 border-red-500/20 text-red-400' },
           ].map((d) => (
             <div key={d.label} className={`rounded-2xl bg-gradient-to-br ${d.color} border p-5 text-center`}>
@@ -73,8 +73,8 @@ export default async function ScoreHistoryPage() {
         </div>
 
         {/* ── Bonus info callout ── */}
-        <div className="rounded-2xl border border-teal-500/20 bg-teal-500/5 p-6 space-y-3">
-          <h2 className="font-bold text-blue-500 dark:text-teal-300 text-lg">{t('bonusPointsTitle')}</h2>
+        <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-6 space-y-3">
+          <h2 className="font-bold text-brand-300 text-lg">{t('bonusPointsTitle')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
             <div>
               <p className="font-semibold text-gray-900 dark:text-white mb-1">{t('weeklyTop10')}</p>
@@ -95,7 +95,7 @@ export default async function ScoreHistoryPage() {
             <span className="text-5xl block mb-4">🔒</span>
             <p>
               {t('signInPrompt')}{' '}
-              <Link href="/login" className="text-blue-600 dark:text-teal-400 hover:text-blue-500 dark:text-teal-300">
+              <Link href="/login" className="text-brand-400 hover:text-brand-300">
                 {t('signInLink')}
               </Link>{' '}
               {t('signInSuffix')}

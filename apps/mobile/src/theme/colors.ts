@@ -18,7 +18,7 @@ export const lightColors: ThemeColors = {
   textPrimary: '#0F172A', // slate-900
   textSecondary: '#64748B', // slate-500
   borderColor: '#E2E8F0', // slate-200
-  brand: '#0D9488', // teal-500
+  brand: '#14B8A6', // teal-500 — matches web
   success: '#22c55e', // green-500
   error: '#ef4444', // red-500
   warning: '#f59e0b', // amber-500
@@ -32,7 +32,7 @@ export const darkColors: ThemeColors = {
   textPrimary: '#F8FAFC', // slate-50
   textSecondary: '#94A3B8', // slate-400
   borderColor: '#1E293B', // slate-800
-  brand: '#0D9488',
+  brand: '#14B8A6',
   success: '#22c55e',
   error: '#ef4444',
   warning: '#f59e0b',

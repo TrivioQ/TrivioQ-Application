@@ -46,7 +46,7 @@ export function MarkdownContent({ children, inline = false, className = '' }: Ma
         th: ({ children: c }) => <th className="border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-1.5 text-left font-semibold">{c}</th>,
         td: ({ children: c }) => <td className="border border-gray-200 dark:border-white/10 px-3 py-1.5">{c}</td>,
         // Blockquote
-        blockquote: ({ children: c }) => <blockquote className="border-l-4 border-teal-400 pl-3 italic text-gray-600 dark:text-gray-400 my-2">{c}</blockquote>,
+        blockquote: ({ children: c }) => <blockquote className="border-l-4 border-brand-400 pl-3 italic text-gray-600 dark:text-gray-400 my-2">{c}</blockquote>,
         // Lists
         ul: ({ children: c }) => <ul className="list-disc list-inside my-1 space-y-0.5">{c}</ul>,
         ol: ({ children: c }) => <ol className="list-decimal list-inside my-1 space-y-0.5">{c}</ol>,
@@ -59,7 +59,7 @@ export function MarkdownContent({ children, inline = false, className = '' }: Ma
         hr: () => <hr className="border-gray-200 dark:border-white/10 my-2" />,
         // Links — open externally
         a: ({ href, children: c }) => (
-          <a href={href} target="_blank" rel="noopener noreferrer" className="text-teal-500 dark:text-teal-300 underline hover:no-underline">
+          <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand-500 dark:text-brand-300 underline hover:no-underline">
             {c}
           </a>
         ),

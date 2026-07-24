@@ -48,7 +48,7 @@ export function NotificationCenterDropdown({ notifications, loading, onMarkAsRea
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <h3 className="font-semibold text-gray-900">{t('title')}</h3>
         <div className="flex items-center gap-2">
-          <button onClick={onMarkAllAsRead} className="text-xs text-purple-600 hover:text-purple-700 font-medium">
+          <button onClick={onMarkAllAsRead} className="text-xs text-brand-600 hover:text-brand-700 font-medium">
             {t('markAllRead')}
           </button>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -67,13 +67,13 @@ export function NotificationCenterDropdown({ notifications, loading, onMarkAsRea
         ) : (
           <ul>
             {notifications.map((notification) => (
-              <li key={notification.id} className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${!notification.isRead ? 'bg-purple-50/50' : ''}`} onClick={() => onMarkAsRead(notification.id)}>
+              <li key={notification.id} className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${!notification.isRead ? 'bg-brand-50/50' : ''}`} onClick={() => onMarkAsRead(notification.id)}>
                 <div className="flex items-start gap-3">
                   <span className="text-xl">{typeIcons[notification.type] || '🔔'}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-gray-900 truncate">{notification.title}</p>
-                      {!notification.isRead && <span className="h-2 w-2 bg-purple-500 rounded-full flex-shrink-0" />}
+                      {!notification.isRead && <span className="h-2 w-2 bg-brand-500 rounded-full flex-shrink-0" />}
                     </div>
                     <p className="text-sm text-gray-600 mt-1 line-clamp-2">{notification.body}</p>
                     <p className="text-xs text-gray-400 mt-2">{format(new Date(notification.createdAt), 'MMM d, HH:mm')}</p>
@@ -87,7 +87,7 @@ export function NotificationCenterDropdown({ notifications, loading, onMarkAsRea
 
       {/* Footer */}
       <div className="p-3 border-t border-gray-200 bg-gray-50">
-        <Link href="/dashboard/notifications" className="text-sm text-purple-600 hover:text-purple-700 font-medium text-center block">
+        <Link href="/dashboard/notifications" className="text-sm text-brand-600 hover:text-brand-700 font-medium text-center block">
           {t('viewAll')}
         </Link>
       </div>

@@ -28,7 +28,7 @@ export function MarkdownText({ children, color, scale = 1 }: MarkdownTextProps) 
   const mutedColor = isDark ? '#94A3B8' : '#64748B';
   const codeBg = isDark ? '#1E293B' : '#F1F5F9';
   const borderColor = isDark ? '#334155' : '#CBD5E1';
-  const linkColor = isDark ? '#818CF8' : '#4F46E5'; // indigo
+  const linkColor = isDark ? '#5EEAD4' : '#14B8A6'; // brand-300 / brand-500 — monochrome teal
 
   const fs = (base: number) => base * scale;
 
@@ -47,7 +47,7 @@ export function MarkdownText({ children, color, scale = 1 }: MarkdownTextProps) 
     fence: { backgroundColor: codeBg, borderRadius: 8, padding: 10, fontFamily: 'Courier', fontSize: fs(13), marginVertical: 6, color: textColor },
     code_block: { backgroundColor: codeBg, borderRadius: 8, padding: 10, fontFamily: 'Courier', fontSize: fs(13), marginVertical: 6, color: textColor },
     // Blockquote
-    blockquote: { borderLeftWidth: 4, borderLeftColor: '#0D9488', paddingLeft: 10, marginVertical: 6, opacity: 0.8 },
+    blockquote: { borderLeftWidth: 4, borderLeftColor: '#14B8A6', paddingLeft: 10, marginVertical: 6, opacity: 0.8 },
     // Lists
     bullet_list: { marginVertical: 4 },
     ordered_list: { marginVertical: 4 },

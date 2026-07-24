@@ -35,7 +35,7 @@ interface SubmitResult {
 
 const DIFF_COLOR: Record<string, string> = {
   easy: 'text-green-400 bg-green-400/10 border-green-400/20',
-  medium: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20',
+  medium: 'text-brand-400 bg-brand-400/10 border-brand-400/20',
   hard: 'text-red-400 bg-red-400/10 border-red-400/20',
 };
 
@@ -232,7 +232,7 @@ export default function ActiveDropCard() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none border border-white dark:border-white/10 p-6 animate-pulse">
+      <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-6 animate-pulse">
         <div className="h-4 w-32 bg-gray-200 dark:bg-white/10 rounded mb-3" />
         <div className="h-3 w-48 bg-gray-100 dark:bg-white/5 rounded" />
       </div>
@@ -252,7 +252,7 @@ export default function ActiveDropCard() {
 
   if (!drop) {
     return (
-      <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
+      <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200/60 dark:border-white/10 flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 flex items-center gap-2">
@@ -267,7 +267,7 @@ export default function ActiveDropCard() {
           <Hourglass className="w-10 h-10 text-gray-400" />
           <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('noActiveQuestion')}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 max-w-xs leading-relaxed">{t('noActiveDesc')}</p>
-          <button onClick={handleOnDemand} disabled={onDemandLoading} className="mt-2 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 border border-blue-600 dark:border-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 text-sm text-white dark:text-blue-300 font-medium transition-colors">
+          <button onClick={handleOnDemand} disabled={onDemandLoading} className="mt-2 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 text-sm text-white dark:text-brand-300 font-medium transition-colors">
             {onDemandLoading ? t('requesting') : t('requestNextQuestion')}
           </button>
           {onDemandError && <p className="text-xs text-amber-500 dark:text-amber-400 mt-1">{onDemandError}</p>}
@@ -280,14 +280,14 @@ export default function ActiveDropCard() {
   const timerUrgent = timeLeft !== null && timeLeft <= 60;
 
   return (
-    <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
+    <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200/60 dark:border-white/10 flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500" />
             </span>
             {t('activeDrop')}
           </p>
@@ -296,11 +296,11 @@ export default function ActiveDropCard() {
 
         {/* Timer */}
         <div className="text-right">
-          {submitResult ? <p className="text-lg font-mono font-bold text-gray-500 dark:text-gray-600 dark:text-gray-400">--:--</p> : <p className={`text-lg font-mono font-bold tabular-nums ${isExpired ? 'text-red-400' : timerUrgent ? 'text-orange-400' : 'text-blue-500 dark:text-teal-300'}`}>{timeLeft !== null ? formatTime(timeLeft) : '--:--'}</p>}
+          {submitResult ? <p className="text-lg font-mono font-bold text-gray-500 dark:text-gray-600 dark:text-gray-400">--:--</p> : <p className={`text-lg font-mono font-bold tabular-nums ${isExpired ? 'text-red-400' : timerUrgent ? 'text-orange-400' : 'text-brand-300'}`}>{timeLeft !== null ? formatTime(timeLeft) : '--:--'}</p>}
           {isExpired && !submitResult && (
             <div className="flex flex-col items-end gap-1">
               <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">{t('expired')}</p>
-              <button onClick={handleOnDemand} disabled={onDemandLoading} className="rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 border border-blue-600 dark:border-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1 text-[11px] text-white dark:text-blue-300 font-medium transition-colors">
+              <button onClick={handleOnDemand} disabled={onDemandLoading} className="rounded-lg bg-brand-600 hover:bg-brand-700 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1 text-[11px] text-white dark:text-brand-300 font-medium transition-colors">
                 {onDemandLoading ? t('requesting') : t('requestNew')}
               </button>
               {onDemandError && <p className="text-[10px] text-amber-400 text-right max-w-[160px]">{onDemandError}</p>}
@@ -314,7 +314,7 @@ export default function ActiveDropCard() {
         <div className="flex flex-wrap gap-2">
           <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${DIFF_COLOR[drop.difficulty]}`}>{drop.difficulty}</span>
           <span className="inline-flex items-center rounded-full border border-gray-300 dark:border-white/10 bg-gray-100 dark:bg-white/5 px-2.5 py-0.5 text-[11px] text-gray-600 dark:text-gray-400">{drop.category}</span>
-          <span className="inline-flex items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 py-0.5 text-[11px] text-blue-500 dark:text-teal-300">
+          <span className="inline-flex items-center rounded-full border border-brand-500/20 bg-brand-500/10 px-2.5 py-0.5 text-[11px] text-brand-300">
             {drop.pointsValue} {t('pts')}
           </span>
         </div>
@@ -322,9 +322,9 @@ export default function ActiveDropCard() {
         {/* Mystery → Reveal */}
         {!revealed ? (
           <div className="text-center py-4 flex flex-col items-center">
-            <Gift className="w-10 h-10 mb-3 text-teal-400" />
+            <Gift className="w-10 h-10 mb-3 text-brand-400" />
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{t('newQuestionWaiting')}</p>
-            <button onClick={handleRevealQuestion} disabled={isExpired || revealQuestionLoading} className="rounded-xl bg-teal-600 hover:bg-teal-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-gray-900 dark:text-white transition-colors">
+            <button onClick={handleRevealQuestion} disabled={isExpired || revealQuestionLoading} className="rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-gray-700 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-gray-900 dark:text-white transition-colors">
               {revealQuestionLoading ? t('revealLoading') : t('revealQuestion')}
             </button>
           </div>
@@ -339,20 +339,20 @@ export default function ActiveDropCard() {
             {!submitResult && !isAnswerKnown && (
               <div className="flex gap-2">
                 {hintText ? (
-                  <div className="flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2">
-                    <p className="text-[11px] font-bold text-yellow-400 mb-0.5 flex items-center gap-1">
+                  <div className="flex-1 rounded-lg border border-brand-500/30 bg-brand-500/10 px-3 py-2">
+                    <p className="text-[11px] font-bold text-brand-400 mb-0.5 flex items-center gap-1">
                       <Lightbulb className="w-3.5 h-3.5" /> Hint {hintCostDeducted != null ? `(−${hintCostDeducted} ${t('pts')})` : ''}
                     </p>
-                    <div className="text-xs text-yellow-200">
+                    <div className="text-xs text-brand-200">
                       <MarkdownContent>{hintText}</MarkdownContent>
                     </div>
                   </div>
                 ) : (
-                  <button onClick={handleHint} disabled={hintLoading || isExpired || drop.usedHint} className="flex-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-yellow-400 transition-colors">
+                  <button onClick={handleHint} disabled={hintLoading || isExpired || drop.usedHint} className="flex-1 rounded-lg border border-brand-500/30 bg-brand-500/10 hover:bg-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-brand-400 transition-colors">
                     {drop.usedHint ? t('hintUsed') : hintLoading ? t('hintLoading') : t('hintCost', { pts: drop.hintCost })}
                   </button>
                 )}
-                <button onClick={handleReveal} disabled={revealLoading || isExpired || drop.revealedAnswer || isAnswerKnown} className="flex-1 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-purple-400 transition-colors">
+                <button onClick={handleReveal} disabled={revealLoading || isExpired || drop.revealedAnswer || isAnswerKnown} className="flex-1 rounded-lg border border-brand-500/30 bg-brand-500/10 hover:bg-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-xs font-semibold text-brand-400 transition-colors">
                   {drop.revealedAnswer || isAnswerKnown ? t('answerRevealedBtn') : revealLoading ? t('revealLoading') : t('showAnswer')}
                 </button>
               </div>
@@ -374,9 +374,9 @@ export default function ActiveDropCard() {
                 } else if (isExpired || submitting) {
                   cls += 'border-gray-200 dark:border-white/5 bg-white/70 dark:bg-white/5 backdrop-blur-md shadow-sm dark:shadow-none text-gray-500 dark:text-gray-400 cursor-default';
                 } else if (index === selectedOption) {
-                  cls += 'border-teal-500/60 bg-teal-500/20 text-teal-200';
+                  cls += 'border-brand-500/60 bg-brand-500/20 text-brand-200';
                 } else {
-                  cls += 'border-gray-200 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-md shadow-sm dark:shadow-none hover:bg-teal-500/20 hover:border-teal-500/40 text-gray-800 dark:text-gray-200 cursor-pointer';
+                  cls += 'border-gray-200 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-md shadow-sm dark:shadow-none hover:bg-brand-500/20 hover:border-brand-500/40 text-gray-800 dark:text-gray-200 cursor-pointer';
                 }
 
                 return (
@@ -389,7 +389,7 @@ export default function ActiveDropCard() {
 
             {/* Submit button */}
             {!submitResult && !isAnswerKnown && !isExpired && (
-              <button onClick={handleSubmit} disabled={selectedOption === null || submitting} className="w-full rounded-xl bg-teal-600 hover:bg-teal-500 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-400 dark:disabled:text-gray-500 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors">
+              <button onClick={handleSubmit} disabled={selectedOption === null || submitting} className="w-full rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-400 dark:disabled:text-gray-500 disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors">
                 {submitting ? t('submitting') : t('submitAnswer')}
               </button>
             )}
@@ -400,7 +400,7 @@ export default function ActiveDropCard() {
             {submitResult && (
               <div className="rounded-xl border border-gray-200/80 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-md shadow-sm dark:shadow-none px-5 py-4 text-center space-y-1">
                 <p className="text-lg font-bold text-gray-900 dark:text-white">{submitResult.revealedAnswer ? t('resultRevealed') : submitResult.isCorrect ? t('resultCorrect') : t('resultIncorrect')}</p>
-                <p className={`text-sm font-semibold ${submitResult.pointsAwarded > 0 ? 'text-blue-600 dark:text-teal-400' : 'text-gray-500 dark:text-gray-600 dark:text-gray-400'}`}>{submitResult.pointsAwarded > 0 ? t('pointsAwarded', { pts: submitResult.pointsAwarded }) : t('zeroPoints')}</p>
+                <p className={`text-sm font-semibold ${submitResult.pointsAwarded > 0 ? 'text-brand-400' : 'text-gray-500 dark:text-gray-600 dark:text-gray-400'}`}>{submitResult.pointsAwarded > 0 ? t('pointsAwarded', { pts: submitResult.pointsAwarded }) : t('zeroPoints')}</p>
                 {submitResult.explanation && (
                   <div className="text-xs text-gray-600 dark:text-gray-400 italic mt-1">
                     <MarkdownContent>{submitResult.explanation}</MarkdownContent>
@@ -413,11 +413,11 @@ export default function ActiveDropCard() {
                       resetState();
                       fetchActiveDrop();
                     }}
-                    className="rounded-xl bg-teal-600 hover:bg-teal-500 dark:bg-teal-600/20 dark:hover:bg-teal-600/30 border border-teal-600 dark:border-teal-500/30 px-4 py-1.5 text-xs text-white dark:text-teal-300 font-medium transition-colors"
+                    className="rounded-xl bg-brand-600 hover:bg-brand-500 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 px-4 py-1.5 text-xs text-white dark:text-brand-300 font-medium transition-colors"
                   >
                     {t('checkNextDrop')}
                   </button>
-                  <button onClick={handleOnDemand} disabled={onDemandLoading} className="rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 border border-blue-600 dark:border-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-xs text-white dark:text-blue-300 font-medium transition-colors">
+                  <button onClick={handleOnDemand} disabled={onDemandLoading} className="rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-xs text-white dark:text-brand-300 font-medium transition-colors">
                     {onDemandLoading ? t('requesting') : t('requestNextQuestion')}
                   </button>
                 </div>

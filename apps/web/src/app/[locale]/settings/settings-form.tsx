@@ -136,7 +136,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
   return (
     <div className="space-y-12">
       {/* ── Display Name (Identity) ── */}
-      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
+      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
         <div>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('displayNameTitle')}</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">{t('displayNameDesc')}</p>
@@ -144,7 +144,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
 
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('nameLabel')}</label>
-          <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder={t('displayNamePlaceholder')} />
+          <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder={t('displayNamePlaceholder')} />
         </div>
 
         {initialUser.dateOfBirth && (
@@ -155,13 +155,13 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
           </div>
         )}
 
-        <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
+        <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-brand-600 hover:bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
           {isPending ? t('saving') : t('updateName')}
         </button>
       </section>
 
       {/* ── Active Time (Most Used) ── */}
-      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
+      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
         <div>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('activeTimeTitle')}</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">{t('activeTimeDesc')}</p>
@@ -170,15 +170,15 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('startTimeLabel')}</label>
-            <input type="time" value={activeStart} onChange={(e) => setActiveStart(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input type="time" value={activeStart} onChange={(e) => setActiveStart(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('endTimeLabel')}</label>
-            <input type="time" value={activeEnd} onChange={(e) => setActiveEnd(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input type="time" value={activeEnd} onChange={(e) => setActiveEnd(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
         </div>
 
-        <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
+        <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-brand-600 hover:bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
           {isPending ? t('saving') : t('saveTimeSettings')}
         </button>
       </section>
@@ -187,7 +187,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
 
       {/* ── Security / Change Password (if email) ── */}
       {isEmailUser && (
-        <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
+        <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
           <div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('changePasswordTitle')}</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('changePasswordDesc')}</p>
@@ -196,15 +196,15 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
           <form onSubmit={handleChangePassword} className="space-y-4 max-w-sm">
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-500">{t('currentPasswordLabel')}</label>
-              <input type="password" required value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="password" required value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-500">{t('newPasswordLabel')}</label>
-              <input type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-500">{t('confirmPasswordLabel')}</label>
-              <input type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <button type="submit" disabled={isPending} className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
               {t('updatePassword')}

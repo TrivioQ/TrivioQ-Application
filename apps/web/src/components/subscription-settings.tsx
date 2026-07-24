@@ -167,7 +167,7 @@ export function SubscriptionSettings() {
 
   if (loadingData) {
     return (
-      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 flex items-center justify-center min-h-[200px]">
+      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 flex items-center justify-center min-h-[200px]">
         <IconSpinner />
       </section>
     );
@@ -175,7 +175,7 @@ export function SubscriptionSettings() {
 
   if (fetchError || !data) {
     return (
-      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 flex items-center gap-3">
+      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 flex items-center gap-3">
         <span className="text-red-400">
           <IconAlertCircle />
         </span>
@@ -194,7 +194,7 @@ export function SubscriptionSettings() {
     <div className="space-y-6">
       {/* ── Current Plan ──────────────────────────────────────────────────── */}
       <section
-        className={`rounded-2xl border p-6 space-y-5 shadow-2xl dark:shadow-none backdrop-blur-2xl ${isAutoRenew ? 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-200/50 dark:border-amber-500/20 shadow-amber-900/10' : isVault ? 'bg-purple-50/50 dark:bg-purple-500/5 border-purple-200/50 dark:border-purple-500/20 shadow-purple-900/10' : 'bg-gray-50/50 dark:bg-gray-900/50 border-white dark:border-white/5 shadow-teal-900/10'}`}
+        className={`rounded-2xl border p-6 space-y-5 shadow-2xl dark:shadow-none backdrop-blur-2xl ${isAutoRenew ? 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-200/50 dark:border-amber-500/20 shadow-amber-900/10' : isVault ? 'bg-brand-50/50 dark:bg-brand-500/5 border-brand-200/50 dark:border-brand-500/20 shadow-brand-900/10' : 'bg-gray-50/50 dark:bg-gray-900/50 border-white dark:border-white/5 shadow-brand-900/10'}`}
       >
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
@@ -209,7 +209,7 @@ export function SubscriptionSettings() {
             </span>
           )}
           {isVault && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-100 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/25">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-brand-100 dark:bg-brand-500/15 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-500/25">
               <IconVault />
               {t('plus')}
             </span>
@@ -232,17 +232,17 @@ export function SubscriptionSettings() {
           </div>
         )}
         {isVault && subscriptionExpiresAt && (
-          <div className="flex items-center gap-2 text-sm text-purple-700 dark:text-purple-300/80">
+          <div className="flex items-center gap-2 text-sm text-brand-700 dark:text-brand-300/80">
             <IconCalendar />
             <span>
               {t('plusExpires')}
-              <span className="font-semibold text-purple-900 dark:text-purple-200">{formatDate(subscriptionExpiresAt, locale)}</span>
+              <span className="font-semibold text-brand-900 dark:text-brand-200">{formatDate(subscriptionExpiresAt, locale)}</span>
             </span>
           </div>
         )}
 
         {isFree && (
-          <button className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+          <button className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
             <IconZap />
             {t('upgradeToPremium')}
           </button>
@@ -250,18 +250,18 @@ export function SubscriptionSettings() {
       </section>
 
       {/* ── Premium Vault ─────────────────────────────────────────────────── */}
-      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-5">
+      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-5">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('bankedDaysTitle')}</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{t('bankedDaysDesc')}</p>
           </div>
-          <div className="flex items-center gap-2 bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/20 rounded-xl px-4 py-2">
-            <span className="text-teal-600 dark:text-teal-400">
+          <div className="flex items-center gap-2 bg-brand-50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-500/20 rounded-xl px-4 py-2">
+            <span className="text-brand-600 dark:text-brand-400">
               <IconVault />
             </span>
             <span className="text-2xl font-extrabold text-gray-900 dark:text-white tabular-nums">{onDemandTokensAvailable}</span>
-            <span className="text-xs font-semibold text-teal-600 dark:text-teal-400 leading-tight">
+            <span className="text-xs font-semibold text-brand-600 dark:text-brand-400 leading-tight">
               {t('banked')}
               <br />
               {t('days')}
@@ -295,7 +295,7 @@ export function SubscriptionSettings() {
                     const v = parseInt(e.target.value, 10);
                     if (!isNaN(v)) setDaysToSpend(Math.min(onDemandTokensAvailable, Math.max(1, v)));
                   }}
-                  className="w-20 text-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-gray-900 dark:text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 tabular-nums"
+                  className="w-20 text-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-gray-900 dark:text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-brand-500 tabular-nums"
                 />
                 <button
                   onClick={() => setDaysToSpend((v) => Math.min(onDemandTokensAvailable, v + 1))}
@@ -308,7 +308,7 @@ export function SubscriptionSettings() {
               </div>
             </div>
 
-            <button onClick={handleActivate} disabled={activating} className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            <button onClick={handleActivate} disabled={activating} className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
               {activating ? (
                 <>
                   <IconSpinner />

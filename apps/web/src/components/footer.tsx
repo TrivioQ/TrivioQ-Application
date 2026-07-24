@@ -47,7 +47,7 @@ export async function Footer() {
   return (
     <footer className="relative bg-gray-50 dark:bg-black border-t border-gray-100 dark:border-white/5 transition-colors duration-300">
       {/* Subtle top glow */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 dark:via-teal-500/40 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-500/40 dark:via-brand-500/40 to-transparent" />
 
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {/* ── Main grid ── */}
@@ -56,7 +56,7 @@ export async function Footer() {
           <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center gap-2 group w-fit">
               <img src="/logo.png" alt={t('logoAlt')} className="w-8 h-8" />
-              <span className="font-extrabold text-xl tracking-tight text-gray-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-orange-100 transition-colors">{t('brandName')}</span>
+              <span className="font-extrabold text-xl tracking-tight text-gray-900 dark:text-white group-hover:text-brand-500 dark:group-hover:text-brand-100 transition-colors">{t('brandName')}</span>
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-gray-500 dark:text-gray-400 max-w-xs">{t('tagline')}</p>
 
@@ -86,7 +86,7 @@ export async function Footer() {
           {/* Link columns */}
           {FOOTER_COLUMNS.map((col) => (
             <div key={col.heading}>
-              <h3 className="text-xs font-semibold uppercase tracking-widest text-blue-600 dark:text-teal-400 mb-5">{col.heading}</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-400 mb-5">{col.heading}</h3>
               <ul className="space-y-3">
                 {col.links.map((link) => (
                   <li key={link.href}>
@@ -101,9 +101,9 @@ export async function Footer() {
 
           {/* App download CTA */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-blue-600 dark:text-teal-400 mb-5">{t('getAppHeading')}</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-400 mb-5">{t('getAppHeading')}</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t('getAppDesc')}</p>
-            <Link href="#" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-blue-600 dark:text-white bg-blue-50 dark:bg-teal-500/20 border border-blue-200 dark:border-teal-500/30 hover:bg-blue-100 dark:hover:bg-teal-500/30 hover:border-blue-300 dark:hover:border-teal-500/50 transition-all duration-200">
+            <Link href="#" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-brand-600 dark:text-white bg-brand-500/20 border border-brand-500/30 hover:bg-brand-100 dark:hover:bg-brand-500/30 hover:border-brand-300 dark:hover:border-brand-500/50 transition-all duration-200">
               <span>📱</span>
               {t('downloadFree')}
             </Link>

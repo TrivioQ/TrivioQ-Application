@@ -54,7 +54,7 @@ export function WebPushSubscription() {
   return (
     <div className="p-4 bg-white rounded-lg border border-gray-200">
       <div className="flex items-start gap-3">
-        <div className={`p-2 rounded-lg ${isSubscribed ? 'bg-green-100' : 'bg-purple-100'}`}>{isSubscribed ? <CheckCircle className="h-5 w-5 text-green-600" /> : <Bell className="h-5 w-5 text-purple-600" />}</div>
+        <div className={`p-2 rounded-lg ${isSubscribed ? 'bg-green-100' : 'bg-brand-100'}`}>{isSubscribed ? <CheckCircle className="h-5 w-5 text-green-600" /> : <Bell className="h-5 w-5 text-brand-600" />}</div>
         <div className="flex-1">
           <h3 className="font-semibold text-gray-900">{isSubscribed ? t('enabledTitle') : t('enableTitle')}</h3>
           <p className="text-sm text-gray-600 mt-1">{isSubscribed ? t('enabledDesc') : t('enableDesc')}</p>

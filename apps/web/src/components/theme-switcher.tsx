@@ -32,7 +32,7 @@ export function ThemeSwitcher() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 dark:bg-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-700 transition-colors border border-white/20 dark:border-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label={t('toggle')}>
+      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 dark:bg-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-700 transition-colors border border-white/20 dark:border-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400" aria-label={t('toggle')}>
         <span className="text-sm">{currentTheme.icon}</span>
       </button>
 
@@ -47,7 +47,7 @@ export function ThemeSwitcher() {
                     setTheme(t.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-sm text-left transition-colors ${theme === t.value ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-sm text-left transition-colors ${theme === t.value ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'}`}
                 >
                   <span>{t.icon}</span>
                   {t.label}

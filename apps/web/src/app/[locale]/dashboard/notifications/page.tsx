@@ -107,10 +107,10 @@ export default function NotificationsPage() {
 
         {/* Filter Tabs */}
         <div className="flex gap-2 mb-6">
-          <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}>
+          <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all' ? 'bg-brand-100 text-brand-700' : 'text-gray-600 hover:bg-gray-100'}`}>
             {t('all')} ({notifications.length})
           </button>
-          <button onClick={() => setFilter('unread')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'unread' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}>
+          <button onClick={() => setFilter('unread')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'unread' ? 'bg-brand-100 text-brand-700' : 'text-gray-600 hover:bg-gray-100'}`}>
             {t('unread')} ({unreadCount})
           </button>
         </div>
@@ -125,13 +125,13 @@ export default function NotificationsPage() {
             </div>
           ) : (
             filteredNotifications.map((notification) => (
-              <div key={notification.id} onClick={() => handleMarkAsRead(notification.id)} className={`bg-white rounded-lg border p-4 cursor-pointer transition-all hover:shadow-md ${!notification.isRead ? 'border-purple-200 bg-purple-50/30' : 'border-gray-200'}`}>
+              <div key={notification.id} onClick={() => handleMarkAsRead(notification.id)} className={`bg-white rounded-lg border p-4 cursor-pointer transition-all hover:shadow-md ${!notification.isRead ? 'border-brand-200 bg-brand-50/30' : 'border-gray-200'}`}>
                 <div className="flex items-start gap-4">
                   <span className="text-2xl">{typeIcons[notification.type] || '🔔'}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-gray-900">{notification.title}</h3>
-                      {!notification.isRead && <span className="h-2 w-2 bg-purple-500 rounded-full" />}
+                      {!notification.isRead && <span className="h-2 w-2 bg-brand-500 rounded-full" />}
                     </div>
                     <p className="text-gray-600 mt-1">{notification.body}</p>
 

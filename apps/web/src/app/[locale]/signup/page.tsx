@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useAuth } from '@/context/auth-provider';
 
-const inputClass = 'relative block w-full border-0 bg-white dark:bg-gray-800 py-3 px-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-teal-500 sm:text-sm sm:leading-6';
+const inputClass = 'relative block w-full border-0 bg-white dark:bg-gray-800 py-3 px-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function SignupPage() {
   if (isLoading || user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
       </div>
     );
   }
@@ -49,16 +49,16 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6 py-12 lg:px-8 selection:bg-teal-500 selection:text-white">
-      <div className="w-full max-w-md space-y-8 bg-white/30 dark:bg-white/5 backdrop-blur-2xl p-10 rounded-3xl border border-white/50 dark:border-white/10 shadow-2xl shadow-teal-900/10">
+    <div className="flex min-h-screen items-center justify-center px-6 py-12 lg:px-8 selection:bg-brand-500 selection:text-white">
+      <div className="w-full max-w-md space-y-8 bg-white/30 dark:bg-white/5 backdrop-blur-2xl p-10 rounded-3xl border border-white/50 dark:border-white/10 shadow-2xl shadow-brand-900/10">
         <div className="text-center">
-          <Link href="/" className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">
+          <Link href="/" className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-400">
             {t('brandName')}
           </Link>
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{t('createTitle')}</h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             {t('createSubtitle')}{' '}
-            <Link href="/login" className="font-medium text-teal-400 hover:text-teal-300 transition-colors">
+            <Link href="/login" className="font-medium text-brand-400 hover:text-brand-300 transition-colors">
               {t('createSubtitleLink')}
             </Link>
           </p>
@@ -123,15 +123,15 @@ export default function SignupPage() {
               checked={agreedToTerms}
               onChange={(e) => setAgreedToTerms(e.target.checked)}
               disabled={isPending}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-500 focus:ring-teal-600 dark:focus:ring-teal-500 focus:ring-offset-white dark:focus:ring-offset-gray-900 cursor-pointer"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 focus:ring-offset-white dark:focus:ring-offset-gray-900 cursor-pointer"
             />
             <label htmlFor="terms" className="text-sm text-gray-600 dark:text-gray-400 leading-snug cursor-pointer select-none">
               {t('termsAgreement')}{' '}
-              <Link href="/terms" target="_blank" className="text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 underline underline-offset-2">
+              <Link href="/terms" target="_blank" className="text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 underline underline-offset-2">
                 {t('termsLink')}
               </Link>{' '}
               {t('and')}{' '}
-              <Link href="/privacy" target="_blank" className="text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 underline underline-offset-2">
+              <Link href="/privacy" target="_blank" className="text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 underline underline-offset-2">
                 {t('privacyLink')}
               </Link>
               {t('ageConfirmation')}
@@ -139,7 +139,7 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <button type="submit" disabled={isPending || !agreedToTerms} className="group relative flex w-full justify-center rounded-md bg-teal-500 px-3 py-3 text-sm font-semibold text-white hover:bg-teal-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            <button type="submit" disabled={isPending || !agreedToTerms} className="group relative flex w-full justify-center rounded-md bg-brand-500 px-3 py-3 text-sm font-semibold text-white hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               {isPending ? t('creatingAccount') : t('createButton')}
             </button>
           </div>

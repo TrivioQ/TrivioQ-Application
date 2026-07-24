@@ -357,8 +357,8 @@ const createStyles = (colors: ThemeColors) =>
       gap: 12,
     },
     upgradeItem: {
-      borderColor: 'rgba(124,58,237,0.3)',
-      backgroundColor: 'rgba(99,102,241,0.08)',
+      borderColor: 'rgba(20,184,166,0.3)',
+      backgroundColor: 'rgba(20,184,166,0.08)',
     },
     menuIcon: {
       fontSize: 18,

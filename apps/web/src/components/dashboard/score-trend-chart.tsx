@@ -3,6 +3,11 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTranslations, useLocale } from 'next-intl';
 
+const BRAND = {
+  base: '#0D9488', // brand-600 (deeper)
+  bonus: '#5EEAD4', // brand-300 (lighter)
+};
+
 export interface ScorePeriod {
   periodStart: string;
   totalScore: number;
@@ -59,8 +64,8 @@ export function ScoreTrendChart({ data, mode, namespace = 'dashboard' }: Props) 
         <XAxis dataKey="periodStart" tick={{ fontSize: 10, fill: '#6b7280' }} tickFormatter={(v) => formatLabel(v, mode, locale)} interval="preserveStartEnd" />
         <YAxis tick={{ fontSize: 10, fill: '#6b7280' }} allowDecimals={false} width={44} />
         <Tooltip content={<CustomTooltip mode={mode} t={t} />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-        <Bar dataKey="baseScore" name={t('chart.base')} stackId="a" fill="#0D9488" radius={[0, 0, 0, 0]} />
-        <Bar dataKey="bonusScore" name={t('chart.bonus')} stackId="a" fill="#a855f7" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="baseScore" name={t('chart.base')} stackId="a" fill={BRAND.base} radius={[0, 0, 0, 0]} />
+        <Bar dataKey="bonusScore" name={t('chart.bonus')} stackId="a" fill={BRAND.bonus} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

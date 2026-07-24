@@ -73,9 +73,9 @@ function CrownIcon({ className }: { className?: string }) {
 
 function NavLink({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
-    <Link href={href} className={`relative text-sm font-medium transition-colors duration-200 group ${active ? 'text-blue-600 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-white'}`}>
+    <Link href={href} className={`relative text-sm font-medium transition-colors duration-200 group ${active ? 'text-brand-600 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-white'}`}>
       {label}
-      <span className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-blue-500 dark:bg-teal-400 transition-all duration-300 ${active ? 'w-full' : 'w-0 group-hover:w-full'}`} />
+      <span className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-brand-400 transition-all duration-300 ${active ? 'w-full' : 'w-0 group-hover:w-full'}`} />
     </Link>
   );
 }
@@ -83,9 +83,9 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
 function UserAvatar({ profilePicture, displayName, email, isPremium, avatarAlt, premiumBadge }: { profilePicture: string | null; displayName: string | null; email: string; isPremium: boolean; avatarAlt: string; premiumBadge: string }) {
   return (
     <div className="relative">
-      {profilePicture ? <img src={profilePicture} alt={avatarAlt} className="w-8 h-8 rounded-full object-cover ring-2 ring-teal-500/60" /> : <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold ring-2 ring-teal-500/60">{getInitials(displayName, email)}</div>}
+      {profilePicture ? <img src={profilePicture} alt={avatarAlt} className="w-8 h-8 rounded-full object-cover ring-2 ring-brand-500/60" /> : <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white text-xs font-bold ring-2 ring-brand-500/60">{getInitials(displayName, email)}</div>}
       {isPremium && (
-        <span className="absolute -top-1.5 -right-[0.175rem] leading-none select-none text-yellow-400" title={premiumBadge}>
+        <span className="absolute -top-1.5 -right-[0.175rem] leading-none select-none text-brand-400" title={premiumBadge}>
           <CrownIcon className="w-3.5 h-3.5 drop-shadow-[0_0_5px_rgba(250,204,21,0.6)]" />
         </span>
       )}
@@ -157,12 +157,12 @@ export function Navbar() {
   return (
     <>
       {/* ── Bar ── */}
-      <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/60 dark:bg-gray-950/60 backdrop-blur-2xl border-b border-white/50 dark:border-white/10 shadow-lg shadow-blue-100/20 dark:shadow-black/20' : 'bg-white/40 dark:bg-transparent backdrop-blur-md border-b border-transparent'}`}>
+      <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/60 dark:bg-gray-950/60 backdrop-blur-2xl border-b border-white/50 dark:border-white/10 shadow-lg shadow-brand-100/20 dark:shadow-black/20' : 'bg-white/40 dark:bg-transparent backdrop-blur-md border-b border-transparent'}`}>
         <nav className="mx-auto max-w-7xl px-6 lg:px-8 h-16 flex items-center justify-between gap-6">
           {/* ── Logo ── */}
           <Link href="/" className="flex items-center gap-2 group shrink-0">
             <img src="/logo.png" alt={t('logoAlt')} className="w-8 h-8" />
-            <span className="font-extrabold text-xl tracking-tight text-gray-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-orange-200 transition-colors">{t('brandName')}</span>
+            <span className="font-extrabold text-xl tracking-tight text-gray-900 dark:text-white group-hover:text-brand-500 dark:group-hover:text-brand-200 transition-colors">{t('brandName')}</span>
           </Link>
 
           {/* ── Center links (desktop) ── */}
@@ -186,20 +186,20 @@ export function Navbar() {
               // ── Logged-in state ──
               <div className="flex items-center gap-4">
                 {/* Streak */}
-                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/25">
-                  <Flame className="w-4 h-4 text-orange-500" />
-                  <span className="text-sm font-bold text-orange-300">{profile?.currentStreak ?? 0}</span>
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-500/15 border border-brand-500/25">
+                  <Flame className="w-4 h-4 text-brand-500" />
+                  <span className="text-sm font-bold text-brand-300">{profile?.currentStreak ?? 0}</span>
                 </div>
 
                 {/* Score */}
-                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-500/15 border border-teal-500/25">
-                  <Star className="w-4 h-4 text-teal-500" />
-                  <span className="text-sm font-bold text-teal-300">{(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-500/15 border border-brand-500/25">
+                  <Star className="w-4 h-4 text-brand-500" />
+                  <span className="text-sm font-bold text-brand-300">{(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
                 </div>
 
                 {/* Avatar + dropdown */}
                 <div className="relative" ref={dropdownRef}>
-                  <button id="user-avatar-btn" onClick={() => setDropdownOpen((o) => !o)} className="flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label={t('userMenu')} aria-expanded={dropdownOpen}>
+                  <button id="user-avatar-btn" onClick={() => setDropdownOpen((o) => !o)} className="flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400" aria-label={t('userMenu')} aria-expanded={dropdownOpen}>
                     <UserAvatar profilePicture={profile?.profilePicture ?? null} displayName={profile?.displayName ?? null} email={user.email ?? ''} isPremium={profile?.subscriptionTier === 'PREMIUM' || profile?.subscriptionTier === 'PLUS'} avatarAlt={t('avatarAlt')} premiumBadge={t('premiumBadge')} />
                     <motion.svg animate={{ rotate: dropdownOpen ? 180 : 0 }} transition={{ duration: 0.2 }} className="w-4 h-4 text-gray-400 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -215,11 +215,11 @@ export function Navbar() {
                           <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{user.email}</p>
                           {/* Streak & score on mobile (also shown inside dropdown) */}
                           <div className="flex gap-3 mt-2 sm:hidden">
-                            <span className="flex items-center text-xs text-orange-300">
-                              <Flame className="w-3.5 h-3.5 mr-1 text-orange-500" /> {profile?.currentStreak ?? 0} {t('streak')}
+                            <span className="flex items-center text-xs text-brand-300">
+                              <Flame className="w-3.5 h-3.5 mr-1 text-brand-500" /> {profile?.currentStreak ?? 0} {t('streak')}
                             </span>
-                            <span className="flex items-center text-xs text-teal-300">
-                              <Star className="w-3.5 h-3.5 mr-1 text-teal-500" /> {(profile?.cumulativeScore ?? 0).toLocaleString()}
+                            <span className="flex items-center text-xs text-brand-300">
+                              <Star className="w-3.5 h-3.5 mr-1 text-brand-500" /> {(profile?.cumulativeScore ?? 0).toLocaleString()}
                             </span>
                           </div>
                         </div>
@@ -227,7 +227,7 @@ export function Navbar() {
                         {/* Menu items */}
                         {[
                           { label: t('settings'), href: '/settings', icon: <Settings className="w-4 h-4 text-gray-500" /> },
-                          { label: t('subscription'), href: '/subscription', icon: <CrownIcon className="w-4 h-4 text-yellow-500" /> },
+                          { label: t('subscription'), href: '/subscription', icon: <CrownIcon className="w-4 h-4 text-brand-500" /> },
                         ].map((item) => (
                           <Link key={item.href} href={item.href} onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-colors">
                             <span className="flex shrink-0">{item.icon}</span>
@@ -249,10 +249,10 @@ export function Navbar() {
             ) : (
               // ── Logged-out state ──
               <div className="hidden md:flex items-center gap-3">
-                <Link href="/login" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-blue-50 dark:hover:bg-white/5">
+                <Link href="/login" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-brand-50 dark:hover:bg-white/5">
                   {t('login')}
                 </Link>
-                <Link href="/signup" className="text-sm font-semibold text-white bg-blue-500 dark:bg-teal-500 hover:bg-blue-400 dark:hover:bg-teal-400 px-5 py-2 rounded-full shadow-[0_0_16px_rgba(59,130,246,0.35)] dark:shadow-[0_0_16px_rgba(99,102,241,0.35)] hover:shadow-[0_0_24px_rgba(59,130,246,0.55)] transition-all duration-200">
+                <Link href="/signup" className="text-sm font-semibold text-white bg-brand-500 hover:bg-brand-600 px-5 py-2 rounded-full shadow-[0_0_16px_rgba(20,184,166,0.35)] hover:shadow-[0_0_24px_rgba(20,184,166,0.55)] transition-all duration-200">
                   {t('getStarted')}
                 </Link>
               </div>
@@ -291,12 +291,7 @@ export function Navbar() {
               {/* Nav links */}
               <div className="flex-1 overflow-y-auto py-6 px-6 space-y-1">
                 {(isLoggedIn ? LOGGED_IN_NAV_LINKS : NAV_LINKS).map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${pathname === link.href ? 'bg-blue-50 dark:bg-teal-500/20 text-blue-600 dark:text-teal-300 border border-blue-200 dark:border-teal-500/30' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5'}`}
-                  >
+                  <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${pathname === link.href ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5'}`}>
                     {link.label}
                   </Link>
                 ))}
@@ -308,22 +303,22 @@ export function Navbar() {
                   <>
                     {/* Stats */}
                     <div className="flex gap-3 px-4 py-3">
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/25">
-                        <Flame className="w-4 h-4 text-orange-500" />
-                        <span className="text-sm font-bold text-orange-300">
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/15 border border-brand-500/25">
+                        <Flame className="w-4 h-4 text-brand-500" />
+                        <span className="text-sm font-bold text-brand-300">
                           {profile?.currentStreak ?? 0} {t('streak')}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/15 border border-teal-500/25">
-                        <Star className="w-4 h-4 text-teal-500" />
-                        <span className="text-sm font-bold text-teal-300">{(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/15 border border-brand-500/25">
+                        <Star className="w-4 h-4 text-brand-500" />
+                        <span className="text-sm font-bold text-brand-300">{(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
                       </div>
                     </div>
 
                     {/* Profile items */}
                     {[
                       { label: t('settings'), href: '/settings', icon: <Settings className="w-5 h-5 text-gray-400" /> },
-                      { label: t('subscription'), href: '/subscription', icon: <CrownIcon className="w-5 h-5 text-yellow-500" /> },
+                      { label: t('subscription'), href: '/subscription', icon: <CrownIcon className="w-5 h-5 text-brand-500" /> },
                     ].map((item) => (
                       <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
                         <span className="flex shrink-0">{item.icon}</span>
@@ -341,7 +336,7 @@ export function Navbar() {
                     <Link href="/login" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-white/15 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-colors">
                       {t('login')}
                     </Link>
-                    <Link href="/signup" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-semibold text-white bg-blue-500 dark:bg-teal-500 hover:bg-blue-400 dark:hover:bg-teal-400 shadow-[0_0_16px_rgba(59,130,246,0.35)] transition-all">
+                    <Link href="/signup" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-semibold text-white bg-brand-500 hover:bg-brand-600 shadow-[0_0_16px_rgba(20,184,166,0.35)] transition-all">
                       {t('getStarted')}
                     </Link>
                   </div>

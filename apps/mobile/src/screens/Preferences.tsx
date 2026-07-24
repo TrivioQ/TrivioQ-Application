@@ -195,7 +195,7 @@ const createStyles = (colors: ThemeColors) =>
     },
     themeButtonActive: {
       borderColor: colors.brand,
-      backgroundColor: 'rgba(59,130,246,0.1)',
+      backgroundColor: 'rgba(20,184,166,0.1)',
     },
     themeButtonText: {
       color: colors.textSecondary,

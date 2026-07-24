@@ -33,11 +33,11 @@ function formatPeriodLabel(period: ScorePeriod, locale: string): string {
 function RankBadge({ rank }: { rank: number | null }) {
   if (!rank) return <span className="text-gray-600 text-sm">—</span>;
   const colors: Record<number, string> = {
-    1: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40',
+    1: 'bg-brand-500/20 text-brand-300 border-brand-500/40',
     2: 'bg-gray-400/20 text-gray-300 border-gray-400/40',
     3: 'bg-amber-700/20 text-amber-400 border-amber-700/40',
   };
-  const cls = colors[rank] ?? 'bg-teal-500/10 text-teal-300 border-teal-500/20';
+  const cls = colors[rank] ?? 'bg-brand-500/10 text-brand-300 border-brand-500/20';
   return <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${cls}`}>{rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`}</span>;
 }
 
@@ -70,7 +70,7 @@ function HistoryTable({ data, t, locale }: { data: ScorePeriod[]; t: ReturnType<
               <td className="px-6 py-4 text-right font-mono text-white">{row.baseScore.toLocaleString()}</td>
               <td className="px-6 py-4 text-right">{row.bonusScore > 0 ? <span className="text-green-400 font-bold font-mono">+{row.bonusScore.toLocaleString()}</span> : <span className="text-gray-600 font-mono">—</span>}</td>
               <td className="px-6 py-4 text-right">
-                <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-purple-300">{row.totalScore.toLocaleString()}</span>
+                <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-brand-300">{row.totalScore.toLocaleString()}</span>
               </td>
               <td className="px-6 py-4 text-right">
                 <RankBadge rank={row.rank} />
@@ -90,9 +90,9 @@ export function ScoreHistoryTabs({ weekly, monthly }: ScoreHistoryTabsProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-center p-1 bg-white/40 dark:bg-gray-900/50 rounded-xl border border-white dark:border-white/5 backdrop-blur-xl w-fit mx-auto shadow-xl shadow-teal-900/10 dark:shadow-none">
+      <div className="flex justify-center p-1 bg-white/40 dark:bg-gray-900/50 rounded-xl border border-white dark:border-white/5 backdrop-blur-xl w-fit mx-auto shadow-xl shadow-brand-900/10 dark:shadow-none">
         {(['weekly', 'monthly'] as const).map((tab) => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-8 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === tab ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-8 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === tab ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
             {tab === 'weekly' ? t('weekly') : t('monthly')}
           </button>
         ))}
