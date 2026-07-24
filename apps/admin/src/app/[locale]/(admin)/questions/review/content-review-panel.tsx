@@ -215,22 +215,36 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
               </p>
             </div>
 
-            {selectedQuestionIds.size > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm', className: 'h-7 text-xs px-2 gap-1' }), isBulkUpdating && 'opacity-50 pointer-events-none')}>
-                  {isBulkUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckSquare className="h-3 w-3" />}
-                  {t('bulkActions')}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleBulkApprove} className="text-green-600 focus:text-green-700">
-                    {t('approveSelected')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleBulkReject} className="text-red-600 focus:text-red-700">
-                    {t('rejectSelected')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            <div className="flex items-center gap-2">
+              <Select value={searchParams.get('score') || 'all'} onValueChange={(v) => pushParams({ score: v === 'all' ? null : v, page: '1' })}>
+                <SelectTrigger className="h-7 text-xs w-[110px] bg-white border-gray-200">
+                  <SelectValue placeholder={t('filters.score')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('filters.allScores')}</SelectItem>
+                  <SelectItem value="high">{t('filters.highScore')}</SelectItem>
+                  <SelectItem value="medium">{t('filters.mediumScore')}</SelectItem>
+                  <SelectItem value="low">{t('filters.lowScore')}</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {selectedQuestionIds.size > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm', className: 'h-7 text-xs px-2 gap-1' }), isBulkUpdating && 'opacity-50 pointer-events-none')}>
+                    {isBulkUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckSquare className="h-3 w-3" />}
+                    {t('bulkActions')}
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleBulkApprove} className="text-green-600 focus:text-green-700">
+                      {t('approveSelected')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleBulkReject} className="text-red-600 focus:text-red-700">
+                      {t('rejectSelected')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
 
           {pendingQuestions.length === 0 ? (

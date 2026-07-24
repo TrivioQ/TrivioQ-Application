@@ -227,7 +227,12 @@
       "aiValidated": "AI Validated",
       "aiRejected": "AI Rejected",
       "pendingDuplicates": "Pending Duplicates",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "score": "Score",
+      "allScores": "All Scores",
+      "highScore": "High (>80)",
+      "mediumScore": "Medium (50-80)",
+      "lowScore": "Low (<50)"
     },
     "pendingQuestions": "Pending Questions",
     "bulkActions": "Bulk Actions",

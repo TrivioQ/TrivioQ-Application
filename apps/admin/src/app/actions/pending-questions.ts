@@ -87,6 +87,7 @@ export interface PendingQuestionsFilters {
   difficulties?: DifficultyLevel[];
   ageRatings?: AgeRating[];
   categorySlugs?: string[];
+  scores?: string[];
 }
 
 const PAGE_SIZE = 25;
@@ -100,12 +101,29 @@ export async function getPendingQuestions(filters?: PendingQuestionsFilters): Pr
     const filter = filters?.filter;
 
     const baseWhere: any = {};
+    const andConditions: any[] = [];
 
     if (filters?.search) {
-      baseWhere.OR = [
-        { suggestedText: { contains: filters.search, mode: 'insensitive' } },
-        { topic: { contains: filters.search, mode: 'insensitive' } },
-      ];
+      andConditions.push({
+        OR: [
+          { suggestedText: { contains: filters.search, mode: 'insensitive' } },
+          { topic: { contains: filters.search, mode: 'insensitive' } },
+        ]
+      });
+    }
+
+    if (filters?.scores && filters.scores.length > 0) {
+       const scoreConditions = [];
+       if (filters.scores.includes('high')) scoreConditions.push({ aiQualityScore: { gt: 80 } });
+       if (filters.scores.includes('medium')) scoreConditions.push({ aiQualityScore: { gte: 50, lte: 80 } });
+       if (filters.scores.includes('low')) scoreConditions.push({ aiQualityScore: { lt: 50 } });
+       if (scoreConditions.length > 0) {
+          andConditions.push({ OR: scoreConditions });
+       }
+    }
+
+    if (andConditions.length > 0) {
+       baseWhere.AND = andConditions;
     }
     
     if (filters?.difficulties && filters.difficulties.length > 0) {

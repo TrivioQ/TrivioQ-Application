@@ -14,6 +14,7 @@ type SearchParams = {
   difficulty?: string | string[];
   ageRating?: string | string[];
   category?: string | string[];
+  score?: string | string[];
 };
 
 export default async function ContentReviewPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
@@ -30,6 +31,8 @@ export default async function ContentReviewPage({ searchParams }: { searchParams
   const ageRatings = rawAgeRating.split(',').filter(Boolean) as AgeRating[];
   const rawCategory = Array.isArray(sp.category) ? sp.category.join(',') : (sp.category ?? '');
   const categoryFilterNames = rawCategory.split(',').filter(Boolean);
+  const rawScore = Array.isArray(sp.score) ? sp.score.join(',') : (sp.score ?? '');
+  const scores = rawScore.split(',').filter(Boolean);
 
   const categoriesResult = await getCategories();
   const categories = categoriesResult.success && categoriesResult.data ? categoriesResult.data : [];
@@ -43,7 +46,8 @@ export default async function ContentReviewPage({ searchParams }: { searchParams
     search,
     difficulties,
     ageRatings,
-    categorySlugs
+    categorySlugs,
+    scores
   });
 
   const result = 'data' in questionsResult && 'total' in questionsResult ? questionsResult : { data: [], total: 0, page: 1, pageSize: 20, totalPages: 0 };
