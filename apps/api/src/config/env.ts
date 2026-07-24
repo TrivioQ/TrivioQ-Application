@@ -13,7 +13,15 @@ const envSchema = z.object({
   REDIS_HOST: z.string().default('127.0.0.1'),
   REDIS_PORT: z.coerce.number().default(6379),
   FIREBASE_SERVICE_ACCOUNT: z.string().optional(),
-  FIREBASE_SERVICE_ACCOUNT_PATH: z.string().optional(),
+  FIREBASE_SERVICE_ACCOUNT_PATH: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (val && !path.isAbsolute(val)) {
+        return path.resolve(__dirname, '../../../../', val);
+      }
+      return val;
+    }),
   SENTRY_DSN: z.string().optional(),
 });
 
