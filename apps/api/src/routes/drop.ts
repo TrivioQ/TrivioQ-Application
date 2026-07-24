@@ -301,7 +301,7 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
     if (!isEntitled) {
       return res.status(403).json({
         code: 'UPGRADE_REQUIRED',
-        message: 'Instant drops are a Premium feature.',
+        message: 'Instant drops require an active subscription. Upgrade to Premium or refer friends to earn free Plus subscription days to request questions instantly.',
       });
     }
 

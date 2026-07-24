@@ -18,18 +18,25 @@ export default function Home() {
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             {/* iOS Download */}
             <Link href="#" className="flex items-center gap-3 rounded-2xl bg-black dark:bg-white/10 border border-white/10 px-6 py-3.5 text-white dark:text-white hover:bg-gray-900 dark:hover:bg-white/20 transition-all duration-200 shadow-lg w-full sm:w-auto">
-              <span className="text-2xl">🍎</span>
+              <svg className="w-6 h-6 fill-current text-white shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.54c.67-.82 1.13-1.96.99-3.1-.97.04-2.18.65-2.87 1.46-.62.72-1.16 1.88-1.01 3.01 1.09.08 2.22-.55 2.89-1.37z" />
+              </svg>
               <div className="text-left">
-                <div className="text-xs text-gray-400 dark:text-gray-300">Download on the</div>
-                <div className="text-base font-bold">App Store</div>
+                <div className="text-xs text-gray-400 dark:text-gray-300 font-medium">{t('appStorePrefix')}</div>
+                <div className="text-base font-bold -mt-0.5">{t('appStoreTitle')}</div>
               </div>
             </Link>
             {/* Android Download */}
             <Link href="#" className="flex items-center gap-3 rounded-2xl bg-black dark:bg-white/10 border border-white/10 px-6 py-3.5 text-white dark:text-white hover:bg-gray-900 dark:hover:bg-white/20 transition-all duration-200 shadow-lg w-full sm:w-auto">
-              <span className="text-2xl">▶️</span>
+              <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#00D2FF" d="M3.609 1.814L13.792 12 3.61 22.186a2.37 2.37 0 0 1-.61-1.614V3.428c0-.623.228-1.205.61-1.614z" />
+                <path fill="#FFD400" d="M17.26 8.532l-3.468 3.468 3.468 3.468 3.96-2.261a2.316 2.316 0 0 0 0-4.414l-3.96-2.261z" />
+                <path fill="#00F076" d="M3.609 1.814L14.77 8.196l-2.446 2.446L3.609 1.814z" />
+                <path fill="#FF3A44" d="M3.609 22.186l8.715-8.715 2.446 2.446-11.161 6.382z" />
+              </svg>
               <div className="text-left">
-                <div className="text-xs text-gray-400 dark:text-gray-300">Get it on</div>
-                <div className="text-base font-bold">Google Play</div>
+                <div className="text-xs text-gray-400 dark:text-gray-300 font-medium">{t('googlePlayPrefix')}</div>
+                <div className="text-base font-bold -mt-0.5">{t('googlePlayTitle')}</div>
               </div>
             </Link>
             <Link href="/leaderboard" className="group text-base font-semibold leading-6 text-gray-700 dark:text-white hover:text-brand-600 dark:hover:text-brand-300 transition-colors flex items-center gap-2">
@@ -47,22 +54,22 @@ export default function Home() {
         <div className="mx-auto max-w-4xl flex flex-col sm:flex-row items-center justify-center gap-8 text-center">
           <div>
             <p className="text-3xl font-extrabold text-gray-900 dark:text-white">10,000+</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Active learners</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('socialProof.activeLearners')}</p>
           </div>
           <div className="hidden sm:block w-px h-10 bg-gray-200 dark:bg-white/10" />
           <div>
             <p className="text-3xl font-extrabold text-gray-900 dark:text-white">4.8 ⭐</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Average rating</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('socialProof.averageRating')}</p>
           </div>
           <div className="hidden sm:block w-px h-10 bg-gray-200 dark:bg-white/10" />
           <div>
             <p className="text-3xl font-extrabold text-gray-900 dark:text-white">500K+</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Questions answered</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('socialProof.questionsAnswered')}</p>
           </div>
           <div className="hidden sm:block w-px h-10 bg-gray-200 dark:bg-white/10" />
           <div className="max-w-xs">
-            <p className="text-sm italic text-gray-600 dark:text-gray-300">&ldquo;TrivioQ made me smarter without feeling like studying. I&apos;m obsessed.&rdquo;</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">— @alex_learns, Top 5 Leaderboard</p>
+            <p className="text-sm italic text-gray-600 dark:text-gray-300">&ldquo;{t('socialProof.quote')}&rdquo;</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('socialProof.quoteAuthor')}</p>
           </div>
         </div>
       </section>
@@ -71,17 +78,15 @@ export default function Home() {
       <section className="py-20 px-6 sm:px-8">
         <div className="mx-auto max-w-4xl">
           <div className="text-center mb-14">
-            <h2 className="text-base font-semibold leading-7 text-brand-600 dark:text-brand-400 uppercase tracking-widest">How it works</h2>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">What is a Drop?</p>
-            <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">
-              A <strong>Drop</strong> is a daily trivia question delivered straight to you. You have a limited window to reveal, answer, and compete — before it expires.
-            </p>
+            <h2 className="text-base font-semibold leading-7 text-brand-600 dark:text-brand-400 uppercase tracking-widest">{t('howItWorks.tagline')}</h2>
+            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">{t('howItWorks.heading')}</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">{t('howItWorks.description')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { step: '01', icon: '📬', title: 'Get Your Drop', desc: 'A fresh question drops daily. You get a notification — tap to reveal before the timer runs out.' },
-              { step: '02', icon: '🧠', title: 'Reveal & Answer', desc: 'Study the question, use a hint if you need it, then lock in your answer. Speed matters for bonus points.' },
-              { step: '03', icon: '🏆', title: 'Climb the Board', desc: 'Earn points, build your streak, and compete on the live global leaderboard. Top players win recognition.' },
+              { step: '01', icon: '📬', title: t('howItWorks.step1Title'), desc: t('howItWorks.step1Desc') },
+              { step: '02', icon: '🧠', title: t('howItWorks.step2Title'), desc: t('howItWorks.step2Desc') },
+              { step: '03', icon: '🏆', title: t('howItWorks.step3Title'), desc: t('howItWorks.step3Desc') },
             ].map(({ step, icon, title, desc }) => (
               <div key={step} className="relative flex flex-col items-start p-8 bg-white/60 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 backdrop-blur-sm">
                 <div className="text-xs font-bold tracking-widest text-brand-500 dark:text-brand-400 mb-4 uppercase">{step}</div>

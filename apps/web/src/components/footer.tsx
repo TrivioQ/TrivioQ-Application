@@ -115,7 +115,7 @@ export async function Footer() {
           <p className="text-xs text-gray-400 dark:text-gray-500">{t('copyright', { year })}</p>
           <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
             <span>·</span>
-            <span>Built with ❤️ by the TrivioQ team</span>
+            <span>{t('builtWith')}</span>
           </div>
         </div>
       </div>

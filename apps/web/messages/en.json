@@ -90,7 +90,8 @@
       "about": "About Us",
       "privacy": "Privacy Policy",
       "terms": "Terms of Service"
-    }
+    },
+    "builtWith": "Built with ❤️ by the TrivioQ team"
   },
   "home": {
     "badge": "Now available on iOS & Android",
@@ -98,7 +99,29 @@
     "titleHighlight": "Spontaneous Micro-Learning",
     "description": "TrivioQ drops bite-sized, high-quality trivia directly to your device throughout the day. Build your knowledge organically, without dedicating hours to study.",
     "downloadButton": "Download App",
+    "appStorePrefix": "Download on the",
+    "appStoreTitle": "App Store",
+    "googlePlayPrefix": "GET IT ON",
+    "googlePlayTitle": "Google Play",
     "leaderboardLink": "View Global Leaderboard",
+    "socialProof": {
+      "activeLearners": "Active learners",
+      "averageRating": "Average rating",
+      "questionsAnswered": "Questions answered",
+      "quote": "TrivioQ made me smarter without feeling like studying. I'm obsessed.",
+      "quoteAuthor": "— @alex_learns, Top 5 Leaderboard"
+    },
+    "howItWorks": {
+      "tagline": "How it works",
+      "heading": "What is a Drop?",
+      "description": "A Drop is a daily trivia question delivered straight to you. You have a limited window to reveal, answer, and compete — before it expires.",
+      "step1Title": "Get Your Drop",
+      "step1Desc": "A fresh question drops daily. You get a notification — tap to reveal before the timer runs out.",
+      "step2Title": "Reveal & Answer",
+      "step2Desc": "Study the question, use a hint if you need it, then lock in your answer. Speed matters for bonus points.",
+      "step3Title": "Climb the Board",
+      "step3Desc": "Earn points, build your streak, and compete on the live global leaderboard. Top players win recognition."
+    },
     "features": {
       "tagline": "Learn Faster",
       "heading": "Knowledge engineered for the modern attention span",
