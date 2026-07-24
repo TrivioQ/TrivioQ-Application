@@ -18,7 +18,7 @@ export default async function SubscriptionPage() {
   const t = await getTranslations('subscription');
 
   return (
-    <div className="min-h-screen text-gray-900 dark:text-white selection:bg-indigo-500 selection:text-white pb-20">
+    <div className="min-h-screen text-gray-900 dark:text-white selection:bg-teal-500 selection:text-white pb-20">
       <div className="max-w-3xl mx-auto px-6 py-16 space-y-12">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">{t('title')}</h1>

@@ -31,7 +31,7 @@ export function DailyActiveUsersChart({ data }: { data: DailyActiveUser[] }) {
           }}
           formatter={(value) => [value, t('activeUsersUnit')]}
         />
-        <Line type="monotone" dataKey="users" stroke="#6366f1" strokeWidth={2} dot={false} activeDot={{ r: 5, fill: '#6366f1' }} />
+        <Line type="monotone" dataKey="users" stroke="#0D9488" strokeWidth={2} dot={false} activeDot={{ r: 5, fill: '#0D9488' }} />
       </LineChart>
     </ResponsiveContainer>
   );

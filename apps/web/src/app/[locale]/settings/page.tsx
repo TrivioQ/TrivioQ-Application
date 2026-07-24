@@ -30,7 +30,7 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen text-gray-900 dark:text-white selection:bg-indigo-500 selection:text-white pb-20">
+    <div className="min-h-screen text-gray-900 dark:text-white selection:bg-teal-500 selection:text-white pb-20">
       <div className="max-w-3xl mx-auto px-6 py-16 space-y-12">
         {/* ── Header ── */}
         <div>

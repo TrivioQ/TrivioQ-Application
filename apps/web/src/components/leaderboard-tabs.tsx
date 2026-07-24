@@ -73,26 +73,26 @@ export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProp
       <div className="flex flex-col items-center gap-6">
         {/* Global / Friends Toggle */}
         {isLoggedIn && (
-          <div className="flex items-center p-1 bg-white/40 dark:bg-white/5 rounded-full border border-white dark:border-white/10 backdrop-blur-xl shadow-xl shadow-indigo-900/10 dark:shadow-none">
-            <button onClick={() => setActiveMode('global')} className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'global' ? 'bg-blue-500 dark:bg-indigo-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>
+          <div className="flex items-center p-1 bg-white/40 dark:bg-white/5 rounded-full border border-white dark:border-white/10 backdrop-blur-xl shadow-xl shadow-teal-900/10 dark:shadow-none">
+            <button onClick={() => setActiveMode('global')} className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'global' ? 'bg-blue-500 dark:bg-teal-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>
               {t('global')}
             </button>
-            <button onClick={() => setActiveMode('friends')} className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'friends' ? 'bg-blue-500 dark:bg-indigo-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>
+            <button onClick={() => setActiveMode('friends')} className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'friends' ? 'bg-blue-500 dark:bg-teal-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>
               {t('friends')}
             </button>
           </div>
         )}
 
-        <div className="flex justify-center p-1 bg-white/40 dark:bg-gray-900/30 rounded-xl border border-white dark:border-white/5 backdrop-blur-xl w-fit mx-auto shadow-xl shadow-indigo-900/10 dark:shadow-none">
+        <div className="flex justify-center p-1 bg-white/40 dark:bg-gray-900/30 rounded-xl border border-white dark:border-white/5 backdrop-blur-xl w-fit mx-auto shadow-xl shadow-teal-900/10 dark:shadow-none">
           {tabs.map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === tab.id ? 'bg-blue-500 dark:bg-indigo-500 text-white shadow-lg shadow-blue-500/30 dark:shadow-indigo-500/20' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'}`}>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === tab.id ? 'bg-blue-500 dark:bg-teal-500 text-white shadow-lg shadow-blue-500/30 dark:shadow-teal-500/20' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'}`}>
               {tab.label}
             </button>
           ))}
         </div>
 
         {activeTab !== 'alltime' && (
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-blue-600/90 dark:text-indigo-400/80 bg-blue-500/10 dark:bg-indigo-500/5 px-4 py-1.5 rounded-full border border-blue-500/20 dark:border-indigo-500/10 backdrop-blur-sm">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-blue-600/90 dark:text-teal-400/80 bg-blue-500/10 dark:bg-teal-500/5 px-4 py-1.5 rounded-full border border-blue-500/20 dark:border-teal-500/10 backdrop-blur-sm">
             <span className="animate-pulse">●</span>
             {t('periodEnds', { date: activeTab === 'weekly' ? formatDate(getNextWeekReset()) : formatDate(getNextMonthReset()) })}
           </div>
@@ -100,7 +100,7 @@ export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProp
       </div>
 
       {/* ── Leaderboard Table ── */}
-      <div className="bg-white/30 dark:bg-gray-900/30 rounded-3xl border border-white dark:border-white/10 overflow-hidden backdrop-blur-2xl shadow-2xl shadow-indigo-900/10 dark:shadow-black/40">
+      <div className="bg-white/30 dark:bg-gray-900/30 rounded-3xl border border-white dark:border-white/10 overflow-hidden backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-black/40">
         {currentData.length === 0 ? (
           <div className="py-20 text-center text-gray-500 dark:text-gray-400">
             <span className="text-4xl block mb-4 opacity-70">🕸️</span>
@@ -123,9 +123,9 @@ export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProp
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-4">
                       <div className="relative group/tooltip">
-                        <span className="font-bold text-gray-900 dark:text-white text-lg cursor-help border-b border-dashed border-gray-400 dark:border-gray-600 hover:border-blue-500 dark:hover:border-indigo-400 transition-colors">{user.displayName || user.username}</span>
+                        <span className="font-bold text-gray-900 dark:text-white text-lg cursor-help border-b border-dashed border-gray-400 dark:border-gray-600 hover:border-blue-500 dark:hover:border-teal-400 transition-colors">{user.displayName || user.username}</span>
                         {/* Tooltip */}
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-800 text-xs text-white dark:text-indigo-300 rounded-lg opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none border border-gray-700 dark:border-indigo-500/30 whitespace-nowrap z-50 shadow-xl">
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-800 text-xs text-white dark:text-teal-300 rounded-lg opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none border border-gray-700 dark:border-teal-500/30 whitespace-nowrap z-50 shadow-xl">
                           @{user.username}
                           <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                         </div>

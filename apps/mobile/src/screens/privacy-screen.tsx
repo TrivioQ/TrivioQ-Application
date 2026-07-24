@@ -20,7 +20,7 @@ export default function PrivacyScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {loading ? (
-        <ActivityIndicator color="#6366f1" style={styles.loader} />
+        <ActivityIndicator color="#0D9488" style={styles.loader} />
       ) : doc ? (
         <Markdown style={markdownStyles}>{doc.content}</Markdown>
       ) : (
@@ -90,7 +90,7 @@ const markdownStyles = {
     color: '#94a3b8',
   },
   bullet_list_icon: {
-    color: '#6366f1',
+    color: '#0D9488',
   },
   paragraph: {
     color: '#94a3b8',

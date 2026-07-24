@@ -69,7 +69,7 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
         <Popover>
           <PopoverTrigger className={buttonVariants({ variant: 'outline', className: 'h-9 gap-2' })}>
             {t('difficulty')}
-            {difficulties.length > 0 && <Badge className="ml-1 rounded-full px-1.5 py-0 text-xs bg-indigo-600 text-white hover:bg-indigo-600">{difficulties.length}</Badge>}
+            {difficulties.length > 0 && <Badge className="ml-1 rounded-full px-1.5 py-0 text-xs bg-teal-600 text-white hover:bg-teal-600">{difficulties.length}</Badge>}
             <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
           </PopoverTrigger>
           <PopoverContent className="w-44 p-0">
@@ -92,7 +92,7 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
         <Popover>
           <PopoverTrigger className={buttonVariants({ variant: 'outline', className: 'h-9 gap-2' })}>
             {t('ageRating')}
-            {ageRatings.length > 0 && <Badge className="ml-1 rounded-full px-1.5 py-0 text-xs bg-indigo-600 text-white hover:bg-indigo-600">{ageRatings.length}</Badge>}
+            {ageRatings.length > 0 && <Badge className="ml-1 rounded-full px-1.5 py-0 text-xs bg-teal-600 text-white hover:bg-teal-600">{ageRatings.length}</Badge>}
             <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
           </PopoverTrigger>
           <PopoverContent className="w-44 p-0">
@@ -115,7 +115,7 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
         <Popover>
           <PopoverTrigger className={buttonVariants({ variant: 'outline', className: 'h-9 gap-2' })}>
             {t('categories')}
-            {categoryNames.length > 0 && <Badge className="ml-1 rounded-full px-1.5 py-0 text-xs bg-indigo-600 text-white hover:bg-indigo-600">{categoryNames.length}</Badge>}
+            {categoryNames.length > 0 && <Badge className="ml-1 rounded-full px-1.5 py-0 text-xs bg-teal-600 text-white hover:bg-teal-600">{categoryNames.length}</Badge>}
             <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
           </PopoverTrigger>
           <PopoverContent className="w-56 p-0">

@@ -47,7 +47,7 @@ export function MarkdownText({ children, color, scale = 1 }: MarkdownTextProps) 
     fence: { backgroundColor: codeBg, borderRadius: 8, padding: 10, fontFamily: 'Courier', fontSize: fs(13), marginVertical: 6, color: textColor },
     code_block: { backgroundColor: codeBg, borderRadius: 8, padding: 10, fontFamily: 'Courier', fontSize: fs(13), marginVertical: 6, color: textColor },
     // Blockquote
-    blockquote: { borderLeftWidth: 4, borderLeftColor: '#6366F1', paddingLeft: 10, marginVertical: 6, opacity: 0.8 },
+    blockquote: { borderLeftWidth: 4, borderLeftColor: '#0D9488', paddingLeft: 10, marginVertical: 6, opacity: 0.8 },
     // Lists
     bullet_list: { marginVertical: 4 },
     ordered_list: { marginVertical: 4 },

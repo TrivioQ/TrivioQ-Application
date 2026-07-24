@@ -21,7 +21,7 @@ export default async function NotFound() {
         <div style={{ textAlign: 'center' }}>
           <h1 style={{ fontSize: '3rem', margin: '0 0 10px 0' }}>{t('title')}</h1>
           <p style={{ color: '#9ca3af' }}>{t('message')}</p>
-          <a href="/" style={{ color: '#6366f1', textDecoration: 'none', fontWeight: 'bold' }}>
+          <a href="/" style={{ color: '#0D9488', textDecoration: 'none', fontWeight: 'bold' }}>
             {t('goHome')}
           </a>
         </div>

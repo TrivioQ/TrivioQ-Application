@@ -57,7 +57,7 @@ function formatDate(iso: string | null, locale: string) {
 
 function StatCard({ label, value, sub, accent }: { label: string; value: React.ReactNode; sub?: string; accent?: string }) {
   return (
-    <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-indigo-900/10 dark:shadow-none border border-white dark:border-white/10 p-6 flex flex-col gap-1">
+    <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none border border-white dark:border-white/10 p-6 flex flex-col gap-1">
       <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">{label}</p>
       <div className={`text-3xl font-extrabold tracking-tight flex items-center gap-2 ${accent ?? 'text-gray-900 dark:text-white'}`}>{value}</div>
       {sub && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{sub}</p>}
@@ -108,7 +108,7 @@ export function DashboardStats() {
     <>
       {/* ── Score Cards ── */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard label={t('weeklyScore')} value={(currentWeek?.totalScore ?? 0).toLocaleString()} sub={currentWeek?.rank ? t('rankThisWeek', { rank: currentWeek.rank }) : t('noRankYet')} accent="text-blue-600 dark:text-indigo-400" />
+        <StatCard label={t('weeklyScore')} value={(currentWeek?.totalScore ?? 0).toLocaleString()} sub={currentWeek?.rank ? t('rankThisWeek', { rank: currentWeek.rank }) : t('noRankYet')} accent="text-blue-600 dark:text-teal-400" />
         <StatCard label={t('monthlyScore')} value={(currentMonth?.totalScore ?? 0).toLocaleString()} sub={currentMonth?.rank ? t('rankThisMonth', { rank: currentMonth.rank }) : t('noRankYet')} accent="text-purple-400" />
         <StatCard label={t('allTimeScore')} value={(profile?.cumulativeScore ?? 0).toLocaleString()} sub={t('cumulativePoints')} accent="text-pink-400" />
         <StatCard
@@ -128,12 +128,12 @@ export function DashboardStats() {
 
       {/* ── Score Trend Charts ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-indigo-900/10 dark:shadow-none border border-white dark:border-white/10 p-6">
+        <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none border border-white dark:border-white/10 p-6">
           <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{t('weeklyTrendTitle')}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{t('weeklyTrendSubtitle')}</p>
           <ScoreTrendChart data={weekly} mode="weekly" namespace="dashboard" />
         </div>
-        <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-indigo-900/10 dark:shadow-none border border-white dark:border-white/10 p-6">
+        <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none border border-white dark:border-white/10 p-6">
           <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{t('monthlyTrendTitle')}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{t('monthlyTrendSubtitle')}</p>
           <ScoreTrendChart data={monthly} mode="monthly" namespace="dashboard" />
@@ -141,13 +141,13 @@ export function DashboardStats() {
       </div>
 
       {/* ── Recent Drops ── */}
-      <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-indigo-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
+      <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-teal-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200/60 dark:border-white/10 flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{t('recentQuestionsTitle')}</p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t('recentQuestionsSubtitle')}</p>
           </div>
-          <a href="/score-history" className="text-xs text-blue-600 dark:text-indigo-400 hover:text-blue-500 dark:text-indigo-300 font-medium transition-colors">
+          <a href="/score-history" className="text-xs text-blue-600 dark:text-teal-400 hover:text-blue-500 dark:text-teal-300 font-medium transition-colors">
             {t('fullHistory')}
           </a>
         </div>
@@ -208,7 +208,7 @@ export function DashboardStats() {
                   </div>
 
                   <div className="shrink-0 text-right">
-                    <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-blue-600 dark:text-indigo-400' : 'text-gray-600'}`}>
+                    <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-blue-600 dark:text-teal-400' : 'text-gray-600'}`}>
                       {drop.pointsAwarded > 0 ? `+${drop.pointsAwarded}` : '0'} {t('pts')}
                     </p>
                   </div>

@@ -33,7 +33,7 @@ function LoginForm() {
   if (isLoading || user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
       </div>
     );
   }
@@ -48,16 +48,16 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6 py-12 lg:px-8 selection:bg-indigo-500 selection:text-white">
-      <div className="w-full max-w-md space-y-8 bg-white/30 dark:bg-white/5 backdrop-blur-2xl p-10 rounded-3xl border border-white/50 dark:border-white/10 shadow-2xl shadow-indigo-900/10">
+    <div className="flex min-h-screen items-center justify-center px-6 py-12 lg:px-8 selection:bg-teal-500 selection:text-white">
+      <div className="w-full max-w-md space-y-8 bg-white/30 dark:bg-white/5 backdrop-blur-2xl p-10 rounded-3xl border border-white/50 dark:border-white/10 shadow-2xl shadow-teal-900/10">
         <div className="text-center">
-          <Link href="/" className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
+          <Link href="/" className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">
             {t('brandName')}
           </Link>
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{t('signInTitle')}</h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             {t('signInSubtitle')}{' '}
-            <Link href="/signup" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
+            <Link href="/signup" className="font-medium text-teal-400 hover:text-teal-300 transition-colors">
               {t('signInSubtitleLink')}
             </Link>
           </p>
@@ -73,7 +73,7 @@ function LoginForm() {
                 id="email"
                 type="email"
                 required
-                className="relative block w-full rounded-t-md border-0 bg-white dark:bg-gray-800 py-3 px-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                className="relative block w-full rounded-t-md border-0 bg-white dark:bg-gray-800 py-3 px-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-teal-500 sm:text-sm sm:leading-6"
                 placeholder={t('emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -88,7 +88,7 @@ function LoginForm() {
                 id="password"
                 type="password"
                 required
-                className="relative block w-full rounded-b-md border-0 bg-white dark:bg-gray-800 py-3 px-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                className="relative block w-full rounded-b-md border-0 bg-white dark:bg-gray-800 py-3 px-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-teal-500 sm:text-sm sm:leading-6"
                 placeholder={t('passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -98,14 +98,14 @@ function LoginForm() {
           </div>
 
           <div className="flex items-center gap-3">
-            <input id="keep-me-logged-in" type="checkbox" checked={keepMeLoggedIn} onChange={(e) => setKeepMeLoggedIn(e.target.checked)} disabled={isPending} className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-gray-900" />
+            <input id="keep-me-logged-in" type="checkbox" checked={keepMeLoggedIn} onChange={(e) => setKeepMeLoggedIn(e.target.checked)} disabled={isPending} className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-500 focus:ring-teal-600 dark:focus:ring-teal-500 focus:ring-offset-white dark:focus:ring-offset-gray-900" />
             <label htmlFor="keep-me-logged-in" className="text-sm text-gray-600 dark:text-gray-400 select-none cursor-pointer">
               {t('keepMeLoggedIn')}
             </label>
           </div>
 
           <div>
-            <button type="submit" disabled={isPending} className="group relative flex w-full justify-center rounded-md bg-indigo-500 px-3 py-3 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50 transition-colors">
+            <button type="submit" disabled={isPending} className="group relative flex w-full justify-center rounded-md bg-teal-500 px-3 py-3 text-sm font-semibold text-white hover:bg-teal-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:opacity-50 transition-colors">
               {isPending ? t('authenticating') : t('signInButton')}
             </button>
           </div>

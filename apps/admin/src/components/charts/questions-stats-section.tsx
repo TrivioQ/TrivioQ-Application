@@ -91,11 +91,11 @@ export function QuestionsStatsSection({ stats }: Props) {
           <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <div className="p-2 rounded-lg bg-indigo-100">
-                  <BookOpen className="h-5 w-5 text-indigo-600" />
+                <div className="p-2 rounded-lg bg-teal-100">
+                  <BookOpen className="h-5 w-5 text-teal-600" />
                 </div>
                 {hasFilters && (
-                  <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 cursor-pointer" onClick={clearFilters}>
+                  <Badge variant="secondary" className="bg-teal-50 text-teal-700 hover:bg-teal-100 cursor-pointer" onClick={clearFilters}>
                     {t('clearFilters')}
                   </Badge>
                 )}

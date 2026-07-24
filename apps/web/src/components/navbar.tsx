@@ -75,7 +75,7 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
   return (
     <Link href={href} className={`relative text-sm font-medium transition-colors duration-200 group ${active ? 'text-blue-600 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-white'}`}>
       {label}
-      <span className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-blue-500 dark:bg-indigo-400 transition-all duration-300 ${active ? 'w-full' : 'w-0 group-hover:w-full'}`} />
+      <span className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-blue-500 dark:bg-teal-400 transition-all duration-300 ${active ? 'w-full' : 'w-0 group-hover:w-full'}`} />
     </Link>
   );
 }
@@ -83,7 +83,7 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
 function UserAvatar({ profilePicture, displayName, email, isPremium, avatarAlt, premiumBadge }: { profilePicture: string | null; displayName: string | null; email: string; isPremium: boolean; avatarAlt: string; premiumBadge: string }) {
   return (
     <div className="relative">
-      {profilePicture ? <img src={profilePicture} alt={avatarAlt} className="w-8 h-8 rounded-full object-cover ring-2 ring-indigo-500/60" /> : <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold ring-2 ring-indigo-500/60">{getInitials(displayName, email)}</div>}
+      {profilePicture ? <img src={profilePicture} alt={avatarAlt} className="w-8 h-8 rounded-full object-cover ring-2 ring-teal-500/60" /> : <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold ring-2 ring-teal-500/60">{getInitials(displayName, email)}</div>}
       {isPremium && (
         <span className="absolute -top-1.5 -right-[0.175rem] leading-none select-none text-yellow-400" title={premiumBadge}>
           <CrownIcon className="w-3.5 h-3.5 drop-shadow-[0_0_5px_rgba(250,204,21,0.6)]" />
@@ -192,14 +192,14 @@ export function Navbar() {
                 </div>
 
                 {/* Score */}
-                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/25">
-                  <Star className="w-4 h-4 text-indigo-500" />
-                  <span className="text-sm font-bold text-indigo-300">{(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-500/15 border border-teal-500/25">
+                  <Star className="w-4 h-4 text-teal-500" />
+                  <span className="text-sm font-bold text-teal-300">{(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
                 </div>
 
                 {/* Avatar + dropdown */}
                 <div className="relative" ref={dropdownRef}>
-                  <button id="user-avatar-btn" onClick={() => setDropdownOpen((o) => !o)} className="flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400" aria-label={t('userMenu')} aria-expanded={dropdownOpen}>
+                  <button id="user-avatar-btn" onClick={() => setDropdownOpen((o) => !o)} className="flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label={t('userMenu')} aria-expanded={dropdownOpen}>
                     <UserAvatar profilePicture={profile?.profilePicture ?? null} displayName={profile?.displayName ?? null} email={user.email ?? ''} isPremium={profile?.subscriptionTier === 'PREMIUM' || profile?.subscriptionTier === 'PLUS'} avatarAlt={t('avatarAlt')} premiumBadge={t('premiumBadge')} />
                     <motion.svg animate={{ rotate: dropdownOpen ? 180 : 0 }} transition={{ duration: 0.2 }} className="w-4 h-4 text-gray-400 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -218,8 +218,8 @@ export function Navbar() {
                             <span className="flex items-center text-xs text-orange-300">
                               <Flame className="w-3.5 h-3.5 mr-1 text-orange-500" /> {profile?.currentStreak ?? 0} {t('streak')}
                             </span>
-                            <span className="flex items-center text-xs text-indigo-300">
-                              <Star className="w-3.5 h-3.5 mr-1 text-indigo-500" /> {(profile?.cumulativeScore ?? 0).toLocaleString()}
+                            <span className="flex items-center text-xs text-teal-300">
+                              <Star className="w-3.5 h-3.5 mr-1 text-teal-500" /> {(profile?.cumulativeScore ?? 0).toLocaleString()}
                             </span>
                           </div>
                         </div>
@@ -252,7 +252,7 @@ export function Navbar() {
                 <Link href="/login" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-blue-50 dark:hover:bg-white/5">
                   {t('login')}
                 </Link>
-                <Link href="/signup" className="text-sm font-semibold text-white bg-blue-500 dark:bg-indigo-500 hover:bg-blue-400 dark:hover:bg-indigo-400 px-5 py-2 rounded-full shadow-[0_0_16px_rgba(59,130,246,0.35)] dark:shadow-[0_0_16px_rgba(99,102,241,0.35)] hover:shadow-[0_0_24px_rgba(59,130,246,0.55)] transition-all duration-200">
+                <Link href="/signup" className="text-sm font-semibold text-white bg-blue-500 dark:bg-teal-500 hover:bg-blue-400 dark:hover:bg-teal-400 px-5 py-2 rounded-full shadow-[0_0_16px_rgba(59,130,246,0.35)] dark:shadow-[0_0_16px_rgba(99,102,241,0.35)] hover:shadow-[0_0_24px_rgba(59,130,246,0.55)] transition-all duration-200">
                   {t('getStarted')}
                 </Link>
               </div>
@@ -295,7 +295,7 @@ export function Navbar() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${pathname === link.href ? 'bg-blue-50 dark:bg-indigo-500/20 text-blue-600 dark:text-indigo-300 border border-blue-200 dark:border-indigo-500/30' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5'}`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${pathname === link.href ? 'bg-blue-50 dark:bg-teal-500/20 text-blue-600 dark:text-teal-300 border border-blue-200 dark:border-teal-500/30' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5'}`}
                   >
                     {link.label}
                   </Link>
@@ -314,9 +314,9 @@ export function Navbar() {
                           {profile?.currentStreak ?? 0} {t('streak')}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/25">
-                        <Star className="w-4 h-4 text-indigo-500" />
-                        <span className="text-sm font-bold text-indigo-300">{(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/15 border border-teal-500/25">
+                        <Star className="w-4 h-4 text-teal-500" />
+                        <span className="text-sm font-bold text-teal-300">{(profile?.cumulativeScore ?? 0).toLocaleString()}</span>
                       </div>
                     </div>
 
@@ -341,7 +341,7 @@ export function Navbar() {
                     <Link href="/login" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-white/15 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-colors">
                       {t('login')}
                     </Link>
-                    <Link href="/signup" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-semibold text-white bg-blue-500 dark:bg-indigo-500 hover:bg-blue-400 dark:hover:bg-indigo-400 shadow-[0_0_16px_rgba(59,130,246,0.35)] transition-all">
+                    <Link href="/signup" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-semibold text-white bg-blue-500 dark:bg-teal-500 hover:bg-blue-400 dark:hover:bg-teal-400 shadow-[0_0_16px_rgba(59,130,246,0.35)] transition-all">
                       {t('getStarted')}
                     </Link>
                   </div>

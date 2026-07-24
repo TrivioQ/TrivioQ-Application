@@ -32,7 +32,7 @@ export function ThemeSwitcher() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 dark:bg-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-700 transition-colors border border-white/20 dark:border-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400" aria-label={t('toggle')}>
+      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 dark:bg-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-700 transition-colors border border-white/20 dark:border-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400" aria-label={t('toggle')}>
         <span className="text-sm">{currentTheme.icon}</span>
       </button>
 

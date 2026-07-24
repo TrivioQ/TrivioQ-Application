@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import type { CategoryPopularity } from '@/app/actions/dashboard-actions';
 
 // Indigo → purple gradient across bars
-const BAR_COLORS = ['#6366f1', '#7c3aed', '#8b5cf6', '#a78bfa', '#818cf8', '#4f46e5', '#c4b5fd', '#a5b4fc', '#ddd6fe', '#e0e7ff'];
+const BAR_COLORS = ['#0D9488', '#7c3aed', '#8b5cf6', '#a78bfa', '#818cf8', '#4f46e5', '#c4b5fd', '#a5b4fc', '#ddd6fe', '#e0e7ff'];
 
 import { useTranslations } from 'next-intl';
 

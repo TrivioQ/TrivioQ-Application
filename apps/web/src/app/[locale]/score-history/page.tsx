@@ -44,15 +44,15 @@ export default async function ScoreHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen py-20 px-6 sm:px-8 text-gray-900 dark:text-white selection:bg-indigo-500 selection:text-gray-900 dark:text-white">
+    <div className="min-h-screen py-20 px-6 sm:px-8 text-gray-900 dark:text-white selection:bg-teal-500 selection:text-gray-900 dark:text-white">
       <div className="max-w-4xl mx-auto space-y-12">
         {/* ── Header ── */}
         <div className="space-y-4">
-          <Link href="/dashboard" className="group inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-indigo-400 hover:text-blue-500 dark:text-indigo-300 transition-colors">
+          <Link href="/dashboard" className="group inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-teal-400 hover:text-blue-500 dark:text-teal-300 transition-colors">
             <span className="group-hover:-translate-x-1 transition-transform">←</span> {t('backToDashboard')}
           </Link>
           <div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">{t('title')}</h1>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-teal-400 to-purple-400">{t('title')}</h1>
             <p className="mt-3 text-gray-600 dark:text-gray-400 text-lg">{t('subtitle')}</p>
           </div>
         </div>
@@ -73,8 +73,8 @@ export default async function ScoreHistoryPage() {
         </div>
 
         {/* ── Bonus info callout ── */}
-        <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-6 space-y-3">
-          <h2 className="font-bold text-blue-500 dark:text-indigo-300 text-lg">{t('bonusPointsTitle')}</h2>
+        <div className="rounded-2xl border border-teal-500/20 bg-teal-500/5 p-6 space-y-3">
+          <h2 className="font-bold text-blue-500 dark:text-teal-300 text-lg">{t('bonusPointsTitle')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
             <div>
               <p className="font-semibold text-gray-900 dark:text-white mb-1">{t('weeklyTop10')}</p>
@@ -95,7 +95,7 @@ export default async function ScoreHistoryPage() {
             <span className="text-5xl block mb-4">🔒</span>
             <p>
               {t('signInPrompt')}{' '}
-              <Link href="/login" className="text-blue-600 dark:text-indigo-400 hover:text-blue-500 dark:text-indigo-300">
+              <Link href="/login" className="text-blue-600 dark:text-teal-400 hover:text-blue-500 dark:text-teal-300">
                 {t('signInLink')}
               </Link>{' '}
               {t('signInSuffix')}
