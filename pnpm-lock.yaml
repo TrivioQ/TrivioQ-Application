@@ -292,6 +292,12 @@ importers:
       expo-device:
         specifier: ^55.0.15
         version: 55.0.18(expo@50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0))
+      expo-haptics:
+        specifier: ~12.8.1
+        version: 12.8.1(expo@50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0))
+      expo-image-picker:
+        specifier: ~14.7.1
+        version: 14.7.1(expo@50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0))
       expo-linking:
         specifier: ^55.0.14
         version: 55.0.16(expo@50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0)
@@ -5565,6 +5571,21 @@ packages:
 
   expo-font@11.10.3:
     resolution: {integrity: sha512-q1Td2zUvmLbCA9GV4OG4nLPw5gJuNY1VrPycsnemN1m8XWTzzs8nyECQQqrcBhgulCgcKZZJJ6U0kC2iuSoQHQ==}
+    peerDependencies:
+      expo: '*'
+
+  expo-haptics@12.8.1:
+    resolution: {integrity: sha512-ntLsHkfle8K8w9MW8pZEw92ZN3sguaGUSSIxv30fPKNeQFu7Cq/h47Qv3tONv2MO3wU48N9FbKnant6XlfptpA==}
+    peerDependencies:
+      expo: '*'
+
+  expo-image-loader@4.6.0:
+    resolution: {integrity: sha512-RHQTDak7/KyhWUxikn2yNzXL7i2cs16cMp6gEAgkHOjVhoCJQoOJ0Ljrt4cKQ3IowxgCuOrAgSUzGkqs7omj8Q==}
+    peerDependencies:
+      expo: '*'
+
+  expo-image-picker@14.7.1:
+    resolution: {integrity: sha512-ILQVOJgI3aEzrDmCFGDPtpAepYkn8mot8G7vfQ51BfFdQbzL6N3Wm1fS/ofdWlAZJl/qT2DwaIh5xYmf3SyGZA==}
     peerDependencies:
       expo: '*'
 
@@ -15886,6 +15907,19 @@ snapshots:
     dependencies:
       expo: 50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0)
       fontfaceobserver: 2.3.0
+
+  expo-haptics@12.8.1(expo@50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0)):
+    dependencies:
+      expo: 50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0)
+
+  expo-image-loader@4.6.0(expo@50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0)):
+    dependencies:
+      expo: 50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0)
+
+  expo-image-picker@14.7.1(expo@50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0)):
+    dependencies:
+      expo: 50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0)
+      expo-image-loader: 4.6.0(expo@50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0))
 
   expo-keep-awake@12.8.2(expo@50.0.21(@babel/core@7.29.7)(@react-native/babel-preset@0.73.21(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7)))(react-native@0.73.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))(react@18.2.0)):
     dependencies:

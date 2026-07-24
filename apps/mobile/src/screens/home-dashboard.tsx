@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react';
-import { View, Text, Button, StyleSheet, ActivityIndicator, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
 import { QuestionDropPayload } from '@trivioq/shared-types';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
+import { radius } from '../theme/radius';
 import { NotificationBell } from '../components/notification-bell';
-
 import apiClient from '../api/client';
 
 function formatTime(seconds: number) {
@@ -18,10 +18,14 @@ function formatTime(seconds: number) {
   return `${m}:${s}`;
 }
 
-function ActiveDropBanner({ drop, navigation }: { drop: QuestionDropPayload; navigation: any }) {
+function getGreeting(name: string | undefined | null) {
+  const hour = new Date().getHours();
+  const prefix = hour < 12 ? '☀️ Good morning' : hour < 17 ? '👋 Good afternoon' : '🌙 Good evening';
+  return name ? `${prefix}, ${name}` : prefix;
+}
+
+function ActiveDropBanner({ drop, navigation, colors, styles }: { drop: QuestionDropPayload; navigation: any; colors: ThemeColors; styles: any }) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
-  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const [timeLeft, setTimeLeft] = useState<number>(() => Math.max(0, Math.floor((drop.expiresAt - Date.now()) / 1000)));
   const [isExpired, setIsExpired] = useState(timeLeft === 0);
 
@@ -46,24 +50,23 @@ function ActiveDropBanner({ drop, navigation }: { drop: QuestionDropPayload; nav
   const diffColor = difficultyColors[drop.difficulty] ?? colors.textSecondary;
 
   return (
-    <TouchableOpacity style={[styles.activeBanner, isExpired && styles.activeBannerExpired]} onPress={() => navigation.navigate('DropActive')} activeOpacity={0.85}>
-      <View style={styles.bannerRow}>
-        <View style={styles.bannerLeft}>
-          {!isExpired && <View style={styles.pulseDot} />}
-          <View>
-            <Text style={styles.bannerTitle}>{isExpired ? t('home.expiredDrop') : t('home.activeDrop')}</Text>
-            <View style={styles.bannerBadgesRow}>
-              <Text style={[styles.diffBadge, { color: diffColor }]}>{drop.difficulty.toUpperCase()}</Text>
-              <Text style={styles.catBadge}>{drop.category}</Text>
-              <Text style={styles.ptsBadge}>{drop.pointsValue} pts</Text>
-            </View>
-          </View>
-        </View>
-        <View style={styles.bannerRight}>
-          <Text style={[styles.timerText, isExpired ? styles.timerExpired : timeLeft <= 60 ? styles.timerUrgent : styles.timerNormal]}>{formatTime(timeLeft)}</Text>
-          {!isExpired && <Text style={styles.tapToAnswer}>{t('home.tapToAnswer')}</Text>}
-        </View>
+    <TouchableOpacity style={[styles.heroBanner, isExpired && styles.heroBannerExpired]} onPress={() => navigation.navigate('DropActive')} activeOpacity={0.88}>
+      {/* Status row */}
+      <View style={styles.heroStatusRow}>
+        {!isExpired && <View style={styles.pulseDot} />}
+        <Text style={styles.heroStatusText}>{isExpired ? t('home.expiredDrop') : t('home.activeDrop')}</Text>
       </View>
+
+      {/* Badges row */}
+      <View style={styles.heroBadgesRow}>
+        <Text style={[styles.diffBadge, { color: diffColor, borderColor: diffColor + '40', backgroundColor: diffColor + '18' }]}>{drop.difficulty.toUpperCase()}</Text>
+        <Text style={styles.catBadge}>{drop.category}</Text>
+        <Text style={styles.ptsBadge}>{drop.pointsValue} pts</Text>
+      </View>
+
+      {/* Timer */}
+      <Text style={[styles.heroTimer, isExpired ? styles.timerExpired : timeLeft <= 60 ? styles.timerUrgent : styles.timerNormal]}>{formatTime(timeLeft)}</Text>
+      {!isExpired && <Text style={styles.tapToAnswer}>{t('home.tapToAnswer')} →</Text>}
     </TouchableOpacity>
   );
 }
@@ -76,12 +79,9 @@ export default function HomeDashboard({ navigation }: any) {
   const styles = React.useMemo(() => createStyles(colors), [colors]);
   const [isPaywallVisible, setIsPaywallVisible] = useState(false);
 
-  // Set up header right with notification bell
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <NotificationBell navigation={navigation} />
-      ),
+      headerRight: () => <NotificationBell navigation={navigation} />,
     });
   }, [navigation]);
 
@@ -130,54 +130,74 @@ export default function HomeDashboard({ navigation }: any) {
     refetchInterval: 30000,
   });
 
+  const displayName = profileData?.displayName || profileData?.username;
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('home.welcome')}</Text>
-      <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
+    <View style={styles.outerContainer}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* ── Greeting ── */}
+        <Text style={styles.greeting}>{getGreeting(displayName)}</Text>
+        <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
 
-      {/* Active Drop Banner */}
-      {dropLoading ? (
-        <View style={styles.bannerSkeleton}>
-          <ActivityIndicator size="small" color={colors.brand} />
-          <Text style={styles.skeletonLabel}>{t('home.checkingDrop')}</Text>
-        </View>
-      ) : activeDrop ? (
-        <ActiveDropBanner drop={activeDrop} navigation={navigation} />
-      ) : (
-        <View style={styles.noDropBanner}>
-          <Text style={styles.noDropIcon}>⏳</Text>
-          <Text style={styles.noDropText}>{t('home.noDropTitle')}</Text>
-          <Text style={styles.noDropSub}>{t('home.noDropSub')}</Text>
-        </View>
-      )}
-
-      {/* Profile metrics */}
-      {profileLoading ? (
-        <ActivityIndicator size="large" color={colors.brand} style={styles.loader} />
-      ) : profileError ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{t('home.failedMetrics')}</Text>
-          <Button title={t('common.retry')} onPress={() => refetchProfile()} />
-        </View>
-      ) : (
-        <View style={styles.metricsContainer}>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricValue}>🔥 {profileData.currentStreak}</Text>
-            <Text style={styles.metricLabel}>{t('home.streak')}</Text>
+        {/* ── Active Drop Banner (hero) ── */}
+        {dropLoading ? (
+          <View style={styles.bannerSkeleton}>
+            <ActivityIndicator size="small" color={colors.brand} />
+            <Text style={styles.skeletonLabel}>{t('home.checkingDrop')}</Text>
           </View>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricValue}>🏆 {profileData.cumulativeScore}</Text>
-            <Text style={styles.metricLabel}>{t('home.totalScore')}</Text>
+        ) : activeDrop ? (
+          <ActiveDropBanner drop={activeDrop} navigation={navigation} colors={colors} styles={styles} />
+        ) : (
+          <View style={styles.noDropBanner}>
+            <Text style={styles.noDropIcon}>⏳</Text>
+            <Text style={styles.noDropText}>{t('home.noDropTitle')}</Text>
+            <Text style={styles.noDropSub}>{t('home.noDropSub')}</Text>
           </View>
-        </View>
-      )}
+        )}
 
-      <View style={styles.buttonContainer}>
-        <Button title={t('home.editPreferences')} onPress={() => navigation.navigate('Preferences')} color={colors.brand} />
-        <View style={{ height: 15 }} />
-        <Button title={onDemandMutation.isPending ? t('home.requesting') : t('home.requestNext')} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending} color={colors.brand} />
+        {/* ── Stats strip ── */}
+        {profileLoading ? (
+          <ActivityIndicator size="large" color={colors.brand} style={styles.loader} />
+        ) : profileError ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{t('home.failedMetrics')}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={() => refetchProfile()}>
+              <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.statsStrip}>
+            <View style={styles.statItem}>
+              <Text style={styles.statEmoji}>🔥</Text>
+              <Text style={styles.statValue}>{profileData?.currentStreak ?? 0}</Text>
+              <Text style={styles.statLabel}>{t('home.streak')}</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statEmoji}>⭐</Text>
+              <Text style={styles.statValue}>{(profileData?.cumulativeScore ?? 0).toLocaleString()}</Text>
+              <Text style={styles.statLabel}>{t('home.totalScore')}</Text>
+            </View>
+          </View>
+        )}
+
+        {/* ── Preferences quick link ── */}
+        <TouchableOpacity style={styles.preferencesButton} onPress={() => navigation.navigate('Preferences')} activeOpacity={0.8}>
+          <Text style={styles.preferencesButtonText}>⚙️ {t('home.editPreferences')}</Text>
+        </TouchableOpacity>
+
+        {/* Spacer so content doesn't sit under the FAB */}
+        <View style={{ height: 100 }} />
+      </ScrollView>
+
+      {/* ── Floating Action Button — Request Next Drop ── */}
+      <View style={styles.fabContainer}>
+        <TouchableOpacity style={[styles.fab, onDemandMutation.isPending && styles.fabDisabled]} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending} activeOpacity={0.85}>
+          {onDemandMutation.isPending ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.fabText}>⚡ {t('home.requestNext')}</Text>}
+        </TouchableOpacity>
       </View>
 
+      {/* Paywall Modal */}
       <Modal visible={isPaywallVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -204,198 +224,230 @@ export default function HomeDashboard({ navigation }: any) {
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
-    container: {
+    outerContainer: {
       flex: 1,
-      alignItems: 'center',
       backgroundColor: colors.bgPrimary,
-      padding: 20,
-      paddingTop: 50,
     },
-    title: {
-      fontSize: 28,
-      fontWeight: 'bold',
-      marginBottom: 5,
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: 20,
+      paddingTop: 28,
+    },
+
+    // Greeting
+    greeting: {
+      fontSize: 26,
+      fontWeight: '800',
       color: colors.textPrimary,
+      marginBottom: 4,
     },
     subtitle: {
-      fontSize: 16,
+      fontSize: 15,
       color: colors.textSecondary,
-      marginBottom: 20,
+      marginBottom: 24,
     },
-    activeBanner: {
+
+    // Hero drop banner
+    heroBanner: {
       width: '100%',
-      backgroundColor: colors.bgSecondary,
-      borderWidth: 1.5,
+      backgroundColor: colors.brand + '12',
+      borderWidth: 2,
       borderColor: colors.brand,
-      borderRadius: 16,
-      padding: 16,
+      borderRadius: radius.xl,
+      padding: 20,
       marginBottom: 20,
     },
-    activeBannerExpired: {
-      backgroundColor: colors.bgSecondary,
+    heroBannerExpired: {
       borderColor: colors.error,
+      backgroundColor: colors.error + '10',
     },
-    bannerRow: {
+    heroStatusRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    bannerLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-      flex: 1,
+      marginBottom: 12,
+      gap: 8,
     },
     pulseDot: {
       width: 10,
       height: 10,
       borderRadius: 5,
       backgroundColor: colors.brand,
-      marginRight: 8,
     },
-    bannerTitle: {
-      fontSize: 15,
+    heroStatusText: {
+      fontSize: 13,
       fontWeight: '700',
-      color: colors.textPrimary,
-      marginBottom: 4,
+      color: colors.brand,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
     },
-    bannerBadgesRow: {
+    heroBadgesRow: {
       flexDirection: 'row',
-      gap: 6,
+      gap: 8,
+      marginBottom: 16,
       flexWrap: 'wrap',
     },
     diffBadge: {
       fontSize: 11,
       fontWeight: '700',
-      backgroundColor: colors.borderColor,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      borderRadius: 20,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: radius.full,
+      borderWidth: 1,
     },
     catBadge: {
       fontSize: 11,
       color: colors.textSecondary,
       backgroundColor: colors.borderColor,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      borderRadius: 20,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: radius.full,
     },
     ptsBadge: {
       fontSize: 11,
       color: colors.brand,
-      backgroundColor: 'rgba(99,102,241,0.1)',
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      borderRadius: 20,
+      backgroundColor: colors.brand + '18',
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: radius.full,
     },
-    bannerRight: {
-      alignItems: 'flex-end',
-      marginLeft: 12,
-    },
-    timerText: {
-      fontSize: 26,
+    heroTimer: {
+      fontSize: 48,
       fontWeight: 'bold',
       fontVariant: ['tabular-nums'],
+      marginBottom: 4,
     },
-    timerNormal: {
-      color: colors.brand,
-    },
-    timerUrgent: {
-      color: colors.warning,
-    },
-    timerExpired: {
-      color: colors.error,
-    },
+    timerNormal: { color: colors.brand },
+    timerUrgent: { color: colors.warning },
+    timerExpired: { color: colors.error },
     tapToAnswer: {
-      fontSize: 10,
+      fontSize: 13,
       color: colors.brand,
-      marginTop: 2,
+      fontWeight: '600',
     },
+
+    // No-drop / skeleton banners
     bannerSkeleton: {
       width: '100%',
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
+      gap: 12,
       backgroundColor: colors.bgSecondary,
-      borderRadius: 16,
-      padding: 16,
+      borderRadius: radius.lg,
+      padding: 18,
       marginBottom: 20,
     },
-    skeletonLabel: {
-      color: colors.textSecondary,
-      fontSize: 13,
-    },
+    skeletonLabel: { color: colors.textSecondary, fontSize: 14 },
     noDropBanner: {
       width: '100%',
       backgroundColor: colors.bgSecondary,
       borderWidth: 1,
       borderColor: colors.borderColor,
-      borderRadius: 16,
-      padding: 16,
+      borderRadius: radius.lg,
+      padding: 24,
       marginBottom: 20,
       alignItems: 'center',
     },
-    noDropIcon: {
-      fontSize: 32,
-      marginBottom: 8,
-    },
+    noDropIcon: { fontSize: 36, marginBottom: 10 },
     noDropText: {
       fontSize: 15,
-      fontWeight: '600',
+      fontWeight: '700',
       color: colors.textSecondary,
       marginBottom: 6,
     },
     noDropSub: {
-      fontSize: 12,
+      fontSize: 13,
       color: colors.textSecondary,
       textAlign: 'center',
       lineHeight: 18,
     },
-    loader: {
-      marginVertical: 40,
-    },
-    errorContainer: {
-      alignItems: 'center',
-      marginVertical: 40,
-    },
-    errorText: {
-      color: colors.error,
-      marginBottom: 10,
-    },
-    metricsContainer: {
+
+    // Stats strip
+    statsStrip: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      width: '100%',
-      paddingHorizontal: 10,
-      marginBottom: 50,
-    },
-    metricCard: {
       backgroundColor: colors.bgSecondary,
-      padding: 20,
-      borderRadius: 12,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+      marginBottom: 16,
+      overflow: 'hidden',
+    },
+    statItem: {
+      flex: 1,
       alignItems: 'center',
-      width: '45%',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      paddingVertical: 18,
     },
-    metricValue: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      marginBottom: 8,
+    statEmoji: { fontSize: 22, marginBottom: 4 },
+    statValue: {
+      fontSize: 22,
+      fontWeight: '800',
       color: colors.textPrimary,
+      marginBottom: 2,
     },
-    metricLabel: {
+    statLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontWeight: '500',
+    },
+    statDivider: {
+      width: 1,
+      backgroundColor: colors.borderColor,
+    },
+
+    // Preferences outline button
+    preferencesButton: {
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+      borderRadius: radius.md,
+      padding: 14,
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    preferencesButtonText: {
       fontSize: 14,
+      fontWeight: '600',
       color: colors.textSecondary,
     },
-    buttonContainer: {
-      width: '80%',
-      marginTop: 'auto',
-      marginBottom: 40,
+
+    // FAB
+    fabContainer: {
+      position: 'absolute',
+      bottom: 32,
+      left: 20,
+      right: 20,
     },
+    fab: {
+      backgroundColor: colors.brand,
+      borderRadius: radius.pill,
+      paddingVertical: 16,
+      alignItems: 'center',
+      shadowColor: colors.brand,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.45,
+      shadowRadius: 16,
+      elevation: 10,
+    },
+    fabDisabled: { opacity: 0.6 },
+    fabText: {
+      color: '#fff',
+      fontSize: 17,
+      fontWeight: '800',
+    },
+
+    // Error state
+    loader: { marginVertical: 30 },
+    errorContainer: { alignItems: 'center', marginVertical: 30 },
+    errorText: { color: colors.error, marginBottom: 12, fontSize: 14 },
+    retryButton: {
+      backgroundColor: colors.brand,
+      borderRadius: radius.md,
+      paddingVertical: 10,
+      paddingHorizontal: 24,
+    },
+    retryButtonText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+
+    // Paywall modal
     modalOverlay: {
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.6)',
@@ -403,40 +455,42 @@ const createStyles = (colors: ThemeColors) =>
       alignItems: 'center',
     },
     modalContent: {
-      width: '85%',
-      backgroundColor: colors.bgPrimary,
+      width: '88%',
+      backgroundColor: colors.bgSecondary,
       padding: 30,
-      borderRadius: 20,
+      borderRadius: radius.xl,
       alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.brand + '40',
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 10,
-      elevation: 10,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.4,
+      shadowRadius: 20,
+      elevation: 12,
     },
     modalTitle: {
-      fontSize: 24,
+      fontSize: 22,
       fontWeight: 'bold',
-      marginBottom: 15,
+      marginBottom: 12,
       color: colors.brand,
     },
     modalBody: {
-      fontSize: 16,
+      fontSize: 15,
       textAlign: 'center',
       color: colors.textPrimary,
-      marginBottom: 25,
-      lineHeight: 24,
+      marginBottom: 24,
+      lineHeight: 22,
     },
     premiumButton: {
       backgroundColor: colors.brand,
-      paddingVertical: 12,
+      paddingVertical: 14,
       paddingHorizontal: 30,
-      borderRadius: 25,
+      borderRadius: radius.pill,
       width: '100%',
     },
     premiumButtonText: {
       color: '#fff',
-      fontSize: 18,
+      fontSize: 17,
       fontWeight: 'bold',
       textAlign: 'center',
     },

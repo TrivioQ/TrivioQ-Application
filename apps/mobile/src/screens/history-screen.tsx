@@ -141,8 +141,10 @@ export default function HistoryScreen() {
         renderItem={renderItem}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          <View style={styles.centered}>
-            <Text style={styles.emptyText}>{t('history.empty')}</Text>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIllustration}>📋</Text>
+            <Text style={styles.emptyTitle}>{t('history.empty')}</Text>
+            <Text style={styles.emptySubtitle}>{t('history.emptySubtitle')}</Text>
           </View>
         }
       />
@@ -246,12 +248,34 @@ const createStyles = (colors: ThemeColors) =>
       justifyContent: 'center',
       paddingTop: 80,
     },
+    emptyContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: 80,
+      paddingHorizontal: 32,
+    },
+    emptyIllustration: {
+      fontSize: 64,
+      marginBottom: 16,
+      opacity: 0.5,
+    },
+    emptyTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.textSecondary,
+      marginBottom: 6,
+      textAlign: 'center',
+    },
+    emptySubtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 20,
+      opacity: 0.7,
+    },
     errorText: {
       color: colors.error,
-      fontSize: 16,
-    },
-    emptyText: {
-      color: colors.textSecondary,
       fontSize: 16,
     },
   });

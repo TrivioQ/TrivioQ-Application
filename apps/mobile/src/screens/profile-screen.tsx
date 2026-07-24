@@ -1,5 +1,7 @@
-import React, { useLayoutEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useLayoutEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Image } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 import { useConfirm } from '../components/confirm-modal';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -37,6 +39,21 @@ export default function ProfileScreen({ navigation }: any) {
   const confirm = useConfirm();
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+
+  const handlePickPhoto = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setPhotoUri(result.assets[0].uri);
+    }
+  };
 
   const { data, isLoading } = useQuery<UserProfile>({
     queryKey: ['userProfile', userId],
@@ -82,9 +99,20 @@ export default function ProfileScreen({ navigation }: any) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Avatar + name */}
       <View style={styles.avatarSection}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initials}</Text>
-        </View>
+        {/* Avatar with camera overlay */}
+        <TouchableOpacity style={styles.avatarWrapper} onPress={handlePickPhoto} activeOpacity={0.85}>
+          {photoUri ? (
+            <Image source={{ uri: photoUri }} style={styles.avatarImage} />
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+          )}
+          {/* Camera edit icon overlay */}
+          <View style={styles.cameraOverlay}>
+            <Ionicons name="camera" size={14} color="#fff" />
+          </View>
+        </TouchableOpacity>
         <Text style={styles.displayName}>{data?.displayName ?? data?.username ?? '—'}</Text>
         <Text style={styles.email}>{data?.email}</Text>
         <View style={[styles.tierBadge, isPaid && styles.tierBadgePremium]}>
@@ -199,6 +227,10 @@ const createStyles = (colors: ThemeColors) =>
       borderBottomColor: colors.borderColor,
       marginBottom: 8,
     },
+    avatarWrapper: {
+      position: 'relative',
+      marginBottom: 14,
+    },
     avatar: {
       width: 80,
       height: 80,
@@ -206,12 +238,29 @@ const createStyles = (colors: ThemeColors) =>
       backgroundColor: colors.brand,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 14,
       shadowColor: colors.brand,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.5,
       shadowRadius: 20,
       elevation: 8,
+    },
+    avatarImage: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+    },
+    cameraOverlay: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      backgroundColor: colors.brand,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: colors.bgPrimary,
     },
     avatarText: {
       fontSize: 28,

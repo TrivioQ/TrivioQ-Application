@@ -6,6 +6,7 @@ import { useAuth } from '../context/auth-context';
 import apiClient from '../api/client';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
+import { radius } from '../theme/radius';
 
 interface LeaderboardEntry {
   rank: number;
@@ -16,11 +17,52 @@ interface LeaderboardEntry {
   currentStreak: number;
 }
 
-function getRankBadge(rank: number, colors: ThemeColors) {
-  if (rank === 1) return { label: '🥇', bg: '#fbbf24' };
-  if (rank === 2) return { label: '🥈', bg: '#94a3b8' };
-  if (rank === 3) return { label: '🥉', bg: '#cd7c3a' };
-  return { label: `#${rank}`, bg: colors.bgSecondary };
+// Podium configuration per rank
+const PODIUM = [
+  { rank: 1, emoji: '🥇', label: '1st', gradientTop: '#FBBF24', gradientBot: '#D97706', textColor: '#78350F', height: 110 },
+  { rank: 2, emoji: '🥈', label: '2nd', gradientTop: '#CBD5E1', gradientBot: '#94A3B8', textColor: '#1E293B', height: 90 },
+  { rank: 3, emoji: '🥉', label: '3rd', gradientTop: '#FB923C', gradientBot: '#C2410C', textColor: '#fff', height: 75 },
+];
+
+function PodiumCard({ entry, podium, isCurrentUser, colors }: { entry: LeaderboardEntry; podium: (typeof PODIUM)[0]; isCurrentUser: boolean; colors: ThemeColors }) {
+  const name = entry.displayName ?? entry.username;
+  return (
+    <View style={[podiumCardStyle(podium.height, podium.gradientTop, colors, isCurrentUser)]}>
+      <Text style={{ fontSize: 32, marginBottom: 4 }}>{podium.emoji}</Text>
+      <Text style={[{ fontSize: 13, fontWeight: '800', color: podium.textColor, textAlign: 'center' }]} numberOfLines={1}>
+        {name}
+      </Text>
+      <Text style={{ fontSize: 11, fontWeight: '600', color: podium.textColor + 'CC', marginTop: 2 }}>{entry.cumulativeScore.toLocaleString()} pts</Text>
+      {entry.currentStreak > 0 && <Text style={{ fontSize: 10, color: podium.textColor + 'AA', marginTop: 2 }}>🔥 {entry.currentStreak}d</Text>}
+      <View
+        style={{
+          marginTop: 8,
+          backgroundColor: podium.gradientBot + '55',
+          borderRadius: radius.full,
+          paddingHorizontal: 8,
+          paddingVertical: 2,
+        }}
+      >
+        <Text style={{ fontSize: 11, fontWeight: '800', color: podium.textColor }}>{podium.label}</Text>
+      </View>
+    </View>
+  );
+}
+
+function podiumCardStyle(height: number, bg: string, colors: ThemeColors, isCurrentUser: boolean) {
+  return {
+    flex: 1,
+    alignItems: 'center' as const,
+    justifyContent: 'flex-end' as const,
+    backgroundColor: bg + '30',
+    borderWidth: isCurrentUser ? 2 : 1,
+    borderColor: isCurrentUser ? colors.brand : bg + '80',
+    borderRadius: radius.lg,
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+    minHeight: height,
+    marginHorizontal: 4,
+  };
 }
 
 export default function LeaderboardScreen() {
@@ -38,14 +80,15 @@ export default function LeaderboardScreen() {
     enabled: !!userId,
   });
 
-  const renderItem = ({ item }: { item: LeaderboardEntry }) => {
-    const badge = getRankBadge(item.rank, colors);
-    const isCurrentUser = item.userId === userId;
+  const top3 = (data ?? []).filter((e) => e.rank <= 3);
+  const rest = (data ?? []).filter((e) => e.rank > 3);
 
+  const renderItem = ({ item }: { item: LeaderboardEntry }) => {
+    const isCurrentUser = item.userId === userId;
     return (
       <View style={[styles.row, isCurrentUser && styles.rowHighlighted]}>
-        <View style={[styles.rankBadge, { backgroundColor: badge.bg }]}>
-          <Text style={styles.rankText}>{badge.label}</Text>
+        <View style={[styles.rankBadge, { backgroundColor: colors.borderColor }]}>
+          <Text style={styles.rankText}>#{item.rank}</Text>
         </View>
         <View style={styles.userInfo}>
           <Text style={[styles.username, isCurrentUser && { color: colors.brand }]} numberOfLines={1}>
@@ -79,13 +122,27 @@ export default function LeaderboardScreen() {
     <View style={styles.container}>
       <Text style={styles.heading}>{t('leaderboard.title')}</Text>
       <Text style={styles.subheading}>{t('leaderboard.subtitle')}</Text>
+
       <FlatList
-        data={data ?? []}
+        data={rest}
         keyExtractor={(item) => item.userId}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
+        ListHeaderComponent={
+          top3.length > 0 ? (
+            <View style={styles.podiumSection}>
+              {/* Arrange: 2nd, 1st, 3rd for visual podium layout */}
+              {[top3.find((e) => e.rank === 2), top3.find((e) => e.rank === 1), top3.find((e) => e.rank === 3)].map((entry, i) => {
+                if (!entry) return <View key={i} style={{ flex: 1, marginHorizontal: 4 }} />;
+                const podium = PODIUM.find((p) => p.rank === entry.rank)!;
+                return <PodiumCard key={entry.userId} entry={entry} podium={podium} isCurrentUser={entry.userId === userId} colors={colors} />;
+              })}
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
           <View style={styles.centered}>
+            <Text style={{ fontSize: 40, marginBottom: 12 }}>🏆</Text>
             <Text style={styles.emptyText}>{t('leaderboard.empty')}</Text>
           </View>
         }
@@ -114,6 +171,12 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: 20,
       marginBottom: 16,
     },
+    podiumSection: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      marginHorizontal: 4,
+      marginBottom: 20,
+    },
     list: {
       paddingHorizontal: 16,
       paddingBottom: 24,
@@ -122,7 +185,7 @@ const createStyles = (colors: ThemeColors) =>
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.bgSecondary,
-      borderRadius: 14,
+      borderRadius: radius.md,
       padding: 14,
       marginBottom: 10,
       borderWidth: 1,
@@ -131,19 +194,19 @@ const createStyles = (colors: ThemeColors) =>
     },
     rowHighlighted: {
       borderColor: colors.brand,
-      backgroundColor: 'rgba(99,102,241,0.1)',
+      backgroundColor: colors.brand + '10',
     },
     rankBadge: {
       width: 40,
       height: 40,
-      borderRadius: 20,
+      borderRadius: radius.full,
       alignItems: 'center',
       justifyContent: 'center',
     },
     rankText: {
-      fontSize: 14,
+      fontSize: 12,
       fontWeight: '700',
-      color: colors.textPrimary,
+      color: colors.textSecondary,
     },
     userInfo: {
       flex: 1,

@@ -93,7 +93,7 @@ function HomeStackNavigator() {
         options={{
           title: t('common.activeDrop'),
           presentation: 'modal',
-          headerStyle: { backgroundColor: '#1e1b4b' },
+          headerStyle: { backgroundColor: colors.bgSecondary },
         }}
       />
       <HomeStack.Screen name="Notifications" component={NotificationsScreen} options={{ title: t('common.notifications') }} />

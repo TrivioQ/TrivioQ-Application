@@ -243,6 +243,7 @@ const createStyles = (colors: ThemeColors) =>
     unreadCard: {
       backgroundColor: colors.brand + '10',
       borderColor: colors.brand,
+      borderLeftWidth: 4,
     },
     notificationRow: {
       flexDirection: 'row',

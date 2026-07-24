@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Linking } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../api/client';
 import { useToast } from '../components/toast';
@@ -133,7 +133,41 @@ export default function SubscriptionScreen() {
             <View style={styles.badge}>
               <Text style={styles.badgeText}>Free</Text>
             </View>
-            <TouchableOpacity style={styles.upgradeButton} activeOpacity={0.8}>
+
+            {/* Feature comparison */}
+            <View style={styles.featureTable}>
+              {[
+                { feature: 'Daily trivia drop', free: '✅', plus: '✅', premium: '✅' },
+                { feature: 'On-demand drops', free: '❌', plus: '1/day', premium: '∞' },
+                { feature: 'Hints', free: '❌', plus: '✅', premium: '✅' },
+                { feature: 'Score history', free: '❌', plus: '✅', premium: '✅' },
+                { feature: 'Vault days', free: '❌', plus: '✅', premium: '✅' },
+              ].map((row) => (
+                <View key={row.feature} style={styles.featureRow}>
+                  <Text style={styles.featureLabel}>{row.feature}</Text>
+                  <Text style={styles.featureCell}>{row.free}</Text>
+                  <Text style={[styles.featureCell, { color: colors.brand }]}>{row.plus}</Text>
+                  <Text style={[styles.featureCell, { color: '#CA8A04' }]}>{row.premium}</Text>
+                </View>
+              ))}
+              <View style={styles.featureHeaderRow}>
+                <Text style={styles.featureHeaderLabel} />
+                <Text style={styles.featureHeader}>Free</Text>
+                <Text style={[styles.featureHeader, { color: colors.brand }]}>Plus</Text>
+                <Text style={[styles.featureHeader, { color: '#CA8A04' }]}>👑 Premium</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.upgradeButton}
+              activeOpacity={0.8}
+              onPress={() =>
+                Linking.openURL(
+                  // TODO: replace with your production web URL
+                  'https://trivioq.com/en/settings#subscription',
+                )
+              }
+            >
               <Text style={styles.upgradeButtonText}>⚡ Upgrade to Premium</Text>
             </TouchableOpacity>
           </>
@@ -338,5 +372,53 @@ const createStyles = (colors: ThemeColors) =>
       fontSize: 15,
       fontWeight: '800',
       color: '#fff',
+    },
+
+    // Feature comparison table
+    featureTable: {
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+      borderRadius: 12,
+      overflow: 'hidden',
+      marginTop: 4,
+    },
+    featureHeaderRow: {
+      flexDirection: 'row',
+      backgroundColor: colors.bgPrimary,
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderColor,
+    },
+    featureHeaderLabel: {
+      flex: 2,
+    },
+    featureHeader: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 11,
+      fontWeight: '700',
+      color: colors.textSecondary,
+    },
+    featureRow: {
+      flexDirection: 'row',
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderColor,
+      alignItems: 'center',
+    },
+    featureLabel: {
+      flex: 2,
+      fontSize: 12,
+      color: colors.textPrimary,
+      fontWeight: '500',
+    },
+    featureCell: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontWeight: '600',
     },
   });

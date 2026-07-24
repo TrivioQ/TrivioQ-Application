@@ -113,29 +113,10 @@ export async function Footer() {
         {/* ── Bottom bar ── */}
         <div className="border-t border-gray-200 dark:border-white/5 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-gray-400 dark:text-gray-500">{t('copyright', { year })}</p>
-          <a href="https://nextjs.org" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 transition-all duration-200">
-            <svg className="h-3.5 w-3.5" viewBox="0 0 180 180" fill="currentColor" aria-hidden="true">
-              <mask id="mask0" style={{ maskType: 'alpha' }} maskUnits="userSpaceOnUse" x="0" y="0" width="180" height="180">
-                <circle cx="90" cy="90" r="90" />
-              </mask>
-              <g mask="url(#mask0)">
-                <circle cx="90" cy="90" r="90" />
-                <path d="M149.508 157.52L69.142 54H54v71.97h12.374v-55.53L137.6 165.07a90.218 90.218 0 0 0 11.908-7.55z" fill="url(#nextjs-gradient)" />
-                <path d="M115 54h12v72h-12z" fill="url(#nextjs-gradient2)" />
-              </g>
-              <defs>
-                <linearGradient id="nextjs-gradient" x1="109" y1="116.5" x2="144.5" y2="160.5" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="white" />
-                  <stop offset="1" stopColor="white" stopOpacity="0" />
-                </linearGradient>
-                <linearGradient id="nextjs-gradient2" x1="121" y1="54" x2="120.799" y2="106.875" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="white" />
-                  <stop offset="1" stopColor="white" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-            </svg>
-            {t('poweredBy')}
-          </a>
+          <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
+            <span>·</span>
+            <span>Built with ❤️ by the TrivioQ team</span>
+          </div>
         </div>
       </div>
     </footer>
