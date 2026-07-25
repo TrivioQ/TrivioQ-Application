@@ -87,13 +87,14 @@ export const lightColors: ThemeColors = {
   brandSoft: '#14B8A640',
   brandStrong: '#0F766E', // teal-700
 
-  success: '#22c55e',
-  successFaint: '#22c55e33',
+  // Status — tuned for hue separation from teal brand
+  success: '#10B981', // emerald-500 — distinct from teal
+  successFaint: '#10B98126',
   warning: '#f59e0b',
   warningFaint: '#f59e0b33',
-  error: '#ef4444',
-  errorFaint: '#ef444433',
-  info: '#3b82f6',
+  error: '#F43F5E', // rose-500 — premium, warmer than flat red
+  errorFaint: '#F43F5E33',
+  info: '#6366F1', // indigo-500 — avoids teal hue collision
 
   premium: '#a78bfa',
   premiumFaint: '#a78bfa26',
@@ -106,7 +107,7 @@ export const lightColors: ThemeColors = {
 
   medalGold: '#fbbf24',
   medalSilver: '#94a3b8',
-  medalBronze: '#f97316',
+  medalBronze: '#CD7F32', // copper-bronze — correct semantic (was vivid orange)
 
   glassBg: 'rgba(255, 255, 255, 0.7)',
   glassBorder: 'rgba(255, 255, 255, 0.5)',
@@ -134,13 +135,14 @@ export const darkColors: ThemeColors = {
   brandSoft: '#14B8A64D',
   brandStrong: '#0F766E',
 
-  success: '#22c55e',
-  successFaint: '#22c55e4D',
+  // Status — tuned for hue separation from teal brand
+  success: '#10B981', // emerald-500
+  successFaint: '#10B9814D',
   warning: '#f59e0b',
   warningFaint: '#f59e0b4D',
-  error: '#ef4444',
-  errorFaint: '#ef44444D',
-  info: '#3b82f6',
+  error: '#F43F5E', // rose-500
+  errorFaint: '#F43F5E4D',
+  info: '#6366F1', // indigo-500
 
   premium: '#a78bfa',
   premiumFaint: '#a78bfa33',
@@ -153,7 +155,7 @@ export const darkColors: ThemeColors = {
 
   medalGold: '#fbbf24',
   medalSilver: '#94a3b8',
-  medalBronze: '#f97316',
+  medalBronze: '#CD7F32', // copper-bronze — correct semantic (was vivid orange)
 
   glassBg: 'rgba(15, 23, 42, 0.7)',
   glassBorder: 'rgba(255, 255, 255, 0.1)',

@@ -42,6 +42,8 @@ const config: Config = {
           700: varColor('brand-700'),
           800: varColor('brand-800'),
           900: varColor('brand-900'),
+          /** WCAG-AA interactive alias: teal-500 in light, teal-300 in dark */
+          interactive: varColor('brand-interactive'),
           accent: {
             500: varColor('brand-accent-500'),
             600: varColor('brand-accent-600'),

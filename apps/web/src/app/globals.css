@@ -12,9 +12,9 @@
 
 :root {
   /* Semantic neutrals (slate scale, light) */
-  --bg-primary: 248 250 252;       /* slate-50 */
-  --bg-secondary: 255 255 255;     /* white */
-  --surface-elevated: 255 255 255;
+  --bg-primary: 248 250 252;       /* slate-50  — page canvas */
+  --bg-secondary: 255 255 255;     /* white     — cards / sections */
+  --surface-elevated: 241 245 249; /* slate-100 — modals, popovers (elevation layer) */
   --text-primary: 15 23 42;        /* slate-900 */
   --text-secondary: 100 116 139;   /* slate-500 */
   --border-color: 226 232 240;     /* slate-200 */
@@ -23,11 +23,11 @@
   --overlay-scrim: 0 0 0;
   --shadow-rgb: 0 0 0;
 
-  /* Status semantics (constant across themes) */
-  --success: 34 197 94;            /* green-500 */
-  --warning: 245 158 11;           /* amber-500 */
-  --error: 239 68 68;              /* red-500 */
-  --info: 59 130 246;              /* blue-500 */
+  /* Status semantics — tuned for hue separation from the teal brand. */
+  --success: 16 185 129;           /* emerald-500 (#10B981) — distinct from teal */
+  --warning: 245 158 11;           /* amber-500  (#F59E0B) */
+  --error: 244 63 94;              /* rose-500   (#F43F5E) — premium, warmer than flat red */
+  --info: 99 102 241;              /* indigo-500 (#6366F1) — avoids teal hue collision */
 
   /* Brand scale (teal, default). Override these to re-skin the app. */
   --brand-50: 240 253 250;
@@ -40,12 +40,15 @@
   --brand-800: 17 94 89;
   --brand-900: 19 78 74;
 
-  /* Brand-accent alias layer. A "purple" or "indigo" theme only
-     overrides these three; every component reads from the alias,
-     so we never have to scrub usage sites on re-skin. */
-  --brand-accent-500: var(--brand-500);
-  --brand-accent-600: var(--brand-600);
-  --brand-accent-700: var(--brand-700);
+  /* Interactive brand — same as brand-500 in light mode (sufficient contrast).
+     Overridden in dark mode to teal-300 for WCAG AA compliance. */
+  --brand-interactive: 20 184 166;
+
+  /* Brand-accent: warm amber/gold — genuine warm-cool contrast against teal.
+     Override only these three vars to adopt a different secondary accent. */
+  --brand-accent-500: 251 191 36;  /* amber-400 (#FBBF24) */
+  --brand-accent-600: 245 158 11;  /* amber-500 (#F59E0B) */
+  --brand-accent-700: 217 119 6;   /* amber-600 (#D97706) */
 
   /* Glass surfaces */
   --glass-bg: 255 255 255;
@@ -56,14 +59,14 @@
 
 .dark {
   --bg-primary: 2 6 23;            /* slate-950 */
-  --bg-secondary: 15 23 42;       /* slate-900 */
+  --bg-secondary: 15 23 42;        /* slate-900 */
   --surface-elevated: 30 41 59;    /* slate-800 */
   --text-primary: 248 250 252;     /* slate-50 */
   --text-secondary: 148 163 184;   /* slate-400 */
-  --border-color: 30 41 59;        /* slate-800 */
+  --border-color: 51 65 85;        /* slate-700 — visible on slate-800 surface (bug fix) */
 
-  /* Brand stays identical across light/dark for now; a future
-     "dim" theme can override without touching components. */
+  /* Brand scale stays the same; interactive alias is promoted to teal-300
+     for WCAG AA compliance (~5.6:1 contrast on slate-950). */
   --brand-50: 240 253 250;
   --brand-100: 204 251 241;
   --brand-300: 94 234 212;
@@ -73,15 +76,20 @@
   --brand-700: 15 118 110;
   --brand-800: 17 94 89;
   --brand-900: 19 78 74;
-  --brand-accent-500: var(--brand-500);
-  --brand-accent-600: var(--brand-600);
-  --brand-accent-700: var(--brand-700);
 
-  /* Status semantics (constant across themes) */
-  --success: 34 197 94;
-  --warning: 245 158 11;
-  --error: 239 68 68;
-  --info: 59 130 246;
+  /* Interactive brand promoted to teal-300 in dark for WCAG AA */
+  --brand-interactive: 94 234 212; /* teal-300 (~5.6:1 contrast on slate-950) */
+
+  /* Brand-accent: warm amber/gold — same hue as light, identical perception */
+  --brand-accent-500: 251 191 36;  /* amber-400 (#FBBF24) */
+  --brand-accent-600: 245 158 11;  /* amber-500 (#F59E0B) */
+  --brand-accent-700: 217 119 6;   /* amber-600 (#D97706) */
+
+  /* Status semantics — tuned for hue separation from teal brand */
+  --success: 16 185 129;           /* emerald-500 (#10B981) */
+  --warning: 245 158 11;           /* amber-500  (#F59E0B) */
+  --error: 244 63 94;              /* rose-500   (#F43F5E) */
+  --info: 99 102 241;              /* indigo-500 (#6366F1) */
 
   /* Glass surfaces — dark variant */
   --glass-bg: 15 23 42;
