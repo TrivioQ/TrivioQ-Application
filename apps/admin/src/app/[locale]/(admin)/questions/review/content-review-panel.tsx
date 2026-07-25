@@ -215,19 +215,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Select value={searchParams.get('score') || 'all'} onValueChange={(v) => pushParams({ score: v === 'all' ? null : v, page: '1' })}>
-                <SelectTrigger className="h-7 text-xs w-[110px] bg-white border-gray-200">
-                  <SelectValue placeholder={t('filters.score')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('filters.allScores')}</SelectItem>
-                  <SelectItem value="high">{t('filters.highScore')}</SelectItem>
-                  <SelectItem value="medium">{t('filters.mediumScore')}</SelectItem>
-                  <SelectItem value="low">{t('filters.lowScore')}</SelectItem>
-                </SelectContent>
-              </Select>
-
+          <div className="flex items-center gap-2">
               {selectedQuestionIds.size > 0 && (
                 <DropdownMenu>
                   <DropdownMenuTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm', className: 'h-7 text-xs px-2 gap-1' }), isBulkUpdating && 'opacity-50 pointer-events-none')}>

@@ -14,6 +14,11 @@ import { DifficultyLevel, AgeRating } from '@trivioq/database';
 
 const DIFFICULTIES: DifficultyLevel[] = ['EASY', 'MEDIUM', 'HARD'];
 const AGE_RATINGS: AgeRating[] = ['ALL', 'TEEN', 'MATURE'];
+const AI_SCORES = [
+  { value: 'high', label: 'High (>80)' },
+  { value: 'medium', label: 'Medium (50–80)' },
+  { value: 'low', label: 'Low (<50)' },
+] as const;
 
 type Category = { id: string; name: string };
 
@@ -43,6 +48,11 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
   const difficulties = (searchParams.get('difficulty')?.split(',').filter(Boolean) ?? []) as DifficultyLevel[];
   const ageRatings = (searchParams.get('ageRating')?.split(',').filter(Boolean) ?? []) as AgeRating[];
   const categoryNames = searchParams.get('category')?.split(',').filter(Boolean) ?? [];
+  const scoreValues = searchParams.get('score')?.split(',').filter(Boolean) ?? [];
+
+  const toggleScore = (s: string) => {
+    push({ score: scoreValues.includes(s) ? scoreValues.filter((x) => x !== s) : [...scoreValues, s] });
+  };
 
   const toggleDifficulty = (d: DifficultyLevel) => {
     push({ difficulty: difficulties.includes(d) ? difficulties.filter((x) => x !== d) : [...difficulties, d] });
@@ -58,7 +68,7 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
 
   const clearAll = () => startTransition(() => router.push(pathname));
 
-  const hasFilters = search || difficulties.length > 0 || ageRatings.length > 0 || categoryNames.length > 0;
+  const hasFilters = search || difficulties.length > 0 || ageRatings.length > 0 || categoryNames.length > 0 || scoreValues.length > 0;
 
   return (
     <div className="space-y-3">
@@ -136,6 +146,29 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
           </PopoverContent>
         </Popover>
 
+        {/* AI Score multi-select */}
+        <Popover>
+          <PopoverTrigger className={buttonVariants({ variant: 'outline', className: 'h-9 gap-2' })}>
+            {t('aiScore')}
+            {scoreValues.length > 0 && <Badge className="ml-1 rounded-full px-1.5 py-0 text-xs bg-teal-600 text-white hover:bg-teal-600">{scoreValues.length}</Badge>}
+            <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-0">
+            <Command>
+              <CommandList>
+                <CommandGroup>
+                  {AI_SCORES.map((s) => (
+                    <CommandItem key={s.value} onSelect={() => toggleScore(s.value)}>
+                      <Check className={cn('mr-2 h-4 w-4', scoreValues.includes(s.value) ? 'opacity-100' : 'opacity-0')} />
+                      {s.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
         {hasFilters && (
           <button onClick={clearAll} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 transition-colors">
             <X className="h-3.5 w-3.5" />
@@ -160,6 +193,11 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
           {categoryNames.map((name) => (
             <Badge key={name} variant="secondary" className="cursor-pointer gap-1" onClick={() => toggleCategory(name)}>
               {name} <X className="h-3 w-3" />
+            </Badge>
+          ))}
+          {scoreValues.map((s) => (
+            <Badge key={s} variant="secondary" className="cursor-pointer gap-1" onClick={() => toggleScore(s)}>
+              {AI_SCORES.find((x) => x.value === s)?.label ?? s} <X className="h-3 w-3" />
             </Badge>
           ))}
         </div>
