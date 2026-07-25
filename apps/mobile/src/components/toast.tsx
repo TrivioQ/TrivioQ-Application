@@ -40,8 +40,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={show}>
       {children}
       {visible && (
-        <Animated.View style={[styles.container, { opacity, backgroundColor: bg }]}>
-          <Text style={styles.text}>{options.message}</Text>
+        <Animated.View style={[styles.container, { opacity, backgroundColor: bg, shadowColor: colors.overlay }]}>
+          <Text style={[styles.text, { color: colors.bgSecondary }]}>{options.message}</Text>
         </Animated.View>
       )}
     </ToastContext.Provider>
@@ -63,7 +63,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 18,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -71,7 +70,6 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   text: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',

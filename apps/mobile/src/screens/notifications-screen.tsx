@@ -194,7 +194,7 @@ const createStyles = (colors: ThemeColors) =>
       color: colors.textSecondary,
     },
     filterTabTextActive: {
-      color: '#fff',
+      color: colors.onAccent,
     },
     markAllRead: {
       fontSize: 14,

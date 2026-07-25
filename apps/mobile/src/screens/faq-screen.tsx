@@ -256,7 +256,7 @@ const createStyles = (colors: ThemeColors) =>
       elevation: 4,
     },
     contactButtonText: {
-      color: '#fff',
+      color: colors.onAccent,
       fontSize: 15,
       fontWeight: '700',
     },

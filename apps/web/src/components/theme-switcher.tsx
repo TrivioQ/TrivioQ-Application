@@ -32,13 +32,13 @@ export function ThemeSwitcher() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 dark:bg-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-700 transition-colors border border-white/20 dark:border-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400" aria-label={t('toggle')}>
+      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 dark:bg-overlay/50 hover:bg-white/20 dark:hover:bg-text-muted/20 transition-colors border border-white/20 dark:border-text-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400" aria-label={t('toggle')}>
         <span className="text-sm">{currentTheme.icon}</span>
       </button>
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div initial={{ opacity: 0, y: -8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.96 }} transition={{ duration: 0.15, ease: 'easeOut' }} className="absolute right-0 mt-2 w-36 rounded-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border border-gray-200 dark:border-white/10 shadow-xl overflow-hidden z-50">
+          <motion.div initial={{ opacity: 0, y: -8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.96 }} transition={{ duration: 0.15, ease: 'easeOut' }} className="absolute right-0 mt-2 w-36 rounded-xl bg-bg-secondary/90 dark:bg-overlay/90 backdrop-blur-md border border-border dark:border-white/10 shadow-xl overflow-hidden z-50">
             <div className="py-1">
               {themes.map((t) => (
                 <button
@@ -47,7 +47,7 @@ export function ThemeSwitcher() {
                     setTheme(t.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-sm text-left transition-colors ${theme === t.value ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-sm text-left transition-colors ${theme === t.value ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400' : 'text-text hover:bg-bg dark:hover:bg-white/5'}`}
                 >
                   <span>{t.icon}</span>
                   {t.label}

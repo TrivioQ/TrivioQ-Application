@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import apiClient from '../api/client';
+import { useTheme } from '../context/ThemeContext';
+import { ThemeColors } from '../theme/colors';
 
 type LegalDoc = { title: string; content: string; version: string; updatedAt: string };
 
 export default function TermsScreen() {
   const [doc, setDoc] = useState<LegalDoc | null>(null);
   const [loading, setLoading] = useState(true);
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const markdownStyles = useMemo(() => createMarkdownStyles(colors), [colors]);
 
   useEffect(() => {
     apiClient
@@ -20,7 +25,7 @@ export default function TermsScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {loading ? (
-        <ActivityIndicator color="#14B8A6" style={styles.loader} />
+        <ActivityIndicator color={colors.brand} style={styles.loader} />
       ) : doc ? (
         <Markdown style={markdownStyles}>{doc.content}</Markdown>
       ) : (
@@ -32,74 +37,75 @@ export default function TermsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 48,
-  },
-  loader: {
-    marginTop: 60,
-  },
-  errorContainer: {
-    marginTop: 60,
-    alignItems: 'center',
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#475569',
-    textAlign: 'center',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bgPrimary,
+    },
+    content: {
+      paddingHorizontal: 20,
+      paddingTop: 24,
+      paddingBottom: 48,
+    },
+    loader: {
+      marginTop: 60,
+    },
+    errorContainer: {
+      marginTop: 60,
+      alignItems: 'center',
+    },
+    errorText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+  });
 
-const markdownStyles = {
+const createMarkdownStyles = (colors: ThemeColors) => ({
   body: {
-    color: '#94a3b8',
+    color: colors.textSecondary,
     fontSize: 13,
     lineHeight: 20,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.bgPrimary,
   },
   heading1: {
-    color: '#f1f5f9',
+    color: colors.textPrimary,
     fontSize: 28,
     fontWeight: '800' as const,
     marginBottom: 4,
   },
   heading2: {
-    color: '#e2e8f0',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '700' as const,
     marginTop: 24,
     marginBottom: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
+    borderTopColor: colors.borderColor,
     paddingTop: 20,
   },
   strong: {
-    color: '#cbd5e1',
+    color: colors.textPrimary,
     fontWeight: '600' as const,
   },
   link: {
-    color: '#14B8A6',
+    color: colors.brand,
   },
   list_item: {
-    color: '#94a3b8',
+    color: colors.textSecondary,
   },
   bullet_list_icon: {
-    color: '#14B8A6',
+    color: colors.brand,
   },
   paragraph: {
-    color: '#94a3b8',
+    color: colors.textSecondary,
     fontSize: 13,
     lineHeight: 20,
     marginBottom: 8,
   },
   hr: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: colors.borderColor,
     height: 1,
   },
-};
+});

@@ -169,7 +169,7 @@ const createStyles = (colors: ThemeColors) =>
       borderRadius: 20,
       overflow: 'hidden',
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.2)',
+      borderColor: colors.glassBorder,
     },
     header: {
       fontSize: 18,
@@ -195,7 +195,7 @@ const createStyles = (colors: ThemeColors) =>
     },
     themeButtonActive: {
       borderColor: colors.brand,
-      backgroundColor: 'rgba(20,184,166,0.1)',
+      backgroundColor: colors.brandFaint,
     },
     themeButtonText: {
       color: colors.textSecondary,
@@ -245,7 +245,7 @@ const createStyles = (colors: ThemeColors) =>
       elevation: 4,
     },
     saveButtonText: {
-      color: '#FFFFFF',
+      color: colors.onAccent,
       fontWeight: 'bold',
       fontSize: 16,
     },

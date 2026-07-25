@@ -147,14 +147,14 @@ export default function SubscriptionScreen() {
                   <Text style={styles.featureLabel}>{row.feature}</Text>
                   <Text style={styles.featureCell}>{row.free}</Text>
                   <Text style={[styles.featureCell, { color: colors.brand }]}>{row.plus}</Text>
-                  <Text style={[styles.featureCell, { color: '#CA8A04' }]}>{row.premium}</Text>
+                  <Text style={[styles.featureCell, { color: colors.goldDeep }]}>{row.premium}</Text>
                 </View>
               ))}
               <View style={styles.featureHeaderRow}>
                 <Text style={styles.featureHeaderLabel} />
                 <Text style={styles.featureHeader}>Free</Text>
                 <Text style={[styles.featureHeader, { color: colors.brand }]}>Plus</Text>
-                <Text style={[styles.featureHeader, { color: '#CA8A04' }]}>👑 Premium</Text>
+                <Text style={[styles.featureHeader, { color: colors.goldDeep }]}>👑 Premium</Text>
               </View>
             </View>
 
@@ -193,7 +193,7 @@ export default function SubscriptionScreen() {
 
             <TouchableOpacity style={[styles.activateButton, (onDemandTokensAvailable === 0 || activating) && styles.activateButtonDisabled]} onPress={handleActivate} disabled={onDemandTokensAvailable === 0 || activating} activeOpacity={0.8}>
               {activating ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={colors.onAccent} />
               ) : (
                 <Text style={styles.activateButtonText}>
                   Activate {daysToActivate} Day{daysToActivate !== 1 ? 's' : ''}
@@ -259,12 +259,12 @@ const createStyles = (colors: ThemeColors) =>
       borderColor: colors.borderColor,
     },
     badgeGold: {
-      backgroundColor: 'rgba(234,179,8,0.15)',
-      borderColor: '#ca8a04',
+      backgroundColor: colors.goldAccentFaint,
+      borderColor: colors.goldDeep,
     },
     badgePurple: {
-      backgroundColor: 'rgba(167,139,250,0.15)',
-      borderColor: '#7c3aed',
+      backgroundColor: colors.purpleAccentFaint,
+      borderColor: colors.purpleAccent,
     },
     badgeText: {
       fontSize: 13,
@@ -272,10 +272,10 @@ const createStyles = (colors: ThemeColors) =>
       color: colors.textSecondary,
     },
     badgeTextGold: {
-      color: '#fde047',
+      color: colors.goldAccent,
     },
     badgeTextPurple: {
-      color: '#a78bfa',
+      color: colors.premium,
     },
 
     // Meta
@@ -304,7 +304,7 @@ const createStyles = (colors: ThemeColors) =>
     upgradeButtonText: {
       fontSize: 15,
       fontWeight: '800',
-      color: '#fff',
+      color: colors.onAccent,
     },
 
     // Vault
@@ -371,7 +371,7 @@ const createStyles = (colors: ThemeColors) =>
     activateButtonText: {
       fontSize: 15,
       fontWeight: '800',
-      color: '#fff',
+      color: colors.onAccent,
     },
 
     // Feature comparison table

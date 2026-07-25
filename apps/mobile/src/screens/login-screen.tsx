@@ -188,7 +188,7 @@ const createStyles = (colors: ThemeColors) =>
       elevation: 4,
     },
     loginButtonText: {
-      color: '#fff',
+      color: colors.onAccent,
       fontSize: 16,
       fontWeight: '700',
     },
@@ -209,7 +209,7 @@ const createStyles = (colors: ThemeColors) =>
       fontWeight: '700',
     },
     googleButton: {
-      backgroundColor: '#fff',
+      backgroundColor: '#FFFFFF', // vendor-locked — Google brand compliance
       borderRadius: radius.md,
       padding: 16,
       flexDirection: 'row',
@@ -217,15 +217,15 @@ const createStyles = (colors: ThemeColors) =>
       justifyContent: 'center',
       gap: 10,
       borderWidth: 1,
-      borderColor: '#E5E7EB',
-      shadowColor: '#000',
+      borderColor: '#E5E7EB', // vendor-locked
+      shadowColor: colors.overlay,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.08,
       shadowRadius: 4,
       elevation: 2,
     },
     googleButtonText: {
-      color: '#1F2937',
+      color: '#1F2937', // vendor-locked
       fontSize: 16,
       fontWeight: '700',
     },

@@ -21,7 +21,7 @@ interface LeaderboardEntry {
 const PODIUM = [
   { rank: 1, emoji: '🥇', label: '1st', gradientTop: '#FBBF24', gradientBot: '#D97706', textColor: '#78350F', height: 110 },
   { rank: 2, emoji: '🥈', label: '2nd', gradientTop: '#CBD5E1', gradientBot: '#94A3B8', textColor: '#1E293B', height: 90 },
-  { rank: 3, emoji: '🥉', label: '3rd', gradientTop: '#FB923C', gradientBot: '#C2410C', textColor: '#fff', height: 75 },
+  { rank: 3, emoji: '🥉', label: '3rd', gradientTop: '#FB923C', gradientBot: '#C2410C', textColor: '#FFFFFF', height: 75 },
 ];
 
 function PodiumCard({ entry, podium, isCurrentUser, colors }: { entry: LeaderboardEntry; podium: (typeof PODIUM)[0]; isCurrentUser: boolean; colors: ThemeColors }) {

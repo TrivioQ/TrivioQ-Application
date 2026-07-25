@@ -28,10 +28,10 @@ export default async function WebDashboard() {
 
   if (!hasCookie) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6 text-gray-900 dark:text-white">
+      <div className="min-h-screen flex items-center justify-center px-6 text-text">
         <div className="text-center space-y-4">
           <span className="text-6xl block">🔒</span>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-text-muted">
             {t('signInPrompt')}{' '}
             <Link href="/login" className="text-brand-600 hover:text-brand-400 dark:hover:text-brand-300">
               {t('signInLink')}
@@ -51,12 +51,12 @@ export default async function WebDashboard() {
   }
 
   return (
-    <div className="min-h-screen text-gray-900 dark:text-white selection:bg-brand-500 dark:selection:bg-brand-500 selection:text-white">
+    <div className="min-h-screen text-text selection:bg-brand-500 dark:selection:bg-brand-500 selection:text-text">
       <div className="max-w-5xl mx-auto px-6 py-24 space-y-10">
         {/* ── Header ── */}
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-brand-500 to-brand-500 dark:from-brand-400 dark:via-brand-400 dark:to-brand-400">{profile ? t('greeting', { name: profile.displayName ?? profile.username }) : t('title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">{t('performanceSubtitle')}</p>
+          <p className="text-text-muted mt-2">{t('performanceSubtitle')}</p>
         </div>
 
         {/* ── Active Drop ── */}
@@ -67,10 +67,10 @@ export default async function WebDashboard() {
 
         {/* ── Quick links ── */}
         <div className="flex flex-wrap gap-3 pt-2">
-          <Link href="/score-history" className="rounded-xl bg-brand-600 hover:bg-brand-500 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 px-4 py-2 text-sm text-white dark:text-brand-300 font-medium transition-colors">
+          <Link href="/score-history" className="rounded-xl bg-brand-600 hover:bg-brand-500 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 px-4 py-2 text-sm text-text dark:text-brand-300 font-medium transition-colors">
             {t('fullScoreHistory')}
           </Link>
-          <Link href="/leaderboard" className="rounded-xl bg-brand-600 hover:bg-brand-500 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 px-4 py-2 text-sm text-white dark:text-brand-300 font-medium transition-colors">
+          <Link href="/leaderboard" className="rounded-xl bg-brand-600 hover:bg-brand-500 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 px-4 py-2 text-sm text-text dark:text-brand-300 font-medium transition-colors">
             {t('leaderboard')}
           </Link>
         </div>

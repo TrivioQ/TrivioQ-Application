@@ -4,11 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  subscribeToPushNotifications,
-  unsubscribeFromPushNotifications,
-  getNotificationPermissionStatus,
-} from '../lib/push-notification-service';
+import { subscribeToPushNotifications, unsubscribeFromPushNotifications, getNotificationPermissionStatus } from '../lib/push-notification-service';
 
 export function PushNotificationSettings() {
   const { t } = useTranslation();
@@ -38,15 +34,9 @@ export function PushNotificationSettings() {
     if (success) {
       setIsSubscribed(true);
       setPermissionStatus('granted');
-      Alert.alert(
-        t('notifications.pushEnabled'),
-        t('notifications.pushEnabledSub')
-      );
+      Alert.alert(t('notifications.pushEnabled'), t('notifications.pushEnabledSub'));
     } else {
-      Alert.alert(
-        t('notifications.pushEnableFailed'),
-        t('notifications.pushEnableFailedSub')
-      );
+      Alert.alert(t('notifications.pushEnableFailed'), t('notifications.pushEnableFailedSub'));
     }
     setLoading(false);
   }
@@ -56,10 +46,7 @@ export function PushNotificationSettings() {
     const success = await unsubscribeFromPushNotifications();
     if (success) {
       setIsSubscribed(false);
-      Alert.alert(
-        t('notifications.pushDisabled'),
-        t('notifications.pushDisabledSub')
-      );
+      Alert.alert(t('notifications.pushDisabled'), t('notifications.pushDisabledSub'));
     }
     setLoading(false);
   }
@@ -68,9 +55,7 @@ export function PushNotificationSettings() {
     return (
       <View style={[styles.container, styles.notSupported]}>
         <Ionicons name="notifications-off-outline" size={24} color={colors.textSecondary} />
-        <Text style={[styles.text, styles.notSupportedText]}>
-          {t('notifications.notSupported')}
-        </Text>
+        <Text style={[styles.text, styles.notSupportedText]}>{t('notifications.notSupported')}</Text>
       </View>
     );
   }
@@ -79,9 +64,7 @@ export function PushNotificationSettings() {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="small" color={colors.brand} />
-        <Text style={[styles.text, { color: colors.textSecondary }]}>
-          {t('notifications.loading')}
-        </Text>
+        <Text style={[styles.text, { color: colors.textSecondary }]}>{t('notifications.loading')}</Text>
       </View>
     );
   }
@@ -89,52 +72,20 @@ export function PushNotificationSettings() {
   return (
     <View style={[styles.container, isSubscribed && styles.subscribedContainer]}>
       <View style={styles.iconContainer}>
-        <Ionicons
-          name={isSubscribed ? 'notifications' : 'notifications-outline'}
-          size={24}
-          color={isSubscribed ? colors.brand : colors.textSecondary}
-        />
+        <Ionicons name={isSubscribed ? 'notifications' : 'notifications-outline'} size={24} color={isSubscribed ? colors.brand : colors.textSecondary} />
       </View>
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>
-          {isSubscribed ? t('notifications.pushEnabled') : t('notifications.enablePush')}
-        </Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          {isSubscribed
-            ? t('notifications.pushEnabledDesc')
-            : t('notifications.pushEnableDesc')}
-        </Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>{isSubscribed ? t('notifications.pushEnabled') : t('notifications.enablePush')}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{isSubscribed ? t('notifications.pushEnabledDesc') : t('notifications.pushEnableDesc')}</Text>
       </View>
-      <TouchableOpacity
-        style={[
-          styles.button,
-          isSubscribed ? styles.buttonSecondary : styles.buttonPrimary,
-        ]}
-        onPress={isSubscribed ? handleUnsubscribe : handleSubscribe}
-        disabled={loading || permissionStatus === 'denied'}
-      >
-        {loading ? (
-          <ActivityIndicator size="small" color={isSubscribed ? colors.brand : '#fff'} />
-        ) : (
-          <Text
-            style={[
-              styles.buttonText,
-              isSubscribed
-                ? { color: colors.brand }
-                : { color: '#fff' },
-            ]}
-          >
-            {isSubscribed ? t('common.disable') : t('common.enable')}
-          </Text>
-        )}
+      <TouchableOpacity style={[styles.button, isSubscribed ? styles.buttonSecondary : styles.buttonPrimary]} onPress={isSubscribed ? handleUnsubscribe : handleSubscribe} disabled={loading || permissionStatus === 'denied'}>
+        {loading ? <ActivityIndicator size="small" color={isSubscribed ? colors.brand : colors.onAccent} /> : <Text style={[styles.buttonText, isSubscribed ? { color: colors.brand } : { color: colors.onAccent }]}>{isSubscribed ? t('common.disable') : t('common.enable')}</Text>}
       </TouchableOpacity>
 
       {permissionStatus === 'denied' && (
         <View style={styles.deniedBanner}>
           <Ionicons name="alert-circle" size={16} color={colors.error} />
-          <Text style={[styles.deniedText, { color: colors.error }]}>
-            {t('notifications.permissionDenied')}
-          </Text>
+          <Text style={[styles.deniedText, { color: colors.error }]}>{t('notifications.permissionDenied')}</Text>
         </View>
       )}
     </View>
@@ -153,7 +104,7 @@ const createStyles = (colors: ThemeColors) =>
       borderColor: colors.borderColor,
     },
     subscribedContainer: {
-      backgroundColor: colors.brand + '10',
+      backgroundColor: colors.brandFaint,
       borderColor: colors.brand,
     },
     notSupported: {

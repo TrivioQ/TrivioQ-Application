@@ -45,9 +45,9 @@ function getRankLabel(rank: number | null): string {
 
 function getRankColor(rank: number | null, colors: ThemeColors): string {
   if (!rank) return colors.textSecondary;
-  if (rank === 1) return '#fbbf24'; // gold
-  if (rank === 2) return '#94a3b8'; // silver
-  if (rank === 3) return '#f97316'; // bronze
+  if (rank === 1) return colors.medalGold;
+  if (rank === 2) return colors.medalSilver;
+  if (rank === 3) return colors.medalBronze;
   return colors.brand;
 }
 
@@ -127,9 +127,9 @@ export default function ScoreHistoryScreen() {
   const rows = activeTab === 'weekly' ? (data?.weekly ?? []) : (data?.monthly ?? []);
 
   const guideCards = [
-    { label: t('scoreHistory.easyLabel'), pts: t('scoreHistory.easyPts'), borderColor: '#22c55e33', textColor: '#22c55e' },
-    { label: t('scoreHistory.mediumLabel'), pts: t('scoreHistory.mediumPts'), borderColor: '#f59e0b33', textColor: '#f59e0b' },
-    { label: t('scoreHistory.hardLabel'), pts: t('scoreHistory.hardPts'), borderColor: '#ef444433', textColor: '#ef4444' },
+    { label: t('scoreHistory.easyLabel'), pts: t('scoreHistory.easyPts'), borderColor: colors.successFaint, textColor: colors.success },
+    { label: t('scoreHistory.mediumLabel'), pts: t('scoreHistory.mediumPts'), borderColor: colors.warningFaint, textColor: colors.warning },
+    { label: t('scoreHistory.hardLabel'), pts: t('scoreHistory.hardPts'), borderColor: colors.errorFaint, textColor: colors.error },
   ];
 
   return (
@@ -342,7 +342,7 @@ const createStyles = (colors: ThemeColors) =>
       color: colors.textSecondary,
     },
     tabLabelActive: {
-      color: '#fff',
+      color: colors.onAccent,
       fontWeight: '700',
     },
 

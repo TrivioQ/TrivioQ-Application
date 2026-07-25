@@ -74,7 +74,7 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.65)',
+      backgroundColor: colors.scrim,
       justifyContent: 'center',
       alignItems: 'center',
       paddingHorizontal: 24,
@@ -85,7 +85,7 @@ const createStyles = (colors: ThemeColors) =>
       borderRadius: 20,
       padding: 24,
       overflow: 'hidden',
-      shadowColor: '#000',
+      shadowColor: colors.overlay,
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.4,
       shadowRadius: 20,
@@ -138,6 +138,6 @@ const createStyles = (colors: ThemeColors) =>
     confirmText: {
       fontSize: 14,
       fontWeight: '700',
-      color: '#fff',
+      color: colors.onAccent,
     },
   });

@@ -15,13 +15,33 @@ export default async function NotFound() {
     };
   }
 
+  // Not-found renders outside the normal layout, so we keep inline-style
+  // strings but resolve them through the same CSS-var vocabulary as the
+  // rest of the app. `globals.css` is loaded by the root layout, so these
+  // `--brand-*` / `--text-*` variables will be defined.
+  const styles: Record<string, React.CSSProperties> = {
+    body: {
+      fontFamily: 'sans-serif',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      margin: 0,
+      backgroundColor: 'rgb(var(--bg-primary))',
+      color: 'rgb(var(--text-primary))',
+    },
+    heading: { fontSize: '3rem', margin: '0 0 10px 0' },
+    subtext: { color: 'rgb(var(--text-secondary))' },
+    link: { color: 'rgb(var(--brand-500))', textDecoration: 'none', fontWeight: 'bold' } as React.CSSProperties,
+  };
+
   return (
     <html>
-      <body style={{ fontFamily: 'sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', margin: 0, backgroundColor: '#030712', color: '#fff' }}>
+      <body style={styles.body}>
         <div style={{ textAlign: 'center' }}>
-          <h1 style={{ fontSize: '3rem', margin: '0 0 10px 0' }}>{t('title')}</h1>
-          <p style={{ color: '#9ca3af' }}>{t('message')}</p>
-          <a href="/" style={{ color: '#14B8A6', textDecoration: 'none', fontWeight: 'bold' }}>
+          <h1 style={styles.heading}>{t('title')}</h1>
+          <p style={styles.subtext}>{t('message')}</p>
+          <a href="/" style={styles.link}>
             {t('goHome')}
           </a>
         </div>

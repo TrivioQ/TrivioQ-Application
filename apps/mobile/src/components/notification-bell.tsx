@@ -110,7 +110,7 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
                 data={notifications}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                  <TouchableOpacity style={[styles.notificationItem, !item.isRead && { backgroundColor: colors.brand + '10' }]} onPress={() => handleNotificationPress(item.id)}>
+                  <TouchableOpacity style={[styles.notificationItem, !item.isRead && { backgroundColor: colors.brandFaint }]} onPress={() => handleNotificationPress(item.id)}>
                     <Text style={styles.typeIcon}>{typeIcons[item.type] || '🔔'}</Text>
                     <View style={styles.content}>
                       <View style={styles.titleRow}>
@@ -148,7 +148,6 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     bellContainer: {
@@ -167,13 +166,13 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: 4,
     },
     badgeText: {
-      color: '#fff',
+      color: colors.onAccent,
       fontSize: 11,
       fontWeight: '700',
     },
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      backgroundColor: colors.scrim,
       justifyContent: 'flex-start',
       paddingTop: 60,
     },
@@ -191,7 +190,7 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: 16,
       paddingVertical: 12,
       borderBottomWidth: 1,
-      borderBottomColor: 'rgba(0,0,0,0.1)',
+      borderBottomColor: colors.borderColor,
     },
     title: {
       fontSize: 16,
@@ -218,7 +217,7 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: 16,
       paddingVertical: 12,
       borderBottomWidth: 1,
-      borderBottomColor: 'rgba(0,0,0,0.05)',
+      borderBottomColor: colors.borderColor,
     },
     typeIcon: {
       fontSize: 20,
@@ -257,7 +256,7 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: 16,
       paddingVertical: 12,
       borderTopWidth: 1,
-      borderTopColor: 'rgba(0,0,0,0.1)',
+      borderTopColor: colors.borderColor,
     },
     footerText: {
       fontSize: 14,

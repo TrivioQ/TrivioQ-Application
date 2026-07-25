@@ -110,7 +110,7 @@ export default function ProfileScreen({ navigation }: any) {
           )}
           {/* Camera edit icon overlay */}
           <View style={styles.cameraOverlay}>
-            <Ionicons name="camera" size={14} color="#fff" />
+            <Ionicons name="camera" size={14} color={colors.onAccent} />
           </View>
         </TouchableOpacity>
         <Text style={styles.displayName}>{data?.displayName ?? data?.username ?? '—'}</Text>
@@ -166,7 +166,7 @@ export default function ProfileScreen({ navigation }: any) {
         <Text style={styles.sectionLabel}>{t('profile.subscription')}</Text>
         <TouchableOpacity style={[styles.menuItem, styles.upgradeItem]} activeOpacity={0.7} onPress={() => navigation.navigate('Subscription')}>
           <Text style={styles.menuIcon}>👑</Text>
-          <Text style={[styles.menuLabel, { color: '#a78bfa' }]}>{isPaid ? t('profile.manageSubscription') : t('profile.upgradePremium')}</Text>
+          <Text style={[styles.menuLabel, { color: colors.premium }]}>{isPaid ? t('profile.manageSubscription') : t('profile.upgradePremium')}</Text>
           <Text style={styles.menuChevron}>›</Text>
         </TouchableOpacity>
       </View>
@@ -265,7 +265,7 @@ const createStyles = (colors: ThemeColors) =>
     avatarText: {
       fontSize: 28,
       fontWeight: '800',
-      color: '#fff',
+      color: colors.onAccent,
     },
     displayName: {
       fontSize: 22,
@@ -287,8 +287,8 @@ const createStyles = (colors: ThemeColors) =>
       borderColor: colors.borderColor,
     },
     tierBadgePremium: {
-      backgroundColor: 'rgba(167,139,250,0.15)',
-      borderColor: '#7c3aed',
+      backgroundColor: colors.purpleAccentFaint,
+      borderColor: colors.purpleAccent,
     },
     tierText: {
       fontSize: 13,
@@ -296,7 +296,7 @@ const createStyles = (colors: ThemeColors) =>
       color: colors.textSecondary,
     },
     tierTextPremium: {
-      color: '#a78bfa',
+      color: colors.premium,
     },
 
     // Stats
@@ -357,8 +357,8 @@ const createStyles = (colors: ThemeColors) =>
       gap: 12,
     },
     upgradeItem: {
-      borderColor: 'rgba(20,184,166,0.3)',
-      backgroundColor: 'rgba(20,184,166,0.08)',
+      borderColor: colors.brandSoft,
+      backgroundColor: colors.brandFaint,
     },
     menuIcon: {
       fontSize: 18,

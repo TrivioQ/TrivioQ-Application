@@ -176,7 +176,7 @@ const createStyles = (colors: ThemeColors) =>
       elevation: 4,
     },
     signupButtonText: {
-      color: '#fff',
+      color: colors.onAccent,
       fontSize: 16,
       fontWeight: '700',
     },

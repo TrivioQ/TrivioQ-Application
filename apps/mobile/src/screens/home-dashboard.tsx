@@ -193,7 +193,7 @@ export default function HomeDashboard({ navigation }: any) {
       {/* ── Floating Action Button — Request Next Drop ── */}
       <View style={styles.fabContainer}>
         <TouchableOpacity style={[styles.fab, onDemandMutation.isPending && styles.fabDisabled]} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending} activeOpacity={0.85}>
-          {onDemandMutation.isPending ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.fabText}>⚡ {t('home.requestNext')}</Text>}
+          {onDemandMutation.isPending ? <ActivityIndicator color={colors.onAccent} size="small" /> : <Text style={styles.fabText}>⚡ {t('home.requestNext')}</Text>}
         </TouchableOpacity>
       </View>
 
@@ -430,7 +430,7 @@ const createStyles = (colors: ThemeColors) =>
     },
     fabDisabled: { opacity: 0.6 },
     fabText: {
-      color: '#fff',
+      color: colors.onAccent,
       fontSize: 17,
       fontWeight: '800',
     },
@@ -445,12 +445,12 @@ const createStyles = (colors: ThemeColors) =>
       paddingVertical: 10,
       paddingHorizontal: 24,
     },
-    retryButtonText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+    retryButtonText: { color: colors.onAccent, fontWeight: '700', fontSize: 14 },
 
     // Paywall modal
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.6)',
+      backgroundColor: colors.scrim,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -461,8 +461,8 @@ const createStyles = (colors: ThemeColors) =>
       borderRadius: radius.xl,
       alignItems: 'center',
       borderWidth: 1,
-      borderColor: colors.brand + '40',
-      shadowColor: '#000',
+      borderColor: colors.brandSoft,
+      shadowColor: colors.overlay,
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.4,
       shadowRadius: 20,
@@ -489,7 +489,7 @@ const createStyles = (colors: ThemeColors) =>
       width: '100%',
     },
     premiumButtonText: {
-      color: '#fff',
+      color: colors.onAccent,
       fontSize: 17,
       fontWeight: 'bold',
       textAlign: 'center',

@@ -81,8 +81,8 @@ export default function NotificationsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-500">{t('loading')}</p>
+          <Bell className="h-12 w-12 text-text-muted/70 mx-auto mb-4 animate-pulse" />
+          <p className="text-text-muted">{t('loading')}</p>
         </div>
       </div>
     );
@@ -94,11 +94,11 @@ export default function NotificationsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{t('pageTitle')}</h1>
-            <p className="text-gray-500 mt-1">{unreadCount > 0 ? t('youHaveUnread', { count: unreadCount, plural: unreadCount > 1 ? 's' : '' }) : t('allCaughtUp')}</p>
+            <h1 className="text-3xl font-bold text-text">{t('pageTitle')}</h1>
+            <p className="text-text-muted mt-1">{unreadCount > 0 ? t('youHaveUnread', { count: unreadCount, plural: unreadCount > 1 ? 's' : '' }) : t('allCaughtUp')}</p>
           </div>
           {unreadCount > 0 && (
-            <button onClick={handleMarkAllAsRead} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-gray-200 bg-white px-3 py-1.5 text-gray-900 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:pointer-events-none">
+            <button onClick={handleMarkAllAsRead} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-border bg-bg-secondary px-3 py-1.5 text-text hover:bg-bg disabled:opacity-50 disabled:pointer-events-none">
               <Check className="h-4 w-4 mr-2" />
               {t('markAllRead')}
             </button>
@@ -107,10 +107,10 @@ export default function NotificationsPage() {
 
         {/* Filter Tabs */}
         <div className="flex gap-2 mb-6">
-          <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all' ? 'bg-brand-100 text-brand-700' : 'text-gray-600 hover:bg-gray-100'}`}>
+          <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all' ? 'bg-brand-100 text-brand-700' : 'text-text-muted hover:bg-bg'}`}>
             {t('all')} ({notifications.length})
           </button>
-          <button onClick={() => setFilter('unread')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'unread' ? 'bg-brand-100 text-brand-700' : 'text-gray-600 hover:bg-gray-100'}`}>
+          <button onClick={() => setFilter('unread')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'unread' ? 'bg-brand-100 text-brand-700' : 'text-text-muted hover:bg-bg'}`}>
             {t('unread')} ({unreadCount})
           </button>
         </div>
@@ -118,41 +118,41 @@ export default function NotificationsPage() {
         {/* Notifications List */}
         <div className="space-y-3">
           {filteredNotifications.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-              <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900">{filter === 'unread' ? t('noUnread') : t('noNotifications')}</h3>
-              <p className="text-gray-500 mt-1">{filter === 'unread' ? t('allReadMessage') : t('noneYetMessage')}</p>
+            <div className="bg-bg-secondary rounded-lg border border-border p-12 text-center">
+              <Bell className="h-16 w-16 text-text-muted/70 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-text">{filter === 'unread' ? t('noUnread') : t('noNotifications')}</h3>
+              <p className="text-text-muted mt-1">{filter === 'unread' ? t('allReadMessage') : t('noneYetMessage')}</p>
             </div>
           ) : (
             filteredNotifications.map((notification) => (
-              <div key={notification.id} onClick={() => handleMarkAsRead(notification.id)} className={`bg-white rounded-lg border p-4 cursor-pointer transition-all hover:shadow-md ${!notification.isRead ? 'border-brand-200 bg-brand-50/30' : 'border-gray-200'}`}>
+              <div key={notification.id} onClick={() => handleMarkAsRead(notification.id)} className={`bg-bg-secondary rounded-lg border p-4 cursor-pointer transition-all hover:shadow-md ${!notification.isRead ? 'border-brand-200 bg-brand-50/30 dark:bg-brand-500/10' : 'border-border'}`}>
                 <div className="flex items-start gap-4">
                   <span className="text-2xl">{typeIcons[notification.type] || '🔔'}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900">{notification.title}</h3>
+                      <h3 className="font-semibold text-text">{notification.title}</h3>
                       {!notification.isRead && <span className="h-2 w-2 bg-brand-500 rounded-full" />}
                     </div>
-                    <p className="text-gray-600 mt-1">{notification.body}</p>
+                    <p className="text-text-muted mt-1">{notification.body}</p>
 
                     {/* Delivery indicators */}
                     <div className="flex items-center gap-3 mt-3">
-                      <span className="text-xs text-gray-400">{format(new Date(notification.createdAt), 'MMM d, yyyy HH:mm')}</span>
+                      <span className="text-xs text-text-muted/80">{format(new Date(notification.createdAt), 'MMM d, yyyy HH:mm')}</span>
                       <div className="flex items-center gap-2">
                         {notification.pushDelivered && (
-                          <div className="flex items-center gap-1 text-xs text-gray-400" title={t('pushDelivered')}>
+                          <div className="flex items-center gap-1 text-xs text-text-muted/80" title={t('pushDelivered')}>
                             <Wifi className="h-3 w-3" />
                           </div>
                         )}
                         {notification.emailDelivered && (
-                          <div className="flex items-center gap-1 text-xs text-gray-400" title={t('emailDelivered')}>
+                          <div className="flex items-center gap-1 text-xs text-text-muted/80" title={t('emailDelivered')}>
                             <Mail className="h-3 w-3" />
                           </div>
                         )}
                       </div>
                     </div>
 
-                    {notification.readAt && <p className="text-xs text-gray-400 mt-2">{t('readAt', { date: format(new Date(notification.readAt), 'MMM d, HH:mm') })}</p>}
+                    {notification.readAt && <p className="text-xs text-text-muted/80 mt-2">{t('readAt', { date: format(new Date(notification.readAt), 'MMM d, HH:mm') })}</p>}
                   </div>
                 </div>
               </div>

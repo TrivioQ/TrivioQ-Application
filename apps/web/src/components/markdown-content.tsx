@@ -35,18 +35,18 @@ export function MarkdownContent({ children, inline = false, className = '' }: Ma
         // Inline code
         code: ({ children: c, className: cls }) => {
           const isBlock = cls?.includes('language-');
-          return isBlock ? <code className="block bg-gray-100 dark:bg-white/10 rounded-md px-3 py-2 text-sm font-mono my-2 overflow-x-auto whitespace-pre">{c}</code> : <code className="bg-gray-100 dark:bg-white/10 rounded px-1 py-0.5 text-sm font-mono">{c}</code>;
+          return isBlock ? <code className="block bg-bg-secondary dark:bg-white/10 rounded-md px-3 py-2 text-sm font-mono my-2 overflow-x-auto whitespace-pre">{c}</code> : <code className="bg-bg-secondary dark:bg-white/10 rounded px-1 py-0.5 text-sm font-mono">{c}</code>;
         },
         // Tables — responsive wrapper
         table: ({ children: c }) => (
           <div className="overflow-x-auto my-2">
-            <table className="min-w-full text-sm border-collapse border border-gray-200 dark:border-white/10">{c}</table>
+            <table className="min-w-full text-sm border-collapse border border-border dark:border-white/10">{c}</table>
           </div>
         ),
-        th: ({ children: c }) => <th className="border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-1.5 text-left font-semibold">{c}</th>,
-        td: ({ children: c }) => <td className="border border-gray-200 dark:border-white/10 px-3 py-1.5">{c}</td>,
+        th: ({ children: c }) => <th className="border border-border dark:border-white/10 bg-bg dark:bg-white/5 px-3 py-1.5 text-left font-semibold">{c}</th>,
+        td: ({ children: c }) => <td className="border border-border dark:border-white/10 px-3 py-1.5">{c}</td>,
         // Blockquote
-        blockquote: ({ children: c }) => <blockquote className="border-l-4 border-brand-400 pl-3 italic text-gray-600 dark:text-gray-400 my-2">{c}</blockquote>,
+        blockquote: ({ children: c }) => <blockquote className="border-l-4 border-brand-400 pl-3 italic text-text-muted my-2">{c}</blockquote>,
         // Lists
         ul: ({ children: c }) => <ul className="list-disc list-inside my-1 space-y-0.5">{c}</ul>,
         ol: ({ children: c }) => <ol className="list-decimal list-inside my-1 space-y-0.5">{c}</ol>,
@@ -56,7 +56,7 @@ export function MarkdownContent({ children, inline = false, className = '' }: Ma
         h2: ({ children: c }) => <h2 className="text-lg font-bold my-1.5">{c}</h2>,
         h3: ({ children: c }) => <h3 className="text-base font-semibold my-1">{c}</h3>,
         // Horizontal rule
-        hr: () => <hr className="border-gray-200 dark:border-white/10 my-2" />,
+        hr: () => <hr className="border-border dark:border-white/10 my-2" />,
         // Links — open externally
         a: ({ href, children: c }) => (
           <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand-500 dark:text-brand-300 underline hover:no-underline">

@@ -16,6 +16,7 @@ import { radius } from '../theme/radius';
 // ── Animated Option Button ───────────────────────────────────────────────────
 
 function AnimatedOption({ option, entranceDelay, buttonStyle, disabled, onPress }: { option: { id: string; text: string }; index: number; entranceDelay: number; buttonStyle: any; disabled: boolean; onPress: () => void }) {
+  const { colors } = useTheme();
   const entranceAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -53,7 +54,7 @@ function AnimatedOption({ option, entranceDelay, buttonStyle, disabled, onPress 
       }}
     >
       <TouchableOpacity style={buttonStyle} disabled={disabled} onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} activeOpacity={1}>
-        <MarkdownText color="#ffffff" scale={0.9}>
+        <MarkdownText color={colors.onAccent} scale={0.9}>
           {option.text}
         </MarkdownText>
       </TouchableOpacity>
@@ -565,7 +566,7 @@ const createStyles = (colors: ThemeColors) =>
       elevation: 6,
     },
     revealButtonText: {
-      color: '#fff',
+      color: colors.onAccent,
       fontSize: 17,
       fontWeight: 'bold',
       textAlign: 'center',
@@ -602,10 +603,10 @@ const createStyles = (colors: ThemeColors) =>
       alignItems: 'center',
     },
     revealAnswerButton: {
-      backgroundColor: colors.brand + 'CC',
+      backgroundColor: colors.brandSoft,
     },
     assistButtonText: {
-      color: '#fff',
+      color: colors.onAccent,
       fontWeight: '600',
       fontSize: 13,
       textAlign: 'center',
@@ -693,7 +694,7 @@ const createStyles = (colors: ThemeColors) =>
       width: '100%',
     },
     shareButtonText: {
-      color: '#fff',
+      color: colors.onAccent,
       fontWeight: 'bold',
       fontSize: 16,
       textAlign: 'center',
@@ -712,7 +713,7 @@ const createStyles = (colors: ThemeColors) =>
       elevation: 5,
     },
     nextQuestionButtonText: {
-      color: '#fff',
+      color: colors.onAccent,
       fontWeight: 'bold',
       fontSize: 16,
       textAlign: 'center',
@@ -721,7 +722,7 @@ const createStyles = (colors: ThemeColors) =>
     // Paywall modal
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.6)',
+      backgroundColor: colors.scrim,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -732,8 +733,8 @@ const createStyles = (colors: ThemeColors) =>
       borderRadius: radius.xl,
       alignItems: 'center',
       borderWidth: 1,
-      borderColor: colors.brand + '40',
-      shadowColor: '#000',
+      borderColor: colors.brandSoft,
+      shadowColor: colors.overlay,
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.4,
       shadowRadius: 20,
@@ -765,7 +766,7 @@ const createStyles = (colors: ThemeColors) =>
       elevation: 6,
     },
     premiumButtonText: {
-      color: '#fff',
+      color: colors.onAccent,
       fontSize: 17,
       fontWeight: 'bold',
       textAlign: 'center',

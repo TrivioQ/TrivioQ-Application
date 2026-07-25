@@ -8,34 +8,38 @@ import { Notification, useNotification } from '../context/notification-context';
 // Per-toast styles
 // ---------------------------------------------------------------------------
 
-const STYLES: Record<Notification['type'], { bar: string; icon: string; title: string; message: string; close: string }> = {
+const STYLES: Record<Notification['type'], { bar: string; icon: string; title: string; message: string; close: string; progress: string }> = {
   error: {
-    bar: 'border-red-500/60   bg-gray-900/95 shadow-[0_0_24px_rgba(239,68,68,0.15)]',
-    icon: 'text-red-400',
-    title: 'text-red-300',
-    message: 'text-gray-300',
-    close: 'text-red-400/60 hover:text-red-300',
+    bar: 'border-error/60   bg-gray-900/95 shadow-[0_0_24px_rgb(var(--error)/0.15)]',
+    icon: 'text-error',
+    title: 'text-error',
+    message: 'text-text-muted/90',
+    close: 'text-error/60 hover:text-error',
+    progress: 'bg-error/50',
   },
   success: {
-    bar: 'border-emerald-500/60 bg-gray-900/95 shadow-[0_0_24px_rgba(16,185,129,0.15)]',
-    icon: 'text-emerald-400',
-    title: 'text-emerald-300',
-    message: 'text-gray-300',
-    close: 'text-emerald-400/60 hover:text-emerald-300',
+    bar: 'border-success/60 bg-gray-900/95 shadow-[0_0_24px_rgb(var(--success)/0.15)]',
+    icon: 'text-success',
+    title: 'text-success',
+    message: 'text-text-muted/90',
+    close: 'text-success/60 hover:text-success',
+    progress: 'bg-success/50',
   },
   warning: {
-    bar: 'border-amber-500/60  bg-gray-900/95 shadow-[0_0_24px_rgba(245,158,11,0.15)]',
-    icon: 'text-amber-400',
-    title: 'text-amber-300',
-    message: 'text-gray-300',
-    close: 'text-amber-400/60 hover:text-amber-300',
+    bar: 'border-warning/60  bg-gray-900/95 shadow-[0_0_24px_rgb(var(--warning)/0.15)]',
+    icon: 'text-warning',
+    title: 'text-warning',
+    message: 'text-text-muted/90',
+    close: 'text-warning/60 hover:text-warning',
+    progress: 'bg-warning/50',
   },
   info: {
-    bar: 'border-sky-500/60    bg-gray-900/95 shadow-[0_0_24px_rgba(14,165,233,0.15)]',
-    icon: 'text-sky-400',
-    title: 'text-sky-300',
-    message: 'text-gray-300',
-    close: 'text-sky-400/60 hover:text-sky-300',
+    bar: 'border-info/60    bg-gray-900/95 shadow-[0_0_24px_rgb(var(--info)/0.15)]',
+    icon: 'text-info',
+    title: 'text-info',
+    message: 'text-text-muted/90',
+    close: 'text-info/60 hover:text-info',
+    progress: 'bg-info/50',
   },
 };
 
@@ -126,7 +130,7 @@ function Toast({ notification }: { notification: Notification }) {
         <NotificationIcon type={notification.type} />
         <div className="flex-1 min-w-0">
           {notification.title && <p className={`text-sm font-semibold leading-snug ${s.title}`}>{notification.title}</p>}
-          <p className={`text-sm leading-relaxed ${notification.title ? 'mt-0.5 text-gray-400' : s.message}`}>{notification.message}</p>
+          <p className={`text-sm leading-relaxed ${notification.title ? 'mt-0.5 text-text-muted' : s.message}`}>{notification.message}</p>
         </div>
         <button onClick={handleDismiss} aria-label={t('dismissNotification')} className={`shrink-0 transition-colors ${s.close}`}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -139,7 +143,7 @@ function Toast({ notification }: { notification: Notification }) {
       {/* Progress bar */}
       {notification.duration && notification.duration > 0 && (
         <div className="h-0.5 bg-white/5">
-          <div ref={progressRef} className={`h-full ${notification.type === 'error' ? 'bg-red-500/50' : notification.type === 'success' ? 'bg-emerald-500/50' : notification.type === 'warning' ? 'bg-amber-500/50' : 'bg-sky-500/50'}`} style={{ width: '100%' }} />
+          <div ref={progressRef} className={`h-full ${s.progress}`} style={{ width: '100%' }} />
         </div>
       )}
     </div>

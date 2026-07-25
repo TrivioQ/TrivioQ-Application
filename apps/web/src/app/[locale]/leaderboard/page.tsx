@@ -70,12 +70,12 @@ export default async function LeaderboardPage() {
   return (
     <>
       {fetchFailed && <ErrorNotification title={t('fetchErrorTitle')} message={t('fetchError')} />}
-      <div className="min-h-screen py-20 px-6 sm:px-8 text-gray-900 dark:text-white selection:bg-brand-500">
+      <div className="min-h-screen py-20 px-6 sm:px-8 text-text selection:bg-brand-500">
         <div className="max-w-5xl mx-auto">
           <div className="mb-12 flex flex-col md:flex-row justify-between items-end gap-6">
             <div className="space-y-4">
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-brand-600 to-brand-600 dark:from-brand-400 dark:to-brand-400">{t('title')}</h1>
-              <p className="text-gray-700 dark:text-gray-300 mt-2 font-medium">{t('subtitle')}</p>
+              <p className="text-text-muted mt-2 font-medium">{t('subtitle')}</p>
             </div>
           </div>
 

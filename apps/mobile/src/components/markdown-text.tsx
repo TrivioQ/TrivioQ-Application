@@ -1,9 +1,10 @@
 import React from 'react';
 import Markdown, { MarkdownIt } from 'react-native-markdown-display';
-import { StyleSheet, useColorScheme, Linking } from 'react-native';
+import { StyleSheet, Linking } from 'react-native';
 // @ts-ignore
 import MathView from 'react-native-math-view';
 import markdownItMathjax3 from 'markdown-it-mathjax3';
+import { useTheme } from '../context/ThemeContext';
 
 const markdownItInstance = MarkdownIt({ typographer: true }).use(markdownItMathjax3);
 
@@ -21,14 +22,14 @@ interface MarkdownTextProps {
  * Math formulas (LaTeX) are supported via react-native-math-view.
  */
 export function MarkdownText({ children, color, scale = 1 }: MarkdownTextProps) {
-  const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
+  const { colors, theme } = useTheme();
+  const isDark = theme === 'dark';
 
-  const textColor = color ?? (isDark ? '#F8FAFC' : '#0F172A');
-  const mutedColor = isDark ? '#94A3B8' : '#64748B';
+  const textColor = color ?? colors.textPrimary;
+  const mutedColor = colors.textSecondary;
   const codeBg = isDark ? '#1E293B' : '#F1F5F9';
   const borderColor = isDark ? '#334155' : '#CBD5E1';
-  const linkColor = isDark ? '#5EEAD4' : '#14B8A6'; // brand-300 / brand-500 — monochrome teal
+  const linkColor = colors.brand;
 
   const fs = (base: number) => base * scale;
 
@@ -47,7 +48,7 @@ export function MarkdownText({ children, color, scale = 1 }: MarkdownTextProps) 
     fence: { backgroundColor: codeBg, borderRadius: 8, padding: 10, fontFamily: 'Courier', fontSize: fs(13), marginVertical: 6, color: textColor },
     code_block: { backgroundColor: codeBg, borderRadius: 8, padding: 10, fontFamily: 'Courier', fontSize: fs(13), marginVertical: 6, color: textColor },
     // Blockquote
-    blockquote: { borderLeftWidth: 4, borderLeftColor: '#14B8A6', paddingLeft: 10, marginVertical: 6, opacity: 0.8 },
+    blockquote: { borderLeftWidth: 4, borderLeftColor: colors.brand, paddingLeft: 10, marginVertical: 6, opacity: 0.8 },
     // Lists
     bullet_list: { marginVertical: 4 },
     ordered_list: { marginVertical: 4 },
@@ -71,10 +72,10 @@ export function MarkdownText({ children, color, scale = 1 }: MarkdownTextProps) 
   });
 
   const rules = {
-    math_inline: (node: any, _children: any, _parent: any, _styles: any) => {
+    math_inline: (node: any) => {
       return <MathView key={node.key} math={node.content} style={{ color: textColor }} />;
     },
-    math_block: (node: any, _children: any, _parent: any, _styles: any) => {
+    math_block: (node: any) => {
       return <MathView key={node.key} math={node.content} style={{ color: textColor, marginVertical: 8, alignSelf: 'center' }} />;
     },
   };

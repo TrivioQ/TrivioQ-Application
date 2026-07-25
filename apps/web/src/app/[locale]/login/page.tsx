@@ -48,14 +48,14 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6 py-12 lg:px-8 selection:bg-brand-500 selection:text-white">
-      <div className="w-full max-w-md space-y-8 bg-white/30 dark:bg-white/5 backdrop-blur-2xl p-10 rounded-3xl border border-white/50 dark:border-white/10 shadow-2xl shadow-brand-900/10">
+    <div className="flex min-h-screen items-center justify-center px-6 py-12 lg:px-8 selection:bg-brand-500 selection:text-text">
+      <div className="w-full max-w-md space-y-8 bg-bg-secondary/30 dark:bg-white/5 backdrop-blur-2xl p-10 rounded-3xl border border-white/50 dark:border-white/10 shadow-2xl shadow-brand-900/10">
         <div className="text-center">
           <Link href="/" className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-400">
             {t('brandName')}
           </Link>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{t('signInTitle')}</h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-text">{t('signInTitle')}</h2>
+          <p className="mt-2 text-sm text-text-muted">
             {t('signInSubtitle')}{' '}
             <Link href="/signup" className="font-medium text-brand-400 hover:text-brand-300 transition-colors">
               {t('signInSubtitleLink')}
@@ -73,7 +73,7 @@ function LoginForm() {
                 id="email"
                 type="email"
                 required
-                className="relative block w-full rounded-t-md border-0 bg-white dark:bg-gray-800 py-3 px-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6"
+                className="relative block w-full rounded-t-md border-0 bg-bg-secondary dark:bg-bg-secondary-dark py-3 px-4 text-text ring-1 ring-inset ring-border placeholder:text-text-muted focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6"
                 placeholder={t('emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -88,7 +88,7 @@ function LoginForm() {
                 id="password"
                 type="password"
                 required
-                className="relative block w-full rounded-b-md border-0 bg-white dark:bg-gray-800 py-3 px-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6"
+                className="relative block w-full rounded-b-md border-0 bg-bg-secondary dark:bg-bg-secondary-dark py-3 px-4 text-text ring-1 ring-inset ring-border placeholder:text-text-muted focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6"
                 placeholder={t('passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -98,14 +98,14 @@ function LoginForm() {
           </div>
 
           <div className="flex items-center gap-3">
-            <input id="keep-me-logged-in" type="checkbox" checked={keepMeLoggedIn} onChange={(e) => setKeepMeLoggedIn(e.target.checked)} disabled={isPending} className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 focus:ring-offset-white dark:focus:ring-offset-gray-900" />
-            <label htmlFor="keep-me-logged-in" className="text-sm text-gray-600 dark:text-gray-400 select-none cursor-pointer">
+            <input id="keep-me-logged-in" type="checkbox" checked={keepMeLoggedIn} onChange={(e) => setKeepMeLoggedIn(e.target.checked)} disabled={isPending} className="h-4 w-4 rounded border-border bg-bg-secondary text-brand-600 dark:text-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 focus:ring-offset-bg-secondary dark:focus:ring-offset-bg-primary" />
+            <label htmlFor="keep-me-logged-in" className="text-sm text-text-muted select-none cursor-pointer">
               {t('keepMeLoggedIn')}
             </label>
           </div>
 
           <div>
-            <button type="submit" disabled={isPending} className="group relative flex w-full justify-center rounded-md bg-brand-500 px-3 py-3 text-sm font-semibold text-white hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 transition-colors">
+            <button type="submit" disabled={isPending} className="group relative flex w-full justify-center rounded-md bg-brand-500 px-3 py-3 text-sm font-semibold text-text hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 transition-colors">
               {isPending ? t('authenticating') : t('signInButton')}
             </button>
           </div>
@@ -113,13 +113,13 @@ function LoginForm() {
 
         <div className="mt-6">
           <div className="relative flex items-center">
-            <div className="flex-grow border-t border-gray-300 dark:border-gray-700" />
-            <span className="flex-shrink-0 px-6 text-sm font-medium text-gray-500 dark:text-gray-400">{t('orContinueWith')}</span>
-            <div className="flex-grow border-t border-gray-300 dark:border-gray-700" />
+            <div className="flex-grow border-t border-border" />
+            <span className="flex-shrink-0 px-6 text-sm font-medium text-text-muted">{t('orContinueWith')}</span>
+            <div className="flex-grow border-t border-border" />
           </div>
 
           <div className="mt-6">
-            <button onClick={handleGoogleLogin} disabled={isPending} className="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-3 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent disabled:opacity-50 transition-colors">
+            <button onClick={handleGoogleLogin} disabled={isPending} className="flex w-full items-center justify-center gap-3 rounded-md bg-bg-secondary px-3 py-3 text-sm font-semibold text-text shadow-sm ring-1 ring-inset ring-border hover:bg-bg focus-visible:ring-transparent disabled:opacity-50 transition-colors">
               <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z" fill="#EA4335" />
                 <path d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L19.945 21.1C22.2 19.01 23.49 15.92 23.49 12.275Z" fill="#4285F4" />

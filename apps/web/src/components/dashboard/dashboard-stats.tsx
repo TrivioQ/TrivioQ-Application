@@ -40,9 +40,9 @@ interface RecentDrop {
 }
 
 const DIFF_COLOR: Record<string, string> = {
-  EASY: 'text-green-400 bg-green-400/10',
+  EASY: 'text-success bg-success/10',
   MEDIUM: 'text-brand-400 bg-brand-400/10',
-  HARD: 'text-red-400 bg-red-400/10',
+  HARD: 'text-error bg-error/10',
 };
 
 function formatDate(iso: string | null, locale: string) {
@@ -57,10 +57,10 @@ function formatDate(iso: string | null, locale: string) {
 
 function StatCard({ label, value, sub, accent }: { label: string; value: React.ReactNode; sub?: string; accent?: string }) {
   return (
-    <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-6 flex flex-col gap-1">
-      <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">{label}</p>
-      <div className={`text-3xl font-extrabold tracking-tight flex items-center gap-2 ${accent ?? 'text-gray-900 dark:text-white'}`}>{value}</div>
-      {sub && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{sub}</p>}
+    <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-6 flex flex-col gap-1">
+      <p className="text-xs font-semibold uppercase tracking-widest text-text-muted">{label}</p>
+      <div className={`text-3xl font-extrabold tracking-tight flex items-center gap-2 ${accent ?? 'text-text'}`}>{value}</div>
+      {sub && <p className="text-xs text-text-muted mt-0.5">{sub}</p>}
     </div>
   );
 }
@@ -128,24 +128,24 @@ export function DashboardStats() {
 
       {/* ── Score Trend Charts ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-6">
-          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{t('weeklyTrendTitle')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{t('weeklyTrendSubtitle')}</p>
+        <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-6">
+          <p className="text-sm font-semibold text-text mb-1">{t('weeklyTrendTitle')}</p>
+          <p className="text-xs text-text-muted mb-4">{t('weeklyTrendSubtitle')}</p>
           <ScoreTrendChart data={weekly} mode="weekly" namespace="dashboard" />
         </div>
-        <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-6">
-          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{t('monthlyTrendTitle')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{t('monthlyTrendSubtitle')}</p>
+        <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-6">
+          <p className="text-sm font-semibold text-text mb-1">{t('monthlyTrendTitle')}</p>
+          <p className="text-xs text-text-muted mb-4">{t('monthlyTrendSubtitle')}</p>
           <ScoreTrendChart data={monthly} mode="monthly" namespace="dashboard" />
         </div>
       </div>
 
       {/* ── Recent Drops ── */}
-      <div className="rounded-2xl bg-gray-50/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200/60 dark:border-white/10 flex items-center justify-between">
+      <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
+        <div className="px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{t('recentQuestionsTitle')}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t('recentQuestionsSubtitle')}</p>
+            <p className="text-sm font-semibold text-text">{t('recentQuestionsTitle')}</p>
+            <p className="text-xs text-text-muted mt-0.5">{t('recentQuestionsSubtitle')}</p>
           </div>
           <a href="/score-history" className="text-xs text-brand-400 hover:text-brand-300 font-medium transition-colors">
             {t('fullHistory')}
@@ -153,7 +153,7 @@ export function DashboardStats() {
         </div>
 
         {recentDrops.length === 0 ? (
-          <div className="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">{t('noDropsYet')}</div>
+          <div className="px-6 py-12 text-center text-sm text-text-muted">{t('noDropsYet')}</div>
         ) : (
           <div className="divide-y divide-white/5">
             {recentDrops.map((drop) => {
@@ -165,25 +165,25 @@ export function DashboardStats() {
                   <div className="mt-0.5 shrink-0 flex items-center justify-center">
                     {drop.revealedAnswer ? (
                       <span title={t('answerRevealed')}>
-                        <Eye className="w-5 h-5 text-gray-400" />
+                        <Eye className="w-5 h-5 text-text-muted" />
                       </span>
                     ) : drop.wasCorrect ? (
                       <span title={t('resultCorrectTitle')}>
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        <CheckCircle2 className="w-5 h-5 text-success" />
                       </span>
                     ) : (
                       <span title={t('resultIncorrectTitle')}>
-                        <XCircle className="w-5 h-5 text-red-500" />
+                        <XCircle className="w-5 h-5 text-error" />
                       </span>
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-800 dark:text-gray-200 truncate">{drop.question.questionText}</p>
+                    <p className="text-sm text-text truncate">{drop.question.questionText}</p>
                     <div className="flex flex-wrap items-center gap-2 mt-1.5">
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${DIFF_COLOR[drop.question.difficultyLevel]}`}>{t(`diffLabels.${drop.question.difficultyLevel}`)}</span>
                       {drop.question.categories.slice(0, 2).map((c) => (
-                        <span key={c.name} className="text-[11px] text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/5 rounded-full px-2 py-0.5">
+                        <span key={c.name} className="text-[11px] text-text-muted bg-text-muted/10 dark:bg-white/5 rounded-full px-2 py-0.5">
                           {c.name}
                         </span>
                       ))}
@@ -193,22 +193,22 @@ export function DashboardStats() {
                     {selectedText != null && (
                       <div className="mt-2 space-y-0.5">
                         <p className="text-[11px]">
-                          <span className="text-gray-500 dark:text-gray-600 dark:text-gray-400">{t('yourAnswer')} </span>
-                          <span className={drop.wasCorrect ? 'text-green-400' : 'text-red-400'}>{selectedText}</span>
+                          <span className="text-text-muted">{t('yourAnswer')} </span>
+                          <span className={drop.wasCorrect ? 'text-success' : 'text-error'}>{selectedText}</span>
                         </p>
                         {!drop.wasCorrect && (
                           <p className="text-[11px]">
-                            <span className="text-gray-500 dark:text-gray-600 dark:text-gray-400">{t('correctAnswer')} </span>
-                            <span className="text-green-400">{correctText}</span>
+                            <span className="text-text-muted">{t('correctAnswer')} </span>
+                            <span className="text-success">{correctText}</span>
                           </p>
                         )}
                       </div>
                     )}
-                    <p className="text-[11px] text-gray-600 mt-1">{formatDate(drop.answeredAt, locale)}</p>
+                    <p className="text-[11px] text-text-muted mt-1">{formatDate(drop.answeredAt, locale)}</p>
                   </div>
 
                   <div className="shrink-0 text-right">
-                    <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-brand-400' : 'text-gray-600'}`}>
+                    <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-brand-400' : 'text-text-muted'}`}>
                       {drop.pointsAwarded > 0 ? `+${drop.pointsAwarded}` : '0'} {t('pts')}
                     </p>
                   </div>

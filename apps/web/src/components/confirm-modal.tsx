@@ -42,17 +42,17 @@ export function ConfirmProvider({ children }: { children: any }) {
       <AnimatePresence>
         {open && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => handleClose(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => handleClose(false)} className="fixed inset-0 bg-overlay/60 backdrop-blur-sm z-[100]" />
             <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[101] p-4">
-              <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="w-full max-w-md bg-gray-900 border border-white/10 rounded-3xl p-8 shadow-2xl pointer-events-auto overflow-hidden relative">
-                <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${options.isDestructive ? 'from-red-500 to-brand-500' : 'from-brand-500 to-brand-500'}`} />
-                <h3 className="text-2xl font-bold text-white mb-3">{options.title}</h3>
-                <p className="text-gray-400 leading-relaxed mb-8">{options.message}</p>
+              <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="w-full max-w-md bg-overlay border border-white/10 rounded-3xl p-8 shadow-2xl pointer-events-auto overflow-hidden relative">
+                <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${options.isDestructive ? 'from-error to-brand-500' : 'from-brand-500 to-brand-500'}`} />
+                <h3 className="text-2xl font-bold text-text mb-3">{options.title}</h3>
+                <p className="text-text-muted leading-relaxed mb-8">{options.message}</p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-end">
-                  <button onClick={() => handleClose(false)} className="px-6 py-3 rounded-2xl text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                  <button onClick={() => handleClose(false)} className="px-6 py-3 rounded-2xl text-sm font-bold text-text-muted hover:text-text hover:bg-white/5 transition-all">
                     {options.cancelLabel ?? commonT('cancel')}
                   </button>
-                  <button onClick={() => handleClose(true)} className={`px-8 py-3 rounded-2xl text-sm font-bold text-white shadow-lg transition-all ${options.isDestructive ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : 'bg-brand-500 hover:bg-brand-600 shadow-brand-500/20'}`}>
+                  <button onClick={() => handleClose(true)} className={`px-8 py-3 rounded-2xl text-sm font-bold text-text shadow-lg transition-all ${options.isDestructive ? 'bg-error hover:bg-error/90 shadow-error/20' : 'bg-brand-500 hover:bg-brand-600 shadow-brand-500/20'}`}>
                     {options.confirmLabel ?? commonT('confirm')}
                   </button>
                 </div>

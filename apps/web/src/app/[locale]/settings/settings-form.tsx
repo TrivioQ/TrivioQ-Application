@@ -8,10 +8,6 @@ import { makeAPICallV1 } from '@/lib/api';
 import { useAuth } from '@/context/auth-provider';
 import { useConfirm } from '@/components/confirm-modal';
 
-// interface Preferences {
-//   difficultyPercentages: Record<string, number>;
-// }
-
 // Convert a UTC DateTime ISO string from the DB column to a "HH:MM" string for <input type="time">
 function isoToHHMM(iso: string | undefined | null): string {
   if (!iso) return '09:00';
@@ -29,9 +25,6 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
 
   // TEMPORARILY HIDDEN: difficulty selection is locked to fixed defaults for all users
   const DEFAULT_DIFFICULTY = { EASY: 20, MEDIUM: 70, HARD: 10 };
-  // const initialPrefs: Preferences = initialUser.preferences || {
-  //   difficultyPercentages: DEFAULT_DIFFICULTY,
-  // };
 
   const [displayName, setDisplayName] = useState(initialUser.displayName || '');
   // Active window is authoritative in the User DB columns, not the preferences JSON blob
@@ -136,49 +129,49 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
   return (
     <div className="space-y-12">
       {/* ── Display Name (Identity) ── */}
-      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
+      <section className="bg-bg-secondary/50 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('displayNameTitle')}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t('displayNameDesc')}</p>
+          <h3 className="text-lg font-bold text-text">{t('displayNameTitle')}</h3>
+          <p className="text-sm text-text-muted">{t('displayNameDesc')}</p>
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('nameLabel')}</label>
-          <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder={t('displayNamePlaceholder')} />
+          <label className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('nameLabel')}</label>
+          <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-4 py-3 text-text focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder={t('displayNamePlaceholder')} />
         </div>
 
         {initialUser.dateOfBirth && (
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('dateOfBirthLabel')}</label>
-            <div className="w-full bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-white/5 rounded-xl px-4 py-3 text-gray-500 dark:text-gray-400 text-sm select-none cursor-not-allowed">{initialUser.dateOfBirth}</div>
-            <p className="text-xs text-gray-600">{t('dateOfBirthReadOnly')}</p>
+            <label className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('dateOfBirthLabel')}</label>
+            <div className="w-full bg-bg dark:bg-overlay/60 border border-border dark:border-white/5 rounded-xl px-4 py-3 text-text-muted text-sm select-none cursor-not-allowed">{initialUser.dateOfBirth}</div>
+            <p className="text-xs text-text-muted">{t('dateOfBirthReadOnly')}</p>
           </div>
         )}
 
-        <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-brand-600 hover:bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
+        <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-brand-600 hover:bg-brand-500 text-text px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
           {isPending ? t('saving') : t('updateName')}
         </button>
       </section>
 
       {/* ── Active Time (Most Used) ── */}
-      <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
+      <section className="bg-bg-secondary/50 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('activeTimeTitle')}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t('activeTimeDesc')}</p>
+          <h3 className="text-lg font-bold text-text">{t('activeTimeTitle')}</h3>
+          <p className="text-sm text-text-muted">{t('activeTimeDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('startTimeLabel')}</label>
-            <input type="time" value={activeStart} onChange={(e) => setActiveStart(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <label className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('startTimeLabel')}</label>
+            <input type="time" value={activeStart} onChange={(e) => setActiveStart(e.target.value)} className="w-full bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-4 py-3 text-text focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('endTimeLabel')}</label>
-            <input type="time" value={activeEnd} onChange={(e) => setActiveEnd(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <label className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('endTimeLabel')}</label>
+            <input type="time" value={activeEnd} onChange={(e) => setActiveEnd(e.target.value)} className="w-full bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-4 py-3 text-text focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
         </div>
 
-        <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-brand-600 hover:bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
+        <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-brand-600 hover:bg-brand-500 text-text px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
           {isPending ? t('saving') : t('saveTimeSettings')}
         </button>
       </section>
@@ -187,26 +180,26 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
 
       {/* ── Security / Change Password (if email) ── */}
       {isEmailUser && (
-        <section className="bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
+        <section className="bg-bg-secondary/50 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-6">
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('changePasswordTitle')}</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('changePasswordDesc')}</p>
+            <h3 className="text-lg font-bold text-text">{t('changePasswordTitle')}</h3>
+            <p className="text-sm text-text-muted">{t('changePasswordDesc')}</p>
           </div>
 
           <form onSubmit={handleChangePassword} className="space-y-4 max-w-sm">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500">{t('currentPasswordLabel')}</label>
-              <input type="password" required value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <label className="text-xs font-bold text-text-muted">{t('currentPasswordLabel')}</label>
+              <input type="password" required value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className="w-full bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-4 py-2 text-text focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500">{t('newPasswordLabel')}</label>
-              <input type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <label className="text-xs font-bold text-text-muted">{t('newPasswordLabel')}</label>
+              <input type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-4 py-2 text-text focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500">{t('confirmPasswordLabel')}</label>
-              <input type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <label className="text-xs font-bold text-text-muted">{t('confirmPasswordLabel')}</label>
+              <input type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-4 py-2 text-text focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
-            <button type="submit" disabled={isPending} className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
+            <button type="submit" disabled={isPending} className="bg-text-muted/20 hover:bg-text-muted/30 dark:bg-overlay dark:hover:bg-text-muted/20 text-text px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
               {t('updatePassword')}
             </button>
           </form>
@@ -214,13 +207,13 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
       )}
 
       {/* ── Danger Zone ── */}
-      <section className="bg-red-500/5 rounded-2xl border border-red-500/10 p-6 space-y-6">
+      <section className="bg-error/5 rounded-2xl border border-error/10 p-6 space-y-6">
         <div>
-          <h3 className="text-lg font-bold text-red-600 dark:text-red-400">{t('dangerZoneTitle')}</h3>
-          <p className="text-sm text-gray-500 text-red-600/70 dark:text-red-400/60">{t('dangerZoneDesc')}</p>
+          <h3 className="text-lg font-bold text-error">{t('dangerZoneTitle')}</h3>
+          <p className="text-sm text-error/70">{t('dangerZoneDesc')}</p>
         </div>
 
-        <button onClick={handleDeleteAccount} disabled={isPending} className="bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20 px-6 py-2.5 rounded-xl text-sm font-bold transition-all">
+        <button onClick={handleDeleteAccount} disabled={isPending} className="bg-error/10 hover:bg-error/20 text-error border border-error/20 px-6 py-2.5 rounded-xl text-sm font-bold transition-all">
           {t('deleteAccount')}
         </button>
       </section>
