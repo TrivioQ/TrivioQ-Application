@@ -6,16 +6,16 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen text-text selection:bg-brand-500 selection:text-text">
       {/* ── Hero Section ── */}
-      <section className="relative pt-16 pb-20 px-6 lg:px-8 overflow-hidden flex-grow flex items-center">
+      <section className="relative pt-10 pb-14 md:pt-16 md:pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden flex-grow flex items-center">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-100 via-bg to-bg-secondary dark:from-brand-900/50 dark:via-bg-primary dark:to-overlay" />
         <div className="mx-auto max-w-5xl text-center">
           <div className="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold text-brand-600 dark:text-brand-300 ring-1 ring-inset ring-brand-500/30 dark:ring-brand-500/30 mb-8 bg-brand-50 dark:bg-brand-500/10">{t('badge')}</div>
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight text-text">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight text-text">
             {t('titlePrefix')} <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 via-brand-300 to-brand-500 dark:from-brand-400 dark:via-brand-300 dark:to-brand-400">{t('titleHighlight')}</span>
           </h1>
           <p className="mt-6 text-lg md:text-2xl leading-relaxed text-text-muted max-w-3xl mx-auto mb-10">{t('description')}</p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
             {/* iOS Download */}
             <Link href="#" className="flex items-center gap-3 rounded-2xl bg-overlay dark:bg-white/10 border border-white/10 px-6 py-3.5 text-text hover:bg-overlay/80 dark:hover:bg-white/20 transition-all duration-200 shadow-lg w-full sm:w-auto">
               <svg className="w-6 h-6 fill-current text-text shrink-0" viewBox="0 0 24 24" aria-hidden="true">
@@ -50,8 +50,8 @@ export default function Home() {
       </section>
 
       {/* ── Social Proof Strip ── */}
-      <section className="py-10 px-6 border-y border-border dark:border-white/5 bg-bg-secondary/20 dark:bg-white/5">
-        <div className="mx-auto max-w-4xl flex flex-col sm:flex-row items-center justify-center gap-8 text-center">
+      <section className="py-10 px-4 sm:px-6 border-y border-border dark:border-white/5 bg-bg-secondary/20 dark:bg-white/5">
+        <div className="mx-auto max-w-4xl flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-8 text-center">
           <div>
             <p className="text-3xl font-extrabold text-text">10,000+</p>
             <p className="text-sm text-text-muted mt-1">{t('socialProof.activeLearners')}</p>
@@ -75,7 +75,7 @@ export default function Home() {
       </section>
 
       {/* ── How It Works ── */}
-      <section className="py-20 px-6 sm:px-8">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
           <div className="text-center mb-14">
             <h2 className="text-base font-semibold leading-7 text-brand-600 dark:text-brand-400 uppercase tracking-widest">{t('howItWorks.tagline')}</h2>
@@ -88,7 +88,7 @@ export default function Home() {
               { step: '02', icon: '🧠', title: t('howItWorks.step2Title'), desc: t('howItWorks.step2Desc') },
               { step: '03', icon: '🏆', title: t('howItWorks.step3Title'), desc: t('howItWorks.step3Desc') },
             ].map(({ step, icon, title, desc }) => (
-              <div key={step} className="relative flex flex-col items-start p-8 bg-bg-secondary/60 dark:bg-white/5 rounded-2xl border border-border dark:border-white/10 backdrop-blur-sm">
+              <div key={step} className="relative flex flex-col items-start p-5 sm:p-8 bg-bg-secondary/60 dark:bg-white/5 rounded-2xl border border-border dark:border-white/10 backdrop-blur-sm">
                 <div className="text-xs font-bold tracking-widest text-brand-500 dark:text-brand-400 mb-4 uppercase">{step}</div>
                 <div className="text-4xl mb-4">{icon}</div>
                 <h3 className="text-lg font-bold text-text mb-2">{title}</h3>
@@ -100,14 +100,14 @@ export default function Home() {
       </section>
 
       {/* ── Features Section ── */}
-      <section className="py-24 px-6 sm:px-8 relative border-t border-border/50 dark:border-white/5">
+      <section className="py-14 sm:py-20 md:py-24 px-4 sm:px-6 lg:px-8 relative border-t border-border/50 dark:border-white/5">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto max-w-2xl lg:text-center">
             <h2 className="text-base font-semibold leading-7 text-brand-600 dark:text-brand-400 uppercase tracking-widest">{t('features.tagline')}</h2>
             <p className="mt-2 text-3xl font-bold tracking-tight text-text sm:text-4xl">{t('features.heading')}</p>
           </div>
           <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-            <dl className="grid max-w-xl grid-cols-1 gap-x-12 gap-y-16 lg:max-w-none lg:grid-cols-3">
+            <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-2 md:max-w-3xl lg:max-w-none lg:grid-cols-3 lg:gap-x-12 lg:gap-y-16">
               {[
                 { icon: '⚡', title: t('features.rapidFire.title'), desc: t('features.rapidFire.description') },
                 { icon: '🧠', title: t('features.smartTailoring.title'), desc: t('features.smartTailoring.description') },

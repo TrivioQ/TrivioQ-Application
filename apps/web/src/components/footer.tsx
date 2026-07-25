@@ -49,11 +49,11 @@ export async function Footer() {
       {/* Subtle top glow */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent" />
 
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* ── Main grid ── */}
-        <div className="pt-16 pb-10 grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="pt-12 sm:pt-16 pb-10 grid grid-cols-2 gap-10 sm:gap-12 md:grid-cols-4">
           {/* Brand column */}
-          <div className="sm:col-span-2 lg:col-span-1">
+          <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 group w-fit">
               <img src="/logo.png" alt={t('logoAlt')} className="w-8 h-8" />
               <span className="font-extrabold text-xl tracking-tight text-text group-hover:text-brand-500 dark:group-hover:text-brand-100 transition-colors">{t('brandName')}</span>
@@ -108,7 +108,7 @@ export async function Footer() {
         <div className="border-t border-border dark:border-white/5 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-text-muted">{t('copyright', { year })}</p>
           <div className="flex items-center gap-4 text-xs text-text-muted">
-            <span>·</span>
+            <span className="hidden sm:inline">·</span>
             <span>{t('builtWith')}</span>
           </div>
         </div>

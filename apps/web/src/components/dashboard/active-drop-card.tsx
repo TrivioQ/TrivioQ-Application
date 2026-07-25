@@ -241,7 +241,7 @@ export default function ActiveDropCard() {
 
   if (error) {
     return (
-      <div className="rounded-2xl bg-error/10 border border-error/20 p-6 flex items-center justify-between">
+      <div className="rounded-2xl bg-error/10 border border-error/20 p-4 sm:p-6 flex items-center justify-between">
         <p className="text-sm text-error">{error}</p>
         <button onClick={fetchActiveDrop} className="text-xs text-error/80 hover:text-error underline">
           {commonT('retry')}
@@ -253,7 +253,7 @@ export default function ActiveDropCard() {
   if (!drop) {
     return (
       <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
-        <div className="px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-text-muted flex items-center gap-2">
               <span className="inline-flex h-2 w-2 rounded-full bg-text-muted/60" />
@@ -263,7 +263,7 @@ export default function ActiveDropCard() {
           </div>
           <p className="text-lg font-mono font-bold text-text-muted">--:--</p>
         </div>
-        <div className="px-6 py-8 flex flex-col items-center gap-3 text-center">
+        <div className="px-4 sm:px-6 py-8 flex flex-col items-center gap-3 text-center">
           <Hourglass className="w-10 h-10 text-text-muted" />
           <p className="text-sm font-semibold text-text">{t('noActiveQuestion')}</p>
           <p className="text-xs text-text-muted max-w-xs leading-relaxed">{t('noActiveDesc')}</p>
@@ -282,7 +282,7 @@ export default function ActiveDropCard() {
   return (
     <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between">
+      <div className="px-4 sm:px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-text flex items-center gap-2">
             <span className="relative flex h-2 w-2">
@@ -309,7 +309,7 @@ export default function ActiveDropCard() {
         </div>
       </div>
 
-      <div className="px-6 py-5 space-y-4">
+      <div className="px-4 sm:px-6 py-5 space-y-4">
         {/* Difficulty + category badges */}
         <div className="flex flex-wrap gap-2">
           <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${DIFF_COLOR[drop.difficulty]}`}>{drop.difficulty}</span>

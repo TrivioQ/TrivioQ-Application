@@ -46,17 +46,17 @@ function SettingRow({ setting }: { setting: Setting }) {
 
   return (
     <tr className="border-b border-gray-100 last:border-0">
-      <td className="py-4 px-6">
+      <td className="py-4 px-4 sm:py-4 sm:px-6">
         <p className="font-medium text-gray-900">{setting.label ?? setting.key}</p>
         <p className="text-xs text-gray-400 mt-0.5 font-mono">{setting.key}</p>
       </td>
-      <td className="py-4 px-6">
-        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">{setting.dataType}</span>
+      <td className="py-4 px-4 sm:py-4 sm:px-6">
+        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 whitespace-nowrap">{setting.dataType}</span>
       </td>
-      <td className="py-4 px-6">
+      <td className="py-4 px-4 sm:py-4 sm:px-6">
         {editing ? (
-          <div className="flex items-center gap-2">
-            <input type={setting.dataType === 'number' ? 'number' : 'text'} value={draft} onChange={(e) => setDraft(e.target.value)} className="w-32 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" autoFocus />
+          <div className="flex flex-wrap items-center gap-2">
+            <input type={setting.dataType === 'number' ? 'number' : 'text'} value={draft} onChange={(e) => setDraft(e.target.value)} className="w-full sm:w-32 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" autoFocus />
             <button onClick={handleSave} disabled={isPending} className="rounded-md bg-green-600 p-1.5 text-white hover:bg-green-700 disabled:opacity-50">
               <Check size={14} />
             </button>
@@ -65,8 +65,8 @@ function SettingRow({ setting }: { setting: Setting }) {
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-sm text-gray-800">{setting.value}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-mono text-sm text-gray-800 break-all">{setting.value}</span>
             <button onClick={() => setEditing(true)} className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700">
               <Pencil size={14} />
             </button>
@@ -74,7 +74,7 @@ function SettingRow({ setting }: { setting: Setting }) {
         )}
         {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
       </td>
-      <td className="py-4 px-6 text-xs text-gray-400">
+      <td className="hidden md:table-cell py-4 px-4 sm:py-4 sm:px-6 text-xs text-gray-400">
         <p>{new Date(setting.updatedAt).toLocaleString()}</p>
         {setting.updatedBy && <p className="mt-0.5">{setting.updatedBy}</p>}
       </td>
@@ -117,14 +117,14 @@ export default function SettingsEditor({ settings, pageCount = 1, currentPage = 
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <table className="w-full min-w-[480px] text-sm">
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-              <th className="py-3 px-6">{t('columns.setting')}</th>
-              <th className="py-3 px-6">{t('columns.type')}</th>
-              <th className="py-3 px-6">{t('columns.value')}</th>
-              <th className="py-3 px-6">{t('columns.lastUpdated')}</th>
+              <th className="py-3 px-4 sm:px-6">{t('columns.setting')}</th>
+              <th className="py-3 px-4 sm:px-6">{t('columns.type')}</th>
+              <th className="py-3 px-4 sm:px-6">{t('columns.value')}</th>
+              <th className="hidden md:table-cell py-3 px-4 sm:px-6">{t('columns.lastUpdated')}</th>
             </tr>
           </thead>
           <tbody>
@@ -141,7 +141,7 @@ export default function SettingsEditor({ settings, pageCount = 1, currentPage = 
         </table>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm text-gray-500">{t('showingPage', { current: currentPage, total: Math.max(1, pageCount) })}</div>
         <div className="flex items-center space-x-2">
           <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} className="px-3 py-1 border border-gray-200 rounded text-sm disabled:opacity-50 hover:bg-gray-50">

@@ -52,27 +52,27 @@ function HistoryTable({ data, t, locale }: { data: ScorePeriod[]; t: ReturnType<
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10">
-      <table className="w-full text-left">
+    <div className="overflow-x-auto -mx-4 sm:mx-0 rounded-2xl border border-white/10">
+      <table className="w-full min-w-[480px] text-left">
         <thead className="bg-white/10 text-xs uppercase tracking-widest text-text-muted backdrop-blur-xl">
           <tr>
-            <th className="px-6 py-4">{t('periodHeader')}</th>
-            <th className="px-6 py-4 text-right">{t('triviaScoreHeader')}</th>
-            <th className="px-6 py-4 text-right">{t('bonusHeader')}</th>
-            <th className="px-6 py-4 text-right">{t('totalHeader')}</th>
-            <th className="px-6 py-4 text-right">{t('rankHeader')}</th>
+            <th className="px-4 sm:px-6 py-4">{t('periodHeader')}</th>
+            <th className="px-4 sm:px-6 py-4 text-right">{t('triviaScoreHeader')}</th>
+            <th className="hidden md:table-cell px-4 sm:px-6 py-4 text-right">{t('bonusHeader')}</th>
+            <th className="px-4 sm:px-6 py-4 text-right">{t('totalHeader')}</th>
+            <th className="px-4 sm:px-6 py-4 text-right">{t('rankHeader')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-white/5">
           {data.map((row) => (
             <tr key={row.id} className="hover:bg-white/10 dark:hover:bg-white/[0.02] transition-colors">
-              <td className="px-6 py-4 text-sm text-text font-medium">{formatPeriodLabel(row, locale)}</td>
-              <td className="px-6 py-4 text-right font-mono text-text">{row.baseScore.toLocaleString()}</td>
-              <td className="px-6 py-4 text-right">{row.bonusScore > 0 ? <span className="text-success font-bold font-mono">+{row.bonusScore.toLocaleString()}</span> : <span className="text-text-muted font-mono">—</span>}</td>
-              <td className="px-6 py-4 text-right">
+              <td className="px-4 sm:px-6 py-4 text-sm text-text font-medium max-w-[140px] sm:max-w-none truncate">{formatPeriodLabel(row, locale)}</td>
+              <td className="px-4 sm:px-6 py-4 text-right font-mono text-text">{row.baseScore.toLocaleString()}</td>
+              <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-right">{row.bonusScore > 0 ? <span className="text-success font-bold font-mono">+{row.bonusScore.toLocaleString()}</span> : <span className="text-text-muted font-mono">—</span>}</td>
+              <td className="px-4 sm:px-6 py-4 text-right">
                 <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-brand-300">{row.totalScore.toLocaleString()}</span>
               </td>
-              <td className="px-6 py-4 text-right">
+              <td className="px-4 sm:px-6 py-4 text-right">
                 <RankBadge rank={row.rank} />
               </td>
             </tr>

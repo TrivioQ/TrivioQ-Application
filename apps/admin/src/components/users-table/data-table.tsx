@@ -50,14 +50,14 @@ export function DataTable<TData, TValue>({ columns, data, pageCount = 1, current
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <SearchInput initialValue={search} onDebouncedChange={(val) => pushParams({ search: val || null, page: '1' })} placeholder={placeholder} className="w-64" />
+          <SearchInput initialValue={search} onDebouncedChange={(val) => pushParams({ search: val || null, page: '1' })} placeholder={placeholder} className="w-full sm:w-64" />
           {filterSlot}
         </div>
         {actionSlot}
       </div>
 
-      <div className={`rounded-md border bg-white transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
-        <Table>
+      <div className={`overflow-x-auto rounded-md border bg-white transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
+        <Table className="min-w-[600px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -87,7 +87,7 @@ export function DataTable<TData, TValue>({ columns, data, pageCount = 1, current
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm text-gray-500">{start && end && total ? t('showing', { from: start, to: end, total }) : t('pageOf', { current: currentPage, total: Math.max(1, pageCount) })}</div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => pushParams({ page: String(currentPage - 1) })} disabled={currentPage <= 1 || isPending}>

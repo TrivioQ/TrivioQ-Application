@@ -65,7 +65,7 @@ export const columns: ColumnDef<QuestionRow>[] = [
     cell: ({ row }) => {
       const text = row.getValue('questionText') as string;
       return (
-        <div className="max-w-[400px] truncate" title={text}>
+        <div className="max-w-[200px] sm:max-w-[300px] lg:max-w-[400px] truncate" title={text}>
           {text}
         </div>
       );

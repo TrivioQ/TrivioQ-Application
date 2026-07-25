@@ -137,17 +137,17 @@ export function NotificationList() {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
-      <Table>
+    <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+      <Table className="min-w-[700px]">
         <TableHeader>
           <TableRow>
             <TableHead>{t('columns.type')}</TableHead>
             <TableHead>{t('columns.title')}</TableHead>
-            <TableHead>{t('columns.audience')}</TableHead>
+            <TableHead className="hidden lg:table-cell">{t('columns.audience')}</TableHead>
             <TableHead>{t('columns.channels')}</TableHead>
             <TableHead>{t('columns.recipients')}</TableHead>
             <TableHead>{t('columns.status')}</TableHead>
-            <TableHead>{t('columns.created')}</TableHead>
+            <TableHead className="hidden lg:table-cell">{t('columns.created')}</TableHead>
             <TableHead className="text-right">{t('columns.actions')}</TableHead>
           </TableRow>
         </TableHeader>
@@ -155,14 +155,14 @@ export function NotificationList() {
           {notifications.map((notification) => (
             <TableRow key={notification.id}>
               <TableCell>
-                <Badge className={typeColors[notification.type] || 'bg-gray-100'}>
+                <Badge className={`${typeColors[notification.type] || 'bg-gray-100'} whitespace-nowrap`}>
                   {notification.type.replace(/_/g, ' ')}
                 </Badge>
               </TableCell>
               <TableCell className="font-medium max-w-xs truncate">
                 {notification.title}
               </TableCell>
-              <TableCell>
+              <TableCell className="hidden lg:table-cell">
                 <Badge variant="outline">
                   {audienceLabels[notification.audience] || notification.audience}
                 </Badge>
@@ -180,15 +180,15 @@ export function NotificationList() {
                   )}
                 </div>
               </TableCell>
-              <TableCell>
+              <TableCell className="whitespace-nowrap">
                 {notification.deliveredCount} / {notification.totalRecipients}
               </TableCell>
               <TableCell>
-                <Badge className={statusColors[notification.status] || 'bg-gray-100'}>
+                <Badge className={`${statusColors[notification.status] || 'bg-gray-100'} whitespace-nowrap`}>
                   {notification.status}
                 </Badge>
               </TableCell>
-              <TableCell className="text-sm text-gray-500">
+              <TableCell className="hidden lg:table-cell text-sm text-gray-500 whitespace-nowrap">
                 {format(new Date(notification.createdAt), 'MMM d, yyyy HH:mm')}
               </TableCell>
               <TableCell className="text-right">

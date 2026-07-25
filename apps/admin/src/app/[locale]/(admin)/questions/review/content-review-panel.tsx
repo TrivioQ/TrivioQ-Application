@@ -200,10 +200,10 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
         </Link>
       </div>
 
-      <div className="flex gap-0 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden h-[calc(100vh-220px)] min-h-[600px]">
+      <div className="flex flex-col lg:flex-row gap-0 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden h-auto lg:h-[calc(100vh-220px)] min-h-[400px] lg:min-h-[600px]">
         {/* ── Left: Question List ── */}
-        <aside className="w-80 flex-shrink-0 border-r border-gray-200 bg-gray-50/50 flex flex-col">
-          <div className="px-4 py-3 border-b border-gray-200 bg-white flex items-center justify-between">
+        <aside className="w-full lg:w-80 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-gray-200 bg-gray-50/50 flex flex-col h-64 lg:h-auto">
+          <div className="px-4 py-3 border-b border-gray-200 bg-white flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2">
               <Checkbox
                 checked={selectedQuestionIds.size === pendingQuestions.length && pendingQuestions.length > 0}
@@ -298,11 +298,11 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
         </aside>
 
         {/* ── Right: Editor ── */}
-        <main className="flex-1 flex flex-col">{selected ? <ReviewEditor key={selected.id} pendingQuestion={selected} categories={categories} onComplete={handleComplete} /> : <div className="flex-1 flex items-center justify-center text-sm text-gray-400">{t('selectPrompt')}</div>}</main>
+        <main className="flex-1 flex flex-col min-h-[300px] lg:min-h-0">{selected ? <ReviewEditor key={selected.id} pendingQuestion={selected} categories={categories} onComplete={handleComplete} /> : <div className="flex-1 flex items-center justify-center text-sm text-gray-400">{t('selectPrompt')}</div>}</main>
       </div>
 
       {/* Pagination */}
-      <div className={`flex items-center justify-between text-sm text-gray-600 transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
+      <div className={`flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600 transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
         <span>{total === 0 ? t('noResults') : t('showing', { start: (page - 1) * pageSize + 1, end: Math.min(page * pageSize, total), total })}</span>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">

@@ -35,8 +35,8 @@ export function QuestionsDataTable<TData, TValue>({ columns, result }: Props<TDa
 
   return (
     <div className="space-y-4">
-      <div className={`rounded-md border bg-white transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
-        <Table>
+      <div className={`overflow-x-auto rounded-md border bg-white transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
+        <Table className="min-w-[600px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -66,7 +66,7 @@ export function QuestionsDataTable<TData, TValue>({ columns, result }: Props<TDa
         </Table>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-gray-600">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
         <span>{total === 0 ? t('noResults') : t('showing', { start, end, total })}</span>
         <div className="flex items-center gap-2">
           <button onClick={() => pushParams({ page: String(page - 1) })} disabled={page <= 1 || isPending} className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })} aria-label={t('previousPage')}>

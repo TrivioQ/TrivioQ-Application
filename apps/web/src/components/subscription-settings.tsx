@@ -194,9 +194,9 @@ export function SubscriptionSettings() {
     <div className="space-y-6">
       {/* ── Current Plan ──────────────────────────────────────────────────── */}
       <section
-        className={`rounded-2xl border p-6 space-y-5 shadow-2xl dark:shadow-none backdrop-blur-2xl ${isAutoRenew ? 'bg-warning/10 dark:bg-warning/5 border-warning/30 dark:border-warning/20 shadow-warning/10' : isVault ? 'bg-brand-50/50 dark:bg-brand-500/5 border-brand-200/50 dark:border-brand-500/20 shadow-brand-900/10' : 'bg-bg/50 dark:bg-overlay/50 border-white dark:border-white/5 shadow-brand-900/10'}`}
+        className={`rounded-2xl border p-4 sm:p-6 space-y-5 shadow-2xl dark:shadow-none backdrop-blur-2xl ${isAutoRenew ? 'bg-warning/10 dark:bg-warning/5 border-warning/30 dark:border-warning/20 shadow-warning/10' : isVault ? 'bg-brand-50/50 dark:bg-brand-500/5 border-brand-200/50 dark:border-brand-500/20 shadow-brand-900/10' : 'bg-bg/50 dark:bg-overlay/50 border-white dark:border-white/5 shadow-brand-900/10'}`}
       >
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-start sm:items-center justify-between gap-4 flex-wrap">
           <div>
             <h3 className="text-lg font-bold text-text">{t('currentPlan')}</h3>
             <p className="text-sm text-text-muted mt-0.5">{t('currentPlanDesc')}</p>
@@ -250,7 +250,7 @@ export function SubscriptionSettings() {
       </section>
 
       {/* ── Premium Vault ─────────────────────────────────────────────────── */}
-      <section className="bg-bg/50 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-6 space-y-5">
+      <section className="bg-bg/50 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none rounded-2xl border border-white dark:border-white/5 p-4 sm:p-6 space-y-5">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h3 className="text-lg font-bold text-text">{t('bankedDaysTitle')}</h3>
@@ -282,28 +282,34 @@ export function SubscriptionSettings() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('daysToActivate')}</label>
-              <div className="flex items-center gap-3">
-                <button onClick={() => setDaysToSpend((v) => Math.max(1, v - 1))} disabled={daysToSpend <= 1} className="w-9 h-9 flex items-center justify-center rounded-lg border border-border dark:border-white/10 bg-bg-secondary hover:bg-bg-secondary/70 dark:bg-bg-secondary-dark dark:hover:bg-text-muted/20 text-text disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-                  <IconMinus />
-                </button>
-                <input
-                  type="number"
-                  min={1}
-                  max={onDemandTokensAvailable}
-                  value={daysToSpend}
-                  onChange={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!isNaN(v)) setDaysToSpend(Math.min(onDemandTokensAvailable, Math.max(1, v)));
-                  }}
-                  className="w-20 text-center bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-3 py-2 text-text font-bold text-lg focus:outline-none focus:ring-2 focus:ring-brand-500 tabular-nums"
-                />
-                <button
-                  onClick={() => setDaysToSpend((v) => Math.min(onDemandTokensAvailable, v + 1))}
-                  disabled={daysToSpend >= onDemandTokensAvailable}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-border dark:border-white/10 bg-bg-secondary hover:bg-bg-secondary/70 dark:bg-bg-secondary-dark dark:hover:bg-text-muted/20 text-text disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <IconPlus />
-                </button>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setDaysToSpend((v) => Math.max(1, v - 1))}
+                    disabled={daysToSpend <= 1}
+                    className="w-11 h-11 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border border-border dark:border-white/10 bg-bg-secondary hover:bg-bg-secondary/70 dark:bg-bg-secondary-dark dark:hover:bg-text-muted/20 text-text disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <IconMinus />
+                  </button>
+                  <input
+                    type="number"
+                    min={1}
+                    max={onDemandTokensAvailable}
+                    value={daysToSpend}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      if (!isNaN(v)) setDaysToSpend(Math.min(onDemandTokensAvailable, Math.max(1, v)));
+                    }}
+                    className="w-20 text-center bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-3 py-2 text-text font-bold text-lg focus:outline-none focus:ring-2 focus:ring-brand-500 tabular-nums"
+                  />
+                  <button
+                    onClick={() => setDaysToSpend((v) => Math.min(onDemandTokensAvailable, v + 1))}
+                    disabled={daysToSpend >= onDemandTokensAvailable}
+                    className="w-11 h-11 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border border-border dark:border-white/10 bg-bg-secondary hover:bg-bg-secondary/70 dark:bg-bg-secondary-dark dark:hover:bg-text-muted/20 text-text disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <IconPlus />
+                  </button>
+                </div>
                 <span className="text-sm text-text-muted">{t('ofAvailable', { n: onDemandTokensAvailable })}</span>
               </div>
             </div>

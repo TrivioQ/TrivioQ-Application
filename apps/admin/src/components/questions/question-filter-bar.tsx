@@ -73,7 +73,7 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-3 items-center">
-        <SearchInput initialValue={search} onDebouncedChange={(val) => push({ search: val || undefined })} placeholder={t('searchQuestionText')} className="w-64 h-9" />
+        <SearchInput initialValue={search} onDebouncedChange={(val) => push({ search: val || undefined })} placeholder={t('searchQuestionText')} className="w-full sm:w-64 h-9" />
 
         {/* Difficulty multi-select */}
         <Popover>

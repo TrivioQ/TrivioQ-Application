@@ -19,7 +19,7 @@ export default function NotificationsPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-purple-100 rounded-lg">
             <Bell className="h-6 w-6 text-purple-600" />
@@ -31,7 +31,7 @@ export default function NotificationsPage({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             href={`/${locale}/notifications/templates`}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"

@@ -43,8 +43,8 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
+      <div className="flex flex-wrap justify-between items-start gap-4">
+        <div className="min-w-0">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
           <p className="text-gray-500 mt-2">{t('description')}</p>
         </div>

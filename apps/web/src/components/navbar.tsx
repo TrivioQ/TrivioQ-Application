@@ -158,7 +158,7 @@ export function Navbar() {
     <>
       {/* ── Bar ── */}
       <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-bg-secondary/60 backdrop-blur-2xl border-b border-white/50 dark:border-white/10 shadow-lg shadow-brand-100/20 dark:shadow-black/20' : 'bg-bg-secondary/40 dark:bg-transparent backdrop-blur-md border-b border-transparent'}`}>
-        <nav className="mx-auto max-w-7xl px-6 lg:px-8 h-16 flex items-center justify-between gap-6">
+        <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-6">
           {/* ── Logo ── */}
           <Link href="/" className="flex items-center gap-2 group shrink-0">
             <img src="/logo.png" alt={t('logoAlt')} className="w-8 h-8" />
@@ -276,7 +276,7 @@ export function Navbar() {
             <motion.div variants={backdropVariants} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-40 bg-overlay/60 backdrop-blur-sm md:hidden" onClick={() => setMobileOpen(false)} aria-hidden="true" />
 
             {/* Slide-out panel */}
-            <motion.aside variants={mobileMenuVariants} initial="hidden" animate="visible" exit="exit" className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-bg-secondary dark:bg-bg-secondary border-l border-border dark:border-white/10 shadow-2xl md:hidden flex flex-col">
+            <motion.aside variants={mobileMenuVariants} initial="hidden" animate="visible" exit="exit" className="fixed top-0 right-0 bottom-0 z-50 w-[min(288px,85vw)] bg-bg-secondary dark:bg-bg-secondary border-l border-border dark:border-white/10 shadow-2xl md:hidden flex flex-col">
               {/* Header */}
               <div className="flex items-center justify-between px-6 h-16 border-b border-border dark:border-white/10">
                 <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-2">

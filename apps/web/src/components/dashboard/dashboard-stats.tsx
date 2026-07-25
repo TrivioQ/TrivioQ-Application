@@ -57,9 +57,9 @@ function formatDate(iso: string | null, locale: string) {
 
 function StatCard({ label, value, sub, accent }: { label: string; value: React.ReactNode; sub?: string; accent?: string }) {
   return (
-    <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-6 flex flex-col gap-1">
+    <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-4 sm:p-6 flex flex-col gap-1">
       <p className="text-xs font-semibold uppercase tracking-widest text-text-muted">{label}</p>
-      <div className={`text-3xl font-extrabold tracking-tight flex items-center gap-2 ${accent ?? 'text-text'}`}>{value}</div>
+      <div className={`text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-2 min-w-0 break-words ${accent ?? 'text-text'}`}>{value}</div>
       {sub && <p className="text-xs text-text-muted mt-0.5">{sub}</p>}
     </div>
   );
@@ -128,12 +128,12 @@ export function DashboardStats() {
 
       {/* ── Score Trend Charts ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-6">
+        <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-4 sm:p-6">
           <p className="text-sm font-semibold text-text mb-1">{t('weeklyTrendTitle')}</p>
           <p className="text-xs text-text-muted mb-4">{t('weeklyTrendSubtitle')}</p>
           <ScoreTrendChart data={weekly} mode="weekly" namespace="dashboard" />
         </div>
-        <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-6">
+        <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-4 sm:p-6">
           <p className="text-sm font-semibold text-text mb-1">{t('monthlyTrendTitle')}</p>
           <p className="text-xs text-text-muted mb-4">{t('monthlyTrendSubtitle')}</p>
           <ScoreTrendChart data={monthly} mode="monthly" namespace="dashboard" />
@@ -142,7 +142,7 @@ export function DashboardStats() {
 
       {/* ── Recent Drops ── */}
       <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
-        <div className="px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-text">{t('recentQuestionsTitle')}</p>
             <p className="text-xs text-text-muted mt-0.5">{t('recentQuestionsSubtitle')}</p>
@@ -161,7 +161,7 @@ export function DashboardStats() {
               const correctText = drop.question.choices.find((c) => c.isCorrect)?.text ?? '—';
 
               return (
-                <div key={drop.id} className="px-6 py-4 flex items-start gap-4">
+                <div key={drop.id} className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                   <div className="mt-0.5 shrink-0 flex items-center justify-center">
                     {drop.revealedAnswer ? (
                       <span title={t('answerRevealed')}>
@@ -207,7 +207,7 @@ export function DashboardStats() {
                     <p className="text-[11px] text-text-muted mt-1">{formatDate(drop.answeredAt, locale)}</p>
                   </div>
 
-                  <div className="shrink-0 text-right">
+                  <div className="shrink-0 sm:text-right self-end sm:self-auto">
                     <p className={`text-sm font-bold ${drop.pointsAwarded > 0 ? 'text-brand-400' : 'text-text-muted'}`}>
                       {drop.pointsAwarded > 0 ? `+${drop.pointsAwarded}` : '0'} {t('pts')}
                     </p>

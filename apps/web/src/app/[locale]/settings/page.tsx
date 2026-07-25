@@ -31,10 +31,10 @@ export default async function SettingsPage() {
 
   return (
     <div className="min-h-screen text-text selection:bg-brand-500 selection:text-text pb-20">
-      <div className="max-w-3xl mx-auto px-6 py-16 space-y-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20 space-y-10 sm:space-y-12">
         {/* ── Header ── */}
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-text">{t('title')}</h1>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-text">{t('title')}</h1>
           <p className="text-text-muted mt-2">{t('subtitle')}</p>
         </div>
 

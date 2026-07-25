@@ -44,16 +44,16 @@ export default async function ScoreHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen py-20 px-6 sm:px-8 text-text selection:bg-brand-500 selection:text-text">
-      <div className="max-w-4xl mx-auto space-y-12">
+    <div className="min-h-screen py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 text-text selection:bg-brand-500 selection:text-text">
+      <div className="max-w-4xl mx-auto space-y-8 sm:space-y-12">
         {/* ── Header ── */}
         <div className="space-y-4">
           <Link href="/dashboard" className="group inline-flex items-center gap-2 text-sm font-semibold text-brand-400 hover:text-brand-300 transition-colors">
             <span className="group-hover:-translate-x-1 transition-transform">←</span> {t('backToDashboard')}
           </Link>
           <div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-brand-400 to-brand-400">{t('title')}</h1>
-            <p className="mt-3 text-text-muted text-lg">{t('subtitle')}</p>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-brand-400 to-brand-400">{t('title')}</h1>
+            <p className="mt-3 text-text-muted text-base sm:text-lg">{t('subtitle')}</p>
           </div>
         </div>
 
@@ -73,7 +73,7 @@ export default async function ScoreHistoryPage() {
         </div>
 
         {/* ── Bonus info callout ── */}
-        <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-6 space-y-3">
+        <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-4 sm:p-6 space-y-3">
           <h2 className="font-bold text-brand-300 text-lg">{t('bonusPointsTitle')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-text-muted">
             <div>

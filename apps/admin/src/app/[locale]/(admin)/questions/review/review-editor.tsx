@@ -167,8 +167,8 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-6 py-3 border-b border-gray-200 bg-white flex items-center justify-between gap-4">
-        <div className="min-w-0">
+      <div className="px-4 py-3 sm:px-6 border-b border-gray-200 bg-white flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-gray-900 truncate">{pendingQuestion.topic}</p>
           <p className="text-xs text-gray-400">
             {t('submitted')}{' '}
@@ -177,7 +177,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
             })}
           </p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           {pendingQuestion.status !== 'REJECTED' && pendingQuestion.status !== 'AI-REJECTED' && (
             <Button variant="outline" size="sm" onClick={() => setRejectDialogOpen(true)} disabled={isPending}>
               {t('reject')}
@@ -202,7 +202,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
 
       {/* AI Feedback & Warnings */}
       {(pendingQuestion.status === 'PENDING-DUPLICATE' || pendingQuestion.status === 'REJECTED' || pendingQuestion.status === 'AI-REJECTED' || pendingQuestion.isDuplicate || pendingQuestion.aiFeedback || pendingQuestion.rejectionReason) && (
-        <div className="px-6 py-3 space-y-3 border-b border-gray-200 bg-gray-50/50">
+        <div className="px-4 py-3 sm:px-6 space-y-3 border-b border-gray-200 bg-gray-50/50">
           {pendingQuestion.status === 'PENDING-DUPLICATE' && (
             <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg text-sm text-amber-900">
               <span className="text-base shrink-0">⚡</span>
@@ -243,7 +243,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
       )}
 
       {/* Form */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 space-y-4">
         {/* Question Text */}
         <div className="space-y-1.5">
           <Label htmlFor="questionText">{t('questionText')}</Label>
@@ -251,7 +251,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
         </div>
 
         {/* Difficulty & Age Rating */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label>{t('difficultyLevel')}</Label>
             <Select value={difficultyLevel} onValueChange={(val) => setDifficultyLevel(val as DifficultyLevel)}>

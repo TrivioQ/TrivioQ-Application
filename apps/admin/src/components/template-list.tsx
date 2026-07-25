@@ -128,17 +128,17 @@ export function TemplateList() {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
-      <Table>
+    <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+      <Table className="min-w-[800px]">
         <TableHeader>
           <TableRow>
             <TableHead>{t('columns.name')}</TableHead>
             <TableHead>{t('columns.type')}</TableHead>
             <TableHead>{t('columns.title')}</TableHead>
-            <TableHead>{t('columns.variables')}</TableHead>
+            <TableHead className="hidden lg:table-cell">{t('columns.variables')}</TableHead>
             <TableHead>{t('columns.channels')}</TableHead>
             <TableHead>{t('columns.status')}</TableHead>
-            <TableHead>{t('columns.created')}</TableHead>
+            <TableHead className="hidden lg:table-cell">{t('columns.created')}</TableHead>
             <TableHead className="text-right">{t('columns.actions')}</TableHead>
           </TableRow>
         </TableHeader>
@@ -147,14 +147,14 @@ export function TemplateList() {
             <TableRow key={template.id}>
               <TableCell className="font-medium">{template.name}</TableCell>
               <TableCell>
-                <Badge className={typeColors[template.type] || 'bg-gray-100'}>
+                <Badge className={`${typeColors[template.type] || 'bg-gray-100'} whitespace-nowrap`}>
                   {template.type.replace(/_/g, ' ')}
                 </Badge>
               </TableCell>
               <TableCell className="max-w-xs truncate text-sm text-gray-600">
                 {template.title}
               </TableCell>
-              <TableCell>
+              <TableCell className="hidden lg:table-cell">
                 <div className="flex flex-wrap gap-1">
                   {template.variables.map((v) => (
                     <Badge key={v} variant="outline" className="text-xs font-mono">
@@ -177,11 +177,11 @@ export function TemplateList() {
                 </div>
               </TableCell>
               <TableCell>
-                <Badge className={template.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                <Badge className={`${template.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'} whitespace-nowrap`}>
                   {template.isActive ? tc('active') : tc('inactive')}
                 </Badge>
               </TableCell>
-              <TableCell className="text-sm text-gray-500">
+              <TableCell className="hidden lg:table-cell text-sm text-gray-500 whitespace-nowrap">
                 {format(new Date(template.createdAt), 'MMM d, yyyy')}
               </TableCell>
               <TableCell className="text-right">

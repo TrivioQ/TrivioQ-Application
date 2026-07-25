@@ -48,13 +48,13 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6 py-12 lg:px-8 selection:bg-brand-500 selection:text-text">
-      <div className="w-full max-w-md space-y-8 bg-bg-secondary/30 dark:bg-white/5 backdrop-blur-2xl p-10 rounded-3xl border border-white/50 dark:border-white/10 shadow-2xl shadow-brand-900/10">
+    <div className="flex min-h-screen items-center justify-center px-4 sm:px-6 py-12 lg:px-8 selection:bg-brand-500 selection:text-text">
+      <div className="w-full max-w-md space-y-6 sm:space-y-8 bg-bg-secondary/30 dark:bg-white/5 backdrop-blur-2xl p-6 sm:p-10 rounded-3xl border border-white/50 dark:border-white/10 shadow-2xl shadow-brand-900/10">
         <div className="text-center">
-          <Link href="/" className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-400">
+          <Link href="/" className="text-2xl sm:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-400">
             {t('brandName')}
           </Link>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-text">{t('signInTitle')}</h2>
+          <h2 className="mt-4 sm:mt-6 text-2xl sm:text-3xl font-bold tracking-tight text-text">{t('signInTitle')}</h2>
           <p className="mt-2 text-sm text-text-muted">
             {t('signInSubtitle')}{' '}
             <Link href="/signup" className="font-medium text-brand-400 hover:text-brand-300 transition-colors">
