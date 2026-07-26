@@ -136,7 +136,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('nameLabel')}</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('displayNameLabel')}</label>
           <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-4 py-3 text-text focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder={t('displayNamePlaceholder')} />
         </div>
 
