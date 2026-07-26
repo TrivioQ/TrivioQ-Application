@@ -26,8 +26,8 @@ export default async function JobLogsPage({ searchParams }: { searchParams: Prom
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
-        <p className="text-gray-500 mt-2">{t('description')}</p>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('title')}</h1>
+        <p className="text-muted-foreground mt-2">{t('description')}</p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

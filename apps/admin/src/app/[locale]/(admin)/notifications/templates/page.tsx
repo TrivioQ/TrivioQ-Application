@@ -17,8 +17,8 @@ export default function TemplatesPage() {
             <Sparkles className="h-6 w-6 text-amber-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('pageTitle')}</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="text-2xl font-bold text-foreground">{t('pageTitle')}</h1>
+            <p className="text-sm text-muted-foreground">
               {t('subtitle')}
             </p>
           </div>

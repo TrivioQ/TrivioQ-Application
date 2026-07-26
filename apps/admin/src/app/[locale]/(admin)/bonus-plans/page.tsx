@@ -29,8 +29,8 @@ export default function BonusPlansPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
-          <p className="mt-2 text-gray-500">{t('description')}</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('title')}</h1>
+          <p className="mt-2 text-muted-foreground">{t('description')}</p>
         </div>
 
         <Button onClick={() => setFormMode({ type: 'create' })} className="gap-2 shrink-0">
