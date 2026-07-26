@@ -17,17 +17,17 @@ export default function Home() {
           <p className="mt-6 text-lg md:text-2xl leading-relaxed text-text-muted max-w-3xl mx-auto mb-10">{t('description')}</p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
             {/* iOS Download */}
-            <Link href="#" className="flex items-center gap-3 rounded-2xl bg-overlay dark:bg-white/10 border border-white/10 px-6 py-3.5 text-text hover:bg-overlay/80 dark:hover:bg-white/20 transition-all duration-200 shadow-lg w-full sm:w-auto">
-              <svg className="w-6 h-6 fill-current text-text shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+            <Link href="#" className="flex items-center gap-3 rounded-2xl bg-overlay dark:bg-white/10 border border-white/10 px-6 py-3.5 text-white hover:bg-overlay/80 dark:hover:bg-white/20 transition-all duration-200 shadow-lg w-full sm:w-auto">
+              <svg className="w-6 h-6 fill-current text-white shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.54c.67-.82 1.13-1.96.99-3.1-.97.04-2.18.65-2.87 1.46-.62.72-1.16 1.88-1.01 3.01 1.09.08 2.22-.55 2.89-1.37z" />
               </svg>
               <div className="text-left">
-                <div className="text-xs text-text-muted font-medium">{t('appStorePrefix')}</div>
+                <div className="text-xs text-white/70 font-medium">{t('appStorePrefix')}</div>
                 <div className="text-base font-bold -mt-0.5">{t('appStoreTitle')}</div>
               </div>
             </Link>
             {/* Android Download */}
-            <Link href="#" className="flex items-center gap-3 rounded-2xl bg-overlay dark:bg-white/10 border border-white/10 px-6 py-3.5 text-text hover:bg-overlay/80 dark:hover:bg-white/20 transition-all duration-200 shadow-lg w-full sm:w-auto">
+            <Link href="#" className="flex items-center gap-3 rounded-2xl bg-overlay dark:bg-white/10 border border-white/10 px-6 py-3.5 text-white hover:bg-overlay/80 dark:hover:bg-white/20 transition-all duration-200 shadow-lg w-full sm:w-auto">
               <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                 <path fill="#00D2FF" d="M3.609 1.814L13.792 12 3.61 22.186a2.37 2.37 0 0 1-.61-1.614V3.428c0-.623.228-1.205.61-1.614z" />
                 <path fill="#FFD400" d="M17.26 8.532l-3.468 3.468 3.468 3.468 3.96-2.261a2.316 2.316 0 0 0 0-4.414l-3.96-2.261z" />
@@ -35,7 +35,7 @@ export default function Home() {
                 <path fill="#FF3A44" d="M3.609 22.186l8.715-8.715 2.446 2.446-11.161 6.382z" />
               </svg>
               <div className="text-left">
-                <div className="text-xs text-text-muted font-medium">{t('googlePlayPrefix')}</div>
+                <div className="text-xs text-white/70 font-medium">{t('googlePlayPrefix')}</div>
                 <div className="text-base font-bold -mt-0.5">{t('googlePlayTitle')}</div>
               </div>
             </Link>
