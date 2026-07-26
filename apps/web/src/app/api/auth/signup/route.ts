@@ -52,14 +52,26 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ message: 'Date of birth is required' }, { status: 400 });
   }
 
-  const dob = new Date(dateOfBirth);
-  if (isNaN(dob.getTime())) {
-    return NextResponse.json({ message: 'Invalid date of birth' }, { status: 400 });
+  const dobParts = dateOfBirth.split('-');
+  if (dobParts.length !== 3) {
+    return NextResponse.json({ message: 'Invalid date of birth format' }, { status: 400 });
   }
 
-  const minAgeDate = new Date();
-  minAgeDate.setFullYear(minAgeDate.getFullYear() - 13);
-  if (dob > minAgeDate) {
+  const dobYear = parseInt(dobParts[0], 10);
+  const dobMonth = parseInt(dobParts[1], 10);
+  const dobDay = parseInt(dobParts[2], 10);
+
+  const today = new Date();
+  const currentYear = today.getUTCFullYear();
+  const currentMonth = today.getUTCMonth() + 1;
+  const currentDay = today.getUTCDate();
+
+  let age = currentYear - dobYear;
+  if (currentMonth < dobMonth || (currentMonth === dobMonth && currentDay < dobDay)) {
+    age--;
+  }
+
+  if (age < 13) {
     return NextResponse.json({ message: 'You must be at least 13 years old to create an account.' }, { status: 400 });
   }
 

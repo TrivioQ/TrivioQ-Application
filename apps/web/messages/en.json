@@ -170,6 +170,8 @@
     "termsRequired": "Please agree to the Terms of Service and Privacy Policy above to continue.",
     "dateOfBirthLabel": "Date of Birth",
     "dateOfBirthPlaceholder": "Date of Birth (must be 13+)",
+    "ageTooYoung": "You must be at least 13 years old to create an account.",
+    "invalidDateOfBirth": "Invalid Date of Birth",
     "referralCodeLabel": "Referral Code",
     "referralCodePlaceholder": "Referral code (optional)",
     "googleButton": "Google",

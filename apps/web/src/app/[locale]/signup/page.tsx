@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useAuth } from '@/context/auth-provider';
+import { useNotification } from '@/context/notification-context';
 
 const inputClass = 'relative block w-full rounded-xl shadow-sm border-0 bg-bg-secondary dark:bg-bg-secondary-dark py-3 px-4 text-text ring-1 ring-inset ring-border placeholder:text-text-muted focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6';
 
@@ -24,6 +25,7 @@ export default function SignupPage() {
   const [referralCode, setReferralCode] = useState(searchParams.get('referral') ?? '');
 
   const { isPending, registerWithEmailSync, signInWithGoogleSync } = useAuthSync();
+  const { error: notifyError } = useNotification();
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -41,6 +43,29 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (dateOfBirth) {
+      const dobParts = dateOfBirth.split('-');
+      const dobYear = parseInt(dobParts[0], 10);
+      const dobMonth = parseInt(dobParts[1], 10);
+      const dobDay = parseInt(dobParts[2], 10);
+
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth() + 1;
+      const currentDay = today.getDate();
+
+      let age = currentYear - dobYear;
+      if (currentMonth < dobMonth || (currentMonth === dobMonth && currentDay < dobDay)) {
+        age--;
+      }
+
+      if (age < 13) {
+        notifyError(t('ageTooYoung'), t('invalidDateOfBirth'));
+        return;
+      }
+    }
+
     await registerWithEmailSync(email, password, username, displayName, dateOfBirth, referralCode || undefined);
   };
 
@@ -103,7 +128,20 @@ export default function SignupPage() {
               <label className="sr-only" htmlFor="dateOfBirth">
                 {t('dateOfBirthLabel')}
               </label>
-              <input id="dateOfBirth" type="date" required max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]} className={inputClass} placeholder={t('dateOfBirthLabel')} value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} disabled={isPending} />
+              <input
+                id="dateOfBirth"
+                type="date"
+                required
+                max={(() => {
+                  const d = new Date();
+                  return `${d.getFullYear() - 13}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                })()}
+                className={inputClass}
+                placeholder={t('dateOfBirthLabel')}
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+                disabled={isPending}
+              />
             </div>
 
             {/* Referral Code (optional) */}

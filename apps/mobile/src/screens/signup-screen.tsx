@@ -34,15 +34,22 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
       return;
     }
 
-    const dob = new Date(dateOfBirth);
-    if (isNaN(dob.getTime())) {
-      toast({ message: t('auth.invalidDateFormat'), type: 'error' });
-      return;
+    const dobParts = dateOfBirth.split('-');
+    const dobYear = parseInt(dobParts[0], 10);
+    const dobMonth = parseInt(dobParts[1], 10);
+    const dobDay = parseInt(dobParts[2], 10);
+
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth() + 1;
+    const currentDay = today.getDate();
+
+    let age = currentYear - dobYear;
+    if (currentMonth < dobMonth || (currentMonth === dobMonth && currentDay < dobDay)) {
+      age--;
     }
 
-    const minAgeDate = new Date();
-    minAgeDate.setFullYear(minAgeDate.getFullYear() - 13);
-    if (dob > minAgeDate) {
+    if (age < 13) {
       toast({ message: t('auth.ageTooYoung'), type: 'error' });
       return;
     }
