@@ -73,7 +73,7 @@ export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProp
       <div className="flex flex-col items-center gap-6">
         {/* Global / Friends Toggle */}
         {isLoggedIn && (
-          <div className="flex items-center p-1 bg-white/90 dark:bg-white/5 rounded-full border border-brand-100 dark:border-white/10 backdrop-blur-md shadow-xl shadow-brand-500/15 dark:shadow-none">
+          <div className="flex items-center p-1 bg-white/60 dark:bg-white/5 rounded-full border border-brand-100 dark:border-white/10 backdrop-blur-md shadow-xl shadow-brand-500/15 dark:shadow-none">
             <button onClick={() => setActiveMode('global')} className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${activeMode === 'global' ? 'bg-brand-500 text-text shadow-md' : 'text-text-muted hover:text-text'}`}>
               {t('global')}
             </button>
@@ -83,7 +83,7 @@ export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProp
           </div>
         )}
 
-        <div className="flex justify-start sm:justify-center overflow-x-auto p-1 bg-white/90 dark:bg-gray-900/40 rounded-xl border border-brand-100 dark:border-white/10 backdrop-blur-md w-fit mx-auto shadow-xl shadow-brand-500/15 dark:shadow-none">
+        <div className="flex justify-start sm:justify-center overflow-x-auto p-1 bg-white/60 dark:bg-gray-900/40 rounded-xl border border-brand-100 dark:border-white/10 backdrop-blur-md w-fit mx-auto shadow-xl shadow-brand-500/15 dark:shadow-none">
           {tabs.map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-4 sm:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap ${activeTab === tab.id ? 'bg-brand-500 text-text shadow-lg shadow-brand-500/30 dark:shadow-brand-500/20' : 'text-text-muted hover:text-text hover:bg-white/50 dark:hover:bg-white/5'}`}>
               {tab.label}
@@ -100,7 +100,7 @@ export function LeaderboardTabs({ initialData, isLoggedIn }: LeaderboardTabsProp
       </div>
 
       {/* ── Leaderboard Table ── */}
-      <div className="bg-white/90 dark:bg-gray-900/40 rounded-3xl border border-brand-100 dark:border-white/10 overflow-hidden backdrop-blur-lg shadow-2xl shadow-brand-500/15 dark:shadow-black/40">
+      <div className="bg-white/60 dark:bg-gray-900/40 rounded-3xl border border-brand-100 dark:border-white/10 overflow-hidden backdrop-blur-lg shadow-2xl shadow-brand-500/15 dark:shadow-black/40">
         {currentData.length === 0 ? (
           <div className="py-20 text-center text-text-muted">
             <span className="text-4xl block mb-4 opacity-70">🕸️</span>

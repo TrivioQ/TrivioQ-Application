@@ -129,7 +129,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
   return (
     <div className="space-y-10 sm:space-y-12">
       {/* ── Display Name (Identity) ── */}
-      <section className="bg-bg-secondary/90 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-4 sm:p-6 space-y-6">
+      <section className="bg-bg-secondary/70 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-4 sm:p-6 space-y-6">
         <div>
           <h3 className="text-lg font-bold text-text">{t('displayNameTitle')}</h3>
           <p className="text-sm text-text-muted">{t('displayNameDesc')}</p>
@@ -154,7 +154,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
       </section>
 
       {/* ── Active Time (Most Used) ── */}
-      <section className="bg-bg-secondary/90 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-4 sm:p-6 space-y-6">
+      <section className="bg-bg-secondary/70 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-4 sm:p-6 space-y-6">
         <div>
           <h3 className="text-lg font-bold text-text">{t('activeTimeTitle')}</h3>
           <p className="text-sm text-text-muted">{t('activeTimeDesc')}</p>
@@ -180,7 +180,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
 
       {/* ── Security / Change Password (if email) ── */}
       {isEmailUser && (
-        <section className="bg-bg-secondary/90 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-4 sm:p-6 space-y-6">
+        <section className="bg-bg-secondary/70 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-4 sm:p-6 space-y-6">
           <div>
             <h3 className="text-lg font-bold text-text">{t('changePasswordTitle')}</h3>
             <p className="text-sm text-text-muted">{t('changePasswordDesc')}</p>

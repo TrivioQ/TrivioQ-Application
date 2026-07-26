@@ -90,7 +90,7 @@ export function ScoreHistoryTabs({ weekly, monthly }: ScoreHistoryTabsProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-center p-1 bg-white/90 dark:bg-gray-900/50 rounded-xl border border-brand-100 dark:border-white/5 backdrop-blur-xl w-fit mx-auto shadow-xl shadow-brand-500/15 dark:shadow-none">
+      <div className="flex justify-center p-1 bg-white/60 dark:bg-gray-900/50 rounded-xl border border-brand-100 dark:border-white/5 backdrop-blur-xl w-fit mx-auto shadow-xl shadow-brand-500/15 dark:shadow-none">
         {(['weekly', 'monthly'] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)} className={`px-8 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === tab ? 'bg-brand-500 text-text shadow-lg shadow-brand-500/20' : 'text-text-muted hover:text-text hover:bg-white/5'}`}>
             {tab === 'weekly' ? t('weekly') : t('monthly')}

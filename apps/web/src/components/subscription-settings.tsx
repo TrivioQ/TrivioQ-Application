@@ -167,7 +167,7 @@ export function SubscriptionSettings() {
 
   if (loadingData) {
     return (
-      <section className="bg-bg/90 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-6 flex items-center justify-center min-h-[200px]">
+      <section className="bg-bg/70 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-6 flex items-center justify-center min-h-[200px]">
         <IconSpinner />
       </section>
     );
@@ -175,7 +175,7 @@ export function SubscriptionSettings() {
 
   if (fetchError || !data) {
     return (
-      <section className="bg-bg/90 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-6 flex items-center gap-3">
+      <section className="bg-bg/70 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-6 flex items-center gap-3">
         <span className="text-error">
           <IconAlertCircle />
         </span>
@@ -194,7 +194,7 @@ export function SubscriptionSettings() {
     <div className="space-y-6">
       {/* ── Current Plan ──────────────────────────────────────────────────── */}
       <section
-        className={`rounded-2xl border p-4 sm:p-6 space-y-5 shadow-2xl dark:shadow-none backdrop-blur-2xl ${isAutoRenew ? 'bg-warning/10 dark:bg-warning/5 border-warning/30 dark:border-warning/20 shadow-warning/10' : isVault ? 'bg-brand-50/50 dark:bg-brand-500/5 border-brand-200/50 dark:border-brand-500/20 shadow-brand-500/15' : 'bg-bg/90 dark:bg-overlay/50 border-brand-100 dark:border-white/5 shadow-brand-500/15'}`}
+        className={`rounded-2xl border p-4 sm:p-6 space-y-5 shadow-2xl dark:shadow-none backdrop-blur-2xl ${isAutoRenew ? 'bg-warning/10 dark:bg-warning/5 border-warning/30 dark:border-warning/20 shadow-warning/10' : isVault ? 'bg-brand-50/50 dark:bg-brand-500/5 border-brand-200/50 dark:border-brand-500/20 shadow-brand-500/15' : 'bg-bg/70 dark:bg-overlay/50 border-brand-100 dark:border-white/5 shadow-brand-500/15'}`}
       >
         <div className="flex items-start sm:items-center justify-between gap-4 flex-wrap">
           <div>
@@ -250,7 +250,7 @@ export function SubscriptionSettings() {
       </section>
 
       {/* ── Premium Vault ─────────────────────────────────────────────────── */}
-      <section className="bg-bg/90 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-4 sm:p-6 space-y-5">
+      <section className="bg-bg/70 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-4 sm:p-6 space-y-5">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h3 className="text-lg font-bold text-text">{t('bankedDaysTitle')}</h3>

@@ -57,7 +57,7 @@ function formatDate(iso: string | null, locale: string) {
 
 function StatCard({ label, value, sub, accent }: { label: string; value: React.ReactNode; sub?: string; accent?: string }) {
   return (
-    <div className="rounded-2xl bg-bg/90 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none border border-brand-100 dark:border-white/10 p-4 sm:p-6 flex flex-col gap-1">
+    <div className="rounded-2xl bg-bg/70 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none border border-brand-100 dark:border-white/10 p-4 sm:p-6 flex flex-col gap-1">
       <p className="text-xs font-semibold uppercase tracking-widest text-text-muted">{label}</p>
       <div className={`text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-2 min-w-0 break-words ${accent ?? 'text-text'}`}>{value}</div>
       {sub && <p className="text-xs text-text-muted mt-0.5">{sub}</p>}
@@ -128,12 +128,12 @@ export function DashboardStats() {
 
       {/* ── Score Trend Charts ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl bg-bg/90 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none border border-brand-100 dark:border-white/10 p-4 sm:p-6">
+        <div className="rounded-2xl bg-bg/70 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none border border-brand-100 dark:border-white/10 p-4 sm:p-6">
           <p className="text-sm font-semibold text-text mb-1">{t('weeklyTrendTitle')}</p>
           <p className="text-xs text-text-muted mb-4">{t('weeklyTrendSubtitle')}</p>
           <ScoreTrendChart data={weekly} mode="weekly" namespace="dashboard" />
         </div>
-        <div className="rounded-2xl bg-bg/90 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none border border-brand-100 dark:border-white/10 p-4 sm:p-6">
+        <div className="rounded-2xl bg-bg/70 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none border border-brand-100 dark:border-white/10 p-4 sm:p-6">
           <p className="text-sm font-semibold text-text mb-1">{t('monthlyTrendTitle')}</p>
           <p className="text-xs text-text-muted mb-4">{t('monthlyTrendSubtitle')}</p>
           <ScoreTrendChart data={monthly} mode="monthly" namespace="dashboard" />
@@ -141,7 +141,7 @@ export function DashboardStats() {
       </div>
 
       {/* ── Recent Drops ── */}
-      <div className="rounded-2xl bg-bg/90 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none border border-brand-100 dark:border-white/10 overflow-hidden">
+      <div className="rounded-2xl bg-bg/70 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none border border-brand-100 dark:border-white/10 overflow-hidden">
         <div className="px-4 sm:px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-text">{t('recentQuestionsTitle')}</p>

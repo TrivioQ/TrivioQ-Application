@@ -88,7 +88,7 @@ export default function Home() {
               { step: '02', icon: '🧠', title: t('howItWorks.step2Title'), desc: t('howItWorks.step2Desc') },
               { step: '03', icon: '🏆', title: t('howItWorks.step3Title'), desc: t('howItWorks.step3Desc') },
             ].map(({ step, icon, title, desc }) => (
-              <div key={step} className="relative flex flex-col items-start p-5 sm:p-8 bg-bg-secondary/90 dark:bg-white/5 rounded-2xl border border-brand-100 dark:border-white/10 backdrop-blur-sm shadow-sm shadow-brand-500/10">
+              <div key={step} className="relative flex flex-col items-start p-5 sm:p-8 bg-bg-secondary/75 dark:bg-white/5 rounded-2xl border border-brand-100 dark:border-white/10 backdrop-blur-sm shadow-sm shadow-brand-500/10">
                 <div className="text-xs font-bold tracking-widest text-brand-500 dark:text-brand-400 mb-4 uppercase">{step}</div>
                 <div className="text-4xl mb-4">{icon}</div>
                 <h3 className="text-lg font-bold text-text mb-2">{title}</h3>
@@ -113,7 +113,7 @@ export default function Home() {
                 { icon: '🧠', title: t('features.smartTailoring.title'), desc: t('features.smartTailoring.description') },
                 { icon: '🏆', title: t('features.globalCompetition.title'), desc: t('features.globalCompetition.description') },
               ].map(({ icon, title, desc }) => (
-                <div key={title} className="flex flex-col bg-brand-50/90 dark:bg-overlay/50 backdrop-blur-sm p-8 rounded-2xl border border-brand-100 dark:border-white/5 hover:border-brand-300 dark:hover:border-brand-500/30 transition-colors shadow-sm shadow-brand-500/10 dark:shadow-none">
+                <div key={title} className="flex flex-col bg-brand-50/75 dark:bg-overlay/50 backdrop-blur-sm p-8 rounded-2xl border border-brand-100 dark:border-white/5 hover:border-brand-300 dark:hover:border-brand-500/30 transition-colors shadow-sm shadow-brand-500/10 dark:shadow-none">
                   <dt className="flex items-center gap-x-4 text-xl font-semibold leading-7 text-text">
                     <div className="h-12 w-12 rounded-xl bg-brand-500/10 dark:bg-brand-500/20 flex items-center justify-center border border-brand-500/20 dark:border-brand-500/30 text-2xl">{icon}</div>
                     {title}

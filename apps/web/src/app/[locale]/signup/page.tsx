@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useAuth } from '@/context/auth-provider';
 
-const inputClass = 'relative block w-full border-0 bg-bg-secondary dark:bg-bg-secondary-dark py-3 px-4 text-text ring-1 ring-inset ring-border placeholder:text-text-muted focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6';
+const inputClass = 'relative block w-full rounded-xl shadow-sm border-0 bg-bg-secondary dark:bg-bg-secondary-dark py-3 px-4 text-text ring-1 ring-inset ring-border placeholder:text-text-muted focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -50,7 +50,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-6 py-12 lg:px-8 selection:bg-brand-500 selection:text-text">
-      <div className="w-full max-w-md space-y-8 bg-white/90 dark:bg-white/5 backdrop-blur-xl p-10 rounded-3xl border border-brand-100 dark:border-white/10 shadow-2xl shadow-brand-500/15">
+      <div className="w-full max-w-md space-y-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl p-10 rounded-3xl border border-brand-100 dark:border-white/10 shadow-2xl shadow-brand-500/15">
         <div className="text-center">
           <Link href="/" className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-400">
             {t('brandName')}
@@ -65,13 +65,13 @@ export default function SignupPage() {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSignup}>
-          <div className="space-y-px rounded-md shadow-sm">
+          <div className="space-y-4">
             {/* Display Name */}
             <div>
               <label className="sr-only" htmlFor="displayName">
                 {t('displayNameLabel')}
               </label>
-              <input id="displayName" type="text" required className={`${inputClass} rounded-t-md`} placeholder={t('displayNamePlaceholder')} value={displayName} onChange={(e) => setDisplayName(e.target.value)} disabled={isPending} />
+              <input id="displayName" type="text" required className={inputClass} placeholder={t('displayNamePlaceholder')} value={displayName} onChange={(e) => setDisplayName(e.target.value)} disabled={isPending} />
             </div>
 
             {/* Username */}
@@ -111,7 +111,7 @@ export default function SignupPage() {
               <label className="sr-only" htmlFor="referralCode">
                 {t('referralCodeLabel')}
               </label>
-              <input id="referralCode" type="text" className={`${inputClass} rounded-b-md`} placeholder={t('referralCodePlaceholder')} value={referralCode} onChange={(e) => setReferralCode(e.target.value)} disabled={isPending} />
+              <input id="referralCode" type="text" className={inputClass} placeholder={t('referralCodePlaceholder')} value={referralCode} onChange={(e) => setReferralCode(e.target.value)} disabled={isPending} />
             </div>
           </div>
 

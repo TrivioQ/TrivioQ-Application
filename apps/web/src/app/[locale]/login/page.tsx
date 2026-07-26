@@ -49,7 +49,7 @@ function LoginForm() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 sm:px-6 py-12 lg:px-8 selection:bg-brand-500 selection:text-text">
-      <div className="w-full max-w-md space-y-6 sm:space-y-8 bg-white/90 dark:bg-white/5 backdrop-blur-xl p-6 sm:p-10 rounded-3xl border border-brand-100 dark:border-white/10 shadow-2xl shadow-brand-500/15">
+      <div className="w-full max-w-md space-y-6 sm:space-y-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl p-6 sm:p-10 rounded-3xl border border-brand-100 dark:border-white/10 shadow-2xl shadow-brand-500/15">
         <div className="text-center">
           <Link href="/" className="text-2xl sm:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-400">
             {t('brandName')}
@@ -64,7 +64,7 @@ function LoginForm() {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleEmailLogin}>
-          <div className="space-y-4 rounded-md shadow-sm">
+          <div className="space-y-4">
             <div>
               <label className="sr-only" htmlFor="email">
                 {t('emailLabel')}
@@ -73,7 +73,7 @@ function LoginForm() {
                 id="email"
                 type="email"
                 required
-                className="relative block w-full rounded-t-md border-0 bg-bg-secondary dark:bg-bg-secondary-dark py-3 px-4 text-text ring-1 ring-inset ring-border placeholder:text-text-muted focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6"
+                className="relative block w-full rounded-xl shadow-sm border-0 bg-bg-secondary dark:bg-bg-secondary-dark py-3 px-4 text-text ring-1 ring-inset ring-border placeholder:text-text-muted focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6"
                 placeholder={t('emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -88,7 +88,7 @@ function LoginForm() {
                 id="password"
                 type="password"
                 required
-                className="relative block w-full rounded-b-md border-0 bg-bg-secondary dark:bg-bg-secondary-dark py-3 px-4 text-text ring-1 ring-inset ring-border placeholder:text-text-muted focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6"
+                className="relative block w-full rounded-xl shadow-sm border-0 bg-bg-secondary dark:bg-bg-secondary-dark py-3 px-4 text-text ring-1 ring-inset ring-border placeholder:text-text-muted focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6"
                 placeholder={t('passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
