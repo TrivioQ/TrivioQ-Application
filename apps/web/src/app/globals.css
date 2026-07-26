@@ -11,6 +11,7 @@
    ───────────────────────────────────────────────────────────────────── */
 
 :root {
+  color-scheme: light;
   /* Semantic neutrals (slate scale, light) */
   --bg-primary: 248 250 252;       /* slate-50  — page canvas */
   --bg-secondary: 255 255 255;     /* white     — cards / sections */
@@ -58,6 +59,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --bg-primary: 2 6 23;            /* slate-950 */
   --bg-secondary: 15 23 42;        /* slate-900 */
   --surface-elevated: 30 41 59;    /* slate-800 */
