@@ -232,7 +232,7 @@ export default function ActiveDropCard() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 p-6 animate-pulse">
+      <div className="rounded-2xl bg-bg/90 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none border border-brand-100 dark:border-white/10 p-6 animate-pulse">
         <div className="h-4 w-32 bg-text-muted/20 dark:bg-white/10 rounded mb-3" />
         <div className="h-3 w-48 bg-text-muted/10 dark:bg-white/5 rounded" />
       </div>
@@ -252,7 +252,7 @@ export default function ActiveDropCard() {
 
   if (!drop) {
     return (
-      <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
+      <div className="rounded-2xl bg-bg/90 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none border border-brand-100 dark:border-white/10 overflow-hidden">
         <div className="px-4 sm:px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-text-muted flex items-center gap-2">
@@ -280,7 +280,7 @@ export default function ActiveDropCard() {
   const timerUrgent = timeLeft !== null && timeLeft <= 60;
 
   return (
-    <div className="rounded-2xl bg-bg/50 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-900/10 dark:shadow-none border border-white dark:border-white/10 overflow-hidden">
+    <div className="rounded-2xl bg-bg/90 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none border border-brand-100 dark:border-white/10 overflow-hidden">
       {/* Header */}
       <div className="px-4 sm:px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between gap-3">
         <div>

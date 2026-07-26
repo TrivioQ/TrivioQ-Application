@@ -54,7 +54,7 @@ function HistoryTable({ data, t, locale }: { data: ScorePeriod[]; t: ReturnType<
   return (
     <div className="overflow-x-auto -mx-4 sm:mx-0 rounded-2xl border border-white/10">
       <table className="w-full min-w-[480px] text-left">
-        <thead className="bg-white/10 text-xs uppercase tracking-widest text-text-muted backdrop-blur-xl">
+        <thead className="bg-brand-50/40 text-xs uppercase tracking-widest text-text-muted backdrop-blur-xl">
           <tr>
             <th className="px-4 sm:px-6 py-4">{t('periodHeader')}</th>
             <th className="px-4 sm:px-6 py-4 text-right">{t('triviaScoreHeader')}</th>
@@ -90,7 +90,7 @@ export function ScoreHistoryTabs({ weekly, monthly }: ScoreHistoryTabsProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-center p-1 bg-white/40 dark:bg-gray-900/50 rounded-xl border border-white dark:border-white/5 backdrop-blur-xl w-fit mx-auto shadow-xl shadow-brand-900/10 dark:shadow-none">
+      <div className="flex justify-center p-1 bg-white/90 dark:bg-gray-900/50 rounded-xl border border-brand-100 dark:border-white/5 backdrop-blur-xl w-fit mx-auto shadow-xl shadow-brand-500/15 dark:shadow-none">
         {(['weekly', 'monthly'] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)} className={`px-8 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === tab ? 'bg-brand-500 text-text shadow-lg shadow-brand-500/20' : 'text-text-muted hover:text-text hover:bg-white/5'}`}>
             {tab === 'weekly' ? t('weekly') : t('monthly')}

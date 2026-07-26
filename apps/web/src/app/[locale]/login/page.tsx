@@ -49,7 +49,7 @@ function LoginForm() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 sm:px-6 py-12 lg:px-8 selection:bg-brand-500 selection:text-text">
-      <div className="w-full max-w-md space-y-6 sm:space-y-8 bg-bg-secondary/30 dark:bg-white/5 backdrop-blur-2xl p-6 sm:p-10 rounded-3xl border border-white/50 dark:border-white/10 shadow-2xl shadow-brand-900/10">
+      <div className="w-full max-w-md space-y-6 sm:space-y-8 bg-white/90 dark:bg-white/5 backdrop-blur-xl p-6 sm:p-10 rounded-3xl border border-brand-100 dark:border-white/10 shadow-2xl shadow-brand-500/15">
         <div className="text-center">
           <Link href="/" className="text-2xl sm:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-400">
             {t('brandName')}
