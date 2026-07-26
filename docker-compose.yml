@@ -68,7 +68,6 @@ x-glitchtip-env: &glitchtip-env
 # SERVICES
 # ===========================================================================
 services:
-
   # -------------------------------------------------------------------------
   # PostgreSQL 16
   # -------------------------------------------------------------------------
@@ -77,9 +76,9 @@ services:
     container_name: trivioq-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER:     ${POSTGRES_USER:-trivioq}
+      POSTGRES_USER: ${POSTGRES_USER:-trivioq}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
-      POSTGRES_DB:       ${POSTGRES_DB:-trivioq}
+      POSTGRES_DB: ${POSTGRES_DB:-trivioq}
     ports:
       - "5432:5432"
     volumes:
@@ -87,7 +86,11 @@ services:
     networks:
       - trivioq-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trivioq} -d ${POSTGRES_DB:-trivioq}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-trivioq} -d ${POSTGRES_DB:-trivioq}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -123,7 +126,7 @@ services:
   migrate:
     image: trivioq-api:latest
     container_name: trivioq-migrate
-    restart: "no"               # exits after running — intentional
+    restart: "no" # exits after running — intentional
     command: >
       sh -c "
         cd /app/node_modules/@trivioq/database &&
@@ -152,12 +155,12 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV:      production
-      PORT:          3013
-      DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
-      REDIS_HOST:    redis
-      REDIS_PORT:    6379
-      REDIS_URL:     redis://redis:6379
+      NODE_ENV: production
+      PORT: 3013
+      DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     ports:
       - "3013:3013"
@@ -191,9 +194,9 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV:      production
-      DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
-      REDIS_URL:     redis://redis:6379
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      REDIS_URL: redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
@@ -208,32 +211,6 @@ services:
     logging: *default-logging
 
   # -------------------------------------------------------------------------
-  # Worker: Advanced Drop Scheduler
-  # -------------------------------------------------------------------------
-  worker-scheduler:
-    image: trivioq-api:latest
-    container_name: trivioq-worker-scheduler
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      NODE_ENV:      production
-      DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
-      REDIS_URL:     redis://redis:6379
-      FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
-    volumes:
-      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
-    networks:
-      - trivioq-network
-    depends_on:
-      api:
-        condition: service_healthy
-    command: ["node", "dist/workers/scheduler.js"]
-    healthcheck:
-      disable: true
-    logging: *default-logging
-
-  # -------------------------------------------------------------------------
   # Worker: Push Notification Dispatcher
   # -------------------------------------------------------------------------
   worker-dispatcher:
@@ -243,9 +220,9 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV:      production
-      DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
-      REDIS_URL:     redis://redis:6379
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      REDIS_URL: redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
@@ -269,9 +246,9 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV:      production
-      DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
-      REDIS_URL:     redis://redis:6379
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      REDIS_URL: redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
@@ -295,9 +272,9 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV:      production
-      DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
-      REDIS_URL:     redis://redis:6379
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      REDIS_URL: redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
@@ -321,9 +298,9 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV:      production
-      DATABASE_URL:  postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
-      REDIS_URL:     redis://redis:6379
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      REDIS_URL: redis://redis:6379
       RESEND_API_KEY: ${RESEND_API_KEY:?RESEND_API_KEY is required for email delivery}
     networks:
       - trivioq-network
@@ -350,10 +327,10 @@ services:
       - .env
     environment:
       NODE_ENV: production
-      PORT:     3011
+      PORT: 3011
       HOSTNAME: "0.0.0.0"
       # Internal service URL (container-to-container, not localhost)
-      API_URL:  http://api:3013
+      API_URL: http://api:3013
     ports:
       - "3011:3011"
     networks:
@@ -383,11 +360,11 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV:     production
-      PORT:         3012
-      HOSTNAME:     "0.0.0.0"
+      NODE_ENV: production
+      PORT: 3012
+      HOSTNAME: "0.0.0.0"
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
-      API_URL:      http://api:3013
+      API_URL: http://api:3013
     ports:
       - "3012:3012"
     networks:
@@ -418,7 +395,7 @@ services:
     environment:
       <<: *glitchtip-env
     ports:
-      - "8000:8000"           # Exposed for Cloudflare Tunnel and local verification
+      - "8000:8000" # Exposed for Cloudflare Tunnel and local verification
     volumes:
       - trivioq_glitchtip_uploads:/code/uploads
     networks:
@@ -429,38 +406,26 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/ || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          'python3 -c "import urllib.request; urllib.request.urlopen(''http://127.0.0.1:8000/'')" || exit 1',
+        ]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 40s
+      retries: 5
+      start_period: 60s
     logging: *default-logging
 
   glitchtip-worker:
     image: glitchtip/glitchtip:latest
     container_name: trivioq-glitchtip-worker
     restart: unless-stopped
-    command: ["./bin/run-celery-with-beat.sh"]
+    command: ["./bin/run-worker.sh"]
     environment:
       <<: *glitchtip-env
     volumes:
       - trivioq_glitchtip_uploads:/code/uploads
-    networks:
-      - trivioq-network
-    depends_on:
-      glitchtip-web:
-        condition: service_healthy
-    healthcheck:
-      disable: true
-    logging: *default-logging
-
-  glitchtip-beat:
-    image: glitchtip/glitchtip:latest
-    container_name: trivioq-glitchtip-beat
-    restart: unless-stopped
-    command: ["celery", "-A", "glitchtip", "beat", "-l", "INFO"]
-    environment:
-      <<: *glitchtip-env
     networks:
       - trivioq-network
     depends_on:
@@ -478,7 +443,7 @@ services:
   glitchtip-init:
     image: glitchtip/glitchtip:latest
     container_name: trivioq-glitchtip-init
-    restart: "no"               # exits after running — intentional
+    restart: "no" # exits after running — intentional
     command: ["./manage.py", "createsuperuser", "--noinput"]
     environment:
       <<: *glitchtip-env
