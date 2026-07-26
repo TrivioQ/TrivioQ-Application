@@ -4,12 +4,15 @@
 # Beta target: AutomationServer @ 192.168.0.101
 #
 # Services:
-#   postgres  — PostgreSQL 16 (persistent data volume)
-#   redis     — Redis 7 (persistent data volume)
-#   migrate   — One-shot Prisma migration runner (exits after completion)
-#   api       — Express REST API + BullMQ workers  (port 3013)
-#   web       — Next.js 14 user-facing app         (port 3011)
-#   admin     — Next.js 16 admin dashboard         (port 3012)
+#   postgres          — PostgreSQL 16 (persistent data volume)
+#   redis             — Redis 7 (persistent data volume)
+#   migrate           — One-shot Prisma migration runner (exits after completion)
+#   api               — Express REST API + BullMQ workers  (port 3013)
+#   web               — Next.js 14 user-facing app         (port 3011)
+#   admin             — Next.js 16 admin dashboard         (port 3012)
+#   glitchtip-web     — GlitchTip error tracking UI/API   (port 8000, internal only)
+#   glitchtip-worker  — GlitchTip Celery background worker
+#   glitchtip-beat    — GlitchTip Celery Beat scheduler
 #
 # Usage (AutomationServer):
 #   docker compose up -d
@@ -32,6 +35,7 @@ networks:
 volumes:
   trivioq_postgres_data:
   trivioq_redis_data:
+  trivioq_glitchtip_uploads:
 
 # ---------------------------------------------------------------------------
 # Reusable YAML anchors
@@ -41,6 +45,24 @@ x-logging: &default-logging
   options:
     max-size: "10m"
     max-file: "3"
+
+# Shared environment for all three GlitchTip containers
+x-glitchtip-env: &glitchtip-env
+  DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${GLITCHTIP_POSTGRES_DB:-glitchtip}
+  SECRET_KEY: ${GLITCHTIP_SECRET_KEY:?GLITCHTIP_SECRET_KEY is required}
+  PORT: 8000
+  EMAIL_URL: ${GLITCHTIP_EMAIL_URL:-consolemail://}
+  GLITCHTIP_DOMAIN: ${GLITCHTIP_DOMAIN:?GLITCHTIP_DOMAIN is required (e.g. https://logs.trivioq.com)}
+  DEFAULT_FROM_EMAIL: ${GLITCHTIP_DEFAULT_FROM_EMAIL:-noreply@trivioq.com}
+  CELERY_BROKER_URL: redis://redis:6379/1
+  REDIS_URL: redis://redis:6379/1
+  CELERY_WORKER_AUTOSCALE: "1,3"
+  DEFAULT_AUTO_FIELD: django.db.models.BigAutoField
+  # Disable public registration — accounts are created only via the init service or CLI
+  REGISTRATION_OPEN: "False"
+  # Superuser seed credentials (used by glitchtip-init on first boot)
+  DJANGO_SUPERUSER_EMAIL: ${GLITCHTIP_ADMIN_EMAIL:?GLITCHTIP_ADMIN_EMAIL is required}
+  DJANGO_SUPERUSER_PASSWORD: ${GLITCHTIP_ADMIN_PASSWORD:?GLITCHTIP_ADMIN_PASSWORD is required}
 
 # ===========================================================================
 # SERVICES
@@ -384,7 +406,97 @@ services:
     logging: *default-logging
 
   # -------------------------------------------------------------------------
+  # GlitchTip — Self-hosted error tracking (Sentry-compatible)
+  # Accessible via Cloudflare Tunnel at GLITCHTIP_DOMAIN (e.g. https://logs.trivioq.com)
+  # Uses the existing postgres service (separate 'glitchtip' database)
+  # Uses redis DB index 1 (TrivioQ uses index 0) to avoid key collisions
+  # -------------------------------------------------------------------------
+  glitchtip-web:
+    image: glitchtip/glitchtip:latest
+    container_name: trivioq-glitchtip-web
+    restart: unless-stopped
+    environment:
+      <<: *glitchtip-env
+    ports:
+      - "8000:8000"           # Exposed for Cloudflare Tunnel and local verification
+    volumes:
+      - trivioq_glitchtip_uploads:/code/uploads
+    networks:
+      - trivioq-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging: *default-logging
+
+  glitchtip-worker:
+    image: glitchtip/glitchtip:latest
+    container_name: trivioq-glitchtip-worker
+    restart: unless-stopped
+    command: ["./bin/run-celery-with-beat.sh"]
+    environment:
+      <<: *glitchtip-env
+    volumes:
+      - trivioq_glitchtip_uploads:/code/uploads
+    networks:
+      - trivioq-network
+    depends_on:
+      glitchtip-web:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    logging: *default-logging
+
+  glitchtip-beat:
+    image: glitchtip/glitchtip:latest
+    container_name: trivioq-glitchtip-beat
+    restart: unless-stopped
+    command: ["celery", "-A", "glitchtip", "beat", "-l", "INFO"]
+    environment:
+      <<: *glitchtip-env
+    networks:
+      - trivioq-network
+    depends_on:
+      glitchtip-web:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    logging: *default-logging
+
+  # -------------------------------------------------------------------------
+  # GlitchTip Init — one-shot superuser seeder (exits after completion)
+  # Runs ./manage.py createsuperuser --noinput using DJANGO_SUPERUSER_* vars.
+  # Safe to re-run: Django skips creation if the email already exists.
+  # -------------------------------------------------------------------------
+  glitchtip-init:
+    image: glitchtip/glitchtip:latest
+    container_name: trivioq-glitchtip-init
+    restart: "no"               # exits after running — intentional
+    command: ["./manage.py", "createsuperuser", "--noinput"]
+    environment:
+      <<: *glitchtip-env
+    networks:
+      - trivioq-network
+    depends_on:
+      glitchtip-web:
+        condition: service_healthy
+    logging: *default-logging
+
+  # -------------------------------------------------------------------------
   # Cloudflare Tunnel (cloudflared)
+  # Routes:
+  #   trivioq.com / app.trivioq.com  → web:3011
+  #   admin.trivioq.com              → admin:3012
+  #   api.trivioq.com                → api:3013
+  #   logs.trivioq.com               → glitchtip-web:8000
+  # Configure these upstreams in the Cloudflare Zero Trust dashboard.
   # -------------------------------------------------------------------------
   tunnel:
     image: cloudflare/cloudflared:latest
@@ -401,4 +513,6 @@ services:
       web:
         condition: service_healthy
       admin:
+        condition: service_healthy
+      glitchtip-web:
         condition: service_healthy

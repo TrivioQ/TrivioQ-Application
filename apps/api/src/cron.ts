@@ -1,3 +1,28 @@
+import * as Sentry from '@sentry/node';
+
+// ── GlitchTip / Sentry error reporting ───────────────────────────────────────
+// Must be initialized before any other imports so the SDK can instrument them.
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  sendDefaultPii: false,
+  // Scrub PII from all outgoing events
+  beforeSend(event) {
+    const sensitiveKeys = ['email', 'firebaseUid', 'password'];
+    function scrub(obj: unknown) {
+      if (!obj || typeof obj !== 'object') return;
+      for (const key of Object.keys(obj as Record<string, unknown>)) {
+        if (sensitiveKeys.includes(key)) {
+          (obj as Record<string, unknown>)[key] = '[Filtered]';
+        } else {
+          scrub((obj as Record<string, unknown>)[key]);
+        }
+      }
+    }
+    scrub(event);
+    return event;
+  },
+});
+
 import cron from 'node-cron';
 process.env.TZ = 'UTC';
 import { distributeBonuses, getWeekStart, getMonthStart } from './utils/scoring';
