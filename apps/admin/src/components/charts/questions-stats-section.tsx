@@ -78,8 +78,8 @@ export function QuestionsStatsSection({ stats }: Props) {
       {/* Section heading */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">{t('title')}</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-lg font-semibold text-foreground">{t('title')}</h2>
+          <p className="text-sm text-muted-foreground">
             {t('description')}
           </p>
         </div>
@@ -88,7 +88,7 @@ export function QuestionsStatsSection({ stats }: Props) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_1fr]">
         {/* ── Filter / Summary sidebar ── */}
         <div className="space-y-4">
-          <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+          <Card className="bg-card shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div className="p-2 rounded-lg bg-teal-100">
@@ -100,10 +100,10 @@ export function QuestionsStatsSection({ stats }: Props) {
                   </Badge>
                 )}
               </div>
-              <CardTitle className="mt-3 text-sm font-medium text-gray-600">{t('matchingQuestions')}</CardTitle>
+              <CardTitle className="mt-3 text-sm font-medium text-muted-foreground">{t('matchingQuestions')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-3xl font-bold text-gray-900 tracking-tight">
+              <div className="text-3xl font-bold text-foreground tracking-tight">
                 {isPending ? <span className="animate-pulse">...</span> : filteredStats.totalQuestions.toLocaleString()}
               </div>
 
@@ -116,7 +116,7 @@ export function QuestionsStatsSection({ stats }: Props) {
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cfg.className}`}>
                         {tq(cfg.key as any)}
                       </span>
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm font-semibold text-foreground">
                         {d.count.toLocaleString()}
                       </span>
                     </div>
@@ -126,19 +126,19 @@ export function QuestionsStatsSection({ stats }: Props) {
             </CardContent>
           </Card>
 
-          <Card className="bg-white shadow-sm">
+          <Card className="bg-card shadow-sm">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-gray-500" />
-                <CardTitle className="text-sm font-semibold text-gray-700">{t('filters')}</CardTitle>
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-semibold text-foreground">{t('filters')}</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4 pt-2 pb-4">
               {/* Category Filter */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-500">{t('categories')}</label>
+                <label className="text-xs font-medium text-muted-foreground">{t('categories')}</label>
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="w-full justify-start font-normal text-sm overflow-hidden text-ellipsis whitespace-nowrap h-9 inline-flex items-center rounded-md border border-gray-300 bg-white px-3 shadow-sm hover:bg-gray-50 focus:outline-none">
+                  <DropdownMenuTrigger className="w-full justify-start font-normal text-sm overflow-hidden text-ellipsis whitespace-nowrap h-9 inline-flex items-center rounded-md border border-border bg-bg px-3 shadow-sm hover:bg-muted focus:outline-none">
                     {selectedCategories.length === 0 
                       ? t('allCategories')
                       : t('categoriesSelected', { count: selectedCategories.length })}
@@ -169,9 +169,9 @@ export function QuestionsStatsSection({ stats }: Props) {
 
               {/* Age Rating Filter */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-gray-500">{t('ageRating')}</label>
+                <label className="text-xs font-medium text-muted-foreground">{t('ageRating')}</label>
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="w-full justify-start font-normal text-sm overflow-hidden text-ellipsis whitespace-nowrap h-9 inline-flex items-center rounded-md border border-gray-300 bg-white px-3 shadow-sm hover:bg-gray-50 focus:outline-none">
+                  <DropdownMenuTrigger className="w-full justify-start font-normal text-sm overflow-hidden text-ellipsis whitespace-nowrap h-9 inline-flex items-center rounded-md border border-border bg-bg px-3 shadow-sm hover:bg-muted focus:outline-none">
                     {selectedAgeRatings.length === 0 
                       ? t('allRatings') 
                       : t('categoriesSelected', { count: selectedAgeRatings.length })}
@@ -204,11 +204,11 @@ export function QuestionsStatsSection({ stats }: Props) {
         </div>
 
         {/* ── Interactive Chart ── */}
-        <Card className="bg-white shadow-sm flex flex-col">
-          <CardHeader className="pb-0 border-b border-gray-100">
+        <Card className="bg-card shadow-sm flex flex-col">
+          <CardHeader className="pb-0 border-b border-border">
             <div className="flex items-start justify-between">
               <div>
-                <CardTitle className="text-base font-semibold text-gray-900">
+                <CardTitle className="text-base font-semibold text-foreground">
                   {t('difficultyDistribution')}
                 </CardTitle>
                 <CardDescription className="mt-1">
@@ -220,7 +220,7 @@ export function QuestionsStatsSection({ stats }: Props) {
           <CardContent className="pt-6 flex-1 flex flex-col justify-center">
             <div className={`transition-opacity duration-200 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
               {filteredStats.byDifficulty.every((d) => d.count === 0) ? (
-                <div className="flex h-[320px] items-center justify-center text-sm text-gray-400">
+                <div className="flex h-[320px] items-center justify-center text-sm text-muted-foreground">
                   {t('noQuestionsMatch')}
                 </div>
               ) : (

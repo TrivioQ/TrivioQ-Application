@@ -18,9 +18,9 @@ export function FaqStatusFilter({ current }: { current?: boolean }) {
   const set = (val: boolean | undefined) => pushParams({ active: val === undefined ? null : String(val), page: '1' });
 
   return (
-    <div className="flex items-center gap-1 rounded-md border bg-white p-1">
+    <div className="flex items-center gap-1 rounded-md border border-border bg-background p-1">
       {OPTIONS.map(({ label, value }) => (
-        <Button key={label} variant="ghost" size="sm" onClick={() => set(value)} className={cn(current === value && 'bg-gray-100 font-semibold')}>
+        <Button key={label} variant="ghost" size="sm" onClick={() => set(value)} className={cn(current === value && 'bg-muted font-semibold')}>
           {label}
         </Button>
       ))}

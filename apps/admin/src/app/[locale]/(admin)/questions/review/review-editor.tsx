@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AppSelect } from '@/components/ui/app-select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DifficultyLevel, AgeRating } from '@trivioq/database';
 import type { SuggestedChoice } from '@trivioq/shared-types';
@@ -254,29 +254,29 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label>{t('difficultyLevel')}</Label>
-            <Select value={difficultyLevel} onValueChange={(val) => setDifficultyLevel(val as DifficultyLevel)}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="EASY">{t('easy')}</SelectItem>
-                <SelectItem value="MEDIUM">{t('medium')}</SelectItem>
-                <SelectItem value="HARD">{t('hard')}</SelectItem>
-              </SelectContent>
-            </Select>
+            <AppSelect
+              value={difficultyLevel}
+              onValueChange={(val) => setDifficultyLevel(val as DifficultyLevel)}
+              className="w-full"
+              options={[
+                { value: 'EASY', label: t('easy') },
+                { value: 'MEDIUM', label: t('medium') },
+                { value: 'HARD', label: t('hard') },
+              ]}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t('ageRating')}</Label>
-            <Select value={ageRating} onValueChange={(val) => setAgeRating(val as AgeRating)}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">{t('ratingAll')}</SelectItem>
-                <SelectItem value="TEEN">{t('ratingTeen')}</SelectItem>
-                <SelectItem value="MATURE">{t('ratingMature')}</SelectItem>
-              </SelectContent>
-            </Select>
+            <AppSelect
+              value={ageRating}
+              onValueChange={(val) => setAgeRating(val as AgeRating)}
+              className="w-full"
+              options={[
+                { value: 'ALL', label: t('ratingAll') },
+                { value: 'TEEN', label: t('ratingTeen') },
+                { value: 'MATURE', label: t('ratingMature') },
+              ]}
+            />
           </div>
         </div>
 
@@ -297,18 +297,16 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
             })}
           </div>
           {categorySlugs.length < 2 && (
-            <Select onValueChange={addCategory} value="">
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t('addCategoryPlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.filter(c => !categorySlugs.includes(c.slug)).map((cat) => (
-                  <SelectItem key={cat.id} value={cat.slug}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <AppSelect
+              value=""
+              onValueChange={(val) => addCategory(val as string)}
+              className="w-full"
+              placeholder={t('addCategoryPlaceholder')}
+              options={categories
+                .filter(c => !categorySlugs.includes(c.slug))
+                .map(cat => ({ value: cat.slug, label: cat.name }))
+              }
+            />
           )}
         </div>
 

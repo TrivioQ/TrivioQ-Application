@@ -13,13 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { AppSelect } from '@/components/ui/app-select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Sparkles } from 'lucide-react';
@@ -123,12 +117,10 @@ export function CreateNotificationDialog() {
         <div className="space-y-4 py-4">
           {/* Template Toggle */}
           <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-            <input
-              type="checkbox"
+            <Checkbox
               id="use-template"
               checked={useTemplate}
-              onChange={(e) => setUseTemplate(e.target.checked)}
-              className="h-4 w-4"
+              onCheckedChange={(checked) => setUseTemplate(checked === true)}
             />
             <label htmlFor="use-template" className="text-sm font-medium flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-amber-500" />
@@ -139,79 +131,61 @@ export function CreateNotificationDialog() {
           {useTemplate && (
             <div className="space-y-2">
               <Label>{t('templateLabel')}</Label>
-              <Select onValueChange={handleTemplateSelect} value={selectedTemplate}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('selectTemplatePlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="welcome">{t('templateOptions.welcome')}</SelectItem>
-                  <SelectItem value="subscription-expiring-7d">
-                    {t('templateOptions.subscriptionExpiring7d')}
-                  </SelectItem>
-                  <SelectItem value="subscription-expiring-1d">
-                    {t('templateOptions.subscriptionExpiring1d')}
-                  </SelectItem>
-                  <SelectItem value="credits-added">{t('templateOptions.creditsAdded')}</SelectItem>
-                  <SelectItem value="offer-promotion">{t('templateOptions.offerPromotion')}</SelectItem>
-                  <SelectItem value="leaderboard-winner">{t('templateOptions.leaderboardWinner')}</SelectItem>
-                  <SelectItem value="admin-message">{t('templateOptions.adminMessage')}</SelectItem>
-                  <SelectItem value="new-feature-announcement">
-                    {t('templateOptions.newFeatureAnnouncement')}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <AppSelect
+                value={selectedTemplate}
+                onValueChange={(val) => handleTemplateSelect(val as string)}
+                placeholder={t('selectTemplatePlaceholder')}
+                options={[
+                  { value: 'welcome', label: t('templateOptions.welcome') },
+                  { value: 'subscription-expiring-7d', label: t('templateOptions.subscriptionExpiring7d') },
+                  { value: 'subscription-expiring-1d', label: t('templateOptions.subscriptionExpiring1d') },
+                  { value: 'credits-added', label: t('templateOptions.creditsAdded') },
+                  { value: 'offer-promotion', label: t('templateOptions.offerPromotion') },
+                  { value: 'leaderboard-winner', label: t('templateOptions.leaderboardWinner') },
+                  { value: 'admin-message', label: t('templateOptions.adminMessage') },
+                  { value: 'new-feature-announcement', label: t('templateOptions.newFeatureAnnouncement') },
+                ]}
+              />
             </div>
           )}
 
           {/* Notification Type */}
           <div className="space-y-2">
             <Label>{t('typeLabel')}</Label>
-            <Select
+            <AppSelect
               value={formData.type}
               onValueChange={(value) => {
-                if (value !== null) {
-                  setFormData({ ...formData, type: value });
+                if (value) {
+                  setFormData({ ...formData, type: value as string });
                 }
               }}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="TRIVIA_DROP">{t('types.triviaDrop')}</SelectItem>
-                <SelectItem value="SYSTEM_ANNOUNCEMENT">
-                  {t('types.systemAnnouncement')}
-                </SelectItem>
-                <SelectItem value="SUBSCRIPTION_REMINDER">
-                  {t('types.subscriptionReminder')}
-                </SelectItem>
-                <SelectItem value="OFFER_PROMOTION">{t('types.offerPromotion')}</SelectItem>
-                <SelectItem value="CREDIT_ALERT">{t('types.creditAlert')}</SelectItem>
-                <SelectItem value="ADMIN_MESSAGE">{t('types.adminMessage')}</SelectItem>
-              </SelectContent>
-            </Select>
+              options={[
+                { value: 'TRIVIA_DROP', label: t('types.triviaDrop') },
+                { value: 'SYSTEM_ANNOUNCEMENT', label: t('types.systemAnnouncement') },
+                { value: 'SUBSCRIPTION_REMINDER', label: t('types.subscriptionReminder') },
+                { value: 'OFFER_PROMOTION', label: t('types.offerPromotion') },
+                { value: 'CREDIT_ALERT', label: t('types.creditAlert') },
+                { value: 'ADMIN_MESSAGE', label: t('types.adminMessage') },
+              ]}
+            />
           </div>
 
           {/* Audience */}
           <div className="space-y-2">
             <Label>{t('audienceLabel')}</Label>
-            <Select
+            <AppSelect
               value={formData.audience}
               onValueChange={(value) => {
-                if (value !== null) {
-                  setFormData({ ...formData, audience: value });
+                if (value) {
+                  setFormData({ ...formData, audience: value as string });
                 }
               }}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL_USERS">{t('audiences.allUsers')}</SelectItem>
-                <SelectItem value="USER_SEGMENT">{t('audiences.userSegment')}</SelectItem>
-                <SelectItem value="SPECIFIC_USERS">{t('audiences.specificUsers')}</SelectItem>
-              </SelectContent>
-            </Select>
+              options={[
+                { value: 'ALL_USERS', label: t('audiences.allUsers') },
+                { value: 'USER_SEGMENT', label: t('audiences.userSegment') },
+                { value: 'SPECIFIC_USERS', label: t('audiences.specificUsers') },
+              ]}
+            />
           </div>
 
           {/* Title */}

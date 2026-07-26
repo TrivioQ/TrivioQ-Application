@@ -32,7 +32,7 @@ function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
 function HeaderCell({ column, label, translationNamespace = 'questions' }: HeaderContext<QuestionRow, unknown> & { label: string; translationNamespace?: string }) {
   const t = useTranslations(translationNamespace);
   return (
-    <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+    <button className="flex items-center gap-1 hover:text-foreground" onClick={column.getToggleSortingHandler()}>
       {t(label)} <SortIcon sorted={column.getIsSorted()} />
     </button>
   );
@@ -46,7 +46,7 @@ function CategoriesHeader() {
 function CategoriesCell({ row }: CellContext<QuestionRow, unknown>) {
   const t = useTranslations('common');
   const categories = row.original.categories;
-  if (!categories || categories.length === 0) return <span className="text-gray-400">{t('none')}</span>;
+  if (!categories || categories.length === 0) return <span className="text-muted-foreground">{t('none')}</span>;
   return (
     <div className="flex flex-wrap gap-1">
       {categories.map((c) => (
@@ -81,7 +81,7 @@ export const columns: ColumnDef<QuestionRow>[] = [
         MEDIUM: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
         HARD: 'bg-red-100 text-red-800 hover:bg-red-100',
       };
-      return <Badge className={colors[diff] || 'bg-gray-100 text-gray-800'}>{diff}</Badge>;
+      return <Badge className={colors[diff] || 'bg-muted text-muted-foreground'}>{diff}</Badge>;
     },
   },
   {
@@ -90,11 +90,11 @@ export const columns: ColumnDef<QuestionRow>[] = [
     cell: ({ row }) => {
       const rating = row.getValue('ageRating') as string;
       const colors: Record<string, string> = {
-        ALL: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+        ALL: 'bg-brand-100 text-brand-800 hover:bg-brand-100',
         TEEN: 'bg-purple-100 text-purple-800 hover:bg-purple-100',
         MATURE: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
       };
-      return <Badge className={colors[rating] || 'bg-gray-100 text-gray-800'}>{rating}</Badge>;
+      return <Badge className={colors[rating] || 'bg-muted text-muted-foreground'}>{rating}</Badge>;
     },
   },
   {

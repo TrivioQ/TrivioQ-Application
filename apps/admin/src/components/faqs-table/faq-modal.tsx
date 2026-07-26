@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from 'next-intl';
 
@@ -72,7 +73,7 @@ export function FAQModal({ faq, open, onOpenChange }: FAQModalProps) {
               <Input id="order" name="order" type="number" defaultValue={faq?.order ?? 0} required />
             </div>
             <div className="flex items-center space-x-2 pt-8">
-              <input id="active" name="active" type="checkbox" defaultChecked={faq?.active ?? true} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600" />
+              <Switch id="active" name="active" defaultChecked={faq?.active ?? true} />
               <Label htmlFor="active">{t(`${modalKeys}.active`)}</Label>
             </div>
           </div>

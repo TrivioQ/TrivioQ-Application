@@ -13,7 +13,7 @@ import { ChevronLeft, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
 import { bulkApprovePendingQuestions, bulkRejectPendingQuestions } from '@/app/actions/pending-questions';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AppSelect } from '@/components/ui/app-select';
 
 
 interface PendingQuestion {
@@ -177,40 +177,40 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
   return (
     <div className="space-y-4">
       {/* Filter Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit overflow-x-auto max-w-full">
-        <Link href={createTabHref()} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${!filter ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+      <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit overflow-x-auto max-w-full">
+        <Link href={createTabHref()} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${!filter ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           {t('filters.unvalidated')}
-          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${!filter ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('unvalidated', counts.unvalidated)}</span>
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${!filter ? 'bg-amber-100 text-amber-800' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('unvalidated', counts.unvalidated)}</span>
         </Link>
-        <Link href={createTabHref('ai-validated')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-validated' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+        <Link href={createTabHref('ai-validated')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-validated' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           {t('filters.aiValidated')}
-          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'ai-validated' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('aiValidated', counts.aiValidated)}</span>
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'ai-validated' ? 'bg-amber-100 text-amber-800' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('aiValidated', counts.aiValidated)}</span>
         </Link>
-        <Link href={createTabHref('ai-rejected')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-rejected' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+        <Link href={createTabHref('ai-rejected')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-rejected' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           {t('filters.aiRejected')}
-          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'ai-rejected' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('aiRejected', counts.aiRejected)}</span>
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'ai-rejected' ? 'bg-amber-100 text-amber-800' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('aiRejected', counts.aiRejected)}</span>
         </Link>
-        <Link href={createTabHref('pending-duplicate')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'pending-duplicate' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+        <Link href={createTabHref('pending-duplicate')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'pending-duplicate' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           {t('filters.pendingDuplicates')}
-          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'pending-duplicate' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('pendingDuplicate', counts.pendingDuplicate)}</span>
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'pending-duplicate' ? 'bg-amber-100 text-amber-800' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('pendingDuplicate', counts.pendingDuplicate)}</span>
         </Link>
-        <Link href={createTabHref('rejected')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'rejected' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+        <Link href={createTabHref('rejected')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'rejected' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           {t('filters.rejected')}
-          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'rejected' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{displayCount('rejected', counts.rejected)}</span>
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'rejected' ? 'bg-amber-100 text-amber-800' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('rejected', counts.rejected)}</span>
         </Link>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-0 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden h-auto lg:h-[calc(100vh-220px)] min-h-[400px] lg:min-h-[600px]">
+      <div className="flex flex-col lg:flex-row gap-0 border border-border rounded-xl bg-card shadow-sm overflow-hidden h-auto lg:h-[calc(100vh-220px)] min-h-[400px] lg:min-h-[600px]">
         {/* ── Left: Question List ── */}
-        <aside className="w-full lg:w-80 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-gray-200 bg-gray-50/50 flex flex-col h-64 lg:h-auto">
-          <div className="px-4 py-3 border-b border-gray-200 bg-white flex items-center justify-between gap-2 flex-wrap">
+        <aside className="w-full lg:w-80 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-muted/20 flex flex-col h-64 lg:h-auto">
+          <div className="px-4 py-3 border-b border-border bg-card flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2">
               <Checkbox
                 checked={selectedQuestionIds.size === pendingQuestions.length && pendingQuestions.length > 0}
                 onCheckedChange={toggleSelectAll}
                 aria-label={t('selectAll')}
               />
-              <p className="text-sm font-semibold text-gray-700">
+              <p className="text-sm font-semibold text-foreground">
                 {t('selectAll')}
               </p>
             </div>
@@ -236,9 +236,9 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
           </div>
 
           {pendingQuestions.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center p-6 text-sm text-gray-400">{t('noPending')}</div>
+            <div className="flex-1 flex items-center justify-center p-6 text-sm text-muted-foreground">{t('noPending')}</div>
           ) : (
-            <ul className="flex-1 overflow-y-auto divide-y divide-gray-100">
+            <ul className="flex-1 overflow-y-auto divide-y divide-border">
               {pendingQuestions.map((q) => (
                 <li key={q.id} className="relative group">
                   <div className="absolute left-3 top-3.5 z-10" onClick={(e) => e.stopPropagation()}>
@@ -247,9 +247,9 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
                       onCheckedChange={(checked) => toggleSelect(q.id, checked === true)}
                     />
                   </div>
-                  <button onClick={() => setSelectedId(q.id)} className={cn('w-full text-left pl-10 pr-4 py-3 transition-colors hover:bg-gray-100', selectedId === q.id && 'bg-blue-50 border-l-2 border-l-blue-500 hover:bg-blue-50', q.isDuplicate && q.status !== 'PENDING-DUPLICATE' && 'opacity-50 grayscale')}>
+                  <button onClick={() => setSelectedId(q.id)} className={cn('w-full text-left pl-10 pr-4 py-3 transition-colors hover:bg-accent', selectedId === q.id && 'bg-accent/50 border-l-2 border-l-brand-500 hover:bg-accent/50', q.isDuplicate && q.status !== 'PENDING-DUPLICATE' && 'opacity-50 grayscale')}>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-medium text-gray-900 truncate">{q.topic}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{q.topic}</p>
                       <div className="flex gap-1 flex-wrap">
                         {q.categorySlugs.map(slug => (
                           <Badge key={slug} variant="secondary" className="text-[10px] shrink-0">
@@ -258,7 +258,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
                         ))}
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{q.suggestedText}</p>
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{q.suggestedText}</p>
                     <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                       {q.status === 'PENDING-DUPLICATE' && (
                         <Badge className="text-[10px] bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100">
@@ -282,7 +282,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
                       )}
                       {q.aiQualityScore != null && scoreBadge(q.aiQualityScore) != null && <span className={cn('inline-flex h-5 w-fit shrink-0 items-center justify-center rounded-4xl px-2 py-0.5 text-[10px] font-medium', scoreBadge(q.aiQualityScore)!.className)}>{scoreBadge(q.aiQualityScore)!.label}</span>}
                     </div>
-                    <p className="text-[10px] text-gray-400 mt-1.5">
+                    <p className="text-[10px] text-muted-foreground mt-1.5">
                       {new Date(q.createdAt).toLocaleDateString(undefined, {
                         month: 'short',
                         day: 'numeric',
@@ -298,25 +298,25 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
         </aside>
 
         {/* ── Right: Editor ── */}
-        <main className="flex-1 flex flex-col min-h-[300px] lg:min-h-0">{selected ? <ReviewEditor key={selected.id} pendingQuestion={selected} categories={categories} onComplete={handleComplete} /> : <div className="flex-1 flex items-center justify-center text-sm text-gray-400">{t('selectPrompt')}</div>}</main>
+        <main className="flex-1 flex flex-col min-h-[300px] lg:min-h-0">{selected ? <ReviewEditor key={selected.id} pendingQuestion={selected} categories={categories} onComplete={handleComplete} /> : <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">{t('selectPrompt')}</div>}</main>
       </div>
 
       {/* Pagination */}
-      <div className={`flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600 transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
+      <div className={`flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
         <span>{total === 0 ? t('noResults') : t('showing', { start: (page - 1) * pageSize + 1, end: Math.min(page * pageSize, total), total })}</span>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">{t('rowsPerPage')}</span>
-            <Select value={String(pageSize)} onValueChange={(v) => pushParams({ pageSize: v, page: '1' })}>
-              <SelectTrigger size="sm" className="w-16">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="25">25</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
+            <span className="text-xs text-muted-foreground">{t('rowsPerPage')}</span>
+            <AppSelect
+              value={String(pageSize)}
+              onValueChange={(v) => pushParams({ pageSize: v as string, page: '1' })}
+              className="w-16"
+              options={[
+                { value: '25', label: '25' },
+                { value: '50', label: '50' },
+                { value: '100', label: '100' },
+              ]}
+            />
           </div>
           <div className="flex items-center gap-2">
             <button

@@ -35,20 +35,20 @@ interface Notification {
 }
 
 const typeColors: Record<string, string> = {
-  TRIVIA_DROP: 'bg-blue-100 text-blue-800',
+  TRIVIA_DROP: 'bg-brand-100 text-brand-800',
   SYSTEM_ANNOUNCEMENT: 'bg-purple-100 text-purple-800',
   SUBSCRIPTION_REMINDER: 'bg-amber-100 text-amber-800',
   OFFER_PROMOTION: 'bg-pink-100 text-pink-800',
   CREDIT_ALERT: 'bg-green-100 text-green-800',
-  ADMIN_MESSAGE: 'bg-gray-100 text-gray-800',
+  ADMIN_MESSAGE: 'bg-muted text-muted-foreground',
 };
 
 const statusColors: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-800',
-  SCHEDULED: 'bg-blue-100 text-blue-800',
-  SENDING: 'bg-yellow-100 text-yellow-800',
-  COMPLETED: 'bg-green-100 text-green-800',
-  FAILED: 'bg-red-100 text-red-800',
+  DRAFT: 'bg-muted text-muted-foreground',
+  SCHEDULED: 'bg-brand-100 text-brand-800',
+  SENDING: 'bg-brand-100 text-brand-800',
+  COMPLETED: 'bg-brand-100 text-brand-800',
+  FAILED: 'bg-destructive/10 text-destructive',
 };
 
 const audienceLabels: Record<string, string> = {
@@ -118,7 +118,7 @@ export function NotificationList() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
         {t('loading')}
       </div>
     );
@@ -126,10 +126,10 @@ export function NotificationList() {
 
   if (notifications.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-        <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900">{t('noneYet')}</h3>
-        <p className="text-gray-500 mt-1">
+      <div className="bg-background rounded-lg border border-border p-12 text-center">
+        <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-foreground">{t('noneYet')}</h3>
+        <p className="text-muted-foreground mt-1">
           {t('createPrompt')}
         </p>
       </div>
@@ -137,7 +137,7 @@ export function NotificationList() {
   }
 
   return (
-    <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+    <div className="overflow-x-auto bg-background rounded-lg border border-border">
       <Table className="min-w-[700px]">
         <TableHeader>
           <TableRow>
@@ -155,7 +155,7 @@ export function NotificationList() {
           {notifications.map((notification) => (
             <TableRow key={notification.id}>
               <TableCell>
-                <Badge className={`${typeColors[notification.type] || 'bg-gray-100'} whitespace-nowrap`}>
+                <Badge className={`${typeColors[notification.type] || 'bg-muted'} whitespace-nowrap`}>
                   {notification.type.replace(/_/g, ' ')}
                 </Badge>
               </TableCell>
@@ -170,13 +170,13 @@ export function NotificationList() {
               <TableCell>
                 <div className="flex items-center gap-1">
                   {notification.channels.includes('PUSH_MOBILE') && (
-                    <span title={t('channelTitles.mobilePush')}><Smartphone className="h-4 w-4 text-gray-500" /></span>
+                    <span title={t('channelTitles.mobilePush')}><Smartphone className="h-4 w-4 text-muted-foreground" /></span>
                   )}
                   {notification.channels.includes('PUSH_WEB') && (
-                    <span title={t('channelTitles.webPush')}><Bell className="h-4 w-4 text-gray-500" /></span>
+                    <span title={t('channelTitles.webPush')}><Bell className="h-4 w-4 text-muted-foreground" /></span>
                   )}
                   {notification.channels.includes('EMAIL') && (
-                    <span title={t('channelTitles.email')}><Mail className="h-4 w-4 text-gray-500" /></span>
+                    <span title={t('channelTitles.email')}><Mail className="h-4 w-4 text-muted-foreground" /></span>
                   )}
                 </div>
               </TableCell>
@@ -184,11 +184,11 @@ export function NotificationList() {
                 {notification.deliveredCount} / {notification.totalRecipients}
               </TableCell>
               <TableCell>
-                <Badge className={`${statusColors[notification.status] || 'bg-gray-100'} whitespace-nowrap`}>
+                <Badge className={`${statusColors[notification.status] || 'bg-muted'} whitespace-nowrap`}>
                   {notification.status}
                 </Badge>
               </TableCell>
-              <TableCell className="hidden lg:table-cell text-sm text-gray-500 whitespace-nowrap">
+              <TableCell className="hidden lg:table-cell text-sm text-muted-foreground whitespace-nowrap">
                 {format(new Date(notification.createdAt), 'MMM d, yyyy HH:mm')}
               </TableCell>
               <TableCell className="text-right">

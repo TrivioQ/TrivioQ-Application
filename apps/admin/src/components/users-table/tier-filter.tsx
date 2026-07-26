@@ -28,12 +28,12 @@ export function TierFilter({ current }: { current?: SubscriptionTier }) {
   };
 
   return (
-    <div className="flex items-center gap-1 rounded-md border bg-white p-1">
-      <button onClick={() => setTier(undefined)} className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), !current && 'bg-gray-100 font-semibold')}>
+    <div className="flex items-center gap-1 rounded-md border border-border bg-background p-1">
+      <button onClick={() => setTier(undefined)} className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), !current && 'bg-muted font-semibold')}>
         {t('all')}
       </button>
       {TIERS.map((tier) => (
-        <button key={tier} onClick={() => setTier(tier)} className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), current === tier && 'bg-gray-100 font-semibold')}>
+        <button key={tier} onClick={() => setTier(tier)} className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), current === tier && 'bg-muted font-semibold')}>
           {tier === 'PREMIUM' ? t('premium') : t('free')}
         </button>
       ))}

@@ -34,7 +34,7 @@ function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
 
 function SortableColumnHeader({ column, children }: { column: Column<UserRow, unknown>; children: React.ReactNode }) {
   return (
-    <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+    <button className="flex items-center gap-1 hover:text-foreground" onClick={column.getToggleSortingHandler()}>
       {children} <SortIcon sorted={column.getIsSorted()} />
     </button>
   );
@@ -79,7 +79,7 @@ export const columns: ColumnDef<UserRow>[] = [
     header: () => <DateOfBirthHeader />,
     cell: ({ row }) => {
       const dob = row.getValue('dateOfBirth') as string | null | undefined;
-      if (!dob) return <span className="text-gray-400">—</span>;
+      if (!dob) return <span className="text-muted-foreground">—</span>;
       return dob;
     },
   },
@@ -88,7 +88,7 @@ export const columns: ColumnDef<UserRow>[] = [
     header: ({ column }) => <SubscriptionTierHeader column={column} />,
     cell: ({ row }) => {
       const tier = row.getValue('subscriptionTier') as string;
-      return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${tier === 'PREMIUM' ? 'bg-amber-100 text-amber-800' : tier === 'PLUS' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`}>{tier}</span>;
+      return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${tier === 'PREMIUM' ? 'bg-amber-100 text-amber-800' : tier === 'PLUS' ? 'bg-purple-100 text-purple-800' : 'bg-muted text-muted-foreground'}`}>{tier}</span>;
     },
   },
   {

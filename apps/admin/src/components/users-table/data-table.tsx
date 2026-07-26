@@ -56,7 +56,7 @@ export function DataTable<TData, TValue>({ columns, data, pageCount = 1, current
         {actionSlot}
       </div>
 
-      <div className={`overflow-x-auto rounded-md border bg-white transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
+      <div className={`overflow-x-auto rounded-md border bg-background transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
         <Table className="min-w-[600px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -78,7 +78,7 @@ export function DataTable<TData, TValue>({ columns, data, pageCount = 1, current
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500">
+                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   {t('noResults')}
                 </TableCell>
               </TableRow>
@@ -88,13 +88,13 @@ export function DataTable<TData, TValue>({ columns, data, pageCount = 1, current
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-gray-500">{start && end && total ? t('showing', { from: start, to: end, total }) : t('pageOf', { current: currentPage, total: Math.max(1, pageCount) })}</div>
+        <div className="text-sm text-muted-foreground">{start && end && total ? t('showing', { from: start, to: end, total }) : t('pageOf', { current: currentPage, total: Math.max(1, pageCount) })}</div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => pushParams({ page: String(currentPage - 1) })} disabled={currentPage <= 1 || isPending}>
             <ChevronLeft className="h-4 w-4" />
             {t('prev')}
           </Button>
-          <span className="text-sm text-gray-600 font-medium">
+          <span className="text-sm text-muted-foreground font-medium">
             {currentPage} / {Math.max(1, pageCount)}
           </span>
           <Button variant="outline" size="sm" onClick={() => pushParams({ page: String(currentPage + 1) })} disabled={currentPage >= pageCount || isPending}>

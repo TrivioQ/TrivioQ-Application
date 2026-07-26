@@ -24,7 +24,7 @@ function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
 
 function SortableColumnHeader({ column, children }: { column: Column<CategoryRow, unknown>; children: React.ReactNode }) {
   return (
-    <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+    <button className="flex items-center gap-1 hover:text-foreground" onClick={column.getToggleSortingHandler()}>
       {children} <SortIcon sorted={column.getIsSorted()} />
     </button>
   );
@@ -47,7 +47,7 @@ function DescriptionHeader() {
 
 function DescriptionCell({ value }: { value: unknown }) {
   const t = useTranslations('categories');
-  return <>{value || <span className="text-gray-400">{t('columns.none')}</span>}</>;
+  return <>{value || <span className="text-muted-foreground">{t('columns.none')}</span>}</>;
 }
 
 function QuestionsHeader() {

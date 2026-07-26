@@ -27,7 +27,7 @@ function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
 function HeaderCell({ column, label }: HeaderContext<FAQRow, unknown> & { label: string }) {
   const t = useTranslations('faqs');
   return (
-    <button className="flex items-center gap-1 hover:text-gray-900" onClick={column.getToggleSortingHandler()}>
+    <button className="flex items-center gap-1 hover:text-foreground" onClick={column.getToggleSortingHandler()}>
       {t(label)} <SortIcon sorted={column.getIsSorted()} />
     </button>
   );
@@ -36,7 +36,7 @@ function HeaderCell({ column, label }: HeaderContext<FAQRow, unknown> & { label:
 function StatusCell({ row }: CellContext<FAQRow, unknown>) {
   const t = useTranslations('common');
   const active = row.getValue('active') as boolean;
-  return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{active ? t('active') : t('inactive')}</span>;
+  return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${active ? 'bg-secondary text-secondary-foreground' : 'bg-muted text-muted-foreground'}`}>{active ? t('active') : t('inactive')}</span>;
 }
 
 export const columns: ColumnDef<FAQRow>[] = [

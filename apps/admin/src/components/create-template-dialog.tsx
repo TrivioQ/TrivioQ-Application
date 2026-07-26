@@ -13,13 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { AppSelect } from '@/components/ui/app-select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
@@ -117,30 +111,22 @@ export function CreateTemplateDialog() {
           {/* Template Type */}
           <div className="space-y-2">
             <Label>{t('typeLabel')}</Label>
-            <Select
+            <AppSelect
               value={formData.type}
               onValueChange={(value) => {
                 if (value !== null) {
-                  setFormData({ ...formData, type: value });
+                  setFormData({ ...formData, type: value as string });
                 }
               }}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="TRIVIA_DROP">{t('types.triviaDrop')}</SelectItem>
-                <SelectItem value="SYSTEM_ANNOUNCEMENT">
-                  {t('types.systemAnnouncement')}
-                </SelectItem>
-                <SelectItem value="SUBSCRIPTION_REMINDER">
-                  {t('types.subscriptionReminder')}
-                </SelectItem>
-                <SelectItem value="OFFER_PROMOTION">{t('types.offerPromotion')}</SelectItem>
-                <SelectItem value="CREDIT_ALERT">{t('types.creditAlert')}</SelectItem>
-                <SelectItem value="ADMIN_MESSAGE">{t('types.adminMessage')}</SelectItem>
-              </SelectContent>
-            </Select>
+              options={[
+                { value: 'TRIVIA_DROP', label: t('types.triviaDrop') },
+                { value: 'SYSTEM_ANNOUNCEMENT', label: t('types.systemAnnouncement') },
+                { value: 'SUBSCRIPTION_REMINDER', label: t('types.subscriptionReminder') },
+                { value: 'OFFER_PROMOTION', label: t('types.offerPromotion') },
+                { value: 'CREDIT_ALERT', label: t('types.creditAlert') },
+                { value: 'ADMIN_MESSAGE', label: t('types.adminMessage') },
+              ]}
+            />
           </div>
 
           {/* Title */}

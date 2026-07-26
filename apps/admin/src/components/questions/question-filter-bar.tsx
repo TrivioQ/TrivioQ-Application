@@ -7,9 +7,8 @@ import { buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SearchInput } from '@/components/ui/search-input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Check, ChevronsUpDown, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
+import { ChevronsUpDown, X } from 'lucide-react';
 import { DifficultyLevel, AgeRating } from '@trivioq/database';
 
 const DIFFICULTIES: DifficultyLevel[] = ['EASY', 'MEDIUM', 'HARD'];
@@ -82,17 +81,26 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
             {difficulties.length > 0 && <Badge className="ml-1 rounded-full px-1.5 py-0 text-xs bg-teal-600 text-white hover:bg-teal-600">{difficulties.length}</Badge>}
             <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
           </PopoverTrigger>
-          <PopoverContent className="w-44 p-0">
+          <PopoverContent className="w-48 p-0">
             <Command>
               <CommandList>
                 <CommandGroup>
                   {DIFFICULTIES.map((d) => (
-                    <CommandItem key={d} onSelect={() => toggleDifficulty(d)}>
-                      <Check className={cn('mr-2 h-4 w-4', difficulties.includes(d) ? 'opacity-100' : 'opacity-0')} />
+                    <CommandItem key={d} onSelect={() => toggleDifficulty(d)} data-checked={difficulties.includes(d)}>
                       {d}
                     </CommandItem>
                   ))}
                 </CommandGroup>
+                {difficulties.length > 0 && (
+                  <>
+                    <CommandSeparator />
+                    <CommandGroup>
+                      <CommandItem onSelect={() => push({ difficulty: undefined })} className="justify-center text-center">
+                        {t('clearFilters')}
+                      </CommandItem>
+                    </CommandGroup>
+                  </>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
@@ -105,17 +113,26 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
             {ageRatings.length > 0 && <Badge className="ml-1 rounded-full px-1.5 py-0 text-xs bg-teal-600 text-white hover:bg-teal-600">{ageRatings.length}</Badge>}
             <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
           </PopoverTrigger>
-          <PopoverContent className="w-44 p-0">
+          <PopoverContent className="w-48 p-0">
             <Command>
               <CommandList>
                 <CommandGroup>
                   {AGE_RATINGS.map((a) => (
-                    <CommandItem key={a} onSelect={() => toggleAgeRating(a)}>
-                      <Check className={cn('mr-2 h-4 w-4', ageRatings.includes(a) ? 'opacity-100' : 'opacity-0')} />
+                    <CommandItem key={a} onSelect={() => toggleAgeRating(a)} data-checked={ageRatings.includes(a)}>
                       {a}
                     </CommandItem>
                   ))}
                 </CommandGroup>
+                {ageRatings.length > 0 && (
+                  <>
+                    <CommandSeparator />
+                    <CommandGroup>
+                      <CommandItem onSelect={() => push({ ageRating: undefined })} className="justify-center text-center">
+                        {t('clearFilters')}
+                      </CommandItem>
+                    </CommandGroup>
+                  </>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
@@ -135,12 +152,21 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
                 <CommandEmpty>{t('noCategoryFound')}</CommandEmpty>
                 <CommandGroup>
                   {categories.map((c) => (
-                    <CommandItem key={c.id} onSelect={() => toggleCategory(c.name)}>
-                      <Check className={cn('mr-2 h-4 w-4', categoryNames.includes(c.name) ? 'opacity-100' : 'opacity-0')} />
+                    <CommandItem key={c.id} onSelect={() => toggleCategory(c.name)} data-checked={categoryNames.includes(c.name)}>
                       {c.name}
                     </CommandItem>
                   ))}
                 </CommandGroup>
+                {categoryNames.length > 0 && (
+                  <>
+                    <CommandSeparator />
+                    <CommandGroup>
+                      <CommandItem onSelect={() => push({ category: undefined })} className="justify-center text-center">
+                        {t('clearFilters')}
+                      </CommandItem>
+                    </CommandGroup>
+                  </>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
@@ -153,24 +179,33 @@ export function QuestionFilterBar({ categories }: { categories: Category[] }) {
             {scoreValues.length > 0 && <Badge className="ml-1 rounded-full px-1.5 py-0 text-xs bg-teal-600 text-white hover:bg-teal-600">{scoreValues.length}</Badge>}
             <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
           </PopoverTrigger>
-          <PopoverContent className="w-48 p-0">
+          <PopoverContent className="w-52 p-0">
             <Command>
               <CommandList>
                 <CommandGroup>
                   {AI_SCORES.map((s) => (
-                    <CommandItem key={s.value} onSelect={() => toggleScore(s.value)}>
-                      <Check className={cn('mr-2 h-4 w-4', scoreValues.includes(s.value) ? 'opacity-100' : 'opacity-0')} />
+                    <CommandItem key={s.value} onSelect={() => toggleScore(s.value)} data-checked={scoreValues.includes(s.value)}>
                       {s.label}
                     </CommandItem>
                   ))}
                 </CommandGroup>
+                {scoreValues.length > 0 && (
+                  <>
+                    <CommandSeparator />
+                    <CommandGroup>
+                      <CommandItem onSelect={() => push({ score: undefined })} className="justify-center text-center">
+                        {t('clearFilters')}
+                      </CommandItem>
+                    </CommandGroup>
+                  </>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
 
         {hasFilters && (
-          <button onClick={clearAll} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 transition-colors">
+          <button onClick={clearAll} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <X className="h-3.5 w-3.5" />
             {t('clearFilters')}
           </button>

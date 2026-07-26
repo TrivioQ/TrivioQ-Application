@@ -5,7 +5,7 @@ import { updateQuestion } from '@/app/actions/question-actions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AppSelect } from '@/components/ui/app-select';
 import { DifficultyLevel } from '@trivioq/database';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -121,16 +121,16 @@ export function QuestionModal({ question, categories, open, onOpenChange }: { qu
           {/* Difficulty */}
           <div className="space-y-2">
             <Label>{t('difficulty')}</Label>
-            <Select value={difficultyLevel} onValueChange={(val) => setDifficultyLevel(val as DifficultyLevel)}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('selectDifficulty')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="EASY">{t('easy')}</SelectItem>
-                <SelectItem value="MEDIUM">{t('medium')}</SelectItem>
-                <SelectItem value="HARD">{t('hard')}</SelectItem>
-              </SelectContent>
-            </Select>
+            <AppSelect
+              value={difficultyLevel}
+              onValueChange={(val) => setDifficultyLevel(val as DifficultyLevel)}
+              options={[
+                { value: 'EASY', label: t('easy') },
+                { value: 'MEDIUM', label: t('medium') },
+                { value: 'HARD', label: t('hard') },
+              ]}
+              placeholder={t('selectDifficulty')}
+            />
           </div>
 
           {/* Choices */}
@@ -139,14 +139,23 @@ export function QuestionModal({ question, categories, open, onOpenChange }: { qu
             {choices.map((choice, idx) => (
               <div key={choice.id} className="space-y-1">
                 <div className="flex items-start gap-2">
-                  <input
-                    type="radio"
-                    name="correctAnswer"
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={choice.isCorrect}
                     title={t('markCorrect')}
-                    checked={choice.isCorrect}
-                    onChange={() => markCorrect(idx)}
-                    className="h-4 w-4 shrink-0 mt-2.5"
-                  />
+                    onClick={() => markCorrect(idx)}
+                    className={cn(
+                      'h-4 w-4 shrink-0 mt-3.5 rounded-full border flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+                      choice.isCorrect
+                        ? 'border-primary bg-primary'
+                        : 'border-input hover:border-primary/50 bg-background'
+                    )}
+                  >
+                    {choice.isCorrect && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
+                    )}
+                  </button>
                   <div className="flex-1 space-y-1">
                     <div className="flex gap-1">
                       <Textarea

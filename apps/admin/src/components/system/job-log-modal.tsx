@@ -28,19 +28,19 @@ export function JobLogModalTrigger({ payload, result, jobId }: JobLogModalTrigge
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{t('modal.jobId')}</h3>
-              <p className="text-sm font-mono text-gray-700 bg-gray-50 rounded-lg p-2 break-all">{jobId}</p>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t('modal.jobId')}</h3>
+              <p className="text-sm font-mono text-foreground/80 bg-muted rounded-lg p-2 break-all">{jobId}</p>
             </div>
             <div>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{t('modal.payload')}</h3>
-              <pre className="text-xs bg-gray-50 rounded-lg p-4 overflow-x-auto border border-gray-100 max-h-64 overflow-y-auto">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t('modal.payload')}</h3>
+              <pre className="text-xs bg-muted rounded-lg p-4 overflow-x-auto border border-border max-h-64 overflow-y-auto">
                 <code>{JSON.stringify(payload, null, 2)}</code>
               </pre>
             </div>
             {result != null && (
               <div>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{t('modal.result')}</h3>
-                <pre className="text-xs bg-gray-50 rounded-lg p-4 overflow-x-auto border border-gray-100 max-h-64 overflow-y-auto">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t('modal.result')}</h3>
+                <pre className="text-xs bg-muted rounded-lg p-4 overflow-x-auto border border-border max-h-64 overflow-y-auto">
                   <code>{JSON.stringify(result, null, 2)}</code>
                 </pre>
               </div>

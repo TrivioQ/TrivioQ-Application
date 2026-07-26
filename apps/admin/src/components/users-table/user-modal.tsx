@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AppSelect } from '@/components/ui/app-select';
 import { SubscriptionTier } from '@trivioq/database';
 import type { UserRow } from './columns';
 
@@ -105,16 +105,15 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
           </div>
           <div className="space-y-2">
             <Label>{t('subscriptionTier')}</Label>
-            <Select value={subscriptionTier} onValueChange={(v) => setSubscriptionTier(v as SubscriptionTier)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="FREE">{t('free')}</SelectItem>
-                <SelectItem value="PREMIUM">{t('premium')}</SelectItem>
-                <SelectItem value="PLUS">{t('plus')}</SelectItem>
-              </SelectContent>
-            </Select>
+            <AppSelect
+              value={subscriptionTier}
+              onValueChange={(v) => setSubscriptionTier(v as SubscriptionTier)}
+              options={[
+                { value: 'FREE', label: t('free') },
+                { value: 'PREMIUM', label: t('premium') },
+                { value: 'PLUS', label: t('plus') },
+              ]}
+            />
           </div>
           {subscriptionTier !== 'FREE' && (
             <div className="space-y-2">

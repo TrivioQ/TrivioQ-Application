@@ -122,7 +122,7 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
         const isExpired = status === 'Expired';
 
         return (
-          <Card key={plan.id} className="bg-white shadow-sm">
+          <Card key={plan.id} className="bg-background shadow-sm">
             <CardHeader className="pb-2">
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1 min-w-0">

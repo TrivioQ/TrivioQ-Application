@@ -4,41 +4,231 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─────────────────────────────────────────────────────────────────────
+   Theme tokens — shared with apps/web (single source of truth for color).
+   Values are RGB triplets so Tailwind utilities can compose opacity
+   (`bg-brand-500/40` etc.).
+   ───────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Semantic neutrals (slate scale, light) — match apps/web */
+  --bg-primary: 248 250 252;       /* slate-50  — page canvas */
+  --bg-secondary: 255 255 255;     /* white     — cards / sections */
+  --surface-elevated: 241 245 249; /* slate-100 — modals, popovers */
+  --text-primary: 15 23 42;        /* slate-900 */
+  --text-secondary: 100 116 139;   /* slate-500 */
+  --border-color: 226 232 240;     /* slate-200 */
+
+  /* Status semantics — tuned for hue separation from the teal brand */
+  --success: 16 185 129;           /* emerald-500 (#10B981) */
+  --warning: 245 158 11;           /* amber-500  (#F59E0B) */
+  --error: 244 63 94;              /* rose-500   (#F43F5E) */
+  --info: 99 102 241;              /* indigo-500 (#6366F1) */
+
+  /* Brand scale (teal) — match apps/web */
+  --brand-50: 240 253 250;
+  --brand-100: 204 251 241;
+  --brand-300: 94 234 212;
+  --brand-400: 45 212 191;
+  --brand-500: 20 184 166;         /* teal-500, primary brand */
+  --brand-600: 13 148 136;         /* teal-600, hover */
+  --brand-700: 15 118 110;
+  --brand-800: 17 94 89;
+  --brand-900: 19 78 74;
+
+  /* Interactive brand — same as brand-500 in light, teal-300 in dark for AA */
+  --brand-interactive: 20 184 166;
+
+  /* Brand-accent: warm amber/gold */
+  --brand-accent-500: 251 191 36;  /* amber-400 (#FBBF24) */
+  --brand-accent-600: 245 158 11;  /* amber-500 (#F59E0B) */
+  --brand-accent-700: 217 119 6;   /* amber-600 (#D97706) */
+
+  /* ── shadcn aliases (light mode) ─────────────────────────────────── */
+  --background: var(--bg-secondary);
+  --foreground: var(--text-primary);
+  --card: var(--bg-secondary);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-secondary);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--brand-interactive);
+  --primary-foreground: 255 255 255;
+  --secondary: var(--surface-elevated);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--surface-elevated);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--surface-elevated);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--error);
+  --border: var(--border-color);
+  --input: var(--border-color);
+  --ring: var(--brand-interactive);
+
+  /* Chart colors — 5 distinct hues from the TrivioQ palette */
+  --chart-1: var(--brand-interactive);
+  --chart-2: var(--brand-accent-600);
+  --chart-3: var(--info);
+  --chart-4: var(--error);
+  --chart-5: 14 165 233;            /* sky-500 (#0EA5E9) */
+
+  --radius: 0.625rem;
+
+  /* Sidebar — dark slate navigation panel (admin convention: dark sidebar, light content) */
+  --sidebar: 15 23 42;              /* slate-900 */
+  --sidebar-foreground: 248 250 252; /* slate-50 */
+  --sidebar-primary: var(--brand-interactive);
+  --sidebar-primary-foreground: 255 255 255;
+  --sidebar-accent: 30 41 59;       /* slate-800 — hover bg */
+  --sidebar-accent-foreground: 248 250 252;
+  --sidebar-border: 51 65 85;       /* slate-700 */
+  --sidebar-ring: var(--brand-interactive);
+}
+
+.dark {
+  --bg-primary: 2 6 23;            /* slate-950 */
+  --bg-secondary: 15 23 42;        /* slate-900 */
+  --surface-elevated: 30 41 59;    /* slate-800 */
+  --text-primary: 248 250 252;     /* slate-50 */
+  --text-secondary: 148 163 184;   /* slate-400 */
+  --border-color: 51 65 85;        /* slate-700 */
+
+  /* Brand scale stays the same; interactive alias is promoted to teal-300
+     for WCAG AA compliance (~5.6:1 contrast on slate-950). */
+  --brand-interactive: 94 234 212; /* teal-300 */
+
+  /* Brand-accent: same hue as light for identical warm perception */
+  --brand-accent-500: 251 191 36;
+  --brand-accent-600: 245 158 11;
+  --brand-accent-700: 217 119 6;
+
+  /* Status semantics — identical to light (hues stay constant across modes) */
+  --success: 16 185 129;
+  --warning: 245 158 11;
+  --error: 244 63 94;
+  --info: 99 102 241;
+
+  /* ── shadcn aliases (dark mode) ──────────────────────────────────── */
+  --background: var(--bg-secondary);
+  --foreground: var(--text-primary);
+  --card: var(--bg-secondary);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-secondary);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--brand-interactive);
+  --primary-foreground: var(--bg-primary);
+  --secondary: var(--surface-elevated);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--surface-elevated);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--surface-elevated);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--error);
+  --border: var(--border-color);
+  --input: var(--border-color);
+  --ring: var(--brand-interactive);
+
+  /* Chart colors — slightly brighter for dark backgrounds */
+  --chart-1: var(--brand-interactive);
+  --chart-2: var(--brand-accent-500);
+  --chart-3: var(--info);
+  --chart-4: var(--error);
+  --chart-5: 56 189 248;            /* sky-400 (#38BDF8) */
+
+  /* Sidebar — even darker in dark mode for clear hierarchy */
+  --sidebar: 2 6 23;               /* slate-950 */
+  --sidebar-foreground: 248 250 252; /* slate-50 */
+  --sidebar-primary: var(--brand-interactive);
+  --sidebar-primary-foreground: var(--bg-primary);
+  --sidebar-accent: 15 23 42;      /* slate-900 — hover bg */
+  --sidebar-accent-foreground: 248 250 252;
+  --sidebar-border: 30 41 59;      /* slate-800 */
+  --sidebar-ring: var(--brand-interactive);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Tailwind v4 @theme inline — exposes the shared CSS variables as
+   utility colors.
+
+   IMPORTANT: values here must be a valid CSS color produced *without*
+   the `<alpha-value>` placeholder inside any `:root`-level declaration
+   (Tailwind doesn't expand the placeholder for vars, and browsers treat
+   it as invalid syntax). For colors that change with theme mode, we
+   redeclare them under `.dark` in a separate `@theme inline` block.
+   ───────────────────────────────────────────────────────────────────── */
+
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-poppins);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
+
+  /* shadcn tokens → drives bg-background, text-foreground, bg-card, etc. */
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-card: rgb(var(--card));
+  --color-card-foreground: rgb(var(--card-foreground));
+  --color-popover: rgb(var(--popover));
+  --color-popover-foreground: rgb(var(--popover-foreground));
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+  --color-accent: rgb(var(--accent));
+  --color-accent-foreground: rgb(var(--accent-foreground));
+  --color-destructive: rgb(var(--destructive));
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-ring: rgb(var(--ring));
+
+  /* Charts */
+  --color-chart-1: rgb(var(--chart-1));
+  --color-chart-2: rgb(var(--chart-2));
+  --color-chart-3: rgb(var(--chart-3));
+  --color-chart-4: rgb(var(--chart-4));
+  --color-chart-5: rgb(var(--chart-5));
+
+  /* Sidebar (shadcn sidebar primitive) */
+  --color-sidebar: rgb(var(--sidebar));
+  --color-sidebar-foreground: rgb(var(--sidebar-foreground));
+  --color-sidebar-primary: rgb(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: rgb(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: rgb(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: rgb(var(--sidebar-accent-foreground));
+  --color-sidebar-border: rgb(var(--sidebar-border));
+  --color-sidebar-ring: rgb(var(--sidebar-ring));
+
+  /* ── Shared brand palette (matches apps/web tailwind.config.ts) ──
+     Lets every component use `bg-brand-500`, `text-brand-interactive`,
+     `ring-brand-600/40` etc. so color choices live in tokens, not class
+     strings. These map to the CSS variables above. */
+  --color-brand-50:  rgb(var(--brand-50));
+  --color-brand-100: rgb(var(--brand-100));
+  --color-brand-300: rgb(var(--brand-300));
+  --color-brand-400: rgb(var(--brand-400));
+  --color-brand-500: rgb(var(--brand-500));
+  --color-brand-600: rgb(var(--brand-600));
+  --color-brand-700: rgb(var(--brand-700));
+  --color-brand-800: rgb(var(--brand-800));
+  --color-brand-900: rgb(var(--brand-900));
+  --color-brand-interactive: rgb(var(--brand-interactive));
+  --color-brand-accent-500: rgb(var(--brand-accent-500));
+  --color-brand-accent-600: rgb(var(--brand-accent-600));
+  --color-brand-accent-700: rgb(var(--brand-accent-700));
+
+  /* Status semantics exposed as utilities (matches apps/web) */
+  --color-success: rgb(var(--success));
+  --color-warning: rgb(var(--warning));
+  --color-error:   rgb(var(--error));
+  --color-info:    rgb(var(--info));
+
+  /* Background surfaces exposed as utilities */
+  --color-bg:           rgb(var(--bg-primary));
+  --color-bg-secondary: rgb(var(--bg-secondary));
+  --color-surface:      rgb(var(--surface-elevated));
+  --color-text-muted:   rgb(var(--text-secondary));
+
+  /* Radii */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -48,88 +238,14 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  /* Primary — TrivioQ teal brand (teal-600 range for sufficient contrast on white) */
-  --primary: oklch(0.60 0.13 185);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  /* Ring uses brand teal at low opacity for focus indicators */
-  --ring: oklch(0.70 0.14 185);
-  /* Chart colors — 5 distinct hues from the TrivioQ palette */
-  --chart-1: oklch(0.70 0.14 185);  /* teal   — brand primary */
-  --chart-2: oklch(0.79 0.17 80);   /* amber  — warm accent */
-  --chart-3: oklch(0.55 0.22 265);  /* indigo — cool accent */
-  --chart-4: oklch(0.65 0.22 15);   /* rose   — error/alert hue */
-  --chart-5: oklch(0.67 0.16 230);  /* sky    — info hue */
-  --radius: 0.625rem;
-  /* Sidebar — brand teal for primary actions */
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.60 0.13 185);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.70 0.14 185);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  /* Primary — slightly lighter teal for dark mode legibility */
-  --primary: oklch(0.70 0.14 185);
-  --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.70 0.14 185);
-  /* Chart colors — slightly brighter for dark backgrounds */
-  --chart-1: oklch(0.75 0.14 185);  /* teal   */
-  --chart-2: oklch(0.82 0.17 80);   /* amber  */
-  --chart-3: oklch(0.65 0.22 265);  /* indigo */
-  --chart-4: oklch(0.70 0.22 15);   /* rose   */
-  --chart-5: oklch(0.72 0.16 230);  /* sky    */
-  /* Sidebar — brand teal for primary actions in dark */
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.70 0.14 185);
-  --sidebar-primary-foreground: oklch(0.145 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.70 0.14 185);
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: rgb(var(--bg-primary));
+    color: rgb(var(--text-primary));
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   html {
     @apply font-sans;

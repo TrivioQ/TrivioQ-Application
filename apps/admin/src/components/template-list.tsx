@@ -35,12 +35,12 @@ interface Template {
 }
 
 const typeColors: Record<string, string> = {
-  TRIVIA_DROP: 'bg-blue-100 text-blue-800',
+  TRIVIA_DROP: 'bg-brand-100 text-brand-800',
   SYSTEM_ANNOUNCEMENT: 'bg-purple-100 text-purple-800',
   SUBSCRIPTION_REMINDER: 'bg-amber-100 text-amber-800',
   OFFER_PROMOTION: 'bg-pink-100 text-pink-800',
   CREDIT_ALERT: 'bg-green-100 text-green-800',
-  ADMIN_MESSAGE: 'bg-gray-100 text-gray-800',
+  ADMIN_MESSAGE: 'bg-muted text-muted-foreground',
 };
 
 export function TemplateList() {
@@ -109,7 +109,7 @@ export function TemplateList() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
         {t('loading')}
       </div>
     );
@@ -117,10 +117,10 @@ export function TemplateList() {
 
   if (templates.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-        <Sparkles className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900">{t('noneYet')}</h3>
-        <p className="text-gray-500 mt-1">
+      <div className="bg-background rounded-lg border border-border p-12 text-center">
+        <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-foreground">{t('noneYet')}</h3>
+        <p className="text-muted-foreground mt-1">
           {t('createPrompt')}
         </p>
       </div>
@@ -128,7 +128,7 @@ export function TemplateList() {
   }
 
   return (
-    <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+    <div className="overflow-x-auto bg-background rounded-lg border border-border">
       <Table className="min-w-[800px]">
         <TableHeader>
           <TableRow>
@@ -147,11 +147,11 @@ export function TemplateList() {
             <TableRow key={template.id}>
               <TableCell className="font-medium">{template.name}</TableCell>
               <TableCell>
-                <Badge className={`${typeColors[template.type] || 'bg-gray-100'} whitespace-nowrap`}>
+                <Badge className={`${typeColors[template.type] || 'bg-muted'} whitespace-nowrap`}>
                   {template.type.replace(/_/g, ' ')}
                 </Badge>
               </TableCell>
-              <TableCell className="max-w-xs truncate text-sm text-gray-600">
+              <TableCell className="max-w-xs truncate text-sm text-muted-foreground">
                 {template.title}
               </TableCell>
               <TableCell className="hidden lg:table-cell">
@@ -166,22 +166,22 @@ export function TemplateList() {
               <TableCell>
                 <div className="flex items-center gap-1">
                   {template.channels.includes('PUSH_MOBILE') && (
-                    <span title={t('channelTitles.mobilePush')}><Smartphone className="h-4 w-4 text-gray-500" /></span>
+                    <span title={t('channelTitles.mobilePush')}><Smartphone className="h-4 w-4 text-muted-foreground" /></span>
                   )}
                   {template.channels.includes('PUSH_WEB') && (
-                    <span title={t('channelTitles.webPush')}><Bell className="h-4 w-4 text-gray-500" /></span>
+                    <span title={t('channelTitles.webPush')}><Bell className="h-4 w-4 text-muted-foreground" /></span>
                   )}
                   {template.channels.includes('EMAIL') && (
-                    <span title={t('channelTitles.email')}><Mail className="h-4 w-4 text-gray-500" /></span>
+                    <span title={t('channelTitles.email')}><Mail className="h-4 w-4 text-muted-foreground" /></span>
                   )}
                 </div>
               </TableCell>
               <TableCell>
-                <Badge className={`${template.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'} whitespace-nowrap`}>
+                <Badge className={`${template.isActive ? 'bg-green-100 text-green-800' : 'bg-muted text-muted-foreground'} whitespace-nowrap`}>
                   {template.isActive ? tc('active') : tc('inactive')}
                 </Badge>
               </TableCell>
-              <TableCell className="hidden lg:table-cell text-sm text-gray-500 whitespace-nowrap">
+              <TableCell className="hidden lg:table-cell text-sm text-muted-foreground whitespace-nowrap">
                 {format(new Date(template.createdAt), 'MMM d, yyyy')}
               </TableCell>
               <TableCell className="text-right">

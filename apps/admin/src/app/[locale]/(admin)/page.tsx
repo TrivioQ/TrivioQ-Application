@@ -66,8 +66,8 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('title')}</h1>
-        <p className="text-gray-500 mt-2">{t('overview')}</p>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('title')}</h1>
+        <p className="text-muted-foreground mt-2">{t('overview')}</p>
       </div>
 
       {/* ── Metric Cards ── */}
@@ -75,7 +75,7 @@ export default async function DashboardPage() {
         {cards.map((card) => {
           const Icon = card.icon;
           return (
-            <Card key={card.id} className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+            <Card key={card.id} className="bg-card shadow-sm hover:shadow-md transition-shadow duration-200">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className={`p-2 rounded-lg ${card.iconBg}`}>
@@ -83,10 +83,10 @@ export default async function DashboardPage() {
                   </div>
                   {card.badge && <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${card.badge.positive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{card.badge.label}</span>}
                 </div>
-                <CardTitle className="mt-3 text-sm font-medium text-gray-600">{card.title}</CardTitle>
+                <CardTitle className="mt-3 text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-3xl font-bold text-gray-900 tracking-tight">{card.value}</div>
+                <div className="text-3xl font-bold text-foreground tracking-tight">{card.value}</div>
                 <CardDescription className="mt-1 text-xs">{card.description}</CardDescription>
               </CardContent>
             </Card>
@@ -97,21 +97,21 @@ export default async function DashboardPage() {
       {/* ── Charts Row ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Daily Active Users */}
-        <Card className="bg-white shadow-sm">
+        <Card className="bg-card shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-gray-900">{t('dau.title')}</CardTitle>
+            <CardTitle className="text-base font-semibold text-foreground">{t('dau.title')}</CardTitle>
             <CardDescription>{t('dau.description')}</CardDescription>
           </CardHeader>
-          <CardContent>{dauData.length === 0 ? <div className="flex h-[280px] items-center justify-center text-sm text-gray-400">{t('dau.empty')}</div> : <DailyActiveUsersChart data={dauData} />}</CardContent>
+          <CardContent>{dauData.length === 0 ? <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">{t('dau.empty')}</div> : <DailyActiveUsersChart data={dauData} />}</CardContent>
         </Card>
 
         {/* Category Popularity */}
-        <Card className="bg-white shadow-sm">
+        <Card className="bg-card shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-gray-900">{t('categories.title')}</CardTitle>
+            <CardTitle className="text-base font-semibold text-foreground">{t('categories.title')}</CardTitle>
             <CardDescription>{t('categories.description')}</CardDescription>
           </CardHeader>
-          <CardContent>{categoryData.length === 0 ? <div className="flex h-[280px] items-center justify-center text-sm text-gray-400">{t('categories.empty')}</div> : <CategoryPopularityChart data={categoryData} />}</CardContent>
+          <CardContent>{categoryData.length === 0 ? <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">{t('categories.empty')}</div> : <CategoryPopularityChart data={categoryData} />}</CardContent>
         </Card>
       </div>
 
