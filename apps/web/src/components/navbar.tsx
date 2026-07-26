@@ -85,7 +85,7 @@ function UserAvatar({ profilePicture, displayName, email, isPremium, avatarAlt, 
     <div className="relative">
       {profilePicture ? <img src={profilePicture} alt={avatarAlt} className="w-8 h-8 rounded-full object-cover ring-2 ring-brand-500/60" /> : <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-text text-xs font-bold ring-2 ring-brand-500/60">{getInitials(displayName, email)}</div>}
       {isPremium && (
-        <span className="absolute -top-1.5 -right-[0.175rem] leading-none select-none text-brand-400" title={premiumBadge}>
+        <span className="absolute -top-1.5 -right-[0.175rem] leading-none select-none text-warning" title={premiumBadge}>
           <CrownIcon className="w-3.5 h-3.5 drop-shadow-[0_0_5px_rgb(var(--warning)/0.6)]" />
         </span>
       )}
@@ -227,7 +227,7 @@ export function Navbar() {
                         {/* Menu items */}
                         {[
                           { label: t('settings'), href: '/settings', icon: <Settings className="w-4 h-4 text-text-muted" /> },
-                          { label: t('subscription'), href: '/subscription', icon: <CrownIcon className="w-4 h-4 text-brand-500" /> },
+                          { label: t('subscription'), href: '/subscription', icon: <CrownIcon className="w-4 h-4 text-warning" /> },
                         ].map((item) => (
                           <Link key={item.href} href={item.href} onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-muted hover:bg-bg dark:hover:bg-white/5 hover:text-text transition-colors">
                             <span className="flex shrink-0">{item.icon}</span>
@@ -318,7 +318,7 @@ export function Navbar() {
                     {/* Profile items */}
                     {[
                       { label: t('settings'), href: '/settings', icon: <Settings className="w-5 h-5 text-text-muted" /> },
-                      { label: t('subscription'), href: '/subscription', icon: <CrownIcon className="w-5 h-5 text-brand-500" /> },
+                      { label: t('subscription'), href: '/subscription', icon: <CrownIcon className="w-5 h-5 text-warning" /> },
                     ].map((item) => (
                       <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-text-muted hover:text-text hover:bg-white/5 transition-colors">
                         <span className="flex shrink-0">{item.icon}</span>

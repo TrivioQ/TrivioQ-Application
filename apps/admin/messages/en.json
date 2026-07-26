@@ -116,7 +116,7 @@
       "title": "Edit User",
       "email": "Email",
       "username": "Username",
-      "displayName": "Display Name",
+      "displayName": "Full Name",
       "displayNamePlaceholder": "Optional",
       "dateOfBirth": "Date of Birth",
       "subscriptionTier": "Subscription Tier",
