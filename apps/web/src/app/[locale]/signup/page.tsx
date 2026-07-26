@@ -128,20 +128,7 @@ export default function SignupPage() {
               <label className="sr-only" htmlFor="dateOfBirth">
                 {t('dateOfBirthLabel')}
               </label>
-              <input
-                id="dateOfBirth"
-                type="date"
-                required
-                max={(() => {
-                  const d = new Date();
-                  return `${d.getFullYear() - 13}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                })()}
-                className={inputClass}
-                placeholder={t('dateOfBirthLabel')}
-                value={dateOfBirth}
-                onChange={(e) => setDateOfBirth(e.target.value)}
-                disabled={isPending}
-              />
+              <input id="dateOfBirth" type="date" required className={inputClass} placeholder={t('dateOfBirthLabel')} value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} disabled={isPending} />
             </div>
 
             {/* Referral Code (optional) */}
