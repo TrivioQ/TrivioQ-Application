@@ -214,7 +214,7 @@ export function QuestionModal({ question, categories, open, onOpenChange }: { qu
           <div className="space-y-2">
             <Label>{t('categoriesLabel')}</Label>
             <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
-              <PopoverTrigger className={buttonVariants({ variant: 'outline', className: 'w-full justify-between' })} role="combobox" aria-expanded={comboboxOpen}>
+              <PopoverTrigger className={buttonVariants({ variant: 'outline', className: 'w-full justify-between font-normal h-9 px-3 rounded-lg border-input' })} role="combobox" aria-expanded={comboboxOpen}>
                 {selectedCategories.length > 0 ? t('categoriesSelected', { count: selectedCategories.length }) : t('selectCategories')}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </PopoverTrigger>
