@@ -209,12 +209,26 @@ export async function approvePendingQuestion(pendingId: string, editedData: Edit
         select: { status: true, replacesQuestionId: true },
       });
 
+      // Dynamically check for a >95% live duplicate using the edited text
+      const liveDuplicates = await tx.$queryRaw<{ id: string }[]>`
+        SELECT id
+        FROM "Question"
+        WHERE similarity("questionText", ${editedData.questionText}) > 0.95
+        ORDER BY similarity("questionText", ${editedData.questionText}) DESC
+        LIMIT 1
+      `;
+
+      let liveId: string | null = null;
+      if (liveDuplicates.length > 0) {
+        liveId = liveDuplicates[0].id;
+      } else if (pendingQuestion.status === 'PENDING-DUPLICATE' && pendingQuestion.replacesQuestionId) {
+        liveId = pendingQuestion.replacesQuestionId;
+      }
+
       let questionId: string;
 
-      if (pendingQuestion.status === 'PENDING-DUPLICATE' && pendingQuestion.replacesQuestionId) {
+      if (liveId) {
         // ── Case B: Update the existing live question in-place ───────────────────
-        const liveId = pendingQuestion.replacesQuestionId;
-
         // Replace choices: delete old ones then create new
         await tx.choice.deleteMany({ where: { questionId: liveId } });
 

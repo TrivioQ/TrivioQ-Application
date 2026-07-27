@@ -277,55 +277,30 @@ export class QuizGenerationProcess implements IngestionProcess {
           const existing = pendingCheck.record;
           const existingScore: number = existing.aiQualityScore ?? 0;
 
-          if (existing.status === 'PENDING') {
-            if (newScore > existingScore) {
-              console.log(`[Upload] Replacing PENDING record ${existing.id} (score ${existingScore}) with higher-scored version (score ${newScore})`);
-              await prisma.pendingQuestion.update({
-                where: { id: existing.id },
-                data: {
-                  topic: (q.metadata?.topic as string) || this.config.topic || 'General',
-                  categorySlugs: (q.metadata?.categorySlugs as string[]) || [],
-                  difficultyLevel: sanitiseDifficulty(q.metadata?.difficulty as string | undefined),
-                  suggestedText: q.text,
-                  suggestedChoices: shuffleArray((q.metadata?.choices as any[]) ?? []),
-                  hint: (q.metadata?.hint as string) ?? null,
-                  explanation: (q.metadata?.explanation as string) ?? null,
-                  aiQualityScore: newScore,
-                  aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
-                  ageRating: sanitiseAgeRating(q.metadata?.ageRating as string | undefined),
-                },
-              });
-            } else {
-              console.log(`[Upload] Skipping — existing PENDING record ${existing.id} has equal or higher score (${existingScore} >= ${newScore})`);
-            }
-            this.state.updateStatus(q.id, 'UPLOADED');
-            continue;
+          // Handle any existing status ('PENDING', 'AI-APPROVED', 'AI-REJECTED', 'APPROVED', 'REJECTED', 'PENDING-DUPLICATE')
+          if (newScore > existingScore) {
+            console.log(`[Upload] Replacing ${existing.status} record ${existing.id} (score ${existingScore}) with higher-scored version (score ${newScore})`);
+            await prisma.pendingQuestion.update({
+              where: { id: existing.id },
+              data: {
+                status: 'PENDING', // Reset status so it can be re-evaluated
+                topic: (q.metadata?.topic as string) || this.config.topic || 'General',
+                categorySlugs: (q.metadata?.categorySlugs as string[]) || [],
+                difficultyLevel: sanitiseDifficulty(q.metadata?.difficulty as string | undefined),
+                suggestedText: q.text,
+                suggestedChoices: shuffleArray((q.metadata?.choices as any[]) ?? []),
+                hint: (q.metadata?.hint as string) ?? null,
+                explanation: (q.metadata?.explanation as string) ?? null,
+                aiQualityScore: newScore,
+                aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
+                ageRating: sanitiseAgeRating(q.metadata?.ageRating as string | undefined),
+              },
+            });
+          } else {
+            console.log(`[Upload] Skipping — existing ${existing.status} record ${existing.id} has equal or higher score (${existingScore} >= ${newScore})`);
           }
-
-          if (existing.status === 'PENDING-DUPLICATE') {
-            if (newScore > existingScore) {
-              console.log(`[Upload] Replacing existing PENDING-DUPLICATE record ${existing.id} (score ${existingScore}) with higher score (${newScore})`);
-              await prisma.pendingQuestion.update({
-                where: { id: existing.id },
-                data: {
-                  topic: (q.metadata?.topic as string) || this.config.topic || 'General',
-                  categorySlugs: (q.metadata?.categorySlugs as string[]) || [],
-                  difficultyLevel: sanitiseDifficulty(q.metadata?.difficulty as string | undefined),
-                  suggestedText: q.text,
-                  suggestedChoices: shuffleArray((q.metadata?.choices as any[]) ?? []),
-                  hint: (q.metadata?.hint as string) ?? null,
-                  explanation: (q.metadata?.explanation as string) ?? null,
-                  aiQualityScore: newScore,
-                  aiFeedback: q.metadata?.isFactuallyCorrect === false ? (q.metadata?.factCheckRationale as string) : null,
-                  ageRating: sanitiseAgeRating(q.metadata?.ageRating as string | undefined),
-                },
-              });
-            } else {
-              console.log(`[Upload] Skipping — existing PENDING-DUPLICATE record ${existing.id} has equal or higher score (${existingScore} >= ${newScore})`);
-            }
-            this.state.updateStatus(q.id, 'UPLOADED');
-            continue;
-          }
+          this.state.updateStatus(q.id, 'UPLOADED');
+          continue;
         }
 
         const isLiveDuplicate = await checkIsDuplicate(q.text);
