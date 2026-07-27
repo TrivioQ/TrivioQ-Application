@@ -167,10 +167,10 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 py-3 sm:px-6 border-b border-gray-200 bg-white flex flex-wrap items-center justify-between gap-3">
+      <div className="px-4 py-3 sm:px-6 border-b border-border bg-card flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-gray-900 truncate">{pendingQuestion.topic}</p>
-          <p className="text-xs text-gray-400">
+          <p className="text-sm font-semibold text-foreground truncate">{pendingQuestion.topic}</p>
+          <p className="text-xs text-muted-foreground">
             {t('submitted')}{' '}
             {formatDistanceToNow(new Date(pendingQuestion.createdAt), {
               addSuffix: true,
@@ -202,41 +202,41 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
 
       {/* AI Feedback & Warnings */}
       {(pendingQuestion.status === 'PENDING-DUPLICATE' || pendingQuestion.status === 'REJECTED' || pendingQuestion.status === 'AI-REJECTED' || pendingQuestion.isDuplicate || pendingQuestion.aiFeedback || pendingQuestion.rejectionReason) && (
-        <div className="px-4 py-3 sm:px-6 space-y-3 border-b border-gray-200 bg-gray-50/50">
+        <div className="px-4 py-3 sm:px-6 space-y-3 border-b border-border bg-muted/30">
           {pendingQuestion.status === 'PENDING-DUPLICATE' && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg text-sm text-amber-900">
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/20 rounded-lg text-sm text-amber-900 dark:text-amber-200">
               <span className="text-base shrink-0">⚡</span>
               <span>{t('pendingDuplicateWarning')}</span>
             </div>
           )}
           {pendingQuestion.status === 'REJECTED' && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg text-sm text-red-800 dark:text-red-200">
               <span className="text-base shrink-0">❌</span>
               <span>{t('rejectedWarning')}</span>
             </div>
           )}
           {pendingQuestion.status === 'AI-REJECTED' && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-orange-50 border border-orange-300 rounded-lg text-sm text-orange-900">
+            <div className="flex items-center gap-2 px-3 py-2 bg-orange-50 dark:bg-orange-500/10 border border-orange-300 dark:border-orange-500/20 rounded-lg text-sm text-orange-900 dark:text-orange-200">
               <span className="text-base shrink-0">🤖</span>
               <span>{t('aiValidationFailedWarning')}</span>
             </div>
           )}
           {pendingQuestion.isDuplicate && pendingQuestion.status !== 'PENDING-DUPLICATE' && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg text-sm text-red-800 dark:text-red-200">
               <span className="text-base shrink-0">&#9888;</span>
               <span>{t('duplicateWarning')}</span>
             </div>
           )}
           {pendingQuestion.rejectionReason && (
             <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('rejectionReasonLabel')}</p>
-              <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 whitespace-pre-wrap">{pendingQuestion.rejectionReason}</div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('rejectionReasonLabel')}</p>
+              <div className="px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground whitespace-pre-wrap">{pendingQuestion.rejectionReason}</div>
             </div>
           )}
           {pendingQuestion.aiFeedback && (
             <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('aiFeedback')}</p>
-              <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 whitespace-pre-wrap">{pendingQuestion.aiFeedback}</div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('aiFeedback')}</p>
+              <div className="px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground whitespace-pre-wrap">{pendingQuestion.aiFeedback}</div>
             </div>
           )}
         </div>
@@ -287,9 +287,9 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
             {categorySlugs.map((slug) => {
               const cat = categories.find(c => c.slug === slug);
               return (
-                <div key={slug} className="flex items-center gap-1 bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                <div key={slug} className="flex items-center gap-1 bg-secondary text-secondary-foreground text-xs font-medium px-2.5 py-0.5 rounded">
                   {cat?.name || slug}
-                  <button type="button" onClick={() => removeCategory(slug)} className="text-gray-500 hover:text-red-500 font-bold ml-1">
+                  <button type="button" onClick={() => removeCategory(slug)} className="text-muted-foreground hover:text-destructive font-bold ml-1">
                      &times;
                   </button>
                 </div>

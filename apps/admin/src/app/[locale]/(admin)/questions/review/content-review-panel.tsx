@@ -148,9 +148,9 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
 
   function scoreBadge(score: number | null) {
     if (score == null) return null;
-    if (score > 80) return { className: 'bg-green-100 text-green-800', label: t('scoreBadge.high', { score }) };
-    if (score >= 50) return { className: 'bg-yellow-100 text-yellow-800', label: t('scoreBadge.medium', { score }) };
-    return { className: 'bg-red-100 text-red-800', label: t('scoreBadge.low', { score }) };
+    if (score > 80) return { className: 'bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-300', label: t('scoreBadge.high', { score }) };
+    if (score >= 50) return { className: 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-800 dark:text-yellow-300', label: t('scoreBadge.medium', { score }) };
+    return { className: 'bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-300', label: t('scoreBadge.low', { score }) };
   }
 
   const activeTabDiff = questions.length - pendingQuestions.length;
@@ -181,23 +181,23 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
       <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit overflow-x-auto max-w-full">
         <Link href={createTabHref()} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${!filter ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           {t('filters.unvalidated')}
-          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${!filter ? 'bg-amber-100 text-amber-800' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('unvalidated', counts.unvalidated)}</span>
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${!filter ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('unvalidated', counts.unvalidated)}</span>
         </Link>
         <Link href={createTabHref('ai-validated')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-validated' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           {t('filters.aiValidated')}
-          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'ai-validated' ? 'bg-amber-100 text-amber-800' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('aiValidated', counts.aiValidated)}</span>
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'ai-validated' ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('aiValidated', counts.aiValidated)}</span>
         </Link>
         <Link href={createTabHref('ai-rejected')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-rejected' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           {t('filters.aiRejected')}
-          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'ai-rejected' ? 'bg-amber-100 text-amber-800' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('aiRejected', counts.aiRejected)}</span>
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'ai-rejected' ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('aiRejected', counts.aiRejected)}</span>
         </Link>
         <Link href={createTabHref('pending-duplicate')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'pending-duplicate' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           {t('filters.pendingDuplicates')}
-          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'pending-duplicate' ? 'bg-amber-100 text-amber-800' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('pendingDuplicate', counts.pendingDuplicate)}</span>
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'pending-duplicate' ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('pendingDuplicate', counts.pendingDuplicate)}</span>
         </Link>
         <Link href={createTabHref('rejected')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'rejected' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           {t('filters.rejected')}
-          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'rejected' ? 'bg-amber-100 text-amber-800' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('rejected', counts.rejected)}</span>
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${filter === 'rejected' ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('rejected', counts.rejected)}</span>
         </Link>
       </div>
 
@@ -265,17 +265,17 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{q.suggestedText}</p>
                     <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                       {q.status === 'PENDING-DUPLICATE' && (
-                        <Badge className="text-[10px] bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100">
+                        <Badge className="text-[10px] bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-500/30">
                           {t('pendingDuplicateBadge')}
                         </Badge>
                       )}
                       {q.status === 'REJECTED' && (
-                        <Badge className="text-[10px] bg-red-100 text-red-800 border-red-200 hover:bg-red-100">
+                        <Badge className="text-[10px] bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-300 border-red-200 dark:border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/30">
                           {t('rejectedBadge')}
                         </Badge>
                       )}
                       {q.status === 'AI-REJECTED' && (
-                        <Badge className="text-[10px] bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-100">
+                        <Badge className="text-[10px] bg-orange-100 dark:bg-orange-500/20 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-500/30 hover:bg-orange-100 dark:hover:bg-orange-500/30">
                           {t('aiRejectedBadge')}
                         </Badge>
                       )}
