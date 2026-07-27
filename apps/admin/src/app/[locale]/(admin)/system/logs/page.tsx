@@ -2,6 +2,7 @@ import { prisma } from '@trivioq/database';
 import Link from 'next/link';
 import { JobLogModalTrigger } from '@/components/system/job-log-modal';
 import { getTranslations } from 'next-intl/server';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const PAGE_SIZE = 50;
 
@@ -30,35 +31,35 @@ export default async function JobLogsPage({ searchParams }: { searchParams: Prom
         <p className="text-muted-foreground mt-2">{t('description')}</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50/50">
-                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">{t('columns.timestamp')}</th>
-                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">{t('columns.queue')}</th>
-                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">{t('columns.jobId')}</th>
-                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">{t('columns.status')}</th>
-                <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">{t('columns.actions')}</th>
+              <tr className="border-b border-border bg-muted/50">
+                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-6 py-3">{t('columns.timestamp')}</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-6 py-3">{t('columns.queue')}</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-6 py-3">{t('columns.jobId')}</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-6 py-3">{t('columns.status')}</th>
+                <th className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider px-6 py-3">{t('columns.actions')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-sm text-gray-500">
+                  <td colSpan={5} className="px-6 py-12 text-center text-sm text-muted-foreground">
                     {t('empty')}
                   </td>
                 </tr>
               ) : (
                 logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-3 text-sm text-gray-600 whitespace-nowrap font-mono tabular-nums">{new Date(log.createdAt).toLocaleString()}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700 font-medium">{log.queueName}</td>
-                    <td className="px-6 py-3 text-sm text-gray-600 font-mono max-w-[220px] truncate" title={log.jobId}>
+                  <tr key={log.id} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-6 py-3 text-sm text-foreground whitespace-nowrap font-mono tabular-nums">{new Date(log.createdAt).toLocaleString()}</td>
+                    <td className="px-6 py-3 text-sm text-foreground font-medium">{log.queueName}</td>
+                    <td className="px-6 py-3 text-sm text-muted-foreground font-mono max-w-[220px] truncate" title={log.jobId}>
                       {log.jobId}
                     </td>
                     <td className="px-6 py-3 whitespace-nowrap">
-                      {log.status === 'COMPLETED' ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20">{t('completed')}</span> : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20">{log.status}</span>}
+                      {log.status === 'COMPLETED' ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-500 ring-1 ring-inset ring-green-500/20">{t('completed')}</span> : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-500 ring-1 ring-inset ring-red-500/20">{log.status}</span>}
                     </td>
                     <td className="px-6 py-3 text-right whitespace-nowrap">
                       <JobLogModalTrigger payload={log.payload} result={log.result} jobId={log.jobId} />
@@ -73,16 +74,18 @@ export default async function JobLogsPage({ searchParams }: { searchParams: Prom
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">{t('showing', { from, to, totalCount })}</p>
+          <p className="text-sm text-muted-foreground">{t('showing', { from, to, totalCount })}</p>
           <div className="flex gap-2">
             {currentPage > 1 && (
-              <Link href={`?page=${currentPage - 1}`} className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+              <Link href={`?page=${currentPage - 1}`} className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-foreground bg-background border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                <ChevronLeft className="w-4 h-4 mr-1" />
                 {t('previous')}
               </Link>
             )}
             {currentPage < totalPages && (
-              <Link href={`?page=${currentPage + 1}`} className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+              <Link href={`?page=${currentPage + 1}`} className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-foreground bg-background border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
                 {t('next')}
+                <ChevronRight className="w-4 h-4 ml-1" />
               </Link>
             )}
           </div>

@@ -4,3 +4,5 @@ Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   sendDefaultPii: false,
 });
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

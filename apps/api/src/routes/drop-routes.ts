@@ -188,7 +188,9 @@ router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
       },
     });
 
-    if (dropsToday >= 50) {
+    const maxDailyDrops = await getSettingNumber('max_drops_premium', 100);
+
+    if (dropsToday >= maxDailyDrops) {
       return res.status(429).json({ error: 'Daily drop limit reached' });
     }
 

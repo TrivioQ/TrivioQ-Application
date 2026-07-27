@@ -8,13 +8,14 @@ import { ThemeColors } from '../theme/colors';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type SubscriptionStatus = 'PREMIUM' | 'PLUS' | 'FREE';
+type SubscriptionStatus = 'PREMIUM' | 'PLUS' | 'FREE' | 'TRIAL';
 
 interface SubscriptionData {
   currentStatus: SubscriptionStatus;
   subscriptionExpiresAt: string | null;
   onDemandTokensAvailable: number;
   userTimezone: string;
+  isAutoRenewalEnabled: boolean;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -95,11 +96,12 @@ export default function SubscriptionScreen() {
     );
   }
 
-  const { currentStatus, subscriptionExpiresAt, onDemandTokensAvailable } = data;
+  const { currentStatus, subscriptionExpiresAt, onDemandTokensAvailable, isAutoRenewalEnabled } = data;
   const isAutoRenew = currentStatus === 'PREMIUM';
   const isVault = currentStatus === 'PLUS';
+  const isTrial = currentStatus === 'TRIAL';
   const isFree = currentStatus === 'FREE';
-  const canActivate = isFree || isVault;
+  const canActivate = isFree || isVault || isTrial;
   const stepMin = onDemandTokensAvailable > 0 ? 1 : 0;
 
   return (
@@ -113,17 +115,17 @@ export default function SubscriptionScreen() {
             <View style={[styles.badge, styles.badgeGold]}>
               <Text style={[styles.badgeText, styles.badgeTextGold]}>👑 Premium</Text>
             </View>
-            <Text style={styles.metaLabel}>Next billing date</Text>
+            <Text style={styles.metaLabel}>{isAutoRenewalEnabled ? 'Next billing date' : 'Expires on'}</Text>
             <Text style={styles.metaValue}>{formatDate(subscriptionExpiresAt)}</Text>
           </>
         )}
 
-        {isVault && (
+        {(isVault || isTrial) && (
           <>
             <View style={[styles.badge, styles.badgePurple]}>
-              <Text style={[styles.badgeText, styles.badgeTextPurple]}>🔮 Plus</Text>
+              <Text style={[styles.badgeText, styles.badgeTextPurple]}>{isTrial ? '✨ Trial' : '🔮 Plus'}</Text>
             </View>
-            <Text style={styles.metaLabel}>Expires</Text>
+            <Text style={styles.metaLabel}>Expires on</Text>
             <Text style={styles.metaValue}>{formatDate(subscriptionExpiresAt)}</Text>
           </>
         )}

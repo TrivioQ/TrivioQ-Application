@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useNotification } from '../context/notification-context';
 import { useAuth } from '../context/auth-provider';
-import { makeAPICall } from '../lib/api';
+import { makeAPICall, makeAPICallV1 } from '../lib/api';
 
 // ---------------------------------------------------------------------------
 // useAuthSync
@@ -20,6 +20,10 @@ type AuthSyncOptions = {
   onError?: (message: string) => void;
 };
 
+interface UserMeShape {
+  onboardingComplete?: boolean;
+}
+
 export function useAuthSync({ onSuccess, onError }: AuthSyncOptions = {}) {
   const { error: notifyError } = useNotification();
   const { refreshUser } = useAuth();
@@ -27,9 +31,21 @@ export function useAuthSync({ onSuccess, onError }: AuthSyncOptions = {}) {
   const t = useTranslations('errors');
 
   const handleSuccess = async () => {
+    // refreshUser refreshes the Firebase session; users/me carries the DB-side
+    // onboardingComplete flag that determine whether to land on the dashboard
+    // or in the onboarding wizard.
     await refreshUser();
+    let onboardingComplete = true;
+    try {
+      const profile = await makeAPICallV1<UserMeShape>('users/me');
+      onboardingComplete = profile?.onboardingComplete !== false;
+    } catch {
+      // If the profile fetch fails, treat as onboarded and fall through to /dashboard
+      // (the dashboard page will re-check and redirect if needed).
+      onboardingComplete = true;
+    }
     onSuccess?.();
-    router.push('/dashboard');
+    router.push(onboardingComplete ? '/dashboard' : '/get-started');
   };
 
   const handleError = (err: any) => {

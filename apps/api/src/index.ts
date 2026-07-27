@@ -38,9 +38,11 @@ import faqRoutes from './routes/faq';
 import legalRoutes from './routes/legal';
 import subscriptionRoutes from './routes/subscription-routes';
 import notificationRoutes from './routes/notifications';
+import categoriesRoutes from './routes/categories-routes';
+import onboardingRoutes from './routes/onboarding-routes';
 
 import { env } from './config/env';
-import { getSetting } from './utils/settings';
+import { getSetting, getSettingNumber } from './utils/settings';
 import { initLeaderboardWorker } from './workers/leaderboard-worker';
 
 const app = express();
@@ -58,6 +60,8 @@ app.use('/v1/faqs', faqRoutes);
 app.use('/v1/legal', legalRoutes);
 app.use('/v1/subscriptions', subscriptionRoutes);
 app.use('/v1/notifications', notificationRoutes);
+app.use('/v1/categories', categoriesRoutes);
+app.use('/v1/onboarding', onboardingRoutes);
 
 app.get('/health', async (req: Request, res: Response) => {
   try {
@@ -72,7 +76,9 @@ app.get('/health', async (req: Request, res: Response) => {
 app.get('/v1/info', async (req: Request, res: Response) => {
   try {
     const supportEmail = await getSetting('support_email', 'support@trivioq.com');
-    res.json({ supportEmail });
+    const maxDropsPremium = await getSettingNumber('max_drops_premium', 100);
+    const maxDropsFree = await getSettingNumber('max_drops_free', 7);
+    res.json({ supportEmail, maxDropsPremium, maxDropsFree });
   } catch (error) {
     console.error('Failed to fetch app info:', error);
     res.status(500).json({ error: 'Internal server error' });

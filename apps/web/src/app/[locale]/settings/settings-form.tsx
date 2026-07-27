@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useQuery } from '@tanstack/react-query';
 import { useNotification } from '@/context/notification-context';
 import { makeAPICallV1 } from '@/lib/api';
 import { useAuth } from '@/context/auth-provider';
 import { useConfirm } from '@/components/confirm-modal';
+import { MultiCategoryCombobox, type CategoryOption } from '@/components/multi-category-combobox';
 
 // Convert a UTC DateTime ISO string from the DB column to a "HH:MM" string for <input type="time">
 function isoToHHMM(iso: string | undefined | null): string {
@@ -15,23 +17,41 @@ function isoToHHMM(iso: string | undefined | null): string {
   return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
 }
 
+interface CategoriesResponse {
+  categories: CategoryOption[];
+}
+
 export function SettingsForm({ initialUser }: { initialUser: any }) {
   const router = useRouter();
   const { user } = useAuth();
   const { success: notifySuccess, error: notifyError, info: notifyInfo } = useNotification();
   const t = useTranslations('settings');
+  const tSteps = useTranslations('getStarted');
   const [isPending, setIsPending] = useState(false);
+  const [categoriesPending, setCategoriesPending] = useState(false);
   const confirm = useConfirm();
 
   // TEMPORARILY HIDDEN: difficulty selection is locked to fixed defaults for all users
   const DEFAULT_DIFFICULTY = { EASY: 20, MEDIUM: 70, HARD: 10 };
 
   const [displayName, setDisplayName] = useState(initialUser.displayName || '');
-  // Active window is authoritative in the User DB columns, not the preferences JSON blob
   const [activeStart, setActiveStart] = useState(isoToHHMM(initialUser.activeWindowStart));
   const [activeEnd, setActiveEnd] = useState(isoToHHMM(initialUser.activeWindowEnd));
-  // TEMPORARILY HIDDEN: always use the fixed default difficulty, ignoring any saved user preference
   const [difficulty] = useState(DEFAULT_DIFFICULTY);
+
+  // Saved categories are keyed by name in preferences.categoryPercentages.
+  const savedCategoryNames = useMemo<string[]>(() => {
+    const cp = (initialUser?.preferences as any)?.categoryPercentages;
+    return cp && typeof cp === 'object' ? Object.keys(cp) : [];
+  }, [initialUser]);
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(savedCategoryNames);
+
+  const { data: categoriesData } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => makeAPICallV1<CategoriesResponse>('categories/list'),
+    staleTime: 60_000 * 60,
+  });
 
   // Password change state
   const [oldPassword, setOldPassword] = useState('');
@@ -39,6 +59,12 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const isEmailUser = user?.providers?.includes('password');
+
+  const buildEqualWeightCategoryPercentages = (names: string[]): Record<string, number> => {
+    if (names.length === 0) return {};
+    const w = 1 / names.length;
+    return Object.fromEntries(names.map((n) => [n, w]));
+  };
 
   const handleUpdatePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,11 +83,10 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
           activeWindowStart: activeStart,
           activeWindowEnd: activeEnd,
           difficultyPercentages: difficulty,
-          // Mandatory fields for the existing API schema
           theme: 'dark',
           notificationsEnabled: true,
           language: 'en',
-          categoryPercentages: { General: 1.0 },
+          categoryPercentages: selectedCategories.length > 0 ? buildEqualWeightCategoryPercentages(selectedCategories) : { General: 1.0 },
         },
       });
       notifySuccess(t('preferencesSaved'), t('preferencesSavedTitle'));
@@ -70,6 +95,34 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
       notifyError(err.message || t('preferencesFailed'));
     } finally {
       setIsPending(false);
+    }
+  };
+
+  const handleSaveCategories = async () => {
+    if (selectedCategories.length < 30) {
+      return notifyError(tSteps('step1MinError'), t('validationErrorTitle'));
+    }
+    setCategoriesPending(true);
+    try {
+      await makeAPICallV1('users/preferences', {
+        method: 'PUT',
+        body: {
+          displayName,
+          activeWindowStart: activeStart,
+          activeWindowEnd: activeEnd,
+          difficultyPercentages: difficulty,
+          theme: 'dark',
+          notificationsEnabled: true,
+          language: 'en',
+          categoryPercentages: buildEqualWeightCategoryPercentages(selectedCategories),
+        },
+      });
+      notifySuccess(t('preferencesSaved'), t('preferencesSavedTitle'));
+      router.refresh();
+    } catch (err: any) {
+      notifyError(err.message || t('preferencesFailed'));
+    } finally {
+      setCategoriesPending(false);
     }
   };
 
@@ -177,6 +230,28 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
       </section>
 
       {/* ── Difficulty Preferences ── TEMPORARILY HIDDEN: fixed defaults used for all users (Easy:20%, Medium:70%, Hard:10%) */}
+
+      {/* ── Categories ── */}
+      <section className="bg-bg-secondary/70 dark:bg-overlay/50 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none rounded-2xl border border-brand-100 dark:border-white/5 p-4 sm:p-6 space-y-6">
+        <div>
+          <h3 className="text-lg font-bold text-text">{t('categoriesTitle')}</h3>
+          <p className="text-sm text-text-muted">{t('categoriesDesc')}</p>
+        </div>
+        {categoriesData?.categories ? (
+          <>
+            <MultiCategoryCombobox options={categoriesData.categories} selectedNames={selectedCategories} onChange={setSelectedCategories} />
+            <div className="flex items-center justify-between">
+              <span className={`text-xs font-bold uppercase tracking-wider ${selectedCategories.length >= 30 ? 'text-success' : 'text-warning'}`}>{t('selectedLabel', { count: selectedCategories.length })}</span>
+              {selectedCategories.length < 30 && <span className="text-xs text-text-muted">{t('minLabel')}</span>}
+            </div>
+            <button onClick={handleSaveCategories} disabled={categoriesPending || selectedCategories.length < 30} className="bg-brand-600 hover:bg-brand-500 text-text px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
+              {categoriesPending ? t('saving') : t('saveCategories')}
+            </button>
+          </>
+        ) : (
+          <p className="text-text-muted text-sm">Loading categories…</p>
+        )}
+      </section>
 
       {/* ── Security / Change Password (if email) ── */}
       {isEmailUser && (

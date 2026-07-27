@@ -38,7 +38,7 @@ export default function NotificationsPage() {
 
   async function fetchNotifications() {
     try {
-      const response = await fetch('/api/notifications/inbox?limit=100');
+      const response = await fetch('/api/notifications?limit=100');
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setNotifications(data.notifications || []);

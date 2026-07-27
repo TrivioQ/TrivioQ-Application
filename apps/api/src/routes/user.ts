@@ -108,7 +108,8 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
         // Returned as ISO strings; clients convert to HH:MM for display
         activeWindowStart: true,
         activeWindowEnd: true,
-      },
+        onboardingComplete: true,
+      } as any,
     });
 
     if (!user) {

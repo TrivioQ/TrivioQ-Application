@@ -32,7 +32,7 @@ export function NotificationBell() {
 
   async function fetchNotifications() {
     try {
-      const response = await fetch('/api/notifications/inbox?limit=10');
+      const response = await fetch('/api/notifications?limit=10');
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setNotifications(data.notifications || []);

@@ -22,11 +22,20 @@ function LoginForm() {
   useEffect(() => {
     if (!isLoading && user) {
       const callbackUrl = searchParams.get('callbackUrl');
-      if (callbackUrl && callbackUrl.startsWith('/')) {
-        router.replace(callbackUrl);
-      } else {
-        router.replace('/dashboard');
-      }
+      (async () => {
+        let destination = '/dashboard';
+        if (callbackUrl && callbackUrl.startsWith('/')) {
+          destination = callbackUrl;
+        } else {
+          try {
+            const profile = await import('@/lib/api').then((m) => m.makeAPICallV1<{ onboardingComplete?: boolean }>('users/me'));
+            if (profile?.onboardingComplete === false) destination = '/get-started';
+          } catch {
+            // fall through to /dashboard
+          }
+        }
+        router.replace(destination);
+      })();
     }
   }, [user, isLoading, router, searchParams]);
 

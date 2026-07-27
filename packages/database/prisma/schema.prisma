@@ -32,6 +32,7 @@ model User {
   referredById             String?
   points                   Int              @default(0)
   preferences              Json?            @default("{\"difficultyPercentages\": {\"EASY\": 20, \"MEDIUM\": 70, \"HARD\": 10}}")
+  onboardingComplete       Boolean          @default(false)
   devicePushToken          String?
   role                     Role             @default(USER)
   drops                UserDrop[]
@@ -124,6 +125,7 @@ enum SubscriptionTier {
   FREE
   PREMIUM
   PLUS
+  TRIAL
 }
 
 enum SubscriptionSource {
@@ -131,6 +133,7 @@ enum SubscriptionSource {
   VAULT_ACTIVATION
   ADMIN_GRANT
   LEADERBOARD
+  TRIAL
 }
 
 model Category {

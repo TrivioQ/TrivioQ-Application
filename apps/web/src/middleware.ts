@@ -8,7 +8,7 @@ const intlMiddleware = createMiddleware({
 
 // Routes that require an authenticated session cookie.
 // Matched against the pathname *after* stripping the locale prefix.
-const PROTECTED_SEGMENTS = ['/dashboard', '/settings', '/score-history'];
+const PROTECTED_SEGMENTS = ['/dashboard', '/settings', '/score-history', '/get-started'];
 
 function isProtected(pathname: string): boolean {
   // Strip optional locale prefix, e.g. /en/dashboard → /dashboard

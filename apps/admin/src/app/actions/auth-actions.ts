@@ -98,7 +98,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
         destination = callbackUrl;
       }
     } catch (e) {
-      // Ignore invalid URL
+      console.error('[loginAction] Invalid callback URL:', e);
     }
   }
 

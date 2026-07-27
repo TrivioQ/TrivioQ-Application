@@ -12,6 +12,12 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['trivioq.com'],
     },
+    serverComponentsExternalPackages: [
+      '@sentry/nextjs',
+      '@sentry/node',
+      '@sentry/server-utils',
+      '@apm-js-collab/tracing-hooks'
+    ],
   },
 };
 

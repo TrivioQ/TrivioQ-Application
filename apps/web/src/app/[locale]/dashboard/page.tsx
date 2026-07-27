@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { makeServerAPICallV1 } from '@/lib/api-server';
 import ActiveDropCard from '@/components/dashboard/active-drop-card';
@@ -20,6 +21,7 @@ interface UserProfile {
   currentStreak: number;
   cumulativeScore: number;
   subscriptionTier: 'FREE' | 'PREMIUM';
+  onboardingComplete: boolean;
 }
 
 export default async function WebDashboard() {
@@ -48,6 +50,11 @@ export default async function WebDashboard() {
     profile = await makeServerAPICallV1<UserProfile>('users/me');
   } catch (err) {
     console.error('[WebDashboard] Fetch failed:', err);
+  }
+
+  // Gate: an unfinished-onboarding user typing /dashboard directly must be sent to wizard.
+  if (profile && profile.onboardingComplete === false) {
+    redirect('/get-started');
   }
 
   return (

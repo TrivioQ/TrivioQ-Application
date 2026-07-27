@@ -45,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     setUser(null);
+    window.location.href = '/login';
   };
 
   return <AuthContext.Provider value={{ user, isLoading, refreshUser: fetchUser, logout }}>{children}</AuthContext.Provider>;

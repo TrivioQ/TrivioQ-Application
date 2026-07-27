@@ -7,12 +7,13 @@ import { useNotification } from '@/context/notification-context';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type SubscriptionStatus = 'PREMIUM' | 'PLUS' | 'FREE';
+type SubscriptionStatus = 'PREMIUM' | 'PLUS' | 'FREE' | 'TRIAL';
 
 interface SubscriptionData {
   currentStatus: SubscriptionStatus;
   subscriptionExpiresAt: string | null;
   onDemandTokensAvailable: number;
+  isAutoRenewalEnabled: boolean;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -184,11 +185,12 @@ export function SubscriptionSettings() {
     );
   }
 
-  const { currentStatus, subscriptionExpiresAt, onDemandTokensAvailable } = data;
+  const { currentStatus, subscriptionExpiresAt, onDemandTokensAvailable, isAutoRenewalEnabled } = data;
   const isAutoRenew = currentStatus === 'PREMIUM';
   const isVault = currentStatus === 'PLUS';
+  const isTrial = currentStatus === 'TRIAL';
   const isFree = currentStatus === 'FREE';
-  const canActivate = (isFree || isVault) && onDemandTokensAvailable > 0;
+  const canActivate = (isFree || isVault || isTrial) && onDemandTokensAvailable > 0;
 
   return (
     <div className="space-y-6">
@@ -214,6 +216,12 @@ export function SubscriptionSettings() {
               {t('plus')}
             </span>
           )}
+          {isTrial && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-brand-100 dark:bg-brand-500/15 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-500/25">
+              <IconSparkles />
+              Trial
+            </span>
+          )}
           {isFree && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-bg-secondary dark:bg-white/5 text-text-muted border border-border dark:border-white/10">
               <IconSparkles />
@@ -226,16 +234,16 @@ export function SubscriptionSettings() {
           <div className="flex items-center gap-2 text-sm text-warning">
             <IconCalendar />
             <span>
-              {t('nextBillingDate')}
+              {isAutoRenewalEnabled ? t('nextBillingDate') : t('expiresOn')}
               <span className="font-semibold">{formatDate(subscriptionExpiresAt, locale)}</span>
             </span>
           </div>
         )}
-        {isVault && subscriptionExpiresAt && (
+        {(isVault || isTrial) && subscriptionExpiresAt && (
           <div className="flex items-center gap-2 text-sm text-brand-700 dark:text-brand-300/80">
             <IconCalendar />
             <span>
-              {t('plusExpires')}
+              {t('expiresOn')}
               <span className="font-semibold text-brand-900 dark:text-brand-200">{formatDate(subscriptionExpiresAt, locale)}</span>
             </span>
           </div>
@@ -330,7 +338,7 @@ export function SubscriptionSettings() {
           </div>
         )}
 
-        {(isFree || isVault) && onDemandTokensAvailable === 0 && <p className="text-sm text-text-muted italic">{t('noBankedDays')}</p>}
+        {(isFree || isVault || isTrial) && onDemandTokensAvailable === 0 && <p className="text-sm text-text-muted italic">{t('noBankedDays')}</p>}
       </section>
     </div>
   );

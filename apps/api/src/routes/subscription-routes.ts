@@ -25,6 +25,7 @@ router.get('/status', requireAuth, async (req: Request, res: Response) => {
         subscriptionExpiresAt: true,
         onDemandTokens: true,
         preferences: true,
+        isAutoRenewalEnabled: true,
       },
     });
 
@@ -35,12 +36,13 @@ router.get('/status', requireAuth, async (req: Request, res: Response) => {
     const now = new Date();
     const timezone = resolveTimezone(user.preferences);
 
-    // PLUS is time-limited; treat as FREE if the window has passed
-    let currentStatus: 'PREMIUM' | 'PLUS' | 'FREE';
+    let currentStatus: 'PREMIUM' | 'PLUS' | 'FREE' | 'TRIAL';
     if (user.subscriptionTier === 'PREMIUM') {
       currentStatus = 'PREMIUM';
     } else if (user.subscriptionTier === 'PLUS' && user.subscriptionExpiresAt != null && user.subscriptionExpiresAt > now) {
       currentStatus = 'PLUS';
+    } else if (user.subscriptionTier === 'TRIAL' && user.subscriptionExpiresAt != null && user.subscriptionExpiresAt > now) {
+      currentStatus = 'TRIAL';
     } else {
       currentStatus = 'FREE';
     }
@@ -50,6 +52,7 @@ router.get('/status', requireAuth, async (req: Request, res: Response) => {
       subscriptionExpiresAt: user.subscriptionExpiresAt ?? null,
       onDemandTokensAvailable: user.onDemandTokens,
       userTimezone: timezone,
+      isAutoRenewalEnabled: user.isAutoRenewalEnabled,
     });
   } catch (error) {
     console.error('[subscriptions/status] Failed to fetch subscription status:', error);

@@ -99,13 +99,27 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const syncResponse = await syncAndRespond(firebaseIdToken);
 
   // syncAndRespond returns a JSON response — we need to forward the cookie
-  // and redirect to the dashboard instead.
+  // and redirect to the dashboard or onboarding wizard based on the user row.
   const authCookie = syncResponse.cookies.get('tq_auth');
   if (!authCookie || syncResponse.status !== 200) {
     return NextResponse.redirect(new URL('/login?error=sync_failed', env.APP_URL));
   }
 
-  const redirectResponse = NextResponse.redirect(new URL('/dashboard', env.APP_URL));
+  // Inspect the returned user to decide where to send them on first login.
+  let onboardingComplete = true;
+  try {
+    const clone = syncResponse.clone();
+    const userJson = await clone.json();
+    if (userJson && typeof userJson === 'object') {
+      onboardingComplete = (userJson as { onboardingComplete?: boolean }).onboardingComplete !== false;
+    }
+  } catch {
+    // Defensive default — if we can't read the body, fall through to /dashboard.
+    onboardingComplete = true;
+  }
+
+  const redirectUrl = onboardingComplete ? `${env.APP_URL}/dashboard` : `${env.APP_URL}/get-started`;
+  const redirectResponse = NextResponse.redirect(redirectUrl);
 
   // Clear the CSRF state cookie and forward the session cookie.
   redirectResponse.cookies.set('tq_oauth_state', '', { maxAge: 0, path: '/' });

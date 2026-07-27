@@ -21,8 +21,8 @@ export default function NotificationsPage({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-purple-100 rounded-lg">
-            <Bell className="h-6 w-6 text-purple-600" />
+          <div className="p-3 bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 rounded-lg">
+            <Bell className="h-6 w-6" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">{t('pageTitle')}</h1>
@@ -34,7 +34,7 @@ export default function NotificationsPage({
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href={`/${locale}/notifications/templates`}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 text-sm font-medium text-foreground bg-background border border-border rounded-lg hover:bg-accent hover:text-accent-foreground"
           >
             {t('templatesButton')}
           </Link>
@@ -88,19 +88,19 @@ function StatCard({
   color: string;
 }) {
   const colorClasses: Record<string, string> = {
-    purple: 'bg-purple-100 text-purple-600',
-    green: 'bg-green-100 text-green-600',
-    blue: 'bg-blue-100 text-blue-600',
-    amber: 'bg-amber-100 text-amber-600',
+    purple: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+    green: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+    blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+    amber: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+    <div className="bg-card rounded-lg shadow-sm p-4 border border-border">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          <p className="text-xs text-gray-500 mt-1">{description}</p>
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <p className="text-2xl font-bold text-card-foreground mt-1">{value}</p>
+          <p className="text-xs text-muted-foreground mt-1">{description}</p>
         </div>
         <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
           <Bell className="h-5 w-5" />
