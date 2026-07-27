@@ -26,7 +26,7 @@ export async function checkPendingDuplicate(suggestedText: string): Promise<Pend
     FROM "PendingQuestion"
     WHERE
       status NOT IN ('APPROVED', 'REJECTED', 'AI-APPROVED', 'AI-REJECTED')
-      AND similarity("suggestedText", ${suggestedText}) > 0.92
+      AND similarity("suggestedText", ${suggestedText}) > 0.95
     ORDER BY
       "aiQualityScore" ASC NULLS FIRST,
       "createdAt" ASC
