@@ -33,7 +33,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
   const sortBy = typeof sp.sortBy === 'string' ? sp.sortBy : 'id';
   const sortOrder = typeof sp.sortOrder === 'string' ? (sp.sortOrder as 'asc' | 'desc') : 'desc';
 
-  const categoriesResult = await getCategories();
+  const categoriesResult = await getCategories({ pageSize: 1000 });
   const categories = categoriesResult.success && categoriesResult.data ? categoriesResult.data : [];
 
   const categoryIds = categoryFilterNames.length > 0 ? categories.filter((c) => categoryFilterNames.includes(c.name)).map((c) => c.id) : [];

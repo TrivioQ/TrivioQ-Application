@@ -118,7 +118,7 @@ function QuestionActions({ question }: { question: QuestionRow }) {
 
   useEffect(() => {
     if (editOpen && categories.length === 0) {
-      getCategories().then((res) => {
+      getCategories({ pageSize: 1000 }).then((res) => {
         if (res.success && res.data) setCategories(res.data);
       });
     }

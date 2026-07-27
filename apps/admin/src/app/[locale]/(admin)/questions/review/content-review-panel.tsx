@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useMemo } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { DifficultyLevel, AgeRating } from '@trivioq/database';
@@ -66,6 +66,7 @@ interface ContentReviewPanelProps {
 
 export function ContentReviewPanel({ questions, categories, result, filter }: ContentReviewPanelProps) {
   const t = useTranslations('review');
+  const categoryMap = useMemo(() => new Map(categories.map(c => [c.slug, c.name])), [categories]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pendingQuestions, setPendingQuestions] = useState(questions);
   const [prevQuestionsProp, setPrevQuestionsProp] = useState(questions);
@@ -251,11 +252,14 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-medium text-foreground truncate">{q.topic}</p>
                       <div className="flex gap-1 flex-wrap">
-                        {q.categorySlugs.map(slug => (
-                          <Badge key={slug} variant="secondary" className="text-[10px] shrink-0">
-                            {slug}
-                          </Badge>
-                        ))}
+                        {q.categorySlugs.map(slug => {
+                          const catName = categoryMap.get(slug);
+                          return (
+                            <Badge key={slug} variant="secondary" className="text-[10px] shrink-0">
+                              {catName || slug}
+                            </Badge>
+                          );
+                        })}
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{q.suggestedText}</p>

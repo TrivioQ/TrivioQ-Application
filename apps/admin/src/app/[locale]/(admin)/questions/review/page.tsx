@@ -34,7 +34,7 @@ export default async function ContentReviewPage({ searchParams }: { searchParams
   const rawScore = Array.isArray(sp.score) ? sp.score.join(',') : (sp.score ?? '');
   const scores = rawScore.split(',').filter(Boolean);
 
-  const categoriesResult = await getCategories();
+  const categoriesResult = await getCategories({ pageSize: 1000 });
   const categories = categoriesResult.success && categoriesResult.data ? categoriesResult.data : [];
 
   const categorySlugs = categoryFilterNames.length > 0 ? categories.filter((c) => categoryFilterNames.includes(c.name)).map((c) => c.slug) : [];
