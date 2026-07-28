@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fromPath } from 'pdf2pic';
+import { PDFDocument } from 'pdf-lib';
 import type { Options as Pdf2PicOptions } from 'pdf2pic/dist/types/options';
 import type { WriteImageResponse } from 'pdf2pic/dist/types/convertResponse';
 
@@ -67,27 +68,26 @@ export async function pdfToImage(pdfPath: string, outputDir: string, options: Pd
 
   const converter = fromPath(resolvedPdf, pdf2picOptions);
 
-  let response: WriteImageResponse[];
+  let start = fromPage ?? 1;
+  let end = toPage;
 
-  if (fromPage !== undefined || toPage !== undefined) {
-    // Build an explicit list of 1-based page numbers for the requested range.
-    const start = fromPage ?? 1;
-    const end = toPage; // may be undefined — handled below
+  if (end === undefined) {
+    // Read the total number of pages using pdf-lib to avoid converting excess pages
+    const pdfBytes = fs.readFileSync(resolvedPdf);
+    const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+    end = pdfDoc.getPageCount();
+  }
 
-    if (end !== undefined) {
-      // Both bounds known: produce [start, start+1, ..., end]
-      const pages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
-      response = await converter.bulk(pages);
-    } else {
-      // Only fromPage given — convert from that page to the end of the PDF.
-      // pdf2pic does not natively support "from page X to end", so we convert
-      // all pages and then filter the results down to those at or after `start`.
-      const allResponse = await converter.bulk(-1);
-      response = allResponse.filter((res) => (res.page ?? 0) >= start);
-    }
-  } else {
-    // No range specified — convert all pages.
-    response = await converter.bulk(-1);
+  // We now have a definitive range [start, end]
+  const allPages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  let response: WriteImageResponse[] = [];
+
+  // Batch process pages to prevent running out of /tmp space or memory (e.g. write EPIPE errors from graphicsmagick)
+  const BATCH_SIZE = 10;
+  for (let i = 0; i < allPages.length; i += BATCH_SIZE) {
+    const chunk = allPages.slice(i, i + BATCH_SIZE);
+    const chunkResponse = await converter.bulk(chunk);
+    response.push(...chunkResponse);
   }
 
   const imagePaths = response.map((res) => res.path!);
