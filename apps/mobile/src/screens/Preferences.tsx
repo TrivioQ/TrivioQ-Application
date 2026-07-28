@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
-import { useToast } from '../components/toast';
+import { toast } from 'sonner-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
@@ -15,7 +15,6 @@ export default function Preferences({ navigation }: any) {
   const { t } = useTranslation();
   const { userId } = useAuth();
   const queryClient = useQueryClient();
-  const toast = useToast();
   const { theme, setTheme, colorScheme, colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
 
@@ -63,12 +62,12 @@ export default function Preferences({ navigation }: any) {
       }
     },
     onSuccess: () => {
-      toast({ message: `${t('preferences.successTitle')}: ${t('preferences.successBody')}`, type: 'success' });
+      toast.success(`${t('preferences.successTitle')}: ${t('preferences.successBody')}`);
       queryClient.invalidateQueries({ queryKey: ['userMe'] });
       navigation.goBack();
     },
     onError: (error: any) => {
-      toast({ message: error.message, type: 'error' });
+      toast.error(error.message);
     },
   });
 
@@ -78,7 +77,7 @@ export default function Preferences({ navigation }: any) {
     const h = parseFloat(hardWeight);
 
     if (isNaN(e) || isNaN(m) || isNaN(h)) {
-      toast({ message: t('preferences.validationError'), type: 'error' });
+      toast.error(t('preferences.validationError'));
       return;
     }
 

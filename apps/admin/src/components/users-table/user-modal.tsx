@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { AppSelect } from '@/components/ui/app-select';
 import { SubscriptionTier } from '@trivioq/database';
 import type { UserRow } from './columns';
+import { toast } from 'sonner';
 
 function toTimeString(d: Date | string | null | undefined): string {
   if (!d) return '';
@@ -56,7 +57,7 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if ((subscriptionTier === 'PREMIUM' || subscriptionTier === 'PLUS') && !subscriptionExpiresAt) {
-      alert(t('expiryDateRequired'));
+      toast.error(t('expiryDateRequired'));
       return;
     }
     
@@ -73,9 +74,10 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
         onDemandTokens: parseInt(onDemandTokens, 10) || 0,
       });
       if (res.success) {
+        toast.success(t('saveChanges'));
         onOpenChange(false);
       } else {
-        alert(res.error);
+        toast.error(res.error);
       }
     });
   };

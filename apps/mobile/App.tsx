@@ -17,7 +17,7 @@ import './src/i18n';
 import { AuthProvider } from './src/context/auth-context';
 import { AppNavigator, RootStackParamList } from './src/navigation/app-navigator';
 import { ConfirmProvider } from './src/components/confirm-modal';
-import { ToastProvider } from './src/components/toast';
+import { Toaster } from 'sonner-native';
 
 const queryClient = new QueryClient();
 
@@ -96,11 +96,10 @@ function App() {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <ToastProvider>
-            <ConfirmProvider>
-              <RootNavigation />
-            </ConfirmProvider>
-          </ToastProvider>
+          <ConfirmProvider>
+            <RootNavigation />
+            <Toaster />
+          </ConfirmProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>

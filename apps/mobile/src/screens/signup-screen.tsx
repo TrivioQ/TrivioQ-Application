@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useAuth } from '../context/auth-context';
 import { useTranslation } from 'react-i18next';
-import { useToast } from '../components/toast';
+import { toast } from 'sonner-native';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
 
 export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin: () => void }) {
   const { t } = useTranslation();
   const { registerWithEmail } = useAuth();
-  const toast = useToast();
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
 
@@ -23,14 +22,14 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
 
   const handleSignup = async () => {
     if (!email || !password || !username || !dateOfBirth) {
-      toast({ message: t('auth.signupMissingFields'), type: 'error' });
+      toast.error(t('auth.signupMissingFields'));
       return;
     }
 
     // Validate date format YYYY-MM-DD
     const dobRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dobRegex.test(dateOfBirth)) {
-      toast({ message: t('auth.invalidDateFormat'), type: 'error' });
+      toast.error(t('auth.invalidDateFormat'));
       return;
     }
 
@@ -50,16 +49,17 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
     }
 
     if (age < 13) {
-      toast({ message: t('auth.ageTooYoung'), type: 'error' });
+      toast.error(t('auth.ageTooYoung'));
       return;
     }
 
     setIsPending(true);
     try {
       await registerWithEmail(email, password, username, displayName || username, dateOfBirth, referralCode || undefined);
+      toast.success('Successfully registered');
     } catch (error: any) {
       console.error('Signup failed:', error);
-      toast({ message: error.message || t('auth.signupFailed'), type: 'error' });
+      toast.error(error.message || t('auth.signupFailed'));
     } finally {
       setIsPending(false);
     }

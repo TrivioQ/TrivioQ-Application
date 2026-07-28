@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../navigation/app-navigator';
 import { useAuth } from '../context/auth-context';
 import { useTranslation } from 'react-i18next';
-import { useToast } from '../components/toast';
+import { toast } from 'sonner-native';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
 import { radius } from '../theme/radius';
@@ -26,7 +26,6 @@ function GoogleG() {
 export default function LoginScreen() {
   const { t } = useTranslation();
   const { loginWithEmail, signInWithGoogle } = useAuth();
-  const toast = useToast();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
@@ -37,16 +36,17 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      toast({ message: t('auth.missingFields'), type: 'error' });
+      toast.error(t('auth.missingFields'));
       return;
     }
 
     setIsPending(true);
     try {
       await loginWithEmail(email, password);
+      toast.success('Successfully authenticated');
     } catch (error: any) {
       console.error('Login failed:', error);
-      toast({ message: error.message || t('auth.loginFailed'), type: 'error' });
+      toast.error(error.message || t('auth.loginFailed'));
     } finally {
       setIsPending(false);
     }
@@ -56,9 +56,10 @@ export default function LoginScreen() {
     setIsPending(true);
     try {
       await signInWithGoogle();
+      toast.success('Successfully authenticated');
     } catch (error: any) {
       console.error('Google sign-in failed:', error);
-      toast({ message: error.message || t('auth.googleFailed'), type: 'error' });
+      toast.error(error.message || t('auth.googleFailed'));
     } finally {
       setIsPending(false);
     }
@@ -82,7 +83,7 @@ export default function LoginScreen() {
           <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor={colors.textSecondary} value={password} onChangeText={setPassword} secureTextEntry />
 
           {/* Forgot password link */}
-          <TouchableOpacity style={styles.forgotPasswordRow} onPress={() => Alert.alert(t('auth.forgotPasswordTitle'), t('auth.forgotPasswordBody'))}>
+          <TouchableOpacity style={styles.forgotPasswordRow} onPress={() => toast.info(`${t('auth.forgotPasswordTitle')}: ${t('auth.forgotPasswordBody')}`)}>
             <Text style={styles.forgotPasswordText}>{t('auth.forgotPassword')}</Text>
           </TouchableOpacity>
 

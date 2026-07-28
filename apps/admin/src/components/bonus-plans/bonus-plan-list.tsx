@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { useTranslations } from 'next-intl';
 import { type BonusPlanInitialValues } from './bonus-plan-form';
+import { toast } from 'sonner';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -90,10 +91,11 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
 
     const res = await fetch(`/api/admin/bonus-plans/${plan.id}`, { method: 'DELETE' });
     if (res.ok || res.status === 204) {
+      toast.success(t('deleteSuccess') || 'Bonus plan deleted successfully');
       onRefresh();
     } else {
       const body = await res.json().catch(() => ({}));
-      alert(body.error ?? 'Failed to delete bonus plan.');
+      toast.error(body.error ?? 'Failed to delete bonus plan.');
     }
   };
 

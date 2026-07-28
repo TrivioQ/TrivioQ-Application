@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Linking } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../api/client';
-import { useToast } from '../components/toast';
+import { toast } from 'sonner-native';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
 
@@ -50,7 +50,6 @@ function Stepper({ value, min, max, onChange }: { value: number; min: number; ma
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function SubscriptionScreen() {
-  const toast = useToast();
   const queryClient = useQueryClient();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -70,15 +69,15 @@ export default function SubscriptionScreen() {
     setActivating(true);
     try {
       await apiClient.post('/api/v1/subscriptions/activate-vault', { daysToActivate });
-      toast({ message: `✅ ${daysToActivate} premium day${daysToActivate > 1 ? 's' : ''} activated!`, type: 'success' });
+      toast.success(`✅ ${daysToActivate} premium day${daysToActivate > 1 ? 's' : ''} activated!`);
       setDaysToActivate(1);
       queryClient.invalidateQueries({ queryKey: ['subscriptionStatus'] });
     } catch {
-      toast({ message: 'Failed to activate days. Please try again.', type: 'error' });
+      toast.error('Failed to activate days. Please try again.');
     } finally {
       setActivating(false);
     }
-  }, [data, daysToActivate, toast, queryClient]);
+  }, [data, daysToActivate, queryClient]);
 
   if (isLoading) {
     return (

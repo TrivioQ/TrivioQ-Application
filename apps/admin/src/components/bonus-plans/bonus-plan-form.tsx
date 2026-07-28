@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -153,9 +154,11 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         setApiError(res.status === 409 ? t('overlapError') : (body.error ?? t('genericError')));
+        toast.error(res.status === 409 ? t('overlapError') : (body.error ?? t('genericError')));
         return;
       }
 
+      toast.success(isEdit ? t('saveChanges') : t('create'));
       onSuccess?.();
     } catch {
       setApiError(t('networkError'));

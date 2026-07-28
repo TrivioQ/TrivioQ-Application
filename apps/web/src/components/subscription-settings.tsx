@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { makeAPICallV1 } from '@/lib/api';
-import { useNotification } from '@/context/notification-context';
+import { toast } from 'sonner';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -119,7 +119,6 @@ function IconAlertCircle() {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function SubscriptionSettings() {
-  const { success: notifySuccess, error: notifyError } = useNotification();
   const t = useTranslations('subscription');
   const locale = useLocale();
 
@@ -154,11 +153,11 @@ export function SubscriptionSettings() {
         method: 'POST',
         body: { daysToActivate: daysToSpend },
       });
-      notifySuccess(t('daysActivated', { count: daysToSpend }), t('vaultActivated'));
+      toast.success(t('vaultActivated'));
       setLoadingData(true);
       await fetchStatus();
     } catch (err: unknown) {
-      notifyError(err instanceof Error ? err.message : t('activationFailed'));
+      toast.error(err instanceof Error ? err.message : t('activationFailed'));
     } finally {
       setActivating(false);
     }

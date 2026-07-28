@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, ScrollView, Modal, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useConfirm } from '../components/confirm-modal';
-import { useToast } from '../components/toast';
+import { toast } from 'sonner-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
@@ -128,7 +128,6 @@ export default function DropActive() {
   const { userId } = useAuth();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
-  const toast = useToast();
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
 
@@ -209,7 +208,7 @@ export default function DropActive() {
     },
     onError: (err: any) => {
       const message = err.response?.data?.error || t('drop.hintAlertTitle');
-      toast({ message, type: 'error' });
+      toast.error(message);
     },
   });
 
@@ -227,7 +226,7 @@ export default function DropActive() {
     },
     onError: (err: any) => {
       const message = err.response?.data?.error || t('drop.revealAlertTitle');
-      toast({ message, type: 'error' });
+      toast.error(message);
     },
   });
 
@@ -241,7 +240,7 @@ export default function DropActive() {
     },
     onError: (err: any) => {
       const message = err.response?.data?.error || t('drop.revealAlertTitle');
-      toast({ message, type: 'error' });
+      toast.error(message);
     },
   });
 

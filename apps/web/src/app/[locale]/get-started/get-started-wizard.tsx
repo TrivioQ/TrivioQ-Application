@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import { useNotification } from '@/context/notification-context';
+import { toast } from 'sonner';
 import { makeAPICallV1 } from '@/lib/api';
 import { CategoriesStep } from './steps/categories-step';
 import { TrialStep } from './steps/trial-step';
@@ -18,7 +18,6 @@ const ROTATION_INTERVAL_MS = 2800;
 export function GetStartedWizard() {
   const router = useRouter();
   const t = useTranslations('getStarted');
-  const { error: notifyError } = useNotification();
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
 
@@ -71,7 +70,7 @@ export function GetStartedWizard() {
       });
       router.push('/dashboard');
     } catch (err: any) {
-      notifyError(err.message || t('submitFailed'), t('title'));
+      toast.error(err.message || t('submitFailed'));
       setSubmitting(false);
     }
   }
@@ -79,7 +78,7 @@ export function GetStartedWizard() {
   async function next() {
     const check = canAdvance();
     if (!check.ok) {
-      notifyError(check.reason || t('step1MinError'), t('title'));
+      toast.error(check.reason || t('step1MinError'));
       return;
     }
     if (step < TOTAL_STEPS) {

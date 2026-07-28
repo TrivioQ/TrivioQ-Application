@@ -8,6 +8,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
 export type Category = {
   id: string;
@@ -67,9 +68,10 @@ export function CategoryModal({ category, onOpenChange, open }: { category?: Cat
       const res = category ? await updateCategory(category.id, payload) : await createCategory(payload);
 
       if (res.success) {
+        toast.success(t('createModal.saveCategory'));
         handleOpenChange(false);
       } else {
-        alert(res.error);
+        toast.error(res.error);
       }
     });
   };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useNotification } from '../context/notification-context';
+import { toast } from 'sonner';
 
 interface ErrorNotificationProps {
   message: string;
@@ -19,11 +19,9 @@ interface ErrorNotificationProps {
  * // Server Component
  * {fetchFailed && <ErrorNotification title="Failed to load" message={errorMessage} />}
  */
-export function ErrorNotification({ message, title }: ErrorNotificationProps) {
-  const { error } = useNotification();
-
+export function ErrorNotification({ message }: ErrorNotificationProps) {
   useEffect(() => {
-    error(message, title);
+    toast.error(message);
   }, []);
 
   return null;

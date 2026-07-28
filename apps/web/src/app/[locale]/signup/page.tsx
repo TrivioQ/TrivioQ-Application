@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useAuth } from '@/context/auth-provider';
-import { useNotification } from '@/context/notification-context';
+import { toast } from 'sonner';
 import { makeAPICallV1 } from '@/lib/api';
 
 const inputClass = 'relative block w-full rounded-xl shadow-sm border-0 bg-bg-secondary dark:bg-bg-secondary-dark py-3 px-4 text-text ring-1 ring-inset ring-border placeholder:text-text-muted focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6';
@@ -30,7 +30,6 @@ export default function SignupPage() {
   const [referralCode, setReferralCode] = useState(searchParams.get('referral') ?? '');
 
   const { isPending, registerWithEmailSync, signInWithGoogleSync } = useAuthSync();
-  const { error: notifyError } = useNotification();
 
   // Users who are already signed in should be sent to the right destination depending on
   // their onboarding state — same gating logic as useAuthSync.handleSuccess.
@@ -76,7 +75,7 @@ export default function SignupPage() {
       }
 
       if (age < 13) {
-        notifyError(t('ageTooYoung'), t('invalidDateOfBirth'));
+        toast.error(t('ageTooYoung'));
         return;
       }
     }

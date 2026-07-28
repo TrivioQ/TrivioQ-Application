@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from 'next-intl';
 import { MarkdownPreview } from '@/components/ui/markdown-preview';
+import { toast } from 'sonner';
 
 const DEFAULT_CHOICES = () => [
   { text: '', isCorrect: true },
@@ -53,7 +54,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedCategories.length === 0) return alert('Select at least one category');
+    if (selectedCategories.length === 0) return toast.error('Select at least one category');
 
     startTransition(async () => {
       const res = await createQuestion({
@@ -66,6 +67,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
       });
 
       if (res.success) {
+        toast.success(t('saveQuestion'));
         setOpen(false);
         setQuestionText('');
         setChoices(DEFAULT_CHOICES());
@@ -77,7 +79,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
         setShowExplanationPreview(false);
         setChoicePreviewIdx(null);
       } else {
-        alert(res.error);
+        toast.error(res.error);
       }
     });
   };

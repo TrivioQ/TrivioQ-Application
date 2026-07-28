@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { ThemeProvider, type Theme } from '@/context/theme-context';
+import { Toaster } from 'sonner';
 import '../globals.css';
 
 const poppins = Poppins({
@@ -34,6 +35,7 @@ export default async function RootLayout({ children, params }: { children: React
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider initialTheme={initialTheme}>
             {children}
+            <Toaster richColors position="top-center" />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

@@ -2,6 +2,7 @@
 
 import { PrismaClient, DifficultyLevel, PendingQuestion, AgeRating } from '@trivioq/database';
 import { revalidatePath } from 'next/cache';
+import * as Sentry from '@sentry/nextjs';
 
 const prisma = new PrismaClient();
 
@@ -38,7 +39,9 @@ export async function updatePendingQuestion(pendingId: string, editedData: EditQ
     return { success: true };
   } catch (error) {
     console.error('Failed to update pending question:', error);
-    return { success: false, error: 'Failed to update pending question' };
+    Sentry.captureException(error);
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: `Failed to update pending question: ${message}` };
   }
 }
 
@@ -194,7 +197,9 @@ export async function getPendingQuestions(filters?: PendingQuestionsFilters): Pr
     };
   } catch (error) {
     console.error('Failed to fetch pending questions:', error);
-    return { success: false, error: 'Failed to fetch pending questions' };
+    Sentry.captureException(error);
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: `Failed to fetch pending questions: ${message}` };
   }
 }
 
@@ -295,7 +300,9 @@ export async function approvePendingQuestion(pendingId: string, editedData: Edit
     return { success: true, data: { id: result.id } };
   } catch (error) {
     console.error('Failed to approve pending question:', error);
-    return { success: false, error: 'Failed to approve pending question' };
+    Sentry.captureException(error);
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: `Failed to approve pending question: ${message}` };
   }
 }
 
@@ -317,7 +324,9 @@ export async function rejectPendingQuestion(pendingId: string, reason?: string) 
     return { success: true };
   } catch (error) {
     console.error('Failed to reject pending question:', error);
-    return { success: false, error: 'Failed to reject pending question' };
+    Sentry.captureException(error);
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: `Failed to reject pending question: ${message}` };
   }
 }
 
@@ -342,7 +351,9 @@ export async function requeuePendingQuestion(pendingId: string) {
     return { success: true };
   } catch (error) {
     console.error('Failed to re-queue pending question:', error);
-    return { success: false, error: 'Failed to re-queue pending question' };
+    Sentry.captureException(error);
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: `Failed to re-queue pending question: ${message}` };
   }
 }
 
@@ -361,7 +372,9 @@ export async function bulkRejectPendingQuestions(pendingIds: string[], reason?: 
     return { success: true };
   } catch (error) {
     console.error('Failed to bulk reject pending questions:', error);
-    return { success: false, error: 'Failed to bulk reject pending questions' };
+    Sentry.captureException(error);
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: `Failed to bulk reject pending questions: ${message}` };
   }
 }
 
@@ -442,6 +455,8 @@ export async function bulkApprovePendingQuestions(pendingIds: string[]) {
     return { success: true, count: results.length };
   } catch (error) {
     console.error('Failed to bulk approve pending questions:', error);
-    return { success: false, error: 'Failed to bulk approve pending questions' };
+    Sentry.captureException(error);
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: `Failed to bulk approve pending questions: ${message}` };
   }
 }

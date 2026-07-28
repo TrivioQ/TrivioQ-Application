@@ -14,6 +14,7 @@ import { bulkApprovePendingQuestions, bulkRejectPendingQuestions } from '@/app/a
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AppSelect } from '@/components/ui/app-select';
+import { toast } from 'sonner';
 
 
 interface PendingQuestion {
@@ -127,9 +128,12 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
       const ids = Array.from(selectedQuestionIds);
       const res = await bulkApprovePendingQuestions(ids);
       if (res.success) {
+        toast.success(t('approveSelected'));
         setPendingQuestions((prev) => prev.filter((q) => !ids.includes(q.id)));
         setSelectedQuestionIds(new Set());
         if (selectedId && ids.includes(selectedId)) setSelectedId(null);
+      } else {
+        toast.error(res.error);
       }
     });
   };
@@ -139,9 +143,12 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
       const ids = Array.from(selectedQuestionIds);
       const res = await bulkRejectPendingQuestions(ids);
       if (res.success) {
+        toast.success(t('rejectSelected'));
         setPendingQuestions((prev) => prev.filter((q) => !ids.includes(q.id)));
         setSelectedQuestionIds(new Set());
         if (selectedId && ids.includes(selectedId)) setSelectedId(null);
+      } else {
+        toast.error(res.error);
       }
     });
   };

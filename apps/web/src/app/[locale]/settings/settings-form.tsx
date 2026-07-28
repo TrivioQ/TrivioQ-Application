@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import { useNotification } from '@/context/notification-context';
+import { toast } from 'sonner';
 import { makeAPICallV1 } from '@/lib/api';
 import { useAuth } from '@/context/auth-provider';
 import { useConfirm } from '@/components/confirm-modal';
@@ -24,7 +24,6 @@ interface CategoriesResponse {
 export function SettingsForm({ initialUser }: { initialUser: any }) {
   const router = useRouter();
   const { user } = useAuth();
-  const { success: notifySuccess, error: notifyError, info: notifyInfo } = useNotification();
   const t = useTranslations('settings');
   const tSteps = useTranslations('getStarted');
   const [isPending, setIsPending] = useState(false);
@@ -71,7 +70,8 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
 
     const total = Object.values(difficulty).reduce((a, b) => a + b, 0);
     if (Math.abs(total - 100) > 0.1) {
-      return notifyError(t('validationError'), t('validationErrorTitle'));
+      toast.error(t('validationError'));
+      return;
     }
 
     setIsPending(true);
@@ -89,10 +89,10 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
           categoryPercentages: selectedCategories.length > 0 ? buildEqualWeightCategoryPercentages(selectedCategories) : { General: 1.0 },
         },
       });
-      notifySuccess(t('preferencesSaved'), t('preferencesSavedTitle'));
+      toast.success(t('preferencesSaved'));
       router.refresh();
     } catch (err: any) {
-      notifyError(err.message || t('preferencesFailed'));
+      toast.error(err.message || t('preferencesFailed'));
     } finally {
       setIsPending(false);
     }
@@ -100,7 +100,8 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
 
   const handleSaveCategories = async () => {
     if (selectedCategories.length < 30) {
-      return notifyError(tSteps('step1MinError'), t('validationErrorTitle'));
+      toast.error(tSteps('step1MinError'));
+      return;
     }
     setCategoriesPending(true);
     try {
@@ -117,10 +118,10 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
           categoryPercentages: buildEqualWeightCategoryPercentages(selectedCategories),
         },
       });
-      notifySuccess(t('preferencesSaved'), t('preferencesSavedTitle'));
+      toast.success(t('preferencesSaved'));
       router.refresh();
     } catch (err: any) {
-      notifyError(err.message || t('preferencesFailed'));
+      toast.error(err.message || t('preferencesFailed'));
     } finally {
       setCategoriesPending(false);
     }
@@ -130,7 +131,8 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
     e.preventDefault();
     if (!user) return;
     if (newPassword !== confirmPassword) {
-      return notifyError(t('passwordsDontMatch'));
+      toast.error(t('passwordsDontMatch'));
+      return;
     }
 
     setIsPending(true);
@@ -144,12 +146,12 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || t('passwordUpdateFailed'));
 
-      notifySuccess(t('passwordUpdated'), t('passwordUpdatedTitle'));
+      toast.success(t('passwordUpdated'));
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
-      notifyError(err.message || t('passwordUpdateFailed'));
+      toast.error(err.message || t('passwordUpdateFailed'));
     } finally {
       setIsPending(false);
     }
@@ -170,10 +172,10 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
       await makeAPICallV1('auth', { method: 'DELETE' });
 
       // 2. Local cleanup is handled by redirecting or signing out
-      notifyInfo(t('accountDeleted'), t('accountDeletedTitle'));
+      toast.info(t('accountDeleted'));
       window.location.href = '/';
     } catch (err: any) {
-      notifyError(err.message || t('deleteAccountFailed'));
+      toast.error(err.message || t('deleteAccountFailed'));
     } finally {
       setIsPending(false);
     }

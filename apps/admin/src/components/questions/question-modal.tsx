@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from 'next-intl';
 import type { QuestionRow } from './columns';
 import { MarkdownPreview } from '@/components/ui/markdown-preview';
+import { toast } from 'sonner';
 
 type EditableChoice = { id: string; text: string; order: number; isCorrect: boolean };
 
@@ -66,8 +67,8 @@ export function QuestionModal({ question, categories, open, onOpenChange }: { qu
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedCategories.length === 0) return alert('Select at least one category');
-    if (!choices.some((c) => c.isCorrect)) return alert('Select a correct answer');
+    if (selectedCategories.length === 0) return toast.error('Select at least one category');
+    if (!choices.some((c) => c.isCorrect)) return toast.error('Select a correct answer');
 
     startTransition(async () => {
       const res = await updateQuestion(question.id, {
@@ -80,9 +81,10 @@ export function QuestionModal({ question, categories, open, onOpenChange }: { qu
       });
 
       if (res.success) {
+        toast.success(t('saveChanges'));
         onOpenChange(false);
       } else {
-        alert(res.error);
+        toast.error(res.error);
       }
     });
   };

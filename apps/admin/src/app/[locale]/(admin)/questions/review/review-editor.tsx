@@ -13,6 +13,7 @@ import { DifficultyLevel, AgeRating } from '@trivioq/database';
 import type { SuggestedChoice } from '@trivioq/shared-types';
 import { formatDistanceToNow } from 'date-fns';
 import { Check } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PendingQuestion {
   id: string;
@@ -106,8 +107,9 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
       if (res.success) {
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 2000);
+        toast.success(t('saved'));
       } else {
-        alert(res.error);
+        toast.error(res.error);
       }
     });
   };
@@ -116,14 +118,15 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
     startTransition(async () => {
       const saveRes = await updatePendingQuestion(pendingQuestion.id, buildPayload());
       if (!saveRes.success) {
-        alert(saveRes.error);
+        toast.error(saveRes.error);
         return;
       }
       const res = await approvePendingQuestion(pendingQuestion.id, buildPayload());
       if (res.success) {
+        toast.success(t('publishing')); // Or appropriate success message
         onComplete(pendingQuestion.id);
       } else {
-        alert(res.error);
+        toast.error(res.error);
       }
     });
   };
@@ -132,16 +135,17 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
     startTransition(async () => {
       const saveRes = await updatePendingQuestion(pendingQuestion.id, buildPayload());
       if (!saveRes.success) {
-        alert(saveRes.error);
+        toast.error(saveRes.error);
         return;
       }
       const res = await rejectPendingQuestion(pendingQuestion.id, rejectionReason || undefined);
       if (res.success) {
         setRejectDialogOpen(false);
         setRejectionReason('');
+        toast.success(t('rejectDialog.rejecting'));
         onComplete(pendingQuestion.id);
       } else {
-        alert(res.error);
+        toast.error(res.error);
       }
     });
   };
@@ -150,14 +154,15 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
     startTransition(async () => {
       const saveRes = await updatePendingQuestion(pendingQuestion.id, buildPayload());
       if (!saveRes.success) {
-        alert(saveRes.error);
+        toast.error(saveRes.error);
         return;
       }
       const res = await requeuePendingQuestion(pendingQuestion.id);
       if (res.success) {
+        toast.success(t('requeueing'));
         onComplete(pendingQuestion.id);
       } else {
-        alert(res.error);
+        toast.error(res.error);
       }
     });
   };

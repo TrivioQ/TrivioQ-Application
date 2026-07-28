@@ -12,6 +12,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -144,25 +145,27 @@ export function QuestionsStatsSection({ stats }: Props) {
                       : t('categoriesSelected', { count: selectedCategories.length })}
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56 max-h-64 overflow-y-auto" align="start">
-                    <DropdownMenuLabel>{t('filterByCategory')}</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem
-                      checked={selectedCategories.length === 0}
-                      onCheckedChange={() => setSelectedCategories([])}
-                    >
-                      {t('allCategories')}
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuSeparator />
-                    {stats.categories.map((c) => (
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>{t('filterByCategory')}</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
                       <DropdownMenuCheckboxItem
-                        key={c.id}
-                        checked={selectedCategories.includes(c.id)}
-                        onSelect={(e) => e.preventDefault()}
-                        onCheckedChange={() => toggleCategory(c.id)}
+                        checked={selectedCategories.length === 0}
+                        onCheckedChange={() => setSelectedCategories([])}
                       >
-                        {c.name}
+                        {t('allCategories')}
                       </DropdownMenuCheckboxItem>
-                    ))}
+                      <DropdownMenuSeparator />
+                      {stats.categories.map((c) => (
+                        <DropdownMenuCheckboxItem
+                          key={c.id}
+                          checked={selectedCategories.includes(c.id)}
+                          onSelect={(e) => e.preventDefault()}
+                          onCheckedChange={() => toggleCategory(c.id)}
+                        >
+                          {c.name}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -177,25 +180,27 @@ export function QuestionsStatsSection({ stats }: Props) {
                       : t('categoriesSelected', { count: selectedAgeRatings.length })}
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="start">
-                    <DropdownMenuLabel>{t('filterByRating')}</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem
-                      checked={selectedAgeRatings.length === 0}
-                      onCheckedChange={() => setSelectedAgeRatings([])}
-                    >
-                      {t('allRatings')}
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuSeparator />
-                    {(['ALL', 'TEEN', 'MATURE'] as AgeRating[]).map((r) => (
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>{t('filterByRating')}</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
                       <DropdownMenuCheckboxItem
-                        key={r}
-                        checked={selectedAgeRatings.includes(r)}
-                        onSelect={(e) => e.preventDefault()}
-                        onCheckedChange={() => toggleAgeRating(r)}
+                        checked={selectedAgeRatings.length === 0}
+                        onCheckedChange={() => setSelectedAgeRatings([])}
                       >
-                        {r === 'ALL' ? t('allAges') : r === 'TEEN' ? t('teen') : t('mature')}
+                        {t('allRatings')}
                       </DropdownMenuCheckboxItem>
-                    ))}
+                      <DropdownMenuSeparator />
+                      {(['ALL', 'TEEN', 'MATURE'] as AgeRating[]).map((r) => (
+                        <DropdownMenuCheckboxItem
+                          key={r}
+                          checked={selectedAgeRatings.includes(r)}
+                          onSelect={(e) => e.preventDefault()}
+                          onCheckedChange={() => toggleAgeRating(r)}
+                        >
+                          {r === 'ALL' ? t('allAges') : r === 'TEEN' ? t('teen') : t('mature')}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
