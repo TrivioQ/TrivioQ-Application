@@ -227,7 +227,7 @@
     "title": "Content Review",
     "description": "Review and approve AI-generated trivia questions before they enter the live database.",
     "filters": {
-      "unvalidated": "Unvalidated",
+      "pending": "Pending",
       "aiValidated": "AI Validated",
       "aiRejected": "AI Rejected",
       "pendingDuplicates": "Pending Duplicates",

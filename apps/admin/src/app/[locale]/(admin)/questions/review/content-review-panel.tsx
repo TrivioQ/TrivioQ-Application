@@ -180,7 +180,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
       {/* Filter Tabs */}
       <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit overflow-x-auto max-w-full">
         <Link href={createTabHref()} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${!filter ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
-          {t('filters.unvalidated')}
+          {t('filters.pending')}
           <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${!filter ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300' : 'bg-muted-foreground/20 text-muted-foreground'}`}>{displayCount('unvalidated', counts.unvalidated)}</span>
         </Link>
         <Link href={createTabHref('ai-validated')} className={`flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === 'ai-validated' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
