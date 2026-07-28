@@ -52,48 +52,76 @@ export async function pdfToImage(pdfPath: string, outputDir: string, options: Pd
   }
 
   const { format = 'jpeg', density = 100, width, height, preserveAspectRatio = true, fromPage, toPage } = options;
-
   const baseFilename = path.basename(resolvedPdf, path.extname(resolvedPdf));
 
-  const pdf2picOptions: Pdf2PicOptions = {
-    format,
-    density,
-    preserveAspectRatio,
-    savePath: resolvedOutput,
-    saveFilename: `${baseFilename}_page`,
-  };
+  // Load the original PDF document to slice it into manageable chunks.
+  const pdfBytes = fs.readFileSync(resolvedPdf);
+  const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+  
+  const start = fromPage ?? 1;
+  const end = toPage ?? pdfDoc.getPageCount();
 
-  if (width !== undefined) pdf2picOptions.width = width;
-  if (height !== undefined) pdf2picOptions.height = height;
+  const responsePaths: string[] = [];
+  const CHUNK_SIZE = 25; // 25 pages per chunk for optimal speed vs memory balance
 
-  const converter = fromPath(resolvedPdf, pdf2picOptions);
+  // pdf-lib pages are 0-indexed
+  const allPageIndices = Array.from({ length: end - start + 1 }, (_, i) => (start - 1) + i);
 
-  let start = fromPage ?? 1;
-  let end = toPage;
+  for (let i = 0; i < allPageIndices.length; i += CHUNK_SIZE) {
+    const chunkIndices = allPageIndices.slice(i, i + CHUNK_SIZE);
+    
+    // Create a temporary PDF for this chunk
+    const tempDoc = await PDFDocument.create();
+    const copiedPages = await tempDoc.copyPages(pdfDoc, chunkIndices);
+    for (const page of copiedPages) {
+      tempDoc.addPage(page);
+    }
+    const tempBytes = await tempDoc.save();
+    
+    // Use a unique name for the temporary PDF to avoid any conflicts
+    const randomHex = Math.random().toString(36).substring(2, 8);
+    const tempFileName = `temp_${baseFilename}_${randomHex}.pdf`;
+    const tempFilePath = path.join(resolvedOutput, tempFileName);
+    fs.writeFileSync(tempFilePath, tempBytes);
+    
+    try {
+      const pdf2picOptions: Pdf2PicOptions = {
+        format,
+        density,
+        preserveAspectRatio,
+        savePath: resolvedOutput,
+        saveFilename: `${baseFilename}_temp_${randomHex}`,
+      };
+      
+      if (width !== undefined) pdf2picOptions.width = width;
+      if (height !== undefined) pdf2picOptions.height = height;
 
-  if (end === undefined) {
-    // Read the total number of pages using pdf-lib to avoid converting excess pages
-    const pdfBytes = fs.readFileSync(resolvedPdf);
-    const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
-    end = pdfDoc.getPageCount();
+      const converter = fromPath(tempFilePath, pdf2picOptions);
+      
+      // Convert all pages in this tiny temporary PDF via a single Ghostscript process! (EXTREMELY FAST)
+      const chunkResponse = await converter.bulk(-1);
+      
+      // Rename files to match the expected page number format
+      for (const res of chunkResponse) {
+        if (!res.path || res.page === undefined) continue;
+        
+        const ext = path.extname(res.path);
+        // res.page is 1-indexed relative to the chunk (e.g. 1 to 25)
+        const actualPage = start + i + res.page - 1;
+        const finalPath = path.join(resolvedOutput, `${baseFilename}_page.${actualPage}${ext}`);
+        
+        fs.renameSync(res.path, finalPath);
+        responsePaths.push(finalPath);
+      }
+    } finally {
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+      }
+    }
   }
 
-  // We now have a definitive range [start, end]
-  const allPages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
-  let response: WriteImageResponse[] = [];
+  // Sort paths numerically so indexes are stable
+  responsePaths.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 
-  // Batch process pages to prevent running out of /tmp space or memory (e.g. write EPIPE errors from graphicsmagick)
-  const BATCH_SIZE = 1;
-  for (let i = 0; i < allPages.length; i += BATCH_SIZE) {
-    const chunk = allPages.slice(i, i + BATCH_SIZE);
-    const chunkResponse = await converter.bulk(chunk);
-    response.push(...chunkResponse);
-  }
-
-  const imagePaths = response.map((res) => res.path!);
-
-  // pdf2pic may return paths in arbitrary order; sort them numerically so indexes are stable (e.g., page 2 before page 10).
-  imagePaths.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-
-  return imagePaths;
+  return responsePaths;
 }
