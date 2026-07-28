@@ -389,6 +389,8 @@ export function buildQuizGenerationFromTextPrompt(specialInstruction?: string, p
  * Cast from the raw provider response via (result as unknown as ValidationResult).
  */
 export interface ValidationResult {
+  /** A step-by-step reasoning scratchpad to prevent hallucination before arriving at the final passed flags. */
+  stepByStepAnalysis: string;
   factCheck: {
     /** True if the question text and the marked correct answer are factually accurate. */
     passed: boolean;
@@ -418,6 +420,9 @@ export interface ValidationResult {
 
 export function buildValidationPrompt(targetAgeRating: string): string {
   return `You are a strict trivia question validator. Evaluate the given trivia question and its choices across FOUR independent dimensions and return a structured JSON result.
+
+## CRITICAL INSTRUCTION — Chain of Thought
+Before making your final boolean decisions, you MUST write out your step-by-step reasoning in the \\\`stepByStepAnalysis\\\` field. Think through the facts, check each item in the list/question individually, and explain your logical deduction to ensure accuracy.
 
 ## Dimension 1 — Fact Check
 Verify that:
@@ -453,6 +458,7 @@ Set ageRating.passed = false if ANY of the above fail.
 ## Output Format
 Return ONLY a JSON object matching this exact schema. Do not include markdown, explanations, or any text outside the JSON:
 {
+  "stepByStepAnalysis": "Your detailed step-by-step reasoning here. Do this FIRST.",
   "factCheck":    { "passed": true,  "rationale": null },
   "validity":     { "passed": true,  "rationale": null },
   "completeness": { "passed": true,  "rationale": null },
