@@ -83,7 +83,7 @@ export async function pdfToImage(pdfPath: string, outputDir: string, options: Pd
   let response: WriteImageResponse[] = [];
 
   // Batch process pages to prevent running out of /tmp space or memory (e.g. write EPIPE errors from graphicsmagick)
-  const BATCH_SIZE = 10;
+  const BATCH_SIZE = 1;
   for (let i = 0; i < allPages.length; i += BATCH_SIZE) {
     const chunk = allPages.slice(i, i + BATCH_SIZE);
     const chunkResponse = await converter.bulk(chunk);
