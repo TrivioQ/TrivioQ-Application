@@ -19,7 +19,7 @@ interface CronJob {
 }
 
 export function CronJobList() {
-  const t = useTranslations('cronJobs');
+  const t = useTranslations('system.cronJobs');
   const [jobs, setJobs] = useState<CronJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

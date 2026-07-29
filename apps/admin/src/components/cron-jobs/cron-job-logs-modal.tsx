@@ -43,7 +43,7 @@ interface CronJobLogsModalProps {
 }
 
 export function CronJobLogsModal({ jobId, jobName, onClose }: CronJobLogsModalProps) {
-  const t = useTranslations('cronJobs');
+  const t = useTranslations('system.cronJobs');
   const [executions, setExecutions] = useState<Execution[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);

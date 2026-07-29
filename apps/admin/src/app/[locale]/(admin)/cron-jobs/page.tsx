@@ -6,7 +6,7 @@ export const metadata = {
 };
 
 export default function CronJobsPage() {
-  const t = useTranslations('cronJobs');
+  const t = useTranslations('system.cronJobs');
 
   return (
     <div className="space-y-6">
