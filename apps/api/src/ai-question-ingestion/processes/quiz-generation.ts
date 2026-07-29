@@ -207,45 +207,59 @@ export class QuizGenerationProcess implements IngestionProcess {
 
     const enhancementPrompt = buildEnhancementPrompt(this.availableCategories, this.enhancementSpecialInstruction);
 
-    for (let idx = 0; idx < questionsToEnhance.length; idx++) {
-      const question = questionsToEnhance[idx];
-      try {
-        await this.delayIfNeeded('enhancement');
-        console.log(`[Enhancement] Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
-        let enhanced;
-        try {
-          enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt);
-        } finally {
-          this.recordCallTime();
-        }
+    const concurrency = Math.max(1, parseInt(process.env.INGESTION_ENHANCEMENT_CONCURRENCY ?? '10', 10));
 
-        this.state.upsertQuestion({
-          ...question,
-          status: 'READY_FOR_UPLOAD',
-          metadata: {
-            ...question.metadata,
-            hint: enhanced.hint,
-            explanation: enhanced.explanation,
-            aiQualityScore: enhanced.aiQualityScore,
-            topic: enhanced.topic,
-            categorySlugs: enhanced.categorySlugs,
-            difficulty: sanitiseDifficulty(enhanced.difficulty),
-            // Store the AI-inferred age rating; sanitised before upload
-            ageRating: sanitiseAgeRating(enhanced.ageRating),
-            isFactuallyCorrect: enhanced.isFactuallyCorrect,
-            factCheckRationale: enhanced.factCheckRationale,
-            // Flag questions that are only meaningful in the context of the source document
-            isSelfReferential: enhanced.isSelfReferential,
-          },
-        });
+    for (let i = 0; i < questionsToEnhance.length; i += concurrency) {
+      const chunk = questionsToEnhance.slice(i, i + concurrency);
 
-        console.log(`[Enhancement] Enhanced ${question.id} — difficulty: ${enhanced.difficulty}`);
-      } catch (error) {
-        console.error(`[Enhancement] Error processing question ${question.id}:`, error);
-        reportError(error instanceof Error ? error : new Error(String(error)), {
-          phase: 'enhancement',
-          questionId: question.id,
-        });
+      const processedChunk = await Promise.all(
+        chunk.map(async (question, chunkIdx) => {
+          const idx = i + chunkIdx;
+          try {
+            await this.delayIfNeeded('enhancement');
+            console.log(`[Enhancement] Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
+            let enhanced;
+            try {
+              enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt);
+            } finally {
+              this.recordCallTime();
+            }
+
+            console.log(`[Enhancement] Enhanced ${question.id} — difficulty: ${enhanced.difficulty}`);
+
+            return {
+              ...question,
+              status: 'READY_FOR_UPLOAD' as const,
+              metadata: {
+                ...question.metadata,
+                hint: enhanced.hint,
+                explanation: enhanced.explanation,
+                aiQualityScore: enhanced.aiQualityScore,
+                topic: enhanced.topic,
+                categorySlugs: enhanced.categorySlugs,
+                difficulty: sanitiseDifficulty(enhanced.difficulty),
+                // Store the AI-inferred age rating; sanitised before upload
+                ageRating: sanitiseAgeRating(enhanced.ageRating),
+                isFactuallyCorrect: enhanced.isFactuallyCorrect,
+                factCheckRationale: enhanced.factCheckRationale,
+                // Flag questions that are only meaningful in the context of the source document
+                isSelfReferential: enhanced.isSelfReferential,
+              },
+            };
+          } catch (error) {
+            console.error(`[Enhancement] Error processing question ${question.id}:`, error);
+            reportError(error instanceof Error ? error : new Error(String(error)), {
+              phase: 'enhancement',
+              questionId: question.id,
+            });
+            return null;
+          }
+        }),
+      );
+
+      const successfulQuestions = processedChunk.filter((q): q is NonNullable<typeof q> => q !== null);
+      if (successfulQuestions.length > 0) {
+        this.state.upsertQuestions(successfulQuestions);
       }
     }
   }

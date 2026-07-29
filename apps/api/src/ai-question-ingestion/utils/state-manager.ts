@@ -61,13 +61,21 @@ export class IngestionState {
   }
 
   upsertQuestion(question: Question): void {
-    const state = this.initOrLoad();
-    const index = state.questions.findIndex((q) => q.id === question.id);
+    this.upsertQuestions([question]);
+  }
 
-    if (index >= 0) {
-      state.questions[index] = { ...state.questions[index], ...question };
-    } else {
-      state.questions.push(question);
+  upsertQuestions(questions: Question[]): void {
+    if (questions.length === 0) return;
+
+    const state = this.initOrLoad();
+
+    for (const question of questions) {
+      const index = state.questions.findIndex((q) => q.id === question.id);
+      if (index >= 0) {
+        state.questions[index] = { ...state.questions[index], ...question };
+      } else {
+        state.questions.push(question);
+      }
     }
 
     this.writeState(state);
