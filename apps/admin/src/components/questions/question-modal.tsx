@@ -81,7 +81,7 @@ export function QuestionModal({ question, categories, open, onOpenChange }: { qu
       });
 
       if (res.success) {
-        toast.success(t('saveChanges'));
+        toast.success(t('saveSuccess'));
         onOpenChange(false);
       } else {
         toast.error(res.error);

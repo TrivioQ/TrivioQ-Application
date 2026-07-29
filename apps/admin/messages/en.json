@@ -129,7 +129,8 @@
       "subscriptionExpiresAt": "Subscription Expiry Date",
       "expiryDateRequired": "Expiry date is mandatory for Premium and Plus plans.",
       "saveChanges": "Save Changes",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "saveSuccess": "User updated successfully."
     },
     "tierFilter": {
       "all": "All",
@@ -197,7 +198,8 @@
       "searchCategory": "Search category...",
       "noCategoryFound": "No category found.",
       "saveQuestion": "Save Question",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "createSuccess": "Question created successfully."
     },
     "editModal": {
       "title": "Edit Question",
@@ -220,7 +222,8 @@
       "searchCategory": "Search category...",
       "noCategoryFound": "No category found.",
       "saveChanges": "Save Changes",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "saveSuccess": "Question updated successfully."
     }
   },
   "review": {
@@ -243,6 +246,10 @@
     "selectAll": "Select All",
     "approveSelected": "Approve Selected",
     "rejectSelected": "Reject Selected",
+    "requeueSelected": "Re-queue Selected",
+    "approveSuccess": "Selected questions approved.",
+    "rejectSuccess": "Selected questions rejected.",
+    "requeueSuccess": "Selected questions re-queued.",
     "noPending": "No pending questions to review.",
     "selectPrompt": "Select a question from the list to review.",
     "aiRejectedBadge": "AI REJECTED",
@@ -300,7 +307,11 @@
         "cancel": "Cancel",
         "confirmRejection": "Confirm Rejection",
         "rejecting": "Rejecting..."
-      }
+      },
+      "publishSuccess": "Question published successfully.",
+      "rejectSuccess": "Question rejected successfully.",
+      "requeueSuccess": "Question re-queued successfully.",
+      "saveSuccess": "Changes saved successfully."
     },
     "noResults": "No results",
     "rowsPerPage": "Rows per page:",
@@ -345,7 +356,8 @@
       "description": "Description (Optional)",
       "descriptionPlaceholder": "Brief explanation...",
       "saveCategory": "Save Category",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "createSuccess": "Category created successfully."
     },
     "editModal": {
       "title": "Edit Category",
@@ -356,7 +368,8 @@
       "description": "Description (Optional)",
       "descriptionPlaceholder": "Brief explanation...",
       "saveCategory": "Save Category",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "saveSuccess": "Category updated successfully."
     }
   },
   "faqs": {
@@ -428,6 +441,7 @@
     "monthly": "Monthly",
     "points": "Points",
     "premiumDays": "Premium Days",
+    "deleteSuccess": "Bonus plan deleted successfully.",
     "deleteConfirm": {
       "title": "Delete Bonus Plan",
       "message": "Are you sure you want to delete \"{title}\"? This action cannot be undone.",
@@ -461,7 +475,9 @@
       "saving": "Saving…",
       "overlapError": "A bonus plan already exists for this period. Adjust the dates or remove the conflicting plan.",
       "genericError": "Something went wrong. Please try again.",
-      "networkError": "Network error. Please check your connection and try again."
+      "networkError": "Network error. Please check your connection and try again.",
+      "createSuccess": "Bonus plan created successfully.",
+      "saveSuccess": "Bonus plan updated successfully."
     }
   },
   "appSettings": {

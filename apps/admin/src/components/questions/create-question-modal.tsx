@@ -67,7 +67,7 @@ export function CreateQuestionModal({ categories }: { categories: { id: string; 
       });
 
       if (res.success) {
-        toast.success(t('saveQuestion'));
+        toast.success(t('createSuccess'));
         setOpen(false);
         setQuestionText('');
         setChoices(DEFAULT_CHOICES());

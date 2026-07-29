@@ -158,7 +158,7 @@ export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanF
         return;
       }
 
-      toast.success(isEdit ? t('saveChanges') : t('create'));
+      toast.success(isEdit ? t('saveSuccess') : t('createSuccess'));
       onSuccess?.();
     } catch {
       setApiError(t('networkError'));

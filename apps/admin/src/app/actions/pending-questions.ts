@@ -359,6 +359,26 @@ export async function requeuePendingQuestion(pendingId: string) {
 
 // ── Bulk Actions ─────────────────────────────────────────────────────────────────
 
+export async function bulkRequeuePendingQuestions(pendingIds: string[]) {
+  try {
+    await prisma.pendingQuestion.updateMany({
+      where: { id: { in: pendingIds } },
+      data: {
+        status: 'PENDING',
+        aiFeedback: null,
+      },
+    });
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to bulk re-queue pending questions:', error);
+    Sentry.captureException(error);
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: `Failed to bulk re-queue pending questions: ${message}` };
+  }
+}
+
+
 export async function bulkRejectPendingQuestions(pendingIds: string[], reason?: string) {
   try {
     await prisma.pendingQuestion.updateMany({

@@ -74,7 +74,7 @@ export function UserModal({ user, open, onOpenChange }: { user: UserRow; open: b
         onDemandTokens: parseInt(onDemandTokens, 10) || 0,
       });
       if (res.success) {
-        toast.success(t('saveChanges'));
+        toast.success(t('saveSuccess'));
         onOpenChange(false);
       } else {
         toast.error(res.error);

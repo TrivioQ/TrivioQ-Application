@@ -107,7 +107,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
       if (res.success) {
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 2000);
-        toast.success(t('saved'));
+        toast.success(t('saveSuccess'));
       } else {
         toast.error(res.error);
       }
@@ -123,7 +123,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
       }
       const res = await approvePendingQuestion(pendingQuestion.id, buildPayload());
       if (res.success) {
-        toast.success(t('publishing')); // Or appropriate success message
+        toast.success(t('publishSuccess')); // Or appropriate success message
         onComplete(pendingQuestion.id);
       } else {
         toast.error(res.error);
@@ -142,7 +142,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
       if (res.success) {
         setRejectDialogOpen(false);
         setRejectionReason('');
-        toast.success(t('rejectDialog.rejecting'));
+        toast.success(t('rejectSuccess'));
         onComplete(pendingQuestion.id);
       } else {
         toast.error(res.error);
@@ -159,7 +159,7 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
       }
       const res = await requeuePendingQuestion(pendingQuestion.id);
       if (res.success) {
-        toast.success(t('requeueing'));
+        toast.success(t('requeueSuccess'));
         onComplete(pendingQuestion.id);
       } else {
         toast.error(res.error);
@@ -197,11 +197,13 @@ export function ReviewEditor({ pendingQuestion, categories, onComplete }: { pend
           <Button variant="secondary" size="sm" onClick={handleSave} disabled={isPending}>
             {isPending ? t('saving') : saveSuccess ? <><Check className="mr-1 h-3.5 w-3.5" />{t('saved')}</> : t('saveChanges')}
           </Button>
-          <Button size="sm" onClick={handleApprove} disabled={isPending}>
-            {isPending
-              ? pendingQuestion.status === 'PENDING-DUPLICATE' ? t('replacing') : t('publishing')
-              : pendingQuestion.status === 'PENDING-DUPLICATE' ? t('approveAndReplace') : t('approve')}
-          </Button>
+          {(pendingQuestion.status === 'AI-APPROVED' || pendingQuestion.status === 'PENDING-DUPLICATE') && (
+            <Button size="sm" onClick={handleApprove} disabled={isPending}>
+              {isPending
+                ? pendingQuestion.status === 'PENDING-DUPLICATE' ? t('replacing') : t('publishing')
+                : pendingQuestion.status === 'PENDING-DUPLICATE' ? t('approveAndReplace') : t('approve')}
+            </Button>
+          )}
         </div>
       </div>
 

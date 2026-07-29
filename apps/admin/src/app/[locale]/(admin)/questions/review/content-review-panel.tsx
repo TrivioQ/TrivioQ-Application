@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { useTableParams } from '@/hooks/use-table-params';
 import { buttonVariants } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2, CheckSquare } from 'lucide-react';
-import { bulkApprovePendingQuestions, bulkRejectPendingQuestions } from '@/app/actions/pending-questions';
+import { bulkApprovePendingQuestions, bulkRejectPendingQuestions, bulkRequeuePendingQuestions } from '@/app/actions/pending-questions';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AppSelect } from '@/components/ui/app-select';
@@ -128,7 +128,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
       const ids = Array.from(selectedQuestionIds);
       const res = await bulkApprovePendingQuestions(ids);
       if (res.success) {
-        toast.success(t('approveSelected'));
+        toast.success(t('approveSuccess'));
         setPendingQuestions((prev) => prev.filter((q) => !ids.includes(q.id)));
         setSelectedQuestionIds(new Set());
         if (selectedId && ids.includes(selectedId)) setSelectedId(null);
@@ -143,7 +143,22 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
       const ids = Array.from(selectedQuestionIds);
       const res = await bulkRejectPendingQuestions(ids);
       if (res.success) {
-        toast.success(t('rejectSelected'));
+        toast.success(t('rejectSuccess'));
+        setPendingQuestions((prev) => prev.filter((q) => !ids.includes(q.id)));
+        setSelectedQuestionIds(new Set());
+        if (selectedId && ids.includes(selectedId)) setSelectedId(null);
+      } else {
+        toast.error(res.error);
+      }
+    });
+  };
+
+  const handleBulkRequeue = () => {
+    startBulkTransition(async () => {
+      const ids = Array.from(selectedQuestionIds);
+      const res = await bulkRequeuePendingQuestions(ids);
+      if (res.success) {
+        toast.success(t('requeueSuccess'));
         setPendingQuestions((prev) => prev.filter((q) => !ids.includes(q.id)));
         setSelectedQuestionIds(new Set());
         if (selectedId && ids.includes(selectedId)) setSelectedId(null);
@@ -231,9 +246,16 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
                     {t('bulkActions')}
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleBulkApprove} className="text-green-600 focus:text-green-700">
-                      {t('approveSelected')}
-                    </DropdownMenuItem>
+                    {(filter === 'ai-validated' || filter === 'pending-duplicate') && (
+                      <DropdownMenuItem onClick={handleBulkApprove} className="text-green-600 focus:text-green-700">
+                        {t('approveSelected')}
+                      </DropdownMenuItem>
+                    )}
+                    {(filter === 'ai-rejected' || filter === 'rejected') && (
+                      <DropdownMenuItem onClick={handleBulkRequeue} className="text-orange-600 focus:text-orange-700">
+                        {t('requeueSelected')}
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={handleBulkReject} className="text-red-600 focus:text-red-700">
                       {t('rejectSelected')}
                     </DropdownMenuItem>

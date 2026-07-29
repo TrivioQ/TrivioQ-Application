@@ -68,7 +68,7 @@ export function CategoryModal({ category, onOpenChange, open }: { category?: Cat
       const res = category ? await updateCategory(category.id, payload) : await createCategory(payload);
 
       if (res.success) {
-        toast.success(t('createModal.saveCategory'));
+        toast.success(category ? t('editModal.saveSuccess') : t('createModal.createSuccess'));
         handleOpenChange(false);
       } else {
         toast.error(res.error);
