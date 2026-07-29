@@ -5,7 +5,7 @@ import { expressIntegration } from '@sentry/node';
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
-  integrations: [expressIntegration(), nodeProfilingIntegration()],
+  integrations: [expressIntegration(), nodeProfilingIntegration(), Sentry.captureConsoleIntegration({ levels: ['error', 'warn'] })],
   sendDefaultPii: false,
   beforeSend(event) {
     const sensitiveKeys = ['email', 'firebaseUid', 'password'];

@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/node';
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
   sendDefaultPii: false,
+  integrations: [Sentry.captureConsoleIntegration({ levels: ['error', 'warn'] })],
   // Scrub PII from all outgoing events
   beforeSend(event) {
     const sensitiveKeys = ['email', 'firebaseUid', 'password'];

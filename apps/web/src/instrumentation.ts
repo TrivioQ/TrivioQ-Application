@@ -5,6 +5,7 @@ export function register() {
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
       sendDefaultPii: false,
+      integrations: [Sentry.captureConsoleIntegration({ levels: ['error', 'warn'] })],
     });
   }
 
@@ -12,6 +13,7 @@ export function register() {
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
       sendDefaultPii: false,
+      integrations: [Sentry.captureConsoleIntegration({ levels: ['error', 'warn'] })],
     });
   }
 }
