@@ -17,6 +17,16 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path?: s
     if (request.headers.has('cookie')) headers.set('cookie', request.headers.get('cookie')!);
     if (request.headers.has('content-type')) headers.set('content-type', request.headers.get('content-type')!);
 
+    // Forward incoming Authorization header or derive from tq_auth cookie
+    if (request.headers.has('authorization')) {
+      headers.set('authorization', request.headers.get('authorization')!);
+    } else {
+      const token = request.cookies.get('tq_auth')?.value;
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+    }
+
     const body = request.method !== 'GET' && request.method !== 'HEAD' ? await request.arrayBuffer() : undefined;
 
     const response = await fetch(backendUrl, {
