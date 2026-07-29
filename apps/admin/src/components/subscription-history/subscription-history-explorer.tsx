@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition, useRef, useEffect, useCallback } from 'react';
-import { Search, ChevronLeft, ChevronRight, Loader2, History } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2, History } from 'lucide-react';
 import { searchUsersByUsername, getSubscriptionHistory } from '@/app/actions/user-actions';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
@@ -212,14 +212,20 @@ export function SubscriptionHistoryExplorer() {
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">{history.total > 0 ? t('showing', { from: (page - 1) * history.pageSize + 1, to: Math.min(page * history.pageSize, history.total), total: history.total }) : t('noRecords')}</p>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => handlePageChange(page - 1)} disabled={page <= 1 || isLoading}>
-                  <ChevronLeft className="h-4 w-4" /> {t('prev')}
+                <Button variant="outline" className="h-8 w-8 p-0" onClick={() => handlePageChange(1)} disabled={page <= 1 || isLoading}>
+                  <ChevronsLeft className="h-4 w-4" />
                 </Button>
-                <span className="text-sm text-muted-foreground font-medium">
+                <Button variant="outline" className="h-8 w-8 p-0" onClick={() => handlePageChange(page - 1)} disabled={page <= 1 || isLoading}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground font-medium px-2">
                   {page} / {history.totalPages}
                 </span>
-                <Button variant="outline" size="sm" onClick={() => handlePageChange(page + 1)} disabled={page >= history.totalPages || isLoading}>
-                  {t('next')} <ChevronRight className="h-4 w-4" />
+                <Button variant="outline" className="h-8 w-8 p-0" onClick={() => handlePageChange(page + 1)} disabled={page >= history.totalPages || isLoading}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" className="h-8 w-8 p-0" onClick={() => handlePageChange(history.totalPages)} disabled={page >= history.totalPages || isLoading}>
+                  <ChevronsRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>

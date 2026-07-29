@@ -4,7 +4,7 @@ import { flexRender, getCoreRowModel, useReactTable, ColumnDef } from '@tanstack
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { SearchInput } from '@/components/ui/search-input';
 import { useTableParams } from '@/hooks/use-table-params';
 import { useTranslations } from 'next-intl';
@@ -90,16 +90,20 @@ export function DataTable<TData, TValue>({ columns, data, pageCount = 1, current
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm text-muted-foreground">{start && end && total ? t('showing', { from: start, to: end, total }) : t('pageOf', { current: currentPage, total: Math.max(1, pageCount) })}</div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => pushParams({ page: String(currentPage - 1) })} disabled={currentPage <= 1 || isPending}>
-            <ChevronLeft className="h-4 w-4" />
-            {t('prev')}
+          <Button variant="outline" className="h-8 w-8 p-0" onClick={() => pushParams({ page: '1' })} disabled={currentPage <= 1 || isPending}>
+            <ChevronsLeft className="h-4 w-4" />
           </Button>
-          <span className="text-sm text-muted-foreground font-medium">
+          <Button variant="outline" className="h-8 w-8 p-0" onClick={() => pushParams({ page: String(currentPage - 1) })} disabled={currentPage <= 1 || isPending}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm text-muted-foreground font-medium px-2">
             {currentPage} / {Math.max(1, pageCount)}
           </span>
-          <Button variant="outline" size="sm" onClick={() => pushParams({ page: String(currentPage + 1) })} disabled={currentPage >= pageCount || isPending}>
-            {t('next')}
+          <Button variant="outline" className="h-8 w-8 p-0" onClick={() => pushParams({ page: String(currentPage + 1) })} disabled={currentPage >= pageCount || isPending}>
             <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" className="h-8 w-8 p-0" onClick={() => pushParams({ page: String(Math.max(1, pageCount)) })} disabled={currentPage >= pageCount || isPending}>
+            <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

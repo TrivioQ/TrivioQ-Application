@@ -2,7 +2,7 @@ import { prisma } from '@trivioq/database';
 import Link from 'next/link';
 import { JobLogModalTrigger } from '@/components/system/job-log-modal';
 import { getTranslations } from 'next-intl/server';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 const PAGE_SIZE = 50;
 
@@ -75,18 +75,47 @@ export default async function JobLogsPage({ searchParams }: { searchParams: Prom
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">{t('showing', { from, to, totalCount })}</p>
-          <div className="flex gap-2">
-            {currentPage > 1 && (
-              <Link href={`?page=${currentPage - 1}`} className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-foreground bg-background border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                {t('previous')}
-              </Link>
+          <div className="flex gap-2 items-center">
+            {currentPage > 1 ? (
+              <>
+                <Link href={'?page=1'} className="inline-flex items-center justify-center w-8 h-8 text-foreground bg-background border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                  <ChevronsLeft className="w-4 h-4" />
+                </Link>
+                <Link href={`?page=${currentPage - 1}`} className="inline-flex items-center justify-center w-8 h-8 text-foreground bg-background border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                  <ChevronLeft className="w-4 h-4" />
+                </Link>
+              </>
+            ) : (
+              <>
+                <div className="inline-flex items-center justify-center w-8 h-8 text-foreground/40 bg-background border border-border rounded-lg cursor-not-allowed opacity-50">
+                  <ChevronsLeft className="w-4 h-4" />
+                </div>
+                <div className="inline-flex items-center justify-center w-8 h-8 text-foreground/40 bg-background border border-border rounded-lg cursor-not-allowed opacity-50">
+                  <ChevronLeft className="w-4 h-4" />
+                </div>
+              </>
             )}
-            {currentPage < totalPages && (
-              <Link href={`?page=${currentPage + 1}`} className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-foreground bg-background border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
-                {t('next')}
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Link>
+            <span className="text-sm text-muted-foreground font-medium px-2">
+              {currentPage} / {totalPages}
+            </span>
+            {currentPage < totalPages ? (
+              <>
+                <Link href={`?page=${currentPage + 1}`} className="inline-flex items-center justify-center w-8 h-8 text-foreground bg-background border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+                <Link href={`?page=${totalPages}`} className="inline-flex items-center justify-center w-8 h-8 text-foreground bg-background border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                  <ChevronsRight className="w-4 h-4" />
+                </Link>
+              </>
+            ) : (
+              <>
+                <div className="inline-flex items-center justify-center w-8 h-8 text-foreground/40 bg-background border border-border rounded-lg cursor-not-allowed opacity-50">
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+                <div className="inline-flex items-center justify-center w-8 h-8 text-foreground/40 bg-background border border-border rounded-lg cursor-not-allowed opacity-50">
+                  <ChevronsRight className="w-4 h-4" />
+                </div>
+              </>
             )}
           </div>
         </div>

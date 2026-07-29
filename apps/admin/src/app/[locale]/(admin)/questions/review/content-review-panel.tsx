@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTableParams } from '@/hooks/use-table-params';
 import { buttonVariants } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2, CheckSquare } from 'lucide-react';
 import { bulkApprovePendingQuestions, bulkRejectPendingQuestions } from '@/app/actions/pending-questions';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -331,6 +331,14 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => pushParams({ page: '1' })}
+              disabled={page <= 1 || isPending}
+              className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
+              aria-label="First page"
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </button>
+            <button
               onClick={() => pushParams({ page: String(page - 1) })}
               disabled={page <= 1 || isPending}
               className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
@@ -338,7 +346,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <span className="font-medium">{t('pageOf', { page, totalPages })}</span>
+            <span className="font-medium px-2">{t('pageOf', { page, totalPages })}</span>
             <button
               onClick={() => pushParams({ page: String(page + 1) })}
               disabled={page >= totalPages || isPending}
@@ -346,6 +354,14 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
               aria-label={t('nextPage')}
             >
               <ChevronRight className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => pushParams({ page: String(totalPages) })}
+              disabled={page >= totalPages || isPending}
+              className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
+              aria-label="Last page"
+            >
+              <ChevronsRight className="h-4 w-4" />
             </button>
           </div>
         </div>

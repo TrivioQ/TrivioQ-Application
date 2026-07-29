@@ -4,7 +4,7 @@ import { flexRender, getCoreRowModel, getFilteredRowModel, useReactTable, Column
 import { useTableParams } from '@/hooks/use-table-params';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { buttonVariants } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { PaginatedQuestionsResult } from '@/app/actions/question-actions';
 
@@ -69,12 +69,18 @@ export function QuestionsDataTable<TData, TValue>({ columns, result }: Props<TDa
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
         <span>{total === 0 ? t('noResults') : t('showing', { start, end, total })}</span>
         <div className="flex items-center gap-2">
+          <button onClick={() => pushParams({ page: '1' })} disabled={page <= 1 || isPending} className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })} aria-label="First page">
+            <ChevronsLeft className="h-4 w-4" />
+          </button>
           <button onClick={() => pushParams({ page: String(page - 1) })} disabled={page <= 1 || isPending} className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })} aria-label={t('previousPage')}>
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="font-medium">{t('pageOf', { page, totalPages })}</span>
+          <span className="font-medium px-2">{t('pageOf', { page, totalPages })}</span>
           <button onClick={() => pushParams({ page: String(page + 1) })} disabled={page >= totalPages || isPending} className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })} aria-label={t('nextPage')}>
             <ChevronRight className="h-4 w-4" />
+          </button>
+          <button onClick={() => pushParams({ page: String(totalPages) })} disabled={page >= totalPages || isPending} className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })} aria-label="Last page">
+            <ChevronsRight className="h-4 w-4" />
           </button>
         </div>
       </div>
