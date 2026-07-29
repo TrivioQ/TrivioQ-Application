@@ -100,7 +100,7 @@ services:
   # PgBouncer Connection Pooler
   # -------------------------------------------------------------------------
   pgbouncer:
-    image: edoburu/pgbouncer:1.21.0
+    image: edoburu/pgbouncer:latest
     container_name: trivioq-pgbouncer
     restart: unless-stopped
     environment:
