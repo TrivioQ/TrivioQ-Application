@@ -15,6 +15,7 @@ interface CronJob {
   name: string;
   schedule: string;
   isActive: boolean;
+  isExecuting?: boolean;
   nextRunAt: string | null;
 }
 
@@ -109,9 +110,20 @@ export function CronJobList() {
                     {job.schedule}
                   </CardDescription>
                 </div>
-                <Badge variant={job.isActive ? 'default' : 'secondary'}>
-                  {job.isActive ? t('statusValues.running') : t('statusValues.idle')}
-                </Badge>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {job.isExecuting && (
+                    <Badge variant="destructive" className="animate-pulse bg-emerald-600 hover:bg-emerald-600 text-white flex items-center gap-1">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                      </span>
+                      {t('statusValues.executing')}
+                    </Badge>
+                  )}
+                  <Badge variant={job.isActive ? 'default' : 'secondary'}>
+                    {job.isActive ? t('statusValues.active') : t('statusValues.paused')}
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
 

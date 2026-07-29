@@ -773,8 +773,9 @@
       "triggering": "Triggering...",
       "viewLogs": "View Logs",
       "statusValues": {
-        "idle": "Idle",
-        "running": "Running"
+        "active": "Active",
+        "paused": "Paused",
+        "executing": "Executing"
       },
       "resultValues": {
         "success": "Success",

@@ -10,8 +10,26 @@ cronJobsRouter.get('/', async (req, res) => {
   try {
     const jobs = await prisma.cronJob.findMany({
       orderBy: { name: 'asc' },
+      include: {
+        executions: {
+          where: { endedAt: null, result: 'RUNNING' },
+          take: 1,
+        },
+      },
     });
-    return res.json(jobs);
+
+    const formattedJobs = jobs.map((job) => ({
+      id: job.id,
+      name: job.name,
+      schedule: job.cronExpression,
+      isActive: job.isActive,
+      isExecuting: job.executions.length > 0,
+      nextRunAt: job.nextRunAt,
+      lastRunAt: job.lastRunAt,
+      lastRunResult: job.lastRunResult,
+    }));
+
+    return res.json(formattedJobs);
   } catch (error) {
     console.error('Error fetching cron jobs:', error);
     return res.status(500).json({ error: 'Failed to fetch cron jobs' });
