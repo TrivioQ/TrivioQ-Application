@@ -234,6 +234,8 @@ model PendingQuestion {
   replacesQuestionId  String?  // set when status = 'PENDING-DUPLICATE'; points to the live Question.id to replace on approval
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+
+  @@index([status, createdAt(sort: Asc)])
 }
 
 model BonusPlan {

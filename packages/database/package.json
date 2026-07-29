@@ -6,7 +6,7 @@
   "types": "./src/index.ts",
   "scripts": {
     "db-push": "dotenv -e ../../.env -- prisma db push",
-    "db-migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "db-migrate": "dotenv -e ../../.env -- ts-node scripts/db-migrate.ts",
     "generate": "dotenv -e ../../.env -- prisma generate",
     "make-admin": "dotenv -e ../../.env -- ts-node scripts/make-admin.ts",
     "seed-mock-data": "dotenv -e ../../.env -- ts-node scripts/seed-mock-data.ts",

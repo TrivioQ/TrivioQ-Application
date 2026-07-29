@@ -26,93 +26,97 @@ function resolveConfig() {
   const providerName = (process.env.INGESTION_ENHANCEMENT_PROVIDER ?? 'google') as AIProviderName;
   const model = process.env.INGESTION_ENHANCEMENT_MODEL;
   const callDelayMs = Math.max(0, parseFloat(process.env.INGESTION_ENHANCEMENT_CALL_DELAY_SEC ?? '3') * 1000);
-  return { providerName, model, callDelayMs };
+  const concurrency = Math.max(1, parseInt(process.env.INGESTION_ENHANCEMENT_CONCURRENCY ?? '10', 10));
+  return { providerName, model, callDelayMs, concurrency };
 }
 
 // ── Main entry point ──────────────────────────────────────────────────────────
 
 export async function runQuestionValidation(): Promise<void> {
-  const { providerName, model, callDelayMs } = resolveConfig();
+  const { providerName, model, callDelayMs, concurrency } = resolveConfig();
   const provider = createProvider(providerName, model);
 
   console.log(`[question-validation] Starting — provider: ${providerName}, model: ${model ?? 'default'}, delay: ${callDelayMs}ms`);
 
-  // Fetch all PENDING questions
-  const questions = await prisma.pendingQuestion.findMany({
-    where: { status: 'PENDING' },
-    orderBy: { createdAt: 'asc' },
-  });
-
-  if (questions.length === 0) {
-    console.log('[question-validation] No PENDING questions found. Exiting.');
-    return;
-  }
-
-  console.log(`[question-validation] Found ${questions.length} PENDING question(s) to validate.`);
-
   let passed = 0;
   let failed = 0;
   let errors = 0;
+  let totalProcessed = 0;
+  const BATCH_SIZE = 50;
 
-  for (let i = 0; i < questions.length; i++) {
-    const question = questions[i];
+  while (true) {
+    // Fetch PENDING questions in batches
+    const questions = await prisma.pendingQuestion.findMany({
+      where: { status: 'PENDING' },
+      orderBy: { createdAt: 'asc' },
+      take: BATCH_SIZE,
+    });
 
-    // Inter-call delay (skip before the first call)
-    if (i > 0 && callDelayMs > 0) {
-      await new Promise((r) => setTimeout(r, callDelayMs));
+    if (questions.length === 0) {
+      if (totalProcessed === 0) {
+        console.log('[question-validation] No PENDING questions found. Exiting.');
+      }
+      break;
     }
 
-    console.log(`[question-validation] Validating question ${i + 1}/${questions.length} — id: ${question.id}`);
+    console.log(`[question-validation] Fetched batch of ${questions.length} PENDING question(s).`);
 
-    try {
-      // Parse the stored choices JSON into an array
-      const choices = Array.isArray(question.suggestedChoices) ? question.suggestedChoices : [];
+    for (let i = 0; i < questions.length; i += concurrency) {
+      const chunk = questions.slice(i, i + concurrency);
 
-      // Call the AI provider. enhanceQuestion() accepts a promptOverride and appends
-      // the question + choices automatically. We cast the raw JSON response to
-      // ValidationResult because the prompt instructs a different schema.
-      const rawResult = await provider.enhanceQuestion(question.suggestedText, choices, buildValidationPrompt(question.ageRating));
-      const result = rawResult as unknown as ValidationResult;
+      await Promise.all(
+        chunk.map(async (question) => {
+          // Inter-call delay for rate limiting, only applied if non-zero
+          if (totalProcessed > 0 && callDelayMs > 0) {
+            await new Promise((r) => setTimeout(r, callDelayMs));
+          }
 
-      if (result.overallPassed) {
-        await prisma.pendingQuestion.update({
-          where: { id: question.id },
-          data: {
-            status: 'AI-APPROVED',
-            aiFeedback: result.summary,
-          },
-        });
-        passed++;
-        console.log(`[question-validation] ✓ APPROVED — id: ${question.id} | ${result.summary}`);
-      } else {
-        // Build a combined feedback string that includes the ageRating rationale
-        // when the dimension failed, so human reviewers understand the rejection reason.
-        const ageRatingFailed = !result.ageRating?.passed && result.ageRating?.rationale;
-        const feedback = ageRatingFailed ? `${result.summary} [Age Rating: ${result.ageRating.rationale}]` : result.summary;
+          console.log(`[question-validation] Validating question — id: ${question.id}`);
 
-        await prisma.pendingQuestion.update({
-          where: { id: question.id },
-          data: {
-            status: 'AI-REJECTED',
-            aiFeedback: feedback,
-            // If the AI determined the age rating is wrong, conservatively bump it
-            // to MATURE so a human must explicitly downgrade it before re-approval.
-            ...(ageRatingFailed ? { ageRating: 'MATURE' } : {}),
-          },
-        });
-        failed++;
-        console.log(`[question-validation] ✗ REJECTED — id: ${question.id} | ${feedback}`);
-      }
-    } catch (error) {
-      errors++;
-      console.error(`[question-validation] Error validating question ${question.id}:`, error);
-      reportError(error instanceof Error ? error : new Error(String(error)), {
-        service: 'question-validation',
-        questionId: question.id,
-      });
-      // Continue with the next question — don't abort the whole batch
+          try {
+            const choices = Array.isArray(question.suggestedChoices) ? question.suggestedChoices : [];
+            const rawResult = await provider.enhanceQuestion(question.suggestedText, choices, buildValidationPrompt(question.ageRating));
+            const result = rawResult as unknown as ValidationResult;
+
+            if (result.overallPassed) {
+              await prisma.pendingQuestion.update({
+                where: { id: question.id },
+                data: {
+                  status: 'AI-APPROVED',
+                  aiFeedback: result.summary,
+                },
+              });
+              passed++;
+              console.log(`[question-validation] ✓ APPROVED — id: ${question.id} | ${result.summary}`);
+            } else {
+              const ageRatingFailed = !result.ageRating?.passed && result.ageRating?.rationale;
+              const feedback = ageRatingFailed ? `${result.summary} [Age Rating: ${result.ageRating.rationale}]` : result.summary;
+
+              await prisma.pendingQuestion.update({
+                where: { id: question.id },
+                data: {
+                  status: 'AI-REJECTED',
+                  aiFeedback: feedback,
+                  ...(ageRatingFailed ? { ageRating: 'MATURE' } : {}),
+                },
+              });
+              failed++;
+              console.log(`[question-validation] ✗ REJECTED — id: ${question.id} | ${feedback}`);
+            }
+          } catch (error) {
+            errors++;
+            console.error(`[question-validation] Error validating question ${question.id}:`, error);
+            reportError(error instanceof Error ? error : new Error(String(error)), {
+              service: 'question-validation',
+              questionId: question.id,
+            });
+          }
+
+          totalProcessed++;
+        }),
+      );
     }
   }
 
-  console.log(`[question-validation] Completed — total: ${questions.length}, approved: ${passed}, rejected: ${failed}, errors: ${errors}`);
+  console.log(`[question-validation] Completed — total: ${totalProcessed}, approved: ${passed}, rejected: ${failed}, errors: ${errors}`);
 }
