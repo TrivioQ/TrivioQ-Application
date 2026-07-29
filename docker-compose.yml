@@ -105,6 +105,7 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}
+      LISTEN_PORT: "6432"
       POOL_MODE: transaction
       MAX_CLIENT_CONN: "1000"
       DEFAULT_POOL_SIZE: "20"
@@ -180,7 +181,7 @@ services:
       NODE_ENV: production
       PORT: 3013
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
-      DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      DATABASE_DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_URL: redis://redis:6379
@@ -219,7 +220,7 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
-      DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      DATABASE_DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL: redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
@@ -246,7 +247,7 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
-      DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      DATABASE_DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL: redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
@@ -273,7 +274,7 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
-      DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      DATABASE_DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL: redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
@@ -300,7 +301,7 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
-      DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      DATABASE_DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL: redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
@@ -327,7 +328,7 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
-      DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      DATABASE_DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       REDIS_URL: redis://redis:6379
       RESEND_API_KEY: ${RESEND_API_KEY:?RESEND_API_KEY is required for email delivery}
     networks:
@@ -392,7 +393,7 @@ services:
       PORT: 3012
       HOSTNAME: "0.0.0.0"
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
-      DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      DATABASE_DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
       API_URL: http://api:3013
     ports:
       - "3012:3012"
