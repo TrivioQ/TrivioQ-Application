@@ -118,7 +118,6 @@ services:
         condition: service_healthy
     logging: *default-logging
 
-
   # -------------------------------------------------------------------------
   # Redis 7
   # -------------------------------------------------------------------------
@@ -156,7 +155,7 @@ services:
       "
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
-      DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      DATABASE_DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
     networks:
       - trivioq-network
     depends_on:
