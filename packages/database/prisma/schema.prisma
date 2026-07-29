@@ -443,3 +443,31 @@ model NotificationDeliveryLog {
   createdAt      DateTime          @default(now())
   @@index([notificationId, userId, channel])
 }
+
+// ============================================================================
+// CRON JOB MANAGEMENT
+// ============================================================================
+
+model CronJob {
+  id             String             @id @default(uuid())
+  name           String             @unique
+  cronExpression String
+  isActive       Boolean            @default(true)
+  lastRunAt      DateTime?
+  lastRunResult  String?            // 'SUCCESS', 'FAILED', 'TERMINATED'
+  nextRunAt      DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  executions     CronJobExecution[]
+}
+
+model CronJobExecution {
+  id          String   @id @default(uuid())
+  cronJobId   String
+  cronJob     CronJob  @relation(fields: [cronJobId], references: [id], onDelete: Cascade)
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+  result      String   // 'SUCCESS', 'FAILED', 'TERMINATED'
+  errorLogs   String?  @db.Text
+}
+

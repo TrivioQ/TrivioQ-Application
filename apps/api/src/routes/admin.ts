@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@trivioq/database';
 import { verifyFirebaseToken } from '../middleware/firebase-auth';
 import { requireAdmin } from '../middleware/require-admin';
+import { cronJobsRouter } from './admin/cron-jobs';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -38,5 +39,8 @@ router.put('/users/:id/tier', async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Internal server error while updating tier.' });
   }
 });
+
+// Admin Cron Jobs routes
+router.use('/cron-jobs', cronJobsRouter);
 
 export default router;

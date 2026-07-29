@@ -3,9 +3,9 @@
  * Handles scheduled notifications: subscription reminders, promotions, and daily reminders
  */
 
-import cron from 'node-cron';
 import { prisma } from '@trivioq/database';
 import { notificationService } from '../services/notification-service';
+import { CronManager } from '../lib/cron-manager';
 
 // ── Subscription Expiry Reminders ──────────────────────────────────────────────
 
@@ -17,7 +17,7 @@ import { notificationService } from '../services/notification-service';
  */
 export function initSubscriptionReminderCron() {
   // Run daily at 9:00 AM UTC
-  cron.schedule('0 9 * * *', async () => {
+  CronManager.register('Subscription Expiry Reminders', '0 9 * * *', async (signal) => {
     console.log('[subscription-reminder-cron] Sending subscription expiry reminders...');
     try {
       const now = new Date();
@@ -33,6 +33,8 @@ export function initSubscriptionReminderCron() {
       });
 
       for (const user of expiringSoon) {
+        if (signal?.aborted) throw new Error('TERMINATED_BY_ADMIN');
+
         const daysUntilExpiry = Math.ceil((user.subscriptionExpiresAt!.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
 
         // Skip if already reminded today
@@ -86,6 +88,7 @@ export function initSubscriptionReminderCron() {
       console.log(`[subscription-reminder-cron] Completed. Processed ${expiringSoon.length} subscriptions.`);
     } catch (error) {
       console.error('[subscription-reminder-cron] Error:', error);
+      throw error;
     }
   });
 }
@@ -100,7 +103,7 @@ export function initSubscriptionReminderCron() {
  */
 export function initReengagementCron() {
   // Run daily at 10:00 AM UTC
-  cron.schedule('0 10 * * *', async () => {
+  CronManager.register('Re-engagement Notifications', '0 10 * * *', async (signal) => {
     console.log('[reengagement-cron] Sending re-engagement notifications...');
     try {
       const now = new Date();
@@ -127,6 +130,8 @@ export function initReengagementCron() {
       });
 
       for (const user of inactiveUsers) {
+        if (signal?.aborted) throw new Error('TERMINATED_BY_ADMIN');
+
         const latestDrop = await prisma.userDrop.findFirst({
           where: {
             userId: user.id,
@@ -190,6 +195,7 @@ export function initReengagementCron() {
       console.log('[reengagement-cron] Completed.');
     } catch (error) {
       console.error('[reengagement-cron] Error:', error);
+      throw error;
     }
   });
 }
@@ -202,7 +208,7 @@ export function initReengagementCron() {
  */
 export function initDailyTriviaReminderCron() {
   // Run every 3 hours from 8 AM to 8 PM UTC
-  cron.schedule('0 8,11,14,17,20 * * *', async () => {
+  CronManager.register('Daily Trivia Reminder', '0 8,11,14,17,20 * * *', async (signal) => {
     console.log('[daily-trivia-cron] Sending daily trivia reminders...');
     try {
       const now = new Date();
@@ -225,6 +231,8 @@ export function initDailyTriviaReminderCron() {
       });
 
       for (const user of usersWithoutAnswer) {
+        if (signal?.aborted) throw new Error('TERMINATED_BY_ADMIN');
+
         // Skip if user already has an active drop they haven't answered
         const activeDrop = await prisma.userDrop.findFirst({
           where: {
@@ -264,6 +272,7 @@ export function initDailyTriviaReminderCron() {
       console.log('[daily-trivia-cron] Completed.');
     } catch (error) {
       console.error('[daily-trivia-cron] Error:', error);
+      throw error;
     }
   });
 }
@@ -275,7 +284,7 @@ export function initDailyTriviaReminderCron() {
  */
 export function initWeeklySummaryCron() {
   // Run every Sunday at 7:00 PM UTC
-  cron.schedule('0 19 * * 0', async () => {
+  CronManager.register('Weekly Summary Notification', '0 19 * * 0', async (signal) => {
     console.log('[weekly-summary-cron] Sending weekly summaries...');
     try {
       const now = new Date();
@@ -295,6 +304,8 @@ export function initWeeklySummaryCron() {
       });
 
       for (const user of activeUsers) {
+        if (signal?.aborted) throw new Error('TERMINATED_BY_ADMIN');
+
         // Calculate weekly stats
         const answersThisWeek = await prisma.userDrop.count({
           where: {
@@ -344,6 +355,7 @@ export function initWeeklySummaryCron() {
       console.log(`[weekly-summary-cron] Sent summaries to ${activeUsers.length} users.`);
     } catch (error) {
       console.error('[weekly-summary-cron] Error:', error);
+      throw error;
     }
   });
 }

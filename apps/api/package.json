@@ -27,6 +27,7 @@
     "@trivioq/database": "workspace:*",
     "@trivioq/shared-types": "workspace:*",
     "bullmq": "^5.75.2",
+    "cron-parser": "^5.6.2",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "dotenv": "^17.4.2",

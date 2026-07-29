@@ -89,6 +89,7 @@
       "bonusPlans": "Bonus Plans",
       "appSettings": "App Settings",
       "subscriptionHistory": "Sub. History",
+      "cronJobs": "Cron Jobs",
       "logout": "Logout"
     }
   },
@@ -748,6 +749,53 @@
     },
     "queues": {
       "title": "Bull-Board Queue Monitor"
+    },
+    "cronJobs": {
+      "title": "Cron Jobs",
+      "description": "Monitor and manage scheduled jobs across the platform.",
+      "columns": {
+        "name": "Job Name",
+        "schedule": "Schedule",
+        "status": "Status",
+        "nextRun": "Next Scheduled Run",
+        "lastRun": "Last Run",
+        "lastResult": "Last Result",
+        "actions": "Actions"
+      },
+      "empty": "No cron jobs found.",
+      "loading": "Loading cron jobs...",
+      "loadError": "Could not load cron jobs. Please refresh.",
+      "startJob": "Start Schedule",
+      "stopJob": "Stop Schedule",
+      "triggerNow": "Trigger Now",
+      "terminate": "Terminate Active Run",
+      "terminating": "Terminating...",
+      "triggering": "Triggering...",
+      "viewLogs": "View Logs",
+      "statusValues": {
+        "idle": "Idle",
+        "running": "Running"
+      },
+      "resultValues": {
+        "success": "Success",
+        "failed": "Failed",
+        "terminated": "Terminated by Admin"
+      },
+      "logsModal": {
+        "title": "Execution History for {name}",
+        "columns": {
+          "startedAt": "Started At",
+          "endedAt": "Ended At",
+          "result": "Result",
+          "error": "Error"
+        },
+        "empty": "No execution history.",
+        "loading": "Loading logs..."
+      },
+      "successToggle": "Job status updated.",
+      "successTrigger": "Job triggered successfully.",
+      "successTerminate": "Termination signal sent.",
+      "errorAction": "Failed to perform action."
     }
   },
   "auth": {

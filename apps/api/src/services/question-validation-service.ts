@@ -32,7 +32,7 @@ function resolveConfig() {
 
 // ── Main entry point ──────────────────────────────────────────────────────────
 
-export async function runQuestionValidation(): Promise<void> {
+export async function runQuestionValidation(signal?: AbortSignal): Promise<void> {
   const { providerName, model, callDelayMs, concurrency } = resolveConfig();
   const provider = createProvider(providerName, model);
 
@@ -45,6 +45,8 @@ export async function runQuestionValidation(): Promise<void> {
   const BATCH_SIZE = 50;
 
   while (true) {
+    if (signal?.aborted) throw new Error('TERMINATED_BY_ADMIN');
+
     // Fetch PENDING questions in batches
     const questions = await prisma.pendingQuestion.findMany({
       where: { status: 'PENDING' },
@@ -62,6 +64,8 @@ export async function runQuestionValidation(): Promise<void> {
     console.log(`[question-validation] Fetched batch of ${questions.length} PENDING question(s).`);
 
     for (let i = 0; i < questions.length; i += concurrency) {
+      if (signal?.aborted) throw new Error('TERMINATED_BY_ADMIN');
+
       const chunk = questions.slice(i, i + concurrency);
 
       await Promise.all(
@@ -70,6 +74,8 @@ export async function runQuestionValidation(): Promise<void> {
           if (totalProcessed > 0 && callDelayMs > 0) {
             await new Promise((r) => setTimeout(r, callDelayMs));
           }
+
+          if (signal?.aborted) throw new Error('TERMINATED_BY_ADMIN');
 
           console.log(`[question-validation] Validating question — id: ${question.id}`);
 

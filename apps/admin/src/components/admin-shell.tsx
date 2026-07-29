@@ -35,6 +35,7 @@ const NAV_ITEMS: { href: string; icon: React.ElementType; labelKey: string; exac
   { href: '/bonus-plans', icon: Trophy, labelKey: 'sidebar.bonusPlans' },
   { href: '/app-settings', icon: Settings, labelKey: 'sidebar.appSettings' },
   { href: '/subscription-history', icon: ClockIcon, labelKey: 'sidebar.subscriptionHistory' },
+  { href: '/cron-jobs', icon: ClockIcon, labelKey: 'sidebar.cronJobs' },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

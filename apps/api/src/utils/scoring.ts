@@ -145,7 +145,7 @@ export async function upsertUserScores(userId: string, points: number): Promise<
  * Awards end-of-period bonus points to the top-10 users for a given period.
  * Also increments the user's overall cumulativeScore.
  */
-export async function distributeBonuses(periodType: 'WEEKLY' | 'MONTHLY', periodStart: Date): Promise<void> {
+export async function distributeBonuses(periodType: 'WEEKLY' | 'MONTHLY', periodStart: Date, signal?: AbortSignal): Promise<void> {
   const bonuses = periodType === 'WEEKLY' ? WEEKLY_BONUSES : MONTHLY_BONUSES;
 
   // Find top 10 rows ordered by baseScore for the completed period
@@ -157,6 +157,8 @@ export async function distributeBonuses(periodType: 'WEEKLY' | 'MONTHLY', period
   });
 
   for (let i = 0; i < topScores.length; i++) {
+    if (signal?.aborted) throw new Error('TERMINATED_BY_ADMIN');
+
     const bonus = bonuses[i] ?? 0;
     const { id, userId } = topScores[i];
     const rank = i + 1;
