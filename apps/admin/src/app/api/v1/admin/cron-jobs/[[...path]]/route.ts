@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_BASE = process.env.API_URL || 'http://localhost:3013';
 
-async function proxy(request: NextRequest, context: { params: { path?: string[] } }) {
+async function proxy(request: NextRequest, context: { params: Promise<{ path?: string[] }> }) {
   try {
-    const pathArray = context.params.path || [];
+    const params = await context.params;
+    const pathArray = params.path || [];
     const pathString = pathArray.join('/');
     const url = new URL(request.url);
     
