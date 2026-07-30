@@ -248,6 +248,10 @@
     "approveSelected": "Approve Selected",
     "rejectSelected": "Reject Selected",
     "requeueSelected": "Re-queue Selected",
+    "bulkRejectConfirmTitle": "Reject Questions",
+    "bulkRejectConfirmMsg": "Are you sure you want to reject the selected questions?",
+    "bulkRejectConfirmBtn": "Reject",
+    "cancel": "Cancel",
     "approveSuccess": "Selected questions approved.",
     "rejectSuccess": "Selected questions rejected.",
     "requeueSuccess": "Selected questions re-queued.",
@@ -798,7 +802,19 @@
         "prev": "Prev",
         "next": "Next"
       },
-      "successToggle": "Job status updated.",
+      "confirmations": {
+        "stopTitle": "Stop Schedule",
+        "stopMessage": "Are you sure you want to stop the schedule for {name}?",
+        "stopConfirm": "Stop Schedule",
+        "triggerTitle": "Trigger Now",
+        "triggerMessage": "Are you sure you want to manually trigger {name}?",
+        "triggerConfirm": "Trigger Job",
+        "terminateTitle": "Terminate Active Run",
+        "terminateMessage": "Are you sure you want to terminate the active run for {name}? This may cause data inconsistencies.",
+        "terminateConfirm": "Terminate Run",
+        "cancel": "Cancel"
+      },
+      "successToggle": "Schedule status updated successfully.",
       "successTrigger": "Job triggered successfully.",
       "successTerminate": "Termination signal sent.",
       "errorAction": "Failed to perform action."

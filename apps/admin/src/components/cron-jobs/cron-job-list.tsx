@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { CronJobLogsModal } from './cron-job-logs-modal';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface CronJob {
   id: string;
@@ -21,6 +22,7 @@ interface CronJob {
 
 export function CronJobList() {
   const t = useTranslations('system.cronJobs');
+  const confirm = useConfirm();
   const [jobs, setJobs] = useState<CronJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +56,17 @@ export function CronJobList() {
   }, [fetchJobs]);
 
   const toggleJobStatus = async (job: CronJob) => {
+    if (job.isActive) {
+      const ok = await confirm({
+        title: t('confirmations.stopTitle'),
+        message: t('confirmations.stopMessage', { name: job.name }),
+        confirmLabel: t('confirmations.stopConfirm'),
+        cancelLabel: t('confirmations.cancel'),
+        isDestructive: true,
+      });
+      if (!ok) return;
+    }
+
     const res = await fetch(`/api/v1/admin/cron-jobs/${job.id}/toggle`, { method: 'POST' });
     if (res.ok) {
       toast.success(t('successToggle'));
@@ -64,6 +77,14 @@ export function CronJobList() {
   };
 
   const triggerJob = async (job: CronJob) => {
+    const ok = await confirm({
+      title: t('confirmations.triggerTitle'),
+      message: t('confirmations.triggerMessage', { name: job.name }),
+      confirmLabel: t('confirmations.triggerConfirm'),
+      cancelLabel: t('confirmations.cancel'),
+    });
+    if (!ok) return;
+
     const res = await fetch(`/api/v1/admin/cron-jobs/${job.id}/trigger`, { method: 'POST' });
     if (res.ok) {
       toast.success(t('successTrigger'));
@@ -73,6 +94,15 @@ export function CronJobList() {
   };
 
   const terminateJob = async (job: CronJob) => {
+    const ok = await confirm({
+      title: t('confirmations.terminateTitle'),
+      message: t('confirmations.terminateMessage', { name: job.name }),
+      confirmLabel: t('confirmations.terminateConfirm'),
+      cancelLabel: t('confirmations.cancel'),
+      isDestructive: true,
+    });
+    if (!ok) return;
+
     const res = await fetch(`/api/v1/admin/cron-jobs/${job.id}/terminate`, { method: 'POST' });
     if (res.ok) {
       toast.success(t('successTerminate'));

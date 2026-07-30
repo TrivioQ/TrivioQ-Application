@@ -3,6 +3,7 @@
 import { useState, useTransition, useMemo } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { DifficultyLevel, AgeRating } from '@trivioq/database';
 import { ReviewEditor } from './review-editor';
 import { Badge } from '@/components/ui/badge';
@@ -67,6 +68,7 @@ interface ContentReviewPanelProps {
 
 export function ContentReviewPanel({ questions, categories, result, filter }: ContentReviewPanelProps) {
   const t = useTranslations('review');
+  const confirm = useConfirm();
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.slug, c.name])), [categories]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pendingQuestions, setPendingQuestions] = useState(questions);
@@ -138,7 +140,16 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
     });
   };
 
-  const handleBulkReject = () => {
+  const handleBulkReject = async () => {
+    const ok = await confirm({
+      title: t('bulkRejectConfirmTitle', { defaultMessage: 'Reject Questions' }),
+      message: t('bulkRejectConfirmMsg', { defaultMessage: 'Are you sure you want to reject the selected questions?' }),
+      confirmLabel: t('bulkRejectConfirmBtn', { defaultMessage: 'Reject' }),
+      cancelLabel: t('cancel', { defaultMessage: 'Cancel' }),
+      isDestructive: true,
+    });
+    if (!ok) return;
+
     startBulkTransition(async () => {
       const ids = Array.from(selectedQuestionIds);
       const res = await bulkRejectPendingQuestions(ids);
