@@ -85,7 +85,12 @@ app.get('/v1/info', async (req: Request, res: Response) => {
   }
 });
 
+import { registerAllCrons } from './crons/registry';
+
 Sentry.setupExpressErrorHandler(app);
+
+// Register crons in API so manual triggers work
+registerAllCrons();
 
 initLeaderboardWorker();
 
