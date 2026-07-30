@@ -112,3 +112,26 @@ body {
     @apply mx-auto max-w-5xl px-4 sm:px-6 md:px-8;
   }
 }
+
+@layer base {
+  /* Scrollbar Styles */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--border-color));
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--text-secondary));
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--border-color)) transparent;
+  }
+}
+
