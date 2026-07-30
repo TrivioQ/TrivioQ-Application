@@ -50,8 +50,14 @@ export function CronJobList() {
     const controller = new AbortController();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchJobs(controller.signal);
+
+    const intervalId = setInterval(() => {
+      fetchJobs();
+    }, 5000);
+
     return () => {
       controller.abort();
+      clearInterval(intervalId);
     };
   }, [fetchJobs]);
 
@@ -88,6 +94,7 @@ export function CronJobList() {
     const res = await fetch(`/api/v1/admin/cron-jobs/${job.id}/trigger`, { method: 'POST' });
     if (res.ok) {
       toast.success(t('successTrigger'));
+      fetchJobs();
     } else {
       toast.error(t('errorAction'));
     }
@@ -106,6 +113,7 @@ export function CronJobList() {
     const res = await fetch(`/api/v1/admin/cron-jobs/${job.id}/terminate`, { method: 'POST' });
     if (res.ok) {
       toast.success(t('successTerminate'));
+      fetchJobs();
     } else {
       toast.error(t('errorAction'));
     }
