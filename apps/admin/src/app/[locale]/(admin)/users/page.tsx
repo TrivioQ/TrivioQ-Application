@@ -21,6 +21,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   const data = result.success && result.data ? result.data : [];
   const totalPages = result.success && result.totalPages ? result.totalPages : 1;
   const total = result.success && result.total ? result.total : undefined;
+  const counts = result.success && result.counts ? result.counts : undefined;
 
   return (
     <div className="space-y-6">
@@ -32,7 +33,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
       {result.error && <div className="bg-red-50 text-red-600 p-4 rounded-md">{result.error}</div>}
 
       <Suspense>
-        <DataTable columns={columns} data={data} pageCount={totalPages} currentPage={page} search={search} total={total} pageSize={PAGE_SIZE} filterSlot={<TierFilter current={tier} />} />
+        <DataTable columns={columns} data={data} pageCount={totalPages} currentPage={page} search={search} total={total} pageSize={PAGE_SIZE} filterSlot={<TierFilter current={tier} counts={counts} />} />
       </Suspense>
     </div>
   );

@@ -17,18 +17,20 @@ export type UserFilters = {
 export async function getUsers(filters: UserFilters = {}) {
   const { search, tier, page = 1, pageSize = 20, sortBy = 'lastLogin', sortOrder = 'desc' } = filters;
   try {
+    const searchWhere = search
+      ? {
+          OR: [{ username: { contains: search, mode: 'insensitive' as const } }, { email: { contains: search, mode: 'insensitive' as const } }],
+        }
+      : {};
+
     const where = {
-      ...(search
-        ? {
-            OR: [{ username: { contains: search, mode: 'insensitive' as const } }, { email: { contains: search, mode: 'insensitive' as const } }],
-          }
-        : {}),
+      ...searchWhere,
       ...(tier ? { subscriptionTier: tier } : {}),
     };
 
     const skip = (page - 1) * pageSize;
 
-    const [total, data] = await Promise.all([
+    const [total, data, tierGroups, totalAll] = await Promise.all([
       prisma.user.count({ where }),
       prisma.user.findMany({
         where,
@@ -36,12 +38,29 @@ export async function getUsers(filters: UserFilters = {}) {
         skip,
         take: pageSize,
       }),
+      prisma.user.groupBy({
+        by: ['subscriptionTier'],
+        where: searchWhere,
+        _count: { _all: true },
+      }),
+      prisma.user.count({ where: searchWhere }),
     ]);
+
+    const counts: Record<string, number> = {
+      all: totalAll,
+      FREE: 0,
+      PREMIUM: 0,
+    };
+
+    tierGroups.forEach((g) => {
+      counts[g.subscriptionTier] = g._count._all;
+    });
 
     return {
       success: true,
       data,
       total,
+      counts,
       page,
       pageSize,
       totalPages: Math.max(1, Math.ceil(total / pageSize)),
@@ -98,8 +117,21 @@ export async function updateUser(
 ) {
   try {
     const now = new Date();
-    const existing = await prisma.user.findUnique({ where: { id: userId }, select: { subscriptionTier: true } });
+    const existing = await prisma.user.findUnique({ where: { id: userId }, select: { subscriptionTier: true, subscriptionExpiresAt: true } });
     const tierChanged = existing && existing.subscriptionTier !== data.subscriptionTier;
+
+    const expiresAt = data.subscriptionTier === 'FREE' 
+      ? null 
+      : (data.subscriptionExpiresAt 
+        ? (() => {
+            const d = new Date(data.subscriptionExpiresAt);
+            d.setUTCHours(23, 59, 59, 999);
+            return d;
+          })() 
+        : undefined);
+
+    const expiresAtChanged = existing && 
+      (existing.subscriptionExpiresAt?.getTime() !== expiresAt?.getTime());
 
     const ops: Prisma.PrismaPromise<unknown>[] = [
       prisma.user.update({
@@ -110,7 +142,7 @@ export async function updateUser(
           displayName: data.displayName,
           dateOfBirth: data.dateOfBirth || undefined,
           subscriptionTier: data.subscriptionTier,
-          subscriptionExpiresAt: data.subscriptionTier === 'FREE' ? null : (data.subscriptionExpiresAt ? new Date(data.subscriptionExpiresAt) : undefined),
+          subscriptionExpiresAt: expiresAt,
           activeWindowStart: new Date(data.activeWindowStart),
           activeWindowEnd: new Date(data.activeWindowEnd),
           onDemandTokens: data.onDemandTokens,
@@ -118,7 +150,7 @@ export async function updateUser(
       }),
     ];
 
-    if (tierChanged) {
+    if (tierChanged || expiresAtChanged) {
       ops.push(
         prisma.userSubscriptionHistory.create({
           data: { 
@@ -126,7 +158,7 @@ export async function updateUser(
             tier: data.subscriptionTier, 
             source: 'ADMIN_GRANT', 
             startedAt: now,
-            expiresAt: data.subscriptionTier === 'FREE' ? null : (data.subscriptionExpiresAt ? new Date(data.subscriptionExpiresAt) : undefined)
+            expiresAt: expiresAt
           },
         }),
       );
