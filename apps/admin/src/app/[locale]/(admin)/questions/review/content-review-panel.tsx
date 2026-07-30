@@ -354,7 +354,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
               onClick={() => pushParams({ page: '1' })}
               disabled={page <= 1 || isPending}
               className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
-              aria-label="First page"
+              aria-label={t('firstPage')}
             >
               <ChevronsLeft className="h-4 w-4" />
             </button>
@@ -379,7 +379,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
               onClick={() => pushParams({ page: String(totalPages) })}
               disabled={page >= totalPages || isPending}
               className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })}
-              aria-label="Last page"
+              aria-label={t('lastPage')}
             >
               <ChevronsRight className="h-4 w-4" />
             </button>

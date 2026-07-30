@@ -85,7 +85,7 @@ export function CronJobLogsModal({ jobId, jobName, onClose }: CronJobLogsModalPr
       case 'TERMINATED':
         return <Badge variant="secondary">{t('resultValues.terminated')}</Badge>;
       case 'RUNNING':
-        return <Badge variant="outline" className="border-blue-500 text-blue-500 animate-pulse">{t('statusValues.running')}</Badge>;
+        return <Badge variant="outline" className="border-blue-500 text-blue-500 animate-pulse">{t('statusValues.executing')}</Badge>;
       default:
         return <Badge variant="outline">{result}</Badge>;
     }
@@ -144,7 +144,7 @@ export function CronJobLogsModal({ jobId, jobName, onClose }: CronJobLogsModalPr
         {pagination && pagination.totalPages > 1 && (
           <div className="flex items-center justify-between pt-4 border-t mt-4">
             <span className="text-sm text-muted-foreground">
-              Page {pagination.page} of {pagination.totalPages}
+              {t('logsModal.pageOf', { page: pagination.page, totalPages: pagination.totalPages })}
             </span>
             <div className="flex items-center gap-2">
               <Button
@@ -154,7 +154,7 @@ export function CronJobLogsModal({ jobId, jobName, onClose }: CronJobLogsModalPr
                 disabled={page === 1}
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
-                Prev
+                {t('logsModal.prev')}
               </Button>
               <Button
                 variant="outline"
@@ -162,7 +162,7 @@ export function CronJobLogsModal({ jobId, jobName, onClose }: CronJobLogsModalPr
                 onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                 disabled={page === pagination.totalPages}
               >
-                Next
+                {t('logsModal.next')}
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>

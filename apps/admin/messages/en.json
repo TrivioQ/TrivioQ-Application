@@ -319,7 +319,9 @@
     "showing": "Showing {start}–{end} of {total}",
     "pageOf": "Page {page} of {totalPages}",
     "previousPage": "Previous page",
-    "nextPage": "Next page"
+    "nextPage": "Next page",
+    "firstPage": "First page",
+    "lastPage": "Last page"
   },
   "categories": {
     "title": "Categories",
@@ -791,7 +793,10 @@
           "error": "Error"
         },
         "empty": "No execution history.",
-        "loading": "Loading logs..."
+        "loading": "Loading logs...",
+        "pageOf": "Page {page} of {totalPages}",
+        "prev": "Prev",
+        "next": "Next"
       },
       "successToggle": "Job status updated.",
       "successTrigger": "Job triggered successfully.",
