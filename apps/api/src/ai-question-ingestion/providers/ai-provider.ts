@@ -2,6 +2,8 @@
 // Every AI provider (Google, Nvidia, Anthropic, …) must implement this contract.
 // The orchestrator depends only on this interface — never on a concrete provider.
 
+import type { ValidationResult } from '../prompts';
+
 // ── Shared input type ─────────────────────────────────────────────────────────
 
 export interface ImageInput {
@@ -116,4 +118,11 @@ export interface AIProvider {
    * @param promptOverride - Optional full prompt to use.
    */
   extractFromText(text: string, promptOverride?: string): Promise<ExtractionResult>;
+
+  /**
+   * Validate a pending question including its hint and explanation.
+   *
+   * @param promptOverride - Optional full prompt to use instead of the default VALIDATION_PROMPT.
+   */
+  validateQuestion(questionText: string, choices: unknown[], hint: string | null, explanation: string | null, promptOverride?: string): Promise<ValidationResult>;
 }

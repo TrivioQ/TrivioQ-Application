@@ -17,7 +17,7 @@
 
 import { prisma } from '@trivioq/database';
 import { createProvider, type AIProviderName } from '../ai-question-ingestion/providers';
-import { buildValidationPrompt, type ValidationResult } from '../ai-question-ingestion/prompts';
+import { buildValidationPrompt } from '../ai-question-ingestion/prompts';
 import { reportError } from '../utils/error-reporter';
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -81,8 +81,7 @@ export async function runQuestionValidation(signal?: AbortSignal): Promise<void>
 
           try {
             const choices = Array.isArray(question.suggestedChoices) ? question.suggestedChoices : [];
-            const rawResult = await provider.enhanceQuestion(question.suggestedText, choices, buildValidationPrompt(question.ageRating));
-            const result = rawResult as unknown as ValidationResult;
+            const result = await provider.validateQuestion(question.suggestedText, choices, question.hint, question.explanation, buildValidationPrompt(question.ageRating));
 
             if (result.overallPassed) {
               await prisma.pendingQuestion.update({
@@ -96,7 +95,13 @@ export async function runQuestionValidation(signal?: AbortSignal): Promise<void>
               console.log(`[question-validation] ✓ APPROVED — id: ${question.id} | ${result.summary}`);
             } else {
               const ageRatingFailed = !result.ageRating?.passed && result.ageRating?.rationale;
-              const feedback = ageRatingFailed ? `${result.summary} [Age Rating: ${result.ageRating.rationale}]` : result.summary;
+              const hintFailed = !result.hintQuality?.passed && result.hintQuality?.rationale;
+              const explanationFailed = !result.explanationQuality?.passed && result.explanationQuality?.rationale;
+
+              let feedback = result.summary;
+              if (ageRatingFailed) feedback += ` [Age Rating: ${result.ageRating.rationale}]`;
+              if (hintFailed) feedback += ` [Hint: ${result.hintQuality.rationale}]`;
+              if (explanationFailed) feedback += ` [Explanation: ${result.explanationQuality.rationale}]`;
 
               await prisma.pendingQuestion.update({
                 where: { id: question.id },

@@ -412,6 +412,16 @@ export interface ValidationResult {
     passed: boolean;
     rationale: string | null;
   };
+  hintQuality: {
+    /** True if the hint is a helpful nudge without giving away the answer directly. */
+    passed: boolean;
+    rationale: string | null;
+  };
+  explanationQuality: {
+    /** True if the explanation is factual, accurate, and properly explains why the answer is correct. */
+    passed: boolean;
+    rationale: string | null;
+  };
   /** True only when ALL four dimensions pass. */
   overallPassed: boolean;
   /** One-sentence summary written to aiFeedback in the DB. */
@@ -419,10 +429,10 @@ export interface ValidationResult {
 }
 
 export function buildValidationPrompt(targetAgeRating: string): string {
-  return `You are a strict trivia question validator. Evaluate the given trivia question and its choices across FOUR independent dimensions and return a structured JSON result.
+  return `You are a strict trivia question validator. Evaluate the given trivia question, its choices, hint, and explanation across SIX independent dimensions and return a structured JSON result.
 
 ## CRITICAL INSTRUCTION — Chain of Thought
-Before making your final boolean decisions, you MUST write out your step-by-step reasoning in the \\\`stepByStepAnalysis\\\` field. Think through the facts, check each item in the list/question individually, and explain your logical deduction to ensure accuracy.
+Before making your final boolean decisions, you MUST write out your step-by-step reasoning in the \\\`stepByStepAnalysis\\\` field. Think through the facts, check each item in the list/question individually, evaluate the hint and explanation, and explain your logical deduction to ensure accuracy.
 
 ## Dimension 1 — Fact Check
 Verify that:
@@ -451,6 +461,20 @@ Verify that:
 - There is no inappropriate, mature, or offensive content that violates the age guidelines.
 Set ageRating.passed = false if ANY of the above fail.
 
+## Dimension 5 — Hint Quality
+Verify that:
+- The hint is provided and is a genuinely helpful nudge.
+- The hint does NOT give away the answer or directly name the correct option.
+- The hint does NOT repeat words from the question stem that directly point to the answer.
+Set hintQuality.passed = false if ANY of the above fail or if the hint is missing when it should be present.
+
+## Dimension 6 — Explanation Quality
+Verify that:
+- The explanation is provided, factual, and accurate.
+- The explanation correctly and concisely explains why the marked correct answer is right.
+- There is no hallucination or fabrication of facts.
+Set explanationQuality.passed = false if ANY of the above fail or if the explanation is missing.
+
 ## CRITICAL — Anti-Hallucination Rules
 - Do NOT guess or fabricate facts. If you are unsure, set the dimension to passed = false and explain.
 - Stick to verifiable, well-known facts only.
@@ -463,9 +487,11 @@ Return ONLY a JSON object matching this exact schema. Do not include markdown, e
   "validity":     { "passed": true,  "rationale": null },
   "completeness": { "passed": true,  "rationale": null },
   "ageRating":    { "passed": true,  "rationale": null },
+  "hintQuality":  { "passed": true,  "rationale": null },
+  "explanationQuality": { "passed": true, "rationale": null },
   "overallPassed": true,
   "summary": "One-sentence summary of the validation outcome."
 }
 
-Set overallPassed = true ONLY when ALL four dimensions pass. The "summary" field must be a single sentence suitable for display in an admin portal.`;
+Set overallPassed = true ONLY when ALL six dimensions pass. The "summary" field must be a single sentence suitable for display in an admin portal.`;
 }

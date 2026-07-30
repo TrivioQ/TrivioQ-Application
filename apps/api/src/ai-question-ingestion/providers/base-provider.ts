@@ -1,5 +1,6 @@
 import { ImageInput } from './ai-provider';
 import { SCOUT_PROMPT, EXTRACTION_PROMPT, ENHANCEMENT_PROMPT, SUMMARIZE_IMAGE_PROMPT, QUIZ_GENERATION_FROM_TEXT_PROMPT } from '../prompts';
+import type { ValidationResult } from '../prompts';
 import type { ClassificationResult, EnhancementResult, ExtractionResult, SummarizationResult } from './ai-provider';
 
 export class ApiRateLimitError extends Error {
@@ -190,5 +191,12 @@ export abstract class BaseAIProvider {
     const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
     const prompt = `${promptOverride ?? QUIZ_GENERATION_FROM_TEXT_PROMPT}\n\n## Content to use for Generation\n\n${text}`;
     return this.callWithRetry<ExtractionResult>(prompt, [], 'extractFromText', { temperature });
+  }
+
+  async validateQuestion(questionText: string, choices: unknown[], hint: string | null, explanation: string | null, promptOverride?: string): Promise<ValidationResult> {
+    const tempStr = process.env.INGESTION_ENHANCEMENT_TEMPERATURE;
+    const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
+    const prompt = `${promptOverride}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}\nHint: ${hint ?? 'N/A'}\nExplanation: ${explanation ?? 'N/A'}`;
+    return this.callWithRetry<ValidationResult>(prompt, [], 'validateQuestion', { temperature });
   }
 }
