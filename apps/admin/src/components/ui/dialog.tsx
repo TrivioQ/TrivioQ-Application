@@ -74,7 +74,7 @@ function DialogFooter({
 }) {
   const t = useTranslations('common');
   return (
-    <div data-slot="dialog-footer" className={cn('-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end', className)} {...props}>
+    <div data-slot="dialog-footer" className={cn('flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-2', className)} {...props}>
       {children}
       {showCloseButton && <DialogPrimitive.Close render={<Button variant="outline" />}>{t('close')}</DialogPrimitive.Close>}
     </div>
