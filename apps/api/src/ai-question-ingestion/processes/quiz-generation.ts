@@ -271,8 +271,10 @@ export class QuizGenerationProcess implements IngestionProcess {
     console.log(`[Upload] Uploading ${readyQuestions.length} questions`);
     if (readyQuestions.length === 0) return;
 
-    for (const q of readyQuestions) {
+    for (let i = 0; i < readyQuestions.length; i++) {
+      const q = readyQuestions[i];
       try {
+        console.log(`[Upload] Uploading question ${q.id} [${i + 1}/${readyQuestions.length}]...`);
         // ── Self-referential guard ────────────────────────────────────────────
         // Questions flagged as self-referential are about the source document
         // itself (e.g. publisher, glossary count) and have no standalone trivia
