@@ -238,7 +238,7 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
               </p>
             </div>
 
-          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               {selectedQuestionIds.size > 0 && (
                 <DropdownMenu>
                   <DropdownMenuTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm', className: 'h-7 text-xs px-2 gap-1' }), isBulkUpdating && 'opacity-50 pointer-events-none')}>
@@ -280,16 +280,6 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
                   <button onClick={() => setSelectedId(q.id)} className={cn('w-full text-left pl-10 pr-4 py-3 transition-colors hover:bg-accent', selectedId === q.id && 'bg-accent/50 border-l-2 border-l-brand-500 hover:bg-accent/50', q.isDuplicate && q.status !== 'PENDING-DUPLICATE' && 'opacity-50 grayscale')}>
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-medium text-foreground truncate">{q.topic}</p>
-                      <div className="flex gap-1 flex-wrap">
-                        {q.categorySlugs.map(slug => {
-                          const catName = categoryMap.get(slug);
-                          return (
-                            <Badge key={slug} variant="secondary" className="text-[10px] shrink-0">
-                              {catName || slug}
-                            </Badge>
-                          );
-                        })}
-                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{q.suggestedText}</p>
                     <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
@@ -314,6 +304,14 @@ export function ContentReviewPanel({ questions, categories, result, filter }: Co
                         </Badge>
                       )}
                       {q.aiQualityScore != null && scoreBadge(q.aiQualityScore) != null && <span className={cn('inline-flex h-5 w-fit shrink-0 items-center justify-center rounded-4xl px-2 py-0.5 text-[10px] font-medium', scoreBadge(q.aiQualityScore)!.className)}>{scoreBadge(q.aiQualityScore)!.label}</span>}
+                      {q.categorySlugs.map(slug => {
+                        const catName = categoryMap.get(slug);
+                        return (
+                          <Badge key={slug} variant="secondary" className="text-[10px] shrink-0">
+                            {catName || slug}
+                          </Badge>
+                        );
+                      })}
                     </div>
                     <p className="text-[10px] text-muted-foreground mt-1.5">
                       {new Date(q.createdAt).toLocaleDateString(undefined, {
