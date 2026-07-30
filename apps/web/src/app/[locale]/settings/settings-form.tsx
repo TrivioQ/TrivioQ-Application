@@ -203,7 +203,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
           </div>
         )}
 
-        <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-brand-600 hover:bg-brand-500 text-text px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
+        <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-brand-600 hover:bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
           {isPending ? t('saving') : t('updateName')}
         </button>
       </section>
@@ -226,7 +226,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
           </div>
         </div>
 
-        <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-brand-600 hover:bg-brand-500 text-text px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
+        <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-brand-600 hover:bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
           {isPending ? t('saving') : t('saveTimeSettings')}
         </button>
       </section>
@@ -246,7 +246,7 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
               <span className={`text-xs font-bold uppercase tracking-wider ${selectedCategories.length >= 30 ? 'text-success' : 'text-warning'}`}>{t('selectedLabel', { count: selectedCategories.length })}</span>
               {selectedCategories.length < 30 && <span className="text-xs text-text-muted">{t('minLabel')}</span>}
             </div>
-            <button onClick={handleSaveCategories} disabled={categoriesPending || selectedCategories.length < 30} className="bg-brand-600 hover:bg-brand-500 text-text px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
+            <button onClick={handleSaveCategories} disabled={categoriesPending || selectedCategories.length < 30} className="bg-brand-600 hover:bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
               {categoriesPending ? t('saving') : t('saveCategories')}
             </button>
           </>

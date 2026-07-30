@@ -60,7 +60,7 @@ export function MultiCategoryCombobox({ options, selectedNames, onChange, placeh
             return (
               <li key={c.id}>
                 <label className="flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer hover:bg-overlay/50 transition-colors">
-                  <input type="checkbox" checked={isSelected} onChange={() => toggle(c.name)} className="h-4 w-4 shrink-0 rounded border-border bg-bg-secondary text-brand-600 dark:text-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 cursor-pointer" />
+                  <input type="checkbox" checked={isSelected} onChange={() => toggle(c.name)} className="h-4 w-4 shrink-0 rounded border-border bg-bg-secondary text-brand-600 dark:text-brand-500 accent-brand-600 dark:accent-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 cursor-pointer" />
                   <span className="text-text truncate">{c.name}</span>
                 </label>
               </li>

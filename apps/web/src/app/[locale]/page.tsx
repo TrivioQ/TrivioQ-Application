@@ -65,27 +65,27 @@ export default async function Home() {
       {/* ── Social Proof Cards ── */}
       <section className="px-4 sm:px-6 relative z-10 -mt-16 md:-mt-20 mb-10">
         <div className="mx-auto max-w-5xl grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-          <div className="group flex flex-col items-center justify-center p-6 sm:p-8 bg-gradient-to-b from-white/80 to-brand-100/60 dark:from-white/10 dark:to-white/5 rounded-3xl border border-brand-200 dark:border-white/10 backdrop-blur-md hover:-translate-y-1 transition-all duration-300">
+          <div className="flex flex-col items-center justify-center p-6 sm:p-8 bg-gradient-to-b from-white/80 to-brand-100/60 dark:from-white/10 dark:to-white/5 rounded-3xl border border-brand-200 dark:border-white/10 backdrop-blur-md">
             <div className="flex items-center gap-4 mb-1">
-              <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-500/20 flex items-center justify-center">
                 <Users className="w-6 h-6 text-brand-600 dark:text-brand-400" />
               </div>
               <p className="text-4xl font-extrabold text-text bg-clip-text text-transparent bg-gradient-to-br from-text to-text-muted">{formattedLearners}</p>
             </div>
             <p className="text-xs font-bold text-text-muted mt-2 uppercase tracking-widest">{t('socialProof.activeLearners')}</p>
           </div>
-          <div className="group flex flex-col items-center justify-center p-6 sm:p-8 bg-gradient-to-b from-white/80 to-brand-100/60 dark:from-white/10 dark:to-white/5 rounded-3xl border border-brand-200 dark:border-white/10 backdrop-blur-md hover:-translate-y-1 transition-all duration-300">
+          <div className="flex flex-col items-center justify-center p-6 sm:p-8 bg-gradient-to-b from-white/80 to-brand-100/60 dark:from-white/10 dark:to-white/5 rounded-3xl border border-brand-200 dark:border-white/10 backdrop-blur-md">
             <div className="flex items-center gap-4 mb-1">
-              <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-500/20 flex items-center justify-center">
                 <CheckCircle className="w-6 h-6 text-brand-600 dark:text-brand-400" />
               </div>
               <p className="text-4xl font-extrabold text-text bg-clip-text text-transparent bg-gradient-to-br from-text to-text-muted">{formattedQuestions}</p>
             </div>
             <p className="text-xs font-bold text-text-muted mt-2 uppercase tracking-widest">{t('socialProof.questionsAnswered')}</p>
           </div>
-          <div className="group flex flex-col items-center justify-center p-6 sm:p-8 bg-gradient-to-b from-white/80 to-brand-100/60 dark:from-white/10 dark:to-white/5 rounded-3xl border border-brand-200 dark:border-white/10 backdrop-blur-md hover:-translate-y-1 transition-all duration-300">
+          <div className="flex flex-col items-center justify-center p-6 sm:p-8 bg-gradient-to-b from-white/80 to-brand-100/60 dark:from-white/10 dark:to-white/5 rounded-3xl border border-brand-200 dark:border-white/10 backdrop-blur-md">
             <div className="flex items-center gap-4 mb-1">
-              <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-500/20 flex items-center justify-center">
                 <Layers className="w-6 h-6 text-brand-600 dark:text-brand-400" />
               </div>
               <p className="text-4xl font-extrabold text-text bg-clip-text text-transparent bg-gradient-to-br from-text to-text-muted">{formattedCategories}</p>
@@ -134,7 +134,7 @@ export default async function Home() {
                 { icon: '🧠', title: t('features.smartTailoring.title'), desc: t('features.smartTailoring.description') },
                 { icon: '🏆', title: t('features.globalCompetition.title'), desc: t('features.globalCompetition.description') },
               ].map(({ icon, title, desc }) => (
-                <div key={title} className="flex flex-col bg-brand-50/75 dark:bg-overlay/50 backdrop-blur-sm p-8 rounded-2xl border border-brand-100 dark:border-white/5 hover:border-brand-300 dark:hover:border-brand-500/30 transition-colors shadow-sm shadow-brand-500/10 dark:shadow-none">
+                <div key={title} className="flex flex-col bg-brand-50/75 dark:bg-overlay/50 backdrop-blur-sm p-8 rounded-2xl border border-brand-100 dark:border-white/5 shadow-sm shadow-brand-500/10 dark:shadow-none">
                   <dt className="flex items-center gap-x-4 text-xl font-semibold leading-7 text-text">
                     <div className="h-12 w-12 rounded-xl bg-brand-500/10 dark:bg-brand-500/20 flex items-center justify-center border border-brand-500/20 dark:border-brand-500/30 text-2xl">{icon}</div>
                     {title}

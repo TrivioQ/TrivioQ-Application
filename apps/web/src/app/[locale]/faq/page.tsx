@@ -70,7 +70,7 @@ export default async function FAQPage() {
             <h2 className="text-3xl font-bold text-text">{t('stillHaveQuestions')}</h2>
             <p className="text-text-muted max-w-lg mx-auto">{t('contactDesc')}</p>
           </div>
-          <a href="mailto:support@trivioq.com" className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-text font-bold py-4 px-10 rounded-2xl transition-all shadow-lg shadow-brand-500/25 hover:-translate-y-1 active:translate-y-0">
+          <a href="mailto:support@trivioq.com" className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white font-bold py-4 px-10 rounded-2xl transition-all shadow-lg shadow-brand-500/25 hover:-translate-y-1 active:translate-y-0">
             <span>{t('contactSupport')}</span>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />

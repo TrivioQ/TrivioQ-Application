@@ -107,14 +107,21 @@ function LoginForm() {
           </div>
 
           <div className="flex items-center gap-3">
-            <input id="keep-me-logged-in" type="checkbox" checked={keepMeLoggedIn} onChange={(e) => setKeepMeLoggedIn(e.target.checked)} disabled={isPending} className="h-4 w-4 rounded border-border bg-bg-secondary text-brand-600 dark:text-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 focus:ring-offset-bg-secondary dark:focus:ring-offset-bg-primary" />
+            <input
+              id="keep-me-logged-in"
+              type="checkbox"
+              checked={keepMeLoggedIn}
+              onChange={(e) => setKeepMeLoggedIn(e.target.checked)}
+              disabled={isPending}
+              className="h-4 w-4 rounded border-border bg-bg-secondary text-brand-600 dark:text-brand-500 accent-brand-600 dark:accent-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 focus:ring-offset-bg-secondary dark:focus:ring-offset-bg-primary"
+            />
             <label htmlFor="keep-me-logged-in" className="text-sm text-text-muted select-none cursor-pointer">
               {t('keepMeLoggedIn')}
             </label>
           </div>
 
           <div>
-            <button type="submit" disabled={isPending} className="group relative flex w-full justify-center rounded-md bg-brand-500 px-3 py-3 text-sm font-semibold text-text hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 transition-colors">
+            <button type="submit" disabled={isPending} className="group relative flex w-full justify-center rounded-md bg-brand-500 px-3 py-3 text-sm font-semibold text-white hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 transition-colors">
               {isPending ? t('authenticating') : t('signInButton')}
             </button>
           </div>

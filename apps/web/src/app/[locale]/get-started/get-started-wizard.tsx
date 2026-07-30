@@ -113,7 +113,7 @@ export function GetStartedWizard() {
               const done = n < step;
               return (
                 <div key={label} className="flex-1 flex items-center gap-2">
-                  <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${done ? 'bg-success text-text' : active ? 'bg-brand-600 text-text' : 'bg-overlay text-text-muted'}`}>{n}</div>
+                  <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${done ? 'bg-success text-text' : active ? 'bg-brand-600 text-white' : 'bg-overlay text-text-muted'}`}>{n}</div>
                   {idx < STEP_LABELS.length - 1 && <div className={`flex-1 h-0.5 ${n < step ? 'bg-success' : 'bg-overlay'}`} />}
                 </div>
               );
@@ -129,7 +129,7 @@ export function GetStartedWizard() {
               <div className="space-y-6">
                 <TrialStep />
                 <label className="flex items-start gap-3 p-4 rounded-2xl border border-border bg-bg-secondary/40 cursor-pointer">
-                  <input type="checkbox" checked={trialAccepted} onChange={(e) => setTrialAccepted(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 rounded border-border bg-bg-secondary text-brand-600 dark:text-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 cursor-pointer" />
+                  <input type="checkbox" checked={trialAccepted} onChange={(e) => setTrialAccepted(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 rounded border-border bg-bg-secondary text-brand-600 dark:text-brand-500 accent-brand-600 dark:accent-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 cursor-pointer" />
                   <span className="text-sm text-text">I accept the 7-day Premium free trial. I understand no payment is required and I can subscribe later.</span>
                 </label>
               </div>
@@ -172,7 +172,7 @@ export function GetStartedWizard() {
             <button type="button" onClick={back} disabled={step === 1} className="px-5 py-2.5 rounded-xl text-sm font-bold text-text-muted hover:text-text disabled:opacity-30 disabled:cursor-not-allowed">
               Back
             </button>
-            <button type="button" onClick={next} className="bg-brand-600 hover:bg-brand-500 text-text px-6 py-2.5 rounded-xl text-sm font-bold transition-all">
+            <button type="button" onClick={next} className="bg-brand-600 hover:bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all">
               {advanceLabel}
             </button>
           </div>

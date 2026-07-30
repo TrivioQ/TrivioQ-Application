@@ -121,7 +121,7 @@ function LoginForm() {
             </div>
 
             <div className="flex items-center gap-2.5">
-              <input id="keep-me-logged-in" name="keepMeLoggedIn" type="checkbox" className="h-4 w-4 rounded border-border bg-bg text-brand-600 focus:ring-brand-500" />
+              <input id="keep-me-logged-in" name="keepMeLoggedIn" type="checkbox" className="h-4 w-4 rounded border-border bg-bg text-brand-600 accent-brand-600 focus:ring-brand-500" />
               <label htmlFor="keep-me-logged-in" className="text-sm text-muted-foreground select-none cursor-pointer">
                 {t('keepMeLoggedIn')}
               </label>

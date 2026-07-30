@@ -267,7 +267,7 @@ export default function ActiveDropCard() {
           <Hourglass className="w-10 h-10 text-text-muted" />
           <p className="text-sm font-semibold text-text">{t('noActiveQuestion')}</p>
           <p className="text-xs text-text-muted max-w-xs leading-relaxed">{t('noActiveDesc')}</p>
-          <button onClick={handleOnDemand} disabled={onDemandLoading} className="mt-2 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 text-sm text-text dark:text-brand-300 font-medium transition-colors">
+          <button onClick={handleOnDemand} disabled={onDemandLoading} className="mt-2 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 text-sm text-white dark:text-brand-300 font-medium transition-colors">
             {onDemandLoading ? t('requesting') : t('requestNextQuestion')}
           </button>
           {onDemandError && <p className="text-xs text-warning mt-1">{onDemandError}</p>}
@@ -300,7 +300,7 @@ export default function ActiveDropCard() {
           {isExpired && !submitResult && (
             <div className="flex flex-col items-end gap-1">
               <p className="text-[10px] font-bold text-error uppercase tracking-widest">{t('expired')}</p>
-              <button onClick={handleOnDemand} disabled={onDemandLoading} className="rounded-lg bg-brand-600 hover:bg-brand-700 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1 text-[11px] text-text dark:text-brand-300 font-medium transition-colors">
+              <button onClick={handleOnDemand} disabled={onDemandLoading} className="rounded-lg bg-brand-600 hover:bg-brand-700 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1 text-[11px] text-white dark:text-brand-300 font-medium transition-colors">
                 {onDemandLoading ? t('requesting') : t('requestNew')}
               </button>
               {onDemandError && <p className="text-[10px] text-warning text-right max-w-[160px]">{onDemandError}</p>}
@@ -324,7 +324,7 @@ export default function ActiveDropCard() {
           <div className="text-center py-4 flex flex-col items-center">
             <Gift className="w-10 h-10 mb-3 text-brand-400" />
             <p className="text-sm text-text-muted mb-4">{t('newQuestionWaiting')}</p>
-            <button onClick={handleRevealQuestion} disabled={isExpired || revealQuestionLoading} className="rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-text-muted disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-text transition-colors">
+            <button onClick={handleRevealQuestion} disabled={isExpired || revealQuestionLoading} className="rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-text-muted disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors">
               {revealQuestionLoading ? t('revealLoading') : t('revealQuestion')}
             </button>
           </div>
@@ -389,7 +389,7 @@ export default function ActiveDropCard() {
 
             {/* Submit button */}
             {!submitResult && !isAnswerKnown && !isExpired && (
-              <button onClick={handleSubmit} disabled={selectedOption === null || submitting} className="w-full rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-text-muted disabled:text-text-muted disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-text transition-colors">
+              <button onClick={handleSubmit} disabled={selectedOption === null || submitting} className="w-full rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-text-muted disabled:text-text-muted disabled:cursor-not-allowed px-6 py-2.5 text-sm font-semibold text-white transition-colors">
                 {submitting ? t('submitting') : t('submitAnswer')}
               </button>
             )}
@@ -413,11 +413,11 @@ export default function ActiveDropCard() {
                       resetState();
                       fetchActiveDrop();
                     }}
-                    className="rounded-xl bg-brand-600 hover:bg-brand-500 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 px-4 py-1.5 text-xs text-text dark:text-brand-300 font-medium transition-colors"
+                    className="rounded-xl bg-brand-600 hover:bg-brand-500 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 px-4 py-1.5 text-xs text-white dark:text-brand-300 font-medium transition-colors"
                   >
                     {t('checkNextDrop')}
                   </button>
-                  <button onClick={handleOnDemand} disabled={onDemandLoading} className="rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-xs text-text dark:text-brand-300 font-medium transition-colors">
+                  <button onClick={handleOnDemand} disabled={onDemandLoading} className="rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-xs text-white dark:text-brand-300 font-medium transition-colors">
                     {onDemandLoading ? t('requesting') : t('requestNextQuestion')}
                   </button>
                 </div>

@@ -74,10 +74,10 @@ export default async function WebDashboard() {
 
         {/* ── Quick links ── */}
         <div className="flex flex-wrap gap-3 pt-2">
-          <Link href="/score-history" className="rounded-xl bg-brand-600 hover:bg-brand-500 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 px-4 py-2 text-sm text-text dark:text-brand-300 font-medium transition-colors">
+          <Link href="/score-history" className="rounded-xl bg-brand-600 hover:bg-brand-500 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 px-4 py-2 text-sm text-white dark:text-brand-300 font-medium transition-colors">
             {t('fullScoreHistory')}
           </Link>
-          <Link href="/leaderboard" className="rounded-xl bg-brand-600 hover:bg-brand-500 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 px-4 py-2 text-sm text-text dark:text-brand-300 font-medium transition-colors">
+          <Link href="/leaderboard" className="rounded-xl bg-brand-600 hover:bg-brand-500 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 px-4 py-2 text-sm text-white dark:text-brand-300 font-medium transition-colors">
             {t('leaderboard')}
           </Link>
         </div>

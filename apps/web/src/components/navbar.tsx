@@ -83,7 +83,7 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
 function UserAvatar({ profilePicture, displayName, email, isPremium, avatarAlt, premiumBadge }: { profilePicture: string | null; displayName: string | null; email: string; isPremium: boolean; avatarAlt: string; premiumBadge: string }) {
   return (
     <div className="relative">
-      {profilePicture ? <img src={profilePicture} alt={avatarAlt} className="w-8 h-8 rounded-full object-cover ring-2 ring-brand-500/60" /> : <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-text text-xs font-bold ring-2 ring-brand-500/60">{getInitials(displayName, email)}</div>}
+      {profilePicture ? <img src={profilePicture} alt={avatarAlt} className="w-8 h-8 rounded-full object-cover ring-2 ring-brand-500/60" /> : <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white text-xs font-bold ring-2 ring-brand-500/60">{getInitials(displayName, email)}</div>}
       {isPremium && (
         <span className="absolute -top-1.5 -right-[0.175rem] leading-none select-none text-warning" title={premiumBadge}>
           <CrownIcon className="w-3.5 h-3.5 drop-shadow-[0_0_5px_rgb(var(--warning)/0.6)]" />
@@ -252,7 +252,7 @@ export function Navbar() {
                 <Link href="/login" className="text-sm font-medium text-text-muted hover:text-brand-600 dark:hover:text-text transition-colors px-4 py-2 rounded-full hover:bg-brand-50 dark:hover:bg-white/5">
                   {t('login')}
                 </Link>
-                <Link href="/signup" className="text-sm font-semibold text-text bg-brand-500 hover:bg-brand-600 px-5 py-2 rounded-full shadow-[0_0_16px_rgb(var(--brand-500)/0.35)] hover:shadow-[0_0_24px_rgb(var(--brand-500)/0.55)] transition-all duration-200">
+                <Link href="/signup" className="text-sm font-semibold text-white bg-brand-500 hover:bg-brand-600 px-5 py-2 rounded-full shadow-[0_0_16px_rgb(var(--brand-500)/0.35)] hover:shadow-[0_0_24px_rgb(var(--brand-500)/0.55)] transition-all duration-200">
                   {t('getStarted')}
                 </Link>
               </div>
@@ -336,7 +336,7 @@ export function Navbar() {
                     <Link href="/login" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-medium text-text border border-border dark:border-white/15 hover:bg-bg dark:hover:bg-white/5 hover:text-text transition-colors">
                       {t('login')}
                     </Link>
-                    <Link href="/signup" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-semibold text-text bg-brand-500 hover:bg-brand-600 shadow-[0_0_16px_rgb(var(--brand-500)/0.35)] transition-all">
+                    <Link href="/signup" onClick={() => setMobileOpen(false)} className="flex items-center justify-center px-4 py-3 rounded-xl text-sm font-semibold text-white bg-brand-500 hover:bg-brand-600 shadow-[0_0_16px_rgb(var(--brand-500)/0.35)] transition-all">
                       {t('getStarted')}
                     </Link>
                   </div>

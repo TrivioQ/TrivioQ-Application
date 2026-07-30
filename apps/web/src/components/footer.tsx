@@ -97,7 +97,7 @@ export async function Footer() {
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-400 mb-5">{t('getAppHeading')}</h3>
             <p className="text-sm text-text-muted mb-4">{t('getAppDesc')}</p>
-            <Link href="#" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-brand-600 dark:text-text bg-brand-500/20 border border-brand-500/30 hover:bg-brand-100 dark:hover:bg-brand-500/30 hover:border-brand-300 dark:hover:border-brand-500/50 transition-all duration-200">
+            <Link href="#" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-brand-600 dark:text-white bg-brand-500/20 border border-brand-500/30 hover:bg-brand-100 dark:hover:bg-brand-500/30 hover:border-brand-300 dark:hover:border-brand-500/50 transition-all duration-200">
               <span>📱</span>
               {t('downloadFree')}
             </Link>

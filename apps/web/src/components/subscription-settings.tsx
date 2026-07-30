@@ -249,7 +249,7 @@ export function SubscriptionSettings() {
         )}
 
         {isFree && (
-          <button className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-text px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+          <button className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
             <IconZap />
             {t('upgradeToPremium')}
           </button>
@@ -321,7 +321,7 @@ export function SubscriptionSettings() {
               </div>
             </div>
 
-            <button onClick={handleActivate} disabled={activating} className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-text px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            <button onClick={handleActivate} disabled={activating} className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
               {activating ? (
                 <>
                   <IconSpinner />

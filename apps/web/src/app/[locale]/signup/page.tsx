@@ -156,7 +156,14 @@ export default function SignupPage() {
 
           {/* Terms & Privacy agreement */}
           <div className="flex items-start gap-3">
-            <input id="terms" type="checkbox" checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} disabled={isPending} className="mt-0.5 h-4 w-4 shrink-0 rounded border-border bg-bg-secondary text-brand-600 dark:text-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 focus:ring-offset-bg-secondary dark:focus:ring-offset-bg-primary cursor-pointer" />
+            <input
+              id="terms"
+              type="checkbox"
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              disabled={isPending}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-border bg-bg-secondary text-brand-600 dark:text-brand-500 accent-brand-600 dark:accent-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 focus:ring-offset-bg-secondary dark:focus:ring-offset-bg-primary cursor-pointer"
+            />
             <label htmlFor="terms" className="text-sm text-text-muted leading-snug cursor-pointer select-none">
               {t('termsAgreement')}{' '}
               <Link href="/terms" target="_blank" className="text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 underline underline-offset-2">
@@ -171,7 +178,7 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <button type="submit" disabled={isPending || !agreedToTerms} className="group relative flex w-full justify-center rounded-md bg-brand-500 px-3 py-3 text-sm font-semibold text-text hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            <button type="submit" disabled={isPending || !agreedToTerms} className="group relative flex w-full justify-center rounded-md bg-brand-500 px-3 py-3 text-sm font-semibold text-white hover:bg-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               {isPending ? t('creatingAccount') : t('createButton')}
             </button>
           </div>
