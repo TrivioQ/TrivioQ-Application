@@ -59,10 +59,19 @@ export async function toggleUserTier(userId: string, currentTier: SubscriptionTi
     await prisma.$transaction([
       prisma.user.update({
         where: { id: userId },
-        data: { subscriptionTier: newTier },
+        data: { 
+          subscriptionTier: newTier,
+          ...(newTier === 'FREE' ? { subscriptionExpiresAt: null } : {})
+        },
       }),
       prisma.userSubscriptionHistory.create({
-        data: { userId, tier: newTier, source: 'ADMIN_GRANT', startedAt: now },
+        data: { 
+          userId, 
+          tier: newTier, 
+          source: 'ADMIN_GRANT', 
+          startedAt: now,
+          expiresAt: null
+        },
       }),
     ]);
     revalidatePath('/users');
@@ -112,7 +121,13 @@ export async function updateUser(
     if (tierChanged) {
       ops.push(
         prisma.userSubscriptionHistory.create({
-          data: { userId, tier: data.subscriptionTier, source: 'ADMIN_GRANT', startedAt: now },
+          data: { 
+            userId, 
+            tier: data.subscriptionTier, 
+            source: 'ADMIN_GRANT', 
+            startedAt: now,
+            expiresAt: data.subscriptionTier === 'FREE' ? null : (data.subscriptionExpiresAt ? new Date(data.subscriptionExpiresAt) : undefined)
+          },
         }),
       );
     }
