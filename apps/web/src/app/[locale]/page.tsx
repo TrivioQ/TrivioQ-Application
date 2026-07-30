@@ -1,12 +1,25 @@
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+import { makeServerAPICallV1 } from '@/lib/api-server';
+import { Users, CheckCircle, Layers } from 'lucide-react';
 
-export default function Home() {
-  const t = useTranslations('home');
+export default async function Home() {
+  const t = await getTranslations('home');
+
+  let stats = { activeLearners: 1000, questionsAnswered: 50000, activeCategories: 30 };
+  try {
+    stats = await makeServerAPICallV1<{ activeLearners: number; questionsAnswered: number; activeCategories: number }>('stats', { next: { revalidate: 3600 } });
+  } catch (error) {
+    console.error('Failed to fetch stats for home page:', error);
+  }
+
+  const formattedLearners = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(stats.activeLearners) + '+';
+  const formattedQuestions = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(stats.questionsAnswered) + '+';
+  const formattedCategories = stats.activeCategories + '+';
   return (
     <div className="flex flex-col min-h-screen text-text selection:bg-brand-500 selection:text-text">
       {/* ── Hero Section ── */}
-      <section className="relative pt-10 pb-14 md:pt-16 md:pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden flex-grow flex items-center">
+      <section className="relative pt-10 pb-28 md:pt-16 md:pb-36 px-4 sm:px-6 lg:px-8 overflow-hidden flex-grow flex items-center">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-100 via-bg to-bg-secondary dark:from-brand-900/50 dark:via-bg-primary dark:to-overlay" />
         <div className="mx-auto max-w-5xl text-center">
           <div className="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold text-brand-600 dark:text-brand-300 ring-1 ring-inset ring-brand-500/30 dark:ring-brand-500/30 mb-8 bg-brand-50 dark:bg-brand-500/10">{t('badge')}</div>
@@ -49,27 +62,35 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Social Proof Strip ── */}
-      <section className="py-10 px-4 sm:px-6 border-y border-border dark:border-white/5 bg-bg-secondary/20 dark:bg-white/5">
-        <div className="mx-auto max-w-4xl flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-8 text-center">
-          <div>
-            <p className="text-3xl font-extrabold text-text">10,000+</p>
-            <p className="text-sm text-text-muted mt-1">{t('socialProof.activeLearners')}</p>
+      {/* ── Social Proof Cards ── */}
+      <section className="px-4 sm:px-6 relative z-10 -mt-16 md:-mt-20 mb-10">
+        <div className="mx-auto max-w-5xl grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+          <div className="group flex flex-col items-center justify-center p-6 sm:p-8 bg-gradient-to-b from-white/80 to-brand-100/60 dark:from-white/10 dark:to-white/5 rounded-3xl border border-brand-200 dark:border-white/10 backdrop-blur-md shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 hover:-translate-y-1 transition-all duration-300">
+            <div className="flex items-center gap-4 mb-1">
+              <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <Users className="w-6 h-6 text-brand-600 dark:text-brand-400" />
+              </div>
+              <p className="text-4xl font-extrabold text-text bg-clip-text text-transparent bg-gradient-to-br from-text to-text-muted">{formattedLearners}</p>
+            </div>
+            <p className="text-xs font-bold text-text-muted mt-2 uppercase tracking-widest">{t('socialProof.activeLearners')}</p>
           </div>
-          <div className="hidden sm:block w-px h-10 bg-border dark:bg-white/10" />
-          <div>
-            <p className="text-3xl font-extrabold text-text">4.8 ⭐</p>
-            <p className="text-sm text-text-muted mt-1">{t('socialProof.averageRating')}</p>
+          <div className="group flex flex-col items-center justify-center p-6 sm:p-8 bg-gradient-to-b from-white/80 to-brand-100/60 dark:from-white/10 dark:to-white/5 rounded-3xl border border-brand-200 dark:border-white/10 backdrop-blur-md shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 hover:-translate-y-1 transition-all duration-300">
+            <div className="flex items-center gap-4 mb-1">
+              <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <CheckCircle className="w-6 h-6 text-brand-600 dark:text-brand-400" />
+              </div>
+              <p className="text-4xl font-extrabold text-text bg-clip-text text-transparent bg-gradient-to-br from-text to-text-muted">{formattedQuestions}</p>
+            </div>
+            <p className="text-xs font-bold text-text-muted mt-2 uppercase tracking-widest">{t('socialProof.questionsAnswered')}</p>
           </div>
-          <div className="hidden sm:block w-px h-10 bg-border dark:bg-white/10" />
-          <div>
-            <p className="text-3xl font-extrabold text-text">500K+</p>
-            <p className="text-sm text-text-muted mt-1">{t('socialProof.questionsAnswered')}</p>
-          </div>
-          <div className="hidden sm:block w-px h-10 bg-border dark:bg-white/10" />
-          <div className="max-w-xs">
-            <p className="text-sm italic text-text-muted">&ldquo;{t('socialProof.quote')}&rdquo;</p>
-            <p className="text-xs text-text-muted/80 mt-1">{t('socialProof.quoteAuthor')}</p>
+          <div className="group flex flex-col items-center justify-center p-6 sm:p-8 bg-gradient-to-b from-white/80 to-brand-100/60 dark:from-white/10 dark:to-white/5 rounded-3xl border border-brand-200 dark:border-white/10 backdrop-blur-md shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 hover:-translate-y-1 transition-all duration-300">
+            <div className="flex items-center gap-4 mb-1">
+              <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <Layers className="w-6 h-6 text-brand-600 dark:text-brand-400" />
+              </div>
+              <p className="text-4xl font-extrabold text-text bg-clip-text text-transparent bg-gradient-to-br from-text to-text-muted">{formattedCategories}</p>
+            </div>
+            <p className="text-xs font-bold text-text-muted mt-2 uppercase tracking-widest">{t('socialProof.categories')}</p>
           </div>
         </div>
       </section>
