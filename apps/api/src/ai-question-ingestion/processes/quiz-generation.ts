@@ -129,7 +129,7 @@ export class QuizGenerationProcess implements IngestionProcess {
 
         // Summarization Step
         await this.delayIfNeeded('summarization');
-        console.log(`[Generation] Summarizing image ${i + 1}...`);
+        console.log(`[Generation] Summarizing image ${i + 1}/${this.imagePaths.length}...`);
         const summarizationPrompt = buildSummarizeImagePrompt(this.summarizationSpecialInstruction);
 
         let summarization;
