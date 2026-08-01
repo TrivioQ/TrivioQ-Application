@@ -23,6 +23,7 @@ import NotificationsScreen from '../screens/notifications-screen';
 import Preferences from '../screens/Preferences';
 import FaqScreen from '../screens/faq-screen';
 import ScoreHistoryScreen from '../screens/score-history-screen';
+import FriendsScreen from '../screens/friends-screen';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,6 +58,7 @@ export type RootTabParamList = {
   Home: NavigatorScreenParams<HomeStackParamList>;
   Leaderboard: undefined;
   History: undefined;
+  Friends: undefined;
   Profile: NavigatorScreenParams<ProfileStackParamList>;
 };
 
@@ -178,6 +180,14 @@ function MainTabNavigator() {
         options={{
           tabBarLabel: t('common.history'),
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon="📋" focused={focused} />,
+        }}
+      />
+      <Tab.Screen
+        name="Friends"
+        component={FriendsScreen}
+        options={{
+          tabBarLabel: t('friends.title'),
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon="👥" focused={focused} />,
         }}
       />
       <Tab.Screen

@@ -227,5 +227,18 @@
     "invalidDateFormat": "Please enter your date of birth in YYYY-MM-DD format.",
     "ageTooYoung": "You must be at least 13 years old to create an account.",
     "signupFailed": "Sign-up failed. Please try again."
+  },
+  "friends": {
+    "title": "Friends",
+    "requests": "Requests",
+    "remove": "Remove",
+    "accept": "Accept",
+    "decline": "Decline",
+    "pending": "Pending",
+    "removeFriend": "Remove Friend",
+    "removeFriendConfirmation": "Are you sure you want to remove {{name}}?",
+    "failedToLoad": "Failed to load friendships",
+    "noFriendsYet": "You don't have any friends yet.",
+    "noRequests": "No requests."
   }
 }

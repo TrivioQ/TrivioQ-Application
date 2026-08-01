@@ -43,4 +43,61 @@ router.put('/users/:id/tier', async (req: Request, res: Response) => {
 // Admin Cron Jobs routes
 router.use('/cron-jobs', cronJobsRouter);
 
+/**
+ * @route   GET /api/v1/admin/users/:id/friendships
+ * @desc    Get all friendships for a specific user
+ * @access  Private (Admin Only)
+ */
+router.get('/users/:id/friendships', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const friendships = await prisma.friendship.findMany({
+      where: {
+        OR: [{ requesterId: id }, { addresseeId: id }],
+      },
+      include: {
+        requester: {
+          select: { id: true, username: true, displayName: true, email: true },
+        },
+        addressee: {
+          select: { id: true, username: true, displayName: true, email: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: friendships,
+    });
+  } catch (error) {
+    console.error('Failed to fetch user friendships:', error);
+    return res.status(500).json({ error: 'Internal server error while fetching friendships.' });
+  }
+});
+
+/**
+ * @route   DELETE /api/v1/admin/friendships/:id
+ * @desc    Forcefully remove a friendship or pending request
+ * @access  Private (Admin Only)
+ */
+router.delete('/friendships/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.friendship.delete({
+      where: { id },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Friendship removed successfully.',
+    });
+  } catch (error) {
+    console.error('Failed to remove friendship:', error);
+    return res.status(500).json({ error: 'Internal server error while removing friendship.' });
+  }
+});
+
 export default router;

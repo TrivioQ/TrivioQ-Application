@@ -41,7 +41,7 @@ import notificationRoutes from './routes/notifications';
 import categoriesRoutes from './routes/categories-routes';
 import onboardingRoutes from './routes/onboarding-routes';
 import statsRoutes from './routes/stats';
-
+import friendshipsRoutes from './routes/friendships';
 import { env } from './config/env';
 import { getSetting, getSettingNumber } from './utils/settings';
 import { initLeaderboardWorker } from './workers/leaderboard-worker';
@@ -64,7 +64,7 @@ app.use('/v1/notifications', notificationRoutes);
 app.use('/v1/categories', categoriesRoutes);
 app.use('/v1/onboarding', onboardingRoutes);
 app.use('/v1/stats', statsRoutes);
-
+app.use('/v1/friendships', friendshipsRoutes);
 app.get('/health', async (req: Request, res: Response) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
