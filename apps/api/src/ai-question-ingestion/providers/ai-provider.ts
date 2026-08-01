@@ -87,7 +87,7 @@ export interface AIProvider {
    * @param promptOverride - Optional full prompt to use instead of the default
    *   SCOUT_PROMPT (e.g. with a book-level special instruction prepended).
    */
-  classifyImage(image: ImageInput, promptOverride?: string): Promise<ClassificationResult>;
+  classifyImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number }): Promise<ClassificationResult>;
 
   /**
    * Extract trivia questions and answer keys from one or more page images.
@@ -95,7 +95,7 @@ export interface AIProvider {
    * @param promptOverride - Optional full prompt to use instead of the default
    *   EXTRACTION_PROMPT (e.g. with a book-level special instruction prepended).
    */
-  extractFromImages(images: ImageInput[], promptOverride?: string): Promise<ExtractionResult>;
+  extractFromImages(images: ImageInput[], promptOverride?: string, options?: { temperature?: number }): Promise<ExtractionResult>;
 
   /**
    * Generate a hint, explanation, quality score, and difficulty for a question.
@@ -103,26 +103,26 @@ export interface AIProvider {
    * @param promptOverride - Optional full prompt to use instead of the default
    *   ENHANCEMENT_PROMPT (e.g. with a book-level special instruction prepended).
    */
-  enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult>;
+  enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string, options?: { temperature?: number }): Promise<EnhancementResult>;
 
   /**
    * Summarize an image.
    *
    * @param promptOverride - Optional full prompt to use instead of the default SUMMARIZE_IMAGE_PROMPT.
    */
-  summarizeImage(image: ImageInput, promptOverride?: string): Promise<SummarizationResult>;
+  summarizeImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number }): Promise<SummarizationResult>;
 
   /**
    * Extract trivia questions and answer keys from text.
    *
    * @param promptOverride - Optional full prompt to use.
    */
-  extractFromText(text: string, promptOverride?: string): Promise<ExtractionResult>;
+  extractFromText(text: string, promptOverride?: string, options?: { temperature?: number }): Promise<ExtractionResult>;
 
   /**
    * Validate a pending question including its hint and explanation.
    *
    * @param promptOverride - Optional full prompt to use instead of the default VALIDATION_PROMPT.
    */
-  validateQuestion(questionText: string, choices: unknown[], hint: string | null, explanation: string | null, promptOverride?: string): Promise<ValidationResult>;
+  validateQuestion(questionText: string, choices: unknown[], hint: string | null, explanation: string | null, promptOverride?: string, options?: { temperature?: number }): Promise<ValidationResult>;
 }

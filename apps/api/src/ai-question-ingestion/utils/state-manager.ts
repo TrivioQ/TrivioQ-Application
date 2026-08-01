@@ -130,4 +130,60 @@ export class IngestionState {
     state.metadata = { ...(state.metadata ?? {}), ...metadata };
     this.writeState(state);
   }
+
+  resetToPhase(phase: 'SCOUT' | 'EXTRACTION' | 'ENHANCEMENT' | 'UPLOAD'): void {
+    const state = this.initOrLoad();
+
+    switch (phase) {
+      case 'SCOUT':
+        state.lastProcessedImageIndex = -1;
+        state.lastProcessedExtractionBatchIndex = -1;
+        state.questions = [];
+        if (state.metadata) {
+          state.metadata.imageClassifications = {};
+          state.metadata.answerKeys = [];
+          state.metadata.processedKeyPages = [];
+        }
+        break;
+
+      case 'EXTRACTION':
+        state.lastProcessedExtractionBatchIndex = -1;
+        // Keep existing scout metadata, clear only extracted questions
+        state.questions = [];
+        break;
+
+      case 'ENHANCEMENT':
+        // Revert any question that is past extraction back to READY_FOR_ENHANCEMENT
+        for (const q of state.questions) {
+          if (q.status === 'READY_FOR_UPLOAD' || q.status === 'UPLOADED') {
+            q.status = 'READY_FOR_ENHANCEMENT';
+            // Clear enhancement metadata
+            if (q.metadata) {
+              delete q.metadata.hint;
+              delete q.metadata.explanation;
+              delete q.metadata.aiQualityScore;
+              delete q.metadata.topic;
+              delete q.metadata.categorySlugs;
+              delete q.metadata.difficulty;
+              delete q.metadata.ageRating;
+              delete q.metadata.isFactuallyCorrect;
+              delete q.metadata.factCheckRationale;
+              delete q.metadata.isSelfReferential;
+            }
+          }
+        }
+        break;
+
+      case 'UPLOAD':
+        // Revert any uploaded question back to READY_FOR_UPLOAD
+        for (const q of state.questions) {
+          if (q.status === 'UPLOADED') {
+            q.status = 'READY_FOR_UPLOAD';
+          }
+        }
+        break;
+    }
+
+    this.writeState(state);
+  }
 }

@@ -48,6 +48,7 @@ model User {
   scheduledDeletionAt     DateTime?
   deletionWarningSent     Boolean                     @default(false)
   createdAt               DateTime                    @default(now())
+  ingestionJobs           IngestionJob[]
 }
 
 enum Role {
@@ -497,4 +498,38 @@ model CronJobExecution {
   endedAt   DateTime?
   result    String // 'SUCCESS', 'FAILED', 'TERMINATED'
   errorLogs String?   @db.Text
+}
+
+enum IngestionStatus {
+  QUEUED
+  PROCESSING
+  PAUSED
+  COMPLETED
+  FAILED
+}
+
+enum ProcessType {
+  QUESTION_EXTRACTION
+  QUIZ_GENERATION
+}
+
+model IngestionJob {
+  id               String          @id @default(uuid())
+  adminId          String
+  admin            User            @relation(fields: [adminId], references: [id])
+  processType      ProcessType
+  fileName         String
+  fileSize         Int             // in bytes
+  storagePath      String          // absolute path on the server host volume
+  status           IngestionStatus @default(QUEUED)
+  currentPhase     String?         // 'SCOUT', 'EXTRACTION', 'ENHANCEMENT', 'UPLOAD'
+  progress         Int             @default(0) // percentage 0-100
+  totalQuestions   Int             @default(0) // populated during extraction/enhancement
+  errorLogs        String?         @db.Text
+  processedAt      DateTime?
+  manifestData     Json?           // The config options previously stored in manifest.json (categorySlugs, topic, instructions)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
 }

@@ -5,7 +5,7 @@ import { checkPendingDuplicate } from '../../utils/check-pending-duplicate';
 import { shuffleArray } from '../../utils/shuffle';
 import { reportError } from '../../utils/error-reporter';
 import fs from 'fs';
-import { createProvider, type AIProvider, type AIProviderName } from '../providers';
+import { createProvider, type AIProvider } from '../providers';
 import { buildExtractionPrompt, buildEnhancementPrompt, KEY_EXTRACTION_PROMPT, buildClassificationPrompt } from '../prompts';
 import { sanitiseDifficulty, sanitiseAgeRating } from '../utils/sanitise';
 
@@ -44,27 +44,24 @@ export class QuestionExtractionProcess implements IngestionProcess {
   ) {
     this.state = new IngestionState(bookId, config.outputDir);
 
-    // Resolve the global fallback once
-    const globalDefault: AIProviderName = config.aiProvider ?? (process.env.INGESTION_AI_PROVIDER as AIProviderName | undefined) ?? 'google';
+    const scoutModel = config.models?.scout;
+    const extractionModel = config.models?.extraction;
+    const enhancementModel = config.models?.enhancement;
 
-    const scoutModel = config.models?.scout ?? process.env.INGESTION_SCOUT_MODEL;
-    const extractionModel = config.models?.extraction ?? process.env.INGESTION_EXTRACTION_MODEL;
-    const enhancementModel = config.models?.enhancement ?? process.env.INGESTION_ENHANCEMENT_MODEL;
+    this.scoutProvider = createProvider(config.providers?.scout ?? 'google', scoutModel);
 
-    this.scoutProvider = createProvider(config.providers?.scout ?? (process.env.INGESTION_SCOUT_PROVIDER as AIProviderName | undefined) ?? globalDefault, scoutModel);
+    this.extractionProvider = createProvider(config.providers?.extraction ?? 'google', extractionModel);
 
-    this.extractionProvider = createProvider(config.providers?.extraction ?? (process.env.INGESTION_EXTRACTION_PROVIDER as AIProviderName | undefined) ?? globalDefault, extractionModel);
-
-    this.enhancementProvider = createProvider(config.providers?.enhancement ?? (process.env.INGESTION_ENHANCEMENT_PROVIDER as AIProviderName | undefined) ?? globalDefault, enhancementModel);
+    this.enhancementProvider = createProvider(config.providers?.enhancement ?? 'google', enhancementModel);
 
     this.extractionSpecialInstruction = config.extractionSpecialInstruction;
     this.enhancementSpecialInstruction = config.enhancementSpecialInstruction;
     this.classificationSpecialInstruction = config.classificationSpecialInstruction;
 
     this.callDelayMs = {
-      scout: (process.env.INGESTION_SCOUT_CALL_DELAY_SEC ? parseInt(process.env.INGESTION_SCOUT_CALL_DELAY_SEC, 10) : DEFAULT_CALL_DELAY) * 1000,
-      extraction: (process.env.INGESTION_EXTRACTION_CALL_DELAY_SEC ? parseInt(process.env.INGESTION_EXTRACTION_CALL_DELAY_SEC, 10) : DEFAULT_CALL_DELAY) * 1000,
-      enhancement: (process.env.INGESTION_ENHANCEMENT_CALL_DELAY_SEC ? parseInt(process.env.INGESTION_ENHANCEMENT_CALL_DELAY_SEC, 10) : DEFAULT_CALL_DELAY) * 1000,
+      scout: (config.callDelays?.scout ?? DEFAULT_CALL_DELAY) * 1000,
+      extraction: (config.callDelays?.extraction ?? DEFAULT_CALL_DELAY) * 1000,
+      enhancement: (config.callDelays?.enhancement ?? DEFAULT_CALL_DELAY) * 1000,
     };
   }
 
@@ -87,7 +84,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     this.lastCallTime = Date.now();
   }
 
-  async run(options?: { reuploadOnly?: boolean }): Promise<void> {
+  async run(options?: { reuploadOnly?: boolean }, onProgress?: (phase: string, current: number, total: number) => void): Promise<void> {
     this.state.initOrLoad();
     console.log(`[QuestionExtraction] Starting ingestion for ${this.imagePaths.length} images`);
     console.log(`[QuestionExtraction] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
@@ -116,12 +113,12 @@ export class QuestionExtractionProcess implements IngestionProcess {
           this.state.updateStatus(q.id, 'READY_FOR_UPLOAD');
         }
       }
-      await this.uploadPhase();
+      await this.uploadPhase(onProgress);
     } else {
-      await this.scoutPhase();
-      await this.extractionPhase();
-      await this.enhancementPhase();
-      await this.uploadPhase();
+      await this.runScoutPhase(onProgress);
+      await this.runExtractionPhase(onProgress);
+      await this.runEnhancementPhase(onProgress);
+      await this.uploadPhase(onProgress);
     }
 
     console.log('[QuestionExtraction] Ingestion complete');
@@ -129,15 +126,16 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   // ── Phase 1: Scout ────────────────────────────────────────────────────────
 
-  private async scoutPhase(): Promise<void> {
+  private async runScoutPhase(onProgress?: (phase: string, current: number, total: number) => void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const startIndex = stateData.lastProcessedImageIndex + 1;
+    const temperature = this.config.temperatures?.scout;
 
     console.log(`[Scout] Starting from image ${startIndex + 1}`);
-    const tempStr = process.env.INGESTION_SCOUT_TEMPERATURE;
-    console.log(`[Scout] Stage Config — Provider: ${this.scoutProvider.constructor.name}, Model: ${this.scoutProvider.model}, Temperature: ${tempStr ?? 'default'}, Delay: ${this.callDelayMs.scout}ms`);
+    console.log(`[Scout] Stage Config — Provider: ${this.scoutProvider.constructor.name}, Model: ${this.scoutProvider.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.scout}ms`);
 
     for (let i = startIndex; i < this.imagePaths.length; i++) {
+      onProgress?.('SCOUT', i + 1, this.imagePaths.length);
       const imagePath = this.imagePaths[i];
 
       try {
@@ -151,7 +149,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
         let classification: ImageType;
         try {
           const classificationPrompt = buildClassificationPrompt(this.classificationSpecialInstruction);
-          const res = await this.scoutProvider.classifyImage(image, classificationPrompt);
+          const res = await this.scoutProvider.classifyImage(image, classificationPrompt, { temperature });
           classification = res.classification;
         } finally {
           this.recordCallTime();
@@ -176,9 +174,11 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   // ── Phase 2: Extraction ───────────────────────────────────────────────────
 
-  private async extractionPhase(): Promise<void> {
+  private async runExtractionPhase(onProgress?: (phase: string, current: number, total: number) => void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const imageClassifications = (stateData.metadata?.imageClassifications as Record<string, ImageType>) ?? {};
+    const temperature = this.config.temperatures?.extraction;
+    const batchSize = this.config.extractionBatchSize ?? 1;
 
     // ── Pass 1: Extract Keys from 'QUESTIONS_WITH_KEYS' pages ──
     const keyPages: string[] = [];
@@ -210,7 +210,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
           console.log(`[Extraction] Extracting keys from ${keyPagePath}...`);
           let extracted;
           try {
-            extracted = await this.extractionProvider.extractFromImages([image], KEY_EXTRACTION_PROMPT);
+            extracted = await this.extractionProvider.extractFromImages([image], KEY_EXTRACTION_PROMPT, { temperature });
           } finally {
             this.recordCallTime();
           }
@@ -249,9 +249,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
       return;
     }
 
-    const tempStr = process.env.INGESTION_EXTRACTION_TEMPERATURE;
-    const batchSize = process.env.INGESTION_EXTRACTION_BATCH_SIZE ? parseInt(process.env.INGESTION_EXTRACTION_BATCH_SIZE, 10) : 1;
-    console.log(`[Extraction] Stage Config — Provider: ${this.extractionProvider.constructor.name}, Model: ${this.extractionProvider.model}, Temperature: ${tempStr ?? 'default'}, Batch Size: ${batchSize}, Delay: ${this.callDelayMs.extraction}ms`);
+    console.log(`[Extraction] Stage Config — Provider: ${this.extractionProvider.constructor.name}, Model: ${this.extractionProvider.model}, Temperature: ${temperature ?? 'default'}, Batch Size: ${batchSize}, Delay: ${this.callDelayMs.extraction}ms`);
 
     // Chunking logic based on QUESTIONS_WITH_KEYS
     const chunks: string[][] = [];
@@ -326,6 +324,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     }
 
     for (let i = startIndex; i < groups.length; i++) {
+      onProgress?.('EXTRACTION', i + 1, groups.length);
       const { images: group, spatialInstructions, answerKeyRef, hasUnderneathKeys } = groups[i];
       try {
         const imagesB64 = group.map((img) => this.imageToBase64(img));
@@ -346,7 +345,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
         let extracted;
         try {
           // Pass the (possibly enriched) prompt through via the extraction provider
-          extracted = await this.extractionProvider.extractFromImages(imagesB64, extractionPrompt);
+          extracted = await this.extractionProvider.extractFromImages(imagesB64, extractionPrompt, { temperature });
         } finally {
           this.recordCallTime();
         }
@@ -554,21 +553,21 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   // ── Phase 3: Enhancement ──────────────────────────────────────────────────
 
-  private async enhancementPhase(): Promise<void> {
+  private async runEnhancementPhase(onProgress?: (phase: string, current: number, total: number) => void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const questionsToEnhance = stateData.questions.filter((q) => q.status === 'READY_FOR_ENHANCEMENT');
+    const temperature = this.config.temperatures?.enhancement;
+    const concurrency = this.config.enhancementConcurrency ?? 10;
 
-    const tempStr = process.env.INGESTION_ENHANCEMENT_TEMPERATURE;
-    console.log(`[Enhancement] Stage Config — Provider: ${this.enhancementProvider.constructor.name}, Model: ${this.enhancementProvider.model}, Temperature: ${tempStr ?? 'default'}, Delay: ${this.callDelayMs.enhancement}ms`);
+    console.log(`[Enhancement] Stage Config — Provider: ${this.enhancementProvider.constructor.name}, Model: ${this.enhancementProvider.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.enhancement}ms`);
 
     console.log(`[Enhancement] Enhancing ${questionsToEnhance.length} questions`);
 
     // Build the prompt once — optionally prefixed with the book's special instruction, injecting available categories
     const enhancementPrompt = buildEnhancementPrompt(this.availableCategories, this.enhancementSpecialInstruction);
 
-    const concurrency = Math.max(1, parseInt(process.env.INGESTION_ENHANCEMENT_CONCURRENCY ?? '10', 10));
-
     for (let i = 0; i < questionsToEnhance.length; i += concurrency) {
+      onProgress?.('ENHANCEMENT', Math.min(i + concurrency, questionsToEnhance.length), questionsToEnhance.length);
       const chunk = questionsToEnhance.slice(i, i + concurrency);
 
       const processedChunk = await Promise.all(
@@ -579,7 +578,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
             console.log(`[Enhancement] Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
             let enhanced;
             try {
-              enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt);
+              enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature });
             } finally {
               this.recordCallTime();
             }
@@ -626,14 +625,16 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   // ── Phase 4: Upload ───────────────────────────────────────────────────────
 
-  private async uploadPhase(): Promise<void> {
+  private async uploadPhase(onProgress?: (phase: string, current: number, total: number) => void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const readyQuestions = stateData.questions.filter((q) => q.status === 'READY_FOR_UPLOAD');
 
     console.log(`[Upload] Uploading ${readyQuestions.length} questions`);
     if (readyQuestions.length === 0) return;
 
-    for (const q of readyQuestions) {
+    for (let i = 0; i < readyQuestions.length; i++) {
+      onProgress?.('UPLOAD', i + 1, readyQuestions.length);
+      const q = readyQuestions[i];
       try {
         // ── Self-referential guard ────────────────────────────────────────────
         // Questions flagged as self-referential are about the source document

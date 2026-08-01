@@ -117,6 +117,7 @@
       "subscriptionHistory": "Sub. History",
       "cronJobs": "Cron Jobs",
       "auditLogs": "Audit Logs",
+      "ingestion": "Ingestion",
       "logout": "Logout",
       "open": "Open sidebar",
       "close": "Close sidebar"
@@ -888,6 +889,32 @@
     }
   },
   "system": {
+    "ingestion": {
+      "title": "Ingestion",
+      "description": "Manage and monitor AI document ingestion jobs.",
+      "settings": "Settings",
+      "newJob": "New Job",
+      "empty": "No ingestion jobs found.",
+      "loading": "Loading ingestion jobs...",
+      "loadError": "Failed to load jobs.",
+      "errorAction": "Action failed.",
+      "deleteJob": "Delete Job",
+      "retryJob": "Retry Job",
+      "viewDetails": "View Details",
+      "status": "Status",
+      "progress": "Progress",
+      "phase": "Current Phase",
+      "questions": "Questions Extracted",
+      "confirmations": {
+        "deleteTitle": "Delete Job",
+        "deleteMessage": "Are you sure you want to delete this job and all its files? This action cannot be undone.",
+        "deleteConfirm": "Delete",
+        "cancel": "Cancel",
+        "retryTitle": "Retry Job",
+        "retryMessage": "Are you sure you want to retry this job?",
+        "retryConfirm": "Retry"
+      }
+    },
     "jobLogs": {
       "title": "Job Logs",
       "description": "Permanent history of background worker executions across all queues.",

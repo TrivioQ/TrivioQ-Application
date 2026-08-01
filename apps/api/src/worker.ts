@@ -4,5 +4,6 @@ process.env.TZ = 'UTC';
 import './workers/notification-worker';
 import './workers/email-worker';
 import './workers/drop-worker';
+import './workers/ingestion-worker';
 
 console.log('BullMQ workers initialized.');

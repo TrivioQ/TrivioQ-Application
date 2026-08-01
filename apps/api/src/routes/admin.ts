@@ -3,6 +3,8 @@ import { PrismaClient } from '@trivioq/database';
 import { verifyFirebaseToken } from '../middleware/firebase-auth';
 import { requireAdmin } from '../middleware/require-admin';
 import { cronJobsRouter } from './admin/cron-jobs';
+import { ingestionRouter } from './admin/ingestion.routes';
+import { settingsRouter } from './admin/settings.routes';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -42,6 +44,12 @@ router.put('/users/:id/tier', async (req: Request, res: Response) => {
 
 // Admin Cron Jobs routes
 router.use('/cron-jobs', cronJobsRouter);
+
+// Admin Ingestion routes
+router.use('/ingestion', ingestionRouter);
+
+// Admin Settings routes
+router.use('/settings', settingsRouter);
 
 /**
  * @route   GET /api/v1/admin/users/:id/friendships

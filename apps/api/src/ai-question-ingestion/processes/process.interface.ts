@@ -7,16 +7,7 @@ export interface OrchestratorConfig {
   /** One or more category slugs. Multiple slugs create one PendingQuestion row per slug. */
   categorySlugs?: string[];
   /**
-   * Fallback AI provider for all phases.
-   * Falls back to INGESTION_AI_PROVIDER env var, then 'google'.
-   */
-  aiProvider?: AIProviderName;
-  /**
-   * Per-phase provider overrides. Each key takes precedence over `aiProvider`
-   * and the INGESTION_AI_PROVIDER env var.
-   *
-   * Per-phase env var fallback order (example for scout):
-   *   providers.scout → aiProvider → INGESTION_SCOUT_PROVIDER → INGESTION_AI_PROVIDER → 'google'
+   * Per-phase provider overrides.
    */
   providers?: {
     /** Provider for image classification (Scout phase). */
@@ -42,6 +33,22 @@ export interface OrchestratorConfig {
     /** Model override for summarizing image content (Summarization phase). */
     summarization?: string;
   };
+  callDelays?: {
+    scout?: number;
+    extraction?: number;
+    enhancement?: number;
+    generation?: number;
+    summarization?: number;
+  };
+  temperatures?: {
+    scout?: number;
+    extraction?: number;
+    enhancement?: number;
+    generation?: number;
+    summarization?: number;
+  };
+  extractionBatchSize?: number;
+  enhancementConcurrency?: number;
   /** Optional free-text instruction for the extraction phase. */
   extractionSpecialInstruction?: string;
   /** Optional free-text instruction for the enhancement phase. */
@@ -53,5 +60,61 @@ export interface OrchestratorConfig {
 }
 
 export interface IngestionProcess {
-  run(options?: { reuploadOnly?: boolean }): Promise<void>;
+  run(options?: { reuploadOnly?: boolean }, onProgress?: (phase: string, current: number, total: number) => void): Promise<void>;
+}
+
+/**
+ * Schema for `manifest.json` placed inside each book sub-folder.
+ */
+export interface ManifestJson {
+  /** Unique identifier for this book (used as state-file prefix). */
+  bookId: string;
+  /** Process type to use for this book (e.g. 'question-extraction'). Defaults to 'question-extraction'. */
+  processType?: string;
+  /** Human-readable topic passed to the database row. */
+  topic?: string;
+  /**
+   * One or more category slugs that must already exist in the Category table.
+   * A PendingQuestion row is created for each slug.
+   */
+  categorySlugs?: string[];
+  /**
+   * Optional free-text instruction injected into the extraction prompt only
+   * (e.g. "Extract only chapters 3–6. Strip exam year markers.").
+   */
+  extractionSpecialInstruction?: string;
+  /**
+   * Optional free-text instruction injected into the enhancement prompt only
+   * (e.g. "This book contains Indian competitive exam questions.").
+   */
+  enhancementSpecialInstruction?: string;
+  /**
+   * Optional free-text instruction injected into the classification prompt only
+   * (e.g. "Some pages have inline answers. Do not classify as QUESTIONS_WITH_KEYS.").
+   */
+  classificationSpecialInstruction?: string;
+  /**
+   * Optional free-text instruction injected into the summarization prompt only.
+   */
+  summarizationSpecialInstruction?: string;
+
+  /**
+   * Per-phase AI provider overrides for this book.
+   */
+  providers?: {
+    scout?: AIProviderName;
+    extraction?: AIProviderName;
+    enhancement?: AIProviderName;
+    generation?: AIProviderName;
+    summarization?: AIProviderName;
+  };
+
+  /**
+   * Optional page range to limit which pages of the PDF are converted to
+   * images and sent for AI processing.
+   */
+  pages?: {
+    from?: number;
+    to?: number;
+  };
 }

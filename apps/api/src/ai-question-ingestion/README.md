@@ -31,12 +31,7 @@ Each book folder requires an `manifest.json` file to define metadata and optiona
   "topic": "Indian History",
   "categorySlugs": ["history", "geography"],
   "extractionSpecialInstruction": "Extract only standard multiple choice questions with 4 choices. Ignore introductory and summary text. Strip any competitive exam year markers (e.g. [1995], [2020-I]) from the end of questions.",
-  "enhancementSpecialInstruction": "This book contains Indian competitive exam questions. Prioritise accuracy and historical context in hints and explanations.",
-  "providers": {
-    "scout": "nvidia",
-    "extraction": "nvidia",
-    "enhancement": "nvidia"
-  }
+  "enhancementSpecialInstruction": "This book contains Indian competitive exam questions. Prioritise accuracy and historical context in hints and explanations."
 }
 ```
 
@@ -49,53 +44,40 @@ Each book folder requires an `manifest.json` file to define metadata and optiona
 | `categorySlugs`                 | `string[]` | No       | An array of category slugs. If omitted, all available categories are fetched from the database and the AI selects the 1–2 most relevant ones.                                                                                 |
 | `extractionSpecialInstruction`  | `string`   | No       | Free-text instruction prepended to the **extraction** prompt only. Use this to control what gets extracted — e.g. focus on specific question types, strip unwanted markers, or ignore certain pages.                          |
 | `enhancementSpecialInstruction` | `string`   | No       | Free-text instruction prepended to the **enhancement** prompt only. Use this to tailor hint/explanation style, fact-check context, or domain-specific guidance.                                                               |
-| `providers`                     | `object`   | No       | Per-phase overrides for the AI model provider. Allowed values: `"google"`, `"nvidia"`, `"deepseek"`. Each key (`scout`, `extraction`, `enhancement`) falls back to the env var overrides and then to `INGESTION_AI_PROVIDER`. |
 
 ---
 
 ## How to Run Ingestion
 
-Once you have added the PDF files and `manifest.json` configuration, run the following command to start the ingestion process:
+Ingestion is no longer run via CLI scripts. The entire process is now managed via the **Admin Portal**:
 
-### From the Workspace Root:
-
-```bash
-pnpm --filter api ingest
-```
-
-### Or from within the `apps/api` directory:
-
-```bash
-pnpm ingest
-```
+1. Upload the PDF and `manifest.json` in the **Books** section of the Admin UI.
+2. The system creates an `IngestionJob` in the database.
+3. The `ingestion-worker` automatically picks up the job from the `pdf-ingestion` BullMQ queue.
+4. You can track the progress of the ingestion phases (Scout, Extraction, Enhancement, Summarization, Generation) in real-time on the Admin UI.
 
 ---
 
-## Environment Variables
+## Configuration Settings
 
-All variables are set in `apps/api/.env`. They act as global defaults that `manifest.json` fields take precedence over.
+AI ingestion parameters are now managed globally in the database via the **Admin Portal** UI instead of `.env` files.
 
 ### Providers & Models
 
-| Variable                         | Default                  | Description                                                                   |
-| :------------------------------- | :----------------------- | :---------------------------------------------------------------------------- |
-| `INGESTION_AI_PROVIDER`          | `google`                 | Global fallback provider for all phases (`google` \| `nvidia` \| `deepseek`). |
-| `INGESTION_SCOUT_PROVIDER`       | _(falls back to global)_ | Provider override for the Scout (classification) phase.                       |
-| `INGESTION_EXTRACTION_PROVIDER`  | _(falls back to global)_ | Provider override for the Extraction phase.                                   |
-| `INGESTION_ENHANCEMENT_PROVIDER` | _(falls back to global)_ | Provider override for the Enhancement phase.                                  |
-| `INGESTION_SCOUT_MODEL`          | _(provider default)_     | Model name override for the Scout phase.                                      |
-| `INGESTION_EXTRACTION_MODEL`     | _(provider default)_     | Model name override for the Extraction phase.                                 |
-| `INGESTION_ENHANCEMENT_MODEL`    | _(provider default)_     | Model name override for the Enhancement phase.                                |
+You can configure the AI Provider and Model for each specific phase:
+- **Providers Supported**: Google (Gemini), Nvidia, DeepSeek.
+- **Models**: Configurable per phase (e.g. `gemini-1.5-pro` for extraction, `gemini-1.5-flash` for summarization).
+- **Fallback Behavior**: If a specific phase provider/model is not set, the system will use the default values configured during database seeding.
 
 ### Tuning
 
-| Variable                               | Default     | Description                                                                              |
-| :------------------------------------- | :---------- | :--------------------------------------------------------------------------------------- |
-| `INGESTION_DIR`                        | `ingestion` | Path to the ingestion directory, relative to `apps/api/`.                                |
-| `INGESTION_EXTRACTION_BATCH_SIZE`      | `1`         | Number of page images sent to the AI in a single extraction call.                        |
-| `INGESTION_SCOUT_CALL_DELAY_SEC`       | `10`        | Seconds to wait between Scout phase AI calls.                                            |
-| `INGESTION_EXTRACTION_CALL_DELAY_SEC`  | `10`        | Seconds to wait between Extraction phase AI calls.                                       |
-| `INGESTION_ENHANCEMENT_CALL_DELAY_SEC` | `10`        | Seconds to wait between Enhancement phase AI calls.                                      |
-| `INGESTION_SCOUT_TEMPERATURE`          | `0.2`       | Temperature for the Scout phase.                                                         |
-| `INGESTION_EXTRACTION_TEMPERATURE`     | `0.2`       | Temperature for the Extraction phase. Lower values = more deterministic output.          |
-| `INGESTION_ENHANCEMENT_TEMPERATURE`    | `1.0`       | Temperature for the Enhancement phase. Higher values = more creative hints/explanations. |
+The following tuning parameters can be adjusted from the **App Settings** section in the Admin UI:
+
+| Setting                                | Description                                                                              |
+| :------------------------------------- | :--------------------------------------------------------------------------------------- |
+| `ingestion_extraction_batch_size`      | Number of page images sent to the AI in a single extraction call.                        |
+| `ingestion_*_call_delay_sec`           | Seconds to wait between AI calls for a specific phase (rate limiting).                   |
+| `ingestion_*_temperature`              | Temperature for a specific phase (e.g., lower for extraction, higher for enhancement).   |
+| `ingestion_enhancement_concurrency`    | Number of questions to enhance in parallel.                                              |
+
+> **Note**: The base API keys (e.g. `GEMINI_API_KEY`, `NVIDIA_API_KEY`, `DEEPSEEK_API_KEY`) still reside securely in `apps/api/.env` and are not exposed in the database or UI.

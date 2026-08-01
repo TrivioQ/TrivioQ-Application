@@ -1,0 +1,184 @@
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
+import { Play, Trash2, Eye } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
+import { useConfirm } from '@/components/ui/confirm-dialog';
+import Link from 'next/link';
+
+interface IngestionJob {
+  id: string;
+  processType: string;
+  status: string;
+  progress: number;
+  currentPhase: string | null;
+  fileName: string;
+  totalQuestions: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function IngestionDashboard() {
+  const t = useTranslations('system.ingestion');
+  const confirm = useConfirm();
+  const [jobs, setJobs] = useState<IngestionJob[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchJobs = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const res = await fetch('/api/v1/admin/ingestion/jobs', { signal });
+      if (!res.ok) throw new Error('Failed to load ingestion jobs');
+      const data = await res.json();
+      
+      if (!signal?.aborted) {
+        setJobs(data.data);
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
+      if (!signal?.aborted) setError(t('loadError'));
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
+  }, [t]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchJobs(controller.signal);
+
+    const intervalId = setInterval(() => {
+      fetchJobs();
+    }, 5000); // refresh every 5s for progress
+
+    return () => {
+      controller.abort();
+      clearInterval(intervalId);
+    };
+  }, [fetchJobs]);
+
+  const deleteJob = async (job: IngestionJob) => {
+    const ok = await confirm({
+      title: t('confirmations.deleteTitle'),
+      message: t('confirmations.deleteMessage'),
+      confirmLabel: t('confirmations.deleteConfirm'),
+      cancelLabel: t('confirmations.cancel'),
+      isDestructive: true,
+    });
+    if (!ok) return;
+
+    const res = await fetch(`/api/v1/admin/ingestion/jobs/${job.id}`, { method: 'DELETE' });
+    if (res.ok) {
+      toast.success('Job deleted');
+      fetchJobs();
+    } else {
+      toast.error(t('errorAction'));
+    }
+  };
+
+  const retryJob = async (job: IngestionJob) => {
+    const ok = await confirm({
+      title: t('confirmations.retryTitle'),
+      message: t('confirmations.retryMessage'),
+      confirmLabel: t('confirmations.retryConfirm'),
+      cancelLabel: t('confirmations.cancel'),
+    });
+    if (!ok) return;
+
+    const res = await fetch(`/api/v1/admin/ingestion/jobs/${job.id}/retry`, { method: 'POST' });
+    if (res.ok) {
+      toast.success('Job queued for retry');
+      fetchJobs();
+    } else {
+      toast.error(t('errorAction'));
+    }
+  };
+
+  if (loading) {
+    return <p className="text-sm text-muted-foreground py-6 text-center">{t('loading')}</p>;
+  }
+
+  if (error) {
+    return <p className="text-sm text-destructive py-6 text-center">{error}</p>;
+  }
+
+  if (jobs.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-12 text-center text-muted-foreground">
+        <p className="text-sm">{t('empty')}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {jobs.map((job) => (
+        <Card key={job.id} className="bg-background shadow-sm flex flex-col">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1.5 min-w-0">
+                <CardTitle className="text-base font-semibold truncate" title={job.fileName}>
+                  {job.fileName}
+                </CardTitle>
+                <CardDescription className="text-xs font-mono bg-muted inline-block px-2 py-0.5 rounded">
+                  {job.processType}
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Badge variant={job.status === 'FAILED' ? 'destructive' : job.status === 'COMPLETED' ? 'default' : 'secondary'}>
+                  {job.status}
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="pb-4 flex-1">
+            <div className="text-sm space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t('phase')}:</span>
+                <span className="font-medium">{job.currentPhase || '—'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t('progress')}:</span>
+                <span className="font-medium">{job.progress}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t('questions')}:</span>
+                <span className="font-medium">{job.totalQuestions}</span>
+              </div>
+              
+              <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-2">
+                <div 
+                  className="bg-primary h-full transition-all duration-500 ease-in-out" 
+                  style={{ width: `${job.progress}%` }} 
+                />
+              </div>
+            </div>
+          </CardContent>
+
+          <CardFooter className="pt-0 flex flex-wrap gap-2 border-t mt-4 p-4">
+            <Button variant="default" size="sm" className="flex-1" render={<Link href={`/ingestion/${job.id}`} />}>
+              <Eye className="w-3 h-3 mr-2" />
+              {t('viewDetails')}
+            </Button>
+            
+            {job.status === 'FAILED' || job.status === 'COMPLETED' ? (
+              <Button variant="outline" size="sm" onClick={() => retryJob(job)} className="flex-1">
+                <Play className="w-3 h-3 mr-2" />
+                {t('retryJob')}
+              </Button>
+            ) : null}
+
+            <Button variant="outline" size="sm" onClick={() => deleteJob(job)} className="flex-1" title={t('deleteJob')}>
+              <Trash2 className="w-3 h-3 mr-2 text-destructive" />
+              {t('deleteJob')}
+            </Button>
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
+}

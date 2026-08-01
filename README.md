@@ -109,6 +109,8 @@ pnpm --filter @trivioq/database make-admin <email>
 
 ### AI Question Ingestion (Background Processing)
 
+> **Note:** AI ingestion parameters (providers, models, temperatures, delays) are managed globally in the database via the **Admin Portal** UI. Only the base API keys (e.g. `GEMINI_API_KEY`) reside in `.env`.
+
 When running the question ingestion script on a remote server, it is recommended to run it inside a persistent terminal multiplexer (`tmux`) so the process continues running even if your host machine closes the terminal or shuts down.
 
 **Create a new tmux session:**

@@ -161,42 +161,30 @@ export abstract class BaseAIProvider {
     throw lastError;
   }
 
-  async classifyImage(image: ImageInput, promptOverride?: string): Promise<ClassificationResult> {
-    const tempStr = process.env.INGESTION_SCOUT_TEMPERATURE;
-    const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
-    return this.callWithRetry<ClassificationResult>(promptOverride ?? SCOUT_PROMPT, [image], 'classifyImage', { temperature });
+  async classifyImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number }): Promise<ClassificationResult> {
+    return this.callWithRetry<ClassificationResult>(promptOverride ?? SCOUT_PROMPT, [image], 'classifyImage', options);
   }
 
-  async extractFromImages(images: ImageInput[], promptOverride?: string): Promise<ExtractionResult> {
-    const tempStr = process.env.INGESTION_EXTRACTION_TEMPERATURE;
-    const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
-    return this.callWithRetry<ExtractionResult>(promptOverride ?? EXTRACTION_PROMPT, images, 'extractFromImages', { temperature });
+  async extractFromImages(images: ImageInput[], promptOverride?: string, options?: { temperature?: number }): Promise<ExtractionResult> {
+    return this.callWithRetry<ExtractionResult>(promptOverride ?? EXTRACTION_PROMPT, images, 'extractFromImages', options);
   }
 
-  async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string): Promise<EnhancementResult> {
-    const tempStr = process.env.INGESTION_ENHANCEMENT_TEMPERATURE;
-    const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
+  async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string, options?: { temperature?: number }): Promise<EnhancementResult> {
     const prompt = `${promptOverride ?? ENHANCEMENT_PROMPT}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}`;
-    return this.callWithRetry<EnhancementResult>(prompt, [], 'enhanceQuestion', { temperature });
+    return this.callWithRetry<EnhancementResult>(prompt, [], 'enhanceQuestion', options);
   }
 
-  async summarizeImage(image: ImageInput, promptOverride?: string): Promise<SummarizationResult> {
-    const tempStr = process.env.INGESTION_SUMMARIZATION_TEMPERATURE;
-    const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
-    return this.callWithRetry<SummarizationResult>(promptOverride ?? SUMMARIZE_IMAGE_PROMPT, [image], 'summarizeImage', { temperature });
+  async summarizeImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number }): Promise<SummarizationResult> {
+    return this.callWithRetry<SummarizationResult>(promptOverride ?? SUMMARIZE_IMAGE_PROMPT, [image], 'summarizeImage', options);
   }
 
-  async extractFromText(text: string, promptOverride?: string): Promise<ExtractionResult> {
-    const tempStr = process.env.INGESTION_EXTRACTION_TEMPERATURE;
-    const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
+  async extractFromText(text: string, promptOverride?: string, options?: { temperature?: number }): Promise<ExtractionResult> {
     const prompt = `${promptOverride ?? QUIZ_GENERATION_FROM_TEXT_PROMPT}\n\n## Content to use for Generation\n\n${text}`;
-    return this.callWithRetry<ExtractionResult>(prompt, [], 'extractFromText', { temperature });
+    return this.callWithRetry<ExtractionResult>(prompt, [], 'extractFromText', options);
   }
 
-  async validateQuestion(questionText: string, choices: unknown[], hint: string | null, explanation: string | null, promptOverride?: string): Promise<ValidationResult> {
-    const tempStr = process.env.INGESTION_ENHANCEMENT_TEMPERATURE;
-    const temperature = tempStr !== undefined ? parseFloat(tempStr) : undefined;
+  async validateQuestion(questionText: string, choices: unknown[], hint: string | null, explanation: string | null, promptOverride?: string, options?: { temperature?: number }): Promise<ValidationResult> {
     const prompt = `${promptOverride}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}\nHint: ${hint ?? 'N/A'}\nExplanation: ${explanation ?? 'N/A'}`;
-    return this.callWithRetry<ValidationResult>(prompt, [], 'validateQuestion', { temperature });
+    return this.callWithRetry<ValidationResult>(prompt, [], 'validateQuestion', options);
   }
 }
