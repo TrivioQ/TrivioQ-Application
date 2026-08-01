@@ -10,44 +10,44 @@ generator client {
 }
 
 model User {
-  id                String       @id @default(uuid())
-  firebaseUid       String       @unique
-  email             String       @unique
-  username          String       @unique
-  displayName       String?
-  dateOfBirth       String?
-  profilePicture    String?
-  activeWindowStart DateTime
-  activeWindowEnd   DateTime
-  lastLogin         DateTime     @default(now())
-  currentStreak     Int        @default(0)
-  cumulativeScore   Int        @default(0)
-  dropsReceivedToday Int       @default(0)
-  lastDropDate      DateTime   @default(now())
-  questionsAnswered Int        @default(0)
-  correctAnswers    Int        @default(0)
-  subscriptionTier         SubscriptionTier @default(FREE)
-  isAutoRenewalEnabled     Boolean          @default(false)
-  subscriptionExpiresAt    DateTime?
-  onDemandTokens           Int              @default(0)
-  referredById             String?
-  points                   Int              @default(0)
-  preferences              Json?            @default("{\"difficultyPercentages\": {\"EASY\": 20, \"MEDIUM\": 70, \"HARD\": 10}}")
-  onboardingComplete       Boolean          @default(false)
-  devicePushToken          String?
-  role                     Role             @default(USER)
-  drops                UserDrop[]
-  scores               UserScore[]
-  subscriptionHistory  UserSubscriptionHistory[]
-  friendshipsInitiated Friendship[] @relation("UserFriendshipsInitiated")
-  friendshipsAccepted  Friendship[] @relation("UserFriendshipsAccepted")
+  id                      String                      @id @default(uuid())
+  firebaseUid             String                      @unique
+  email                   String                      @unique
+  username                String                      @unique
+  displayName             String?
+  dateOfBirth             String?
+  profilePicture          String?
+  activeWindowStart       DateTime
+  activeWindowEnd         DateTime
+  lastLogin               DateTime                    @default(now())
+  currentStreak           Int                         @default(0)
+  cumulativeScore         Int                         @default(0)
+  dropsReceivedToday      Int                         @default(0)
+  lastDropDate            DateTime                    @default(now())
+  questionsAnswered       Int                         @default(0)
+  correctAnswers          Int                         @default(0)
+  subscriptionTier        SubscriptionTier            @default(FREE)
+  isAutoRenewalEnabled    Boolean                     @default(false)
+  subscriptionExpiresAt   DateTime?
+  onDemandTokens          Int                         @default(0)
+  referredById            String?
+  points                  Int                         @default(0)
+  preferences             Json?                       @default("{\"difficultyPercentages\": {\"EASY\": 20, \"MEDIUM\": 70, \"HARD\": 10}}")
+  onboardingComplete      Boolean                     @default(false)
+  devicePushToken         String?
+  role                    Role                        @default(USER)
+  drops                   UserDrop[]
+  scores                  UserScore[]
+  subscriptionHistory     UserSubscriptionHistory[]
+  friendshipsInitiated    Friendship[]                @relation("UserFriendshipsInitiated")
+  friendshipsAccepted     Friendship[]                @relation("UserFriendshipsAccepted")
   notificationPreferences UserNotificationPreference?
-  userNotifications  UserNotification[]
-  webPushSubscriptions WebPushSubscription[]
-  accountStatus        AccountStatus @default(ACTIVE)
-  scheduledDeletionAt  DateTime?
-  deletionWarningSent  Boolean       @default(false)
-  createdAt            DateTime      @default(now())
+  userNotifications       UserNotification[]
+  webPushSubscriptions    WebPushSubscription[]
+  accountStatus           AccountStatus               @default(ACTIVE)
+  scheduledDeletionAt     DateTime?
+  deletionWarningSent     Boolean                     @default(false)
+  createdAt               DateTime                    @default(now())
 }
 
 enum Role {
@@ -88,12 +88,12 @@ model UserScore {
   user        User       @relation(fields: [userId], references: [id])
   userId      String
   periodType  PeriodType
-  periodStart DateTime   // Monday 00:00 for WEEKLY; 1st 00:00 for MONTHLY; fixed epoch for OVERALL
-  periodEnd   DateTime?  // Sunday 23:59 for WEEKLY; last day for MONTHLY; null for OVERALL
+  periodStart DateTime // Monday 00:00 for WEEKLY; 1st 00:00 for MONTHLY; fixed epoch for OVERALL
+  periodEnd   DateTime? // Sunday 23:59 for WEEKLY; last day for MONTHLY; null for OVERALL
   baseScore   Int        @default(0)
   bonusScore  Int        @default(0)
   totalScore  Int        @default(0) // baseScore + bonusScore, updated in sync
-  rank        Int?       // populated by the bonus cron at period end
+  rank        Int? // populated by the bonus cron at period end
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -102,13 +102,13 @@ model UserScore {
 }
 
 model Friendship {
-  id          String   @id @default(uuid())
-  requester   User     @relation("UserFriendshipsInitiated", fields: [requesterId], references: [id])
+  id          String           @id @default(uuid())
+  requester   User             @relation("UserFriendshipsInitiated", fields: [requesterId], references: [id])
   requesterId String
-  addressee   User     @relation("UserFriendshipsAccepted", fields: [addresseeId], references: [id])
+  addressee   User             @relation("UserFriendshipsAccepted", fields: [addresseeId], references: [id])
   addresseeId String
   status      FriendshipStatus @default(PENDING)
-  createdAt   DateTime @default(now())
+  createdAt   DateTime         @default(now())
 
   @@unique([requesterId, addresseeId])
 }
@@ -227,23 +227,23 @@ model Setting {
 
 // Staging table for AI-generated trivia questions pending admin review.
 model PendingQuestion {
-  id               String   @id @default(uuid())
-  topic            String
-  categorySlugs    String[]
-  difficultyLevel  DifficultyLevel
-  suggestedText    String
-  suggestedChoices Json
-  hint             String?
-  explanation      String?
-  status           String   @default("PENDING")
-  rejectionReason  String?
-  isDuplicate     Boolean  @default(false)
-  aiQualityScore      Int?
-  aiFeedback          String?
-  ageRating           AgeRating @default(ALL)
-  replacesQuestionId  String?  // set when status = 'PENDING-DUPLICATE'; points to the live Question.id to replace on approval
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                 String          @id @default(uuid())
+  topic              String
+  categorySlugs      String[]
+  difficultyLevel    DifficultyLevel
+  suggestedText      String
+  suggestedChoices   Json
+  hint               String?
+  explanation        String?
+  status             String          @default("PENDING")
+  rejectionReason    String?
+  isDuplicate        Boolean         @default(false)
+  aiQualityScore     Int?
+  aiFeedback         String?
+  ageRating          AgeRating       @default(ALL)
+  replacesQuestionId String? // set when status = 'PENDING-DUPLICATE'; points to the live Question.id to replace on approval
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
 
   @@index([status, createdAt(sort: Asc)])
 }
@@ -264,12 +264,12 @@ model BonusPlan {
 // slug is a stable identifier: 'terms' | 'privacy'
 model LegalDocument {
   id        String   @id @default(uuid())
-  slug      String   @unique  // 'terms' | 'privacy'
+  slug      String   @unique // 'terms' | 'privacy'
   title     String
-  content   String   // Markdown content
+  content   String // Markdown content
   version   String   @default("1.0")
   updatedAt DateTime @updatedAt
-  updatedBy String?  // admin email who last saved
+  updatedBy String? // admin email who last saved
 }
 
 // Permanent history of background worker (BullMQ) job executions.
@@ -287,13 +287,27 @@ model JobLog {
   @@index([jobId])
 }
 
-model SystemLog {
-  id        String   @id @default(uuid())
-  level     String
-  source    String
-  action    String
-  metadata  Json?
-  createdAt DateTime @default(now())
+
+
+// Append-only audit log of every admin action modifying user data.
+model AdminAuditLog {
+  id            String   @id @default(uuid())
+  adminId       String // The ID of the admin who performed the action
+  adminEmail    String? // Snapshotted admin email for convenience
+  targetUserId  String // The ID of the user whose data was modified
+  actionType    String // Enum or string (e.g., "USER_DROP_OVERRIDE", "SUBSCRIPTION_GRANT", "ACCOUNT_DELETION")
+  resourceType  String // E.g., "USER", "SUBSCRIPTION", "DROPS"
+  previousState Json? // The state of the data before the change
+  newState      Json? // The state of the data after the change
+  reason        String // Required text explaining why the change was made
+  ipAddress     String? // The IP address of the admin
+  userAgent     String? // The browser/device of the admin
+  createdAt     DateTime @default(now())
+
+  @@index([adminId])
+  @@index([targetUserId])
+  @@index([actionType])
+  @@index([createdAt(sort: Desc)])
 }
 
 // Append-only audit log of every subscription tier change per user.
@@ -349,45 +363,46 @@ enum NotificationStatus {
 
 // Notification template for reusable messages
 model NotificationTemplate {
-  id           String             @id @default(uuid())
-  name         String             @unique
-  type         NotificationType
-  title        String
-  body         String
-  emailSubject String?
-  emailHtml    String?
-  channels     NotificationChannel[]
-  isActive     Boolean            @default(true)
-  variables    String[]
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  id            String                @id @default(uuid())
+  name          String                @unique
+  type          NotificationType
+  title         String
+  body          String
+  emailSubject  String?
+  emailHtml     String?
+  channels      NotificationChannel[]
+  isActive      Boolean               @default(true)
+  variables     String[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
   notifications Notification[]
 }
 
 // Main notification record (created by admin or system)
 model Notification {
-  id              String             @id @default(uuid())
-  type            NotificationType
-  audience        NotificationAudience
-  title           String
-  body            String
-  data            Json?
-  channels        NotificationChannel[]
-  status          NotificationStatus   @default(DRAFT)
-  scheduledAt     DateTime?
-  sentAt          DateTime?
-  createdBy       String?
-  templateId      String?
-  template        NotificationTemplate? @relation(fields: [templateId], references: [id])
-  targetUserIds   String[]
-  targetCriteria  Json?
-  totalRecipients Int                @default(0)
-  deliveredCount  Int                @default(0)
-  openedCount     Int                @default(0)
-  clickedCount    Int                @default(0)
+  id                String                @id @default(uuid())
+  type              NotificationType
+  audience          NotificationAudience
+  title             String
+  body              String
+  data              Json?
+  channels          NotificationChannel[]
+  status            NotificationStatus    @default(DRAFT)
+  scheduledAt       DateTime?
+  sentAt            DateTime?
+  createdBy         String?
+  templateId        String?
+  template          NotificationTemplate? @relation(fields: [templateId], references: [id])
+  targetUserIds     String[]
+  targetCriteria    Json?
+  totalRecipients   Int                   @default(0)
+  deliveredCount    Int                   @default(0)
+  openedCount       Int                   @default(0)
+  clickedCount      Int                   @default(0)
   userNotifications UserNotification[]
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
   @@index([status, scheduledAt])
 }
 
@@ -406,25 +421,26 @@ model UserNotification {
   readAt         DateTime?
   clickedAt      DateTime?
   createdAt      DateTime     @default(now())
+
   @@unique([notificationId, userId])
   @@index([userId, createdAt])
 }
 
 // User preferences for notification types
 model UserNotificationPreference {
-  id                    String   @id @default(uuid())
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                String   @unique
-  triviaDrop            Boolean  @default(true)
-  systemAnnouncement    Boolean  @default(true)
-  subscriptionReminder  Boolean  @default(true)
-  offerPromotion        Boolean  @default(false)
-  creditAlert           Boolean  @default(true)
-  adminMessage          Boolean  @default(true)
-  enablePushNotification Boolean @default(true)
-  enableWebPushNotification Boolean @default(false)
-  enableEmailNotification Boolean @default(true)
-  updatedAt             DateTime @updatedAt
+  id                        String   @id @default(uuid())
+  user                      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                    String   @unique
+  triviaDrop                Boolean  @default(true)
+  systemAnnouncement        Boolean  @default(true)
+  subscriptionReminder      Boolean  @default(true)
+  offerPromotion            Boolean  @default(false)
+  creditAlert               Boolean  @default(true)
+  adminMessage              Boolean  @default(true)
+  enablePushNotification    Boolean  @default(true)
+  enableWebPushNotification Boolean  @default(false)
+  enableEmailNotification   Boolean  @default(true)
+  updatedAt                 DateTime @updatedAt
 }
 
 // Web push subscriptions (VAPID)
@@ -438,19 +454,21 @@ model WebPushSubscription {
   browser   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@index([userId])
 }
 
 // Delivery attempt log for debugging
 model NotificationDeliveryLog {
-  id             String            @id @default(uuid())
+  id             String              @id @default(uuid())
   notificationId String
   userId         String
   channel        NotificationChannel
   status         String
   error          String?
   metadata       Json?
-  createdAt      DateTime          @default(now())
+  createdAt      DateTime            @default(now())
+
   @@index([notificationId, userId, channel])
 }
 
@@ -464,7 +482,7 @@ model CronJob {
   cronExpression String
   isActive       Boolean            @default(true)
   lastRunAt      DateTime?
-  lastRunResult  String?            // 'SUCCESS', 'FAILED', 'TERMINATED'
+  lastRunResult  String? // 'SUCCESS', 'FAILED', 'TERMINATED'
   nextRunAt      DateTime?
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
@@ -472,12 +490,11 @@ model CronJob {
 }
 
 model CronJobExecution {
-  id          String   @id @default(uuid())
-  cronJobId   String
-  cronJob     CronJob  @relation(fields: [cronJobId], references: [id], onDelete: Cascade)
-  startedAt   DateTime @default(now())
-  endedAt     DateTime?
-  result      String   // 'SUCCESS', 'FAILED', 'TERMINATED'
-  errorLogs   String?  @db.Text
+  id        String    @id @default(uuid())
+  cronJobId String
+  cronJob   CronJob   @relation(fields: [cronJobId], references: [id], onDelete: Cascade)
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+  result    String // 'SUCCESS', 'FAILED', 'TERMINATED'
+  errorLogs String?   @db.Text
 }
-

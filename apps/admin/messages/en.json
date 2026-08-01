@@ -90,6 +90,7 @@
       "appSettings": "App Settings",
       "subscriptionHistory": "Sub. History",
       "cronJobs": "Cron Jobs",
+      "auditLogs": "Audit Logs",
       "logout": "Logout"
     }
   },
@@ -185,7 +186,40 @@
       "score": "Score",
       "rank": "Rank",
       "weeklyHistory": "Weekly History",
-      "monthlyHistory": "Monthly History"
+      "monthlyHistory": "Monthly History",
+      "dropsHistory": "Drops History",
+      "auditTrail": "Audit Trail"
+    },
+    "dropsHistory": {
+      "title": "Drops History",
+      "description": "View and manage all questions dropped to this user.",
+      "fetchError": "Failed to fetch drops.",
+      "date": "Date Dropped",
+      "question": "Question",
+      "difficulty": "Difficulty",
+      "status": "Status",
+      "points": "Points",
+      "actions": "Actions",
+      "loading": "Loading drops...",
+      "noDropsFound": "No drops found for this user.",
+      "unanswered": "Unanswered",
+      "correct": "Correct",
+      "incorrect": "Incorrect",
+      "edit": "Edit",
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {current} of {total}",
+      "overrideModalTitle": "Override User Response",
+      "overrideModalDescription": "Select a different answer to override the user's response. This will automatically recalculate their total score and historical leaderboards.",
+      "selectOverrideAnswer": "Select Override Answer:",
+      "actualCorrectAnswer": "Actual Correct Answer",
+      "userSelection": "User's Selection",
+      "cancel": "Cancel",
+      "saveOverride": "Save Override",
+      "saving": "Saving...",
+      "selectChoiceError": "Please select a choice to override.",
+      "overrideSuccess": "Drop response overridden successfully.",
+      "overrideError": "Failed to override drop response."
     }
   },
   "questions": {
@@ -776,6 +810,40 @@
       "cancel": "Cancel",
       "create": "Create Template",
       "creating": "Creating..."
+    }
+  },
+  "auditLogs": {
+    "title": "Audit Logs",
+    "description": "Monitor and review administrative actions that modified user data.",
+    "columns": {
+      "date": "Date",
+      "admin": "Admin",
+      "action": "Action",
+      "targetUser": "Target User",
+      "reason": "Reason"
+    },
+    "empty": "No audit logs found.",
+    "loading": "Loading audit logs...",
+    "viewDetails": "View Details",
+    "previous": "Previous",
+    "next": "Next",
+    "showing": "Showing {from}\u2013{to} of {totalCount}",
+    "modal": {
+      "title": "Audit Log Details",
+      "date": "Date",
+      "admin": "Admin ID / Email",
+      "targetUser": "Target User ID",
+      "actionType": "Action Type",
+      "resourceType": "Resource Type",
+      "reason": "Reason",
+      "ipAddress": "IP Address",
+      "userAgent": "User Agent",
+      "previousState": "Previous State",
+      "newState": "New State"
+    },
+    "userTab": {
+      "title": "Audit Trail",
+      "description": "History of admin interventions for this user."
     }
   },
   "system": {

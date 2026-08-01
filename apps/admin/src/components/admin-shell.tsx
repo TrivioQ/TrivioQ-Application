@@ -19,6 +19,7 @@ import {
   Bell,
   Menu,
   X,
+  ShieldAlert,
 } from 'lucide-react';
 import { logoutAction } from '@/app/actions/auth-actions';
 import { useTranslations } from 'next-intl';
@@ -37,6 +38,7 @@ const NAV_ITEMS: { href: string; icon: React.ElementType; labelKey: string; exac
   { href: '/app-settings', icon: Settings, labelKey: 'sidebar.appSettings' },
   { href: '/subscription-history', icon: ClockIcon, labelKey: 'sidebar.subscriptionHistory' },
   { href: '/cron-jobs', icon: Cpu, labelKey: 'sidebar.cronJobs' },
+  { href: '/audit-logs', icon: ShieldAlert, labelKey: 'sidebar.auditLogs' }
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

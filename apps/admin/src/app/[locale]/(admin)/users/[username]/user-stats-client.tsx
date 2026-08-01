@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FriendsTab } from './friends-tab';
+import { DropsHistoryTab } from './drops-history-tab';
+import { AuditLogsClient } from '@/app/[locale]/(admin)/audit-logs/audit-logs-client';
 
 interface UserStatsClientProps {
   user: any; // Using any for simplicity, it conforms to UserRow and more
@@ -65,6 +67,8 @@ export function UserStatsClient({ user, weeklyScore, monthlyScore, competitionsW
         <TabsList className="mb-4">
           <TabsTrigger value="overview">{t('overview')}</TabsTrigger>
           <TabsTrigger value="friends">{t('friends')}</TabsTrigger>
+          <TabsTrigger value="drops">{t('dropsHistory')}</TabsTrigger>
+          <TabsTrigger value="audit">{t('auditTrail')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="space-y-6">
@@ -248,6 +252,14 @@ export function UserStatsClient({ user, weeklyScore, monthlyScore, competitionsW
         
         <TabsContent value="friends">
           <FriendsTab userId={user.id} />
+        </TabsContent>
+        
+        <TabsContent value="drops">
+          <DropsHistoryTab userId={user.id} />
+        </TabsContent>
+        
+        <TabsContent value="audit">
+          <AuditLogsClient targetUserId={user.id} />
         </TabsContent>
       </Tabs>
     </div>

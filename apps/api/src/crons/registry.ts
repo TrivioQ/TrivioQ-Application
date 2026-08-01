@@ -4,6 +4,7 @@ import { initDropPlanner } from '../services/drop-planner-service';
 import { initNotificationCrons } from './notification-crons';
 import { initQuestionValidationCron } from './question-validation-cron';
 import { runAccountDeletionCron } from './account-deletion-cron';
+import { runAuditRetentionCron } from './audit-retention-cron';
 
 export function registerAllCrons() {
   // ── Weekly bonus — every Monday at 00:05 ─────────────────────────────────────
@@ -35,5 +36,10 @@ export function registerAllCrons() {
   // ── Account Deletion — runs daily at 03:00 AM ──────────────────────────────────
   CronManager.register('Account Deletion', '0 3 * * *', async () => {
     await runAccountDeletionCron();
+  });
+
+  // ── Audit Logs Retention — runs daily at 02:00 AM ──────────────────────────────
+  CronManager.register('Audit Logs Retention', '0 2 * * *', async () => {
+    await runAuditRetentionCron();
   });
 }
