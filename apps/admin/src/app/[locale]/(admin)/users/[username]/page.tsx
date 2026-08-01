@@ -18,7 +18,7 @@ export default async function UserStatsPage({ params }: { params: Promise<{ user
     notFound();
   }
 
-  const { user, weeklyScore, monthlyScore, competitionsWon, accuracyByCategory } = result.data;
+  const { user, weeklyScore, monthlyScore, competitionsWon, accuracyByCategory, scoreHistory } = result.data;
 
   return (
     <div className="space-y-6">
@@ -37,6 +37,7 @@ export default async function UserStatsPage({ params }: { params: Promise<{ user
           monthlyScore={monthlyScore as any}
           competitionsWon={competitionsWon as number}
           accuracyByCategory={accuracyByCategory as any}
+          scoreHistory={scoreHistory as any[]}
         />
       </Suspense>
     </div>

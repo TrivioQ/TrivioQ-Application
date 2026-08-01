@@ -16,7 +16,7 @@ export async function getUserStats(username: string) {
     const recentScores = await prisma.userScore.findMany({
       where: { userId: user.id },
       orderBy: { periodStart: 'desc' },
-      take: 20,
+      take: 100,
     });
 
     const weeklyScore = recentScores.find(s => s.periodType === 'WEEKLY');
@@ -69,6 +69,7 @@ export async function getUserStats(username: string) {
         monthlyScore,
         competitionsWon,
         accuracyByCategory,
+        scoreHistory: recentScores,
       }
     };
   } catch (error) {

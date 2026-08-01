@@ -47,6 +47,7 @@ model User {
   accountStatus        AccountStatus @default(ACTIVE)
   scheduledDeletionAt  DateTime?
   deletionWarningSent  Boolean       @default(false)
+  createdAt            DateTime      @default(now())
 }
 
 enum Role {

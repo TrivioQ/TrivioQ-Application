@@ -9,6 +9,8 @@ import { UserModal } from '@/components/users-table/user-modal';
 import { UserRow } from '@/components/users-table/columns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FriendsTab } from './friends-tab';
 
 interface UserStatsClientProps {
@@ -17,10 +19,12 @@ interface UserStatsClientProps {
   monthlyScore: any;
   competitionsWon: number;
   accuracyByCategory: Array<{ name: string; accuracy: number; total: number }>;
+  scoreHistory: any[];
 }
 
-export function UserStatsClient({ user, weeklyScore, monthlyScore, competitionsWon, accuracyByCategory }: UserStatsClientProps) {
+export function UserStatsClient({ user, weeklyScore, monthlyScore, competitionsWon, accuracyByCategory, scoreHistory }: UserStatsClientProps) {
   const [editOpen, setEditOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const t = useTranslations('users.statsClient');
 
   // Overall accuracy
@@ -111,9 +115,14 @@ export function UserStatsClient({ user, weeklyScore, monthlyScore, competitionsW
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Leaderboard Performance */}
         <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>{t('leaderboard')}</CardTitle>
-            <CardDescription>{t('leaderboardDesc')}</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>{t('leaderboard')}</CardTitle>
+              <CardDescription>{t('leaderboardDesc')}</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
+              {t('viewHistory')}
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center p-3 border rounded-lg">
@@ -130,6 +139,80 @@ export function UserStatsClient({ user, weeklyScore, monthlyScore, competitionsW
             </div>
           </CardContent>
         </Card>
+
+        <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+          <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle>{t('scoreHistory')}</DialogTitle>
+            </DialogHeader>
+            <Tabs defaultValue="weekly" className="w-full flex-1 overflow-hidden flex flex-col">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="weekly">{t('weeklyHistory')}</TabsTrigger>
+                <TabsTrigger value="monthly">{t('monthlyHistory')}</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="weekly" className="flex-1 overflow-auto mt-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('period')}</TableHead>
+                      <TableHead>{t('score')}</TableHead>
+                      <TableHead>{t('rank')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {scoreHistory?.filter(s => s.periodType === 'WEEKLY').length > 0 ? (
+                      scoreHistory.filter(s => s.periodType === 'WEEKLY').map((score) => (
+                        <TableRow key={score.id}>
+                          <TableCell>{new Date(score.periodStart).toLocaleDateString()}</TableCell>
+                          <TableCell className="font-medium">{score.totalScore}</TableCell>
+                          <TableCell>{score.rank ? `#${score.rank}` : '-'}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground h-24">
+                          {t('unknown')}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+
+              <TabsContent value="monthly" className="flex-1 overflow-auto mt-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('period')}</TableHead>
+                      <TableHead>{t('score')}</TableHead>
+                      <TableHead>{t('rank')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {scoreHistory?.filter(s => s.periodType === 'MONTHLY').length > 0 ? (
+                      scoreHistory.filter(s => s.periodType === 'MONTHLY').map((score) => (
+                        <TableRow key={score.id}>
+                          <TableCell>
+                            {new Date(score.periodStart).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+                          </TableCell>
+                          <TableCell className="font-medium">{score.totalScore}</TableCell>
+                          <TableCell>{score.rank ? `#${score.rank}` : '-'}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground h-24">
+                          {t('unknown')}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+            </Tabs>
+          </DialogContent>
+        </Dialog>
 
         {/* Accuracy by Category Chart */}
         <Card className="col-span-1 lg:col-span-2">

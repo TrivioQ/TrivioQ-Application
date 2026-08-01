@@ -178,7 +178,14 @@
       "accuracyByCategory": "Accuracy by Category",
       "performanceTopCategories": "Performance in top categories",
       "accuracy": "Accuracy",
-      "noCategoryData": "No category data available yet."
+      "noCategoryData": "No category data available yet.",
+      "viewHistory": "View History",
+      "scoreHistory": "Score & Rank History",
+      "period": "Period",
+      "score": "Score",
+      "rank": "Rank",
+      "weeklyHistory": "Weekly History",
+      "monthlyHistory": "Monthly History"
     }
   },
   "questions": {

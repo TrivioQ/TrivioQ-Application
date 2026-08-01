@@ -13,3 +13,12 @@ Instead, use the custom UI components provided by the app (e.g., `ConfirmProvide
 ## File Naming Convention
 
 All new filenames MUST be lowercase and use hyphens (`-`) for multiple words (e.g., `user-profile.tsx`). Exceptions are allowed only where mandatory by frameworks or conventions (e.g., `README.md`, `.env`, `layout.tsx`, `page.tsx`).
+
+## Responsiveness
+
+All UI components must be responsive and work on different screen sizes.
+Desktop, Mobile, Tablet must be supported
+
+## Theme Support
+
+Ensure Light and Dark mode is supported
