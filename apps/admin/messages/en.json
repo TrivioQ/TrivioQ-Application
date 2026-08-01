@@ -892,6 +892,9 @@
     "ingestion": {
       "title": "Ingestion",
       "description": "Manage and monitor AI document ingestion jobs.",
+      "jobDetailsTitle": "Job Details",
+      "jobDetailsDesc": "View status and manage this ingestion job.",
+      "back": "Back",
       "settings": "Settings",
       "newJob": "New Job",
       "empty": "No ingestion jobs found.",

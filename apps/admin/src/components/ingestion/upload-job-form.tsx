@@ -9,11 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { useTranslations } from 'next-intl';
 
 export function UploadJobForm() {
   const router = useRouter();
-  const t = useTranslations('system.ingestion');
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 

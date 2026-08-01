@@ -53,6 +53,7 @@ export function JobDetail({ jobId }: { jobId: string }) {
 
   useEffect(() => {
     const controller = new AbortController();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchJob(controller.signal);
 
     const intervalId = setInterval(() => {

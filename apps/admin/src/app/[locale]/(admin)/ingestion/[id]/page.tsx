@@ -16,16 +16,16 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-            Job Details
+            {t('jobDetailsTitle')}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-1">
-            View status and manage this ingestion job.
+            {t('jobDetailsDesc')}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" render={<Link href="/ingestion" />}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+            {t('back')}
           </Button>
         </div>
       </div>
