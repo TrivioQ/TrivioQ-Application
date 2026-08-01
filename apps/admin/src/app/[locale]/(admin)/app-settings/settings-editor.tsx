@@ -142,7 +142,7 @@ export default function SettingsEditor({ settings, pageCount = 1, currentPage = 
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-muted-foreground">{t('showingPage', { current: currentPage, total: Math.max(1, pageCount) })}</div>
+        <div className="text-sm text-muted-foreground">{t('showingPage', { current: settings.length === 0 ? 0 : currentPage, total: settings.length === 0 ? 0 : Math.max(1, pageCount) })}</div>
         <div className="flex items-center space-x-2">
           <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} className="px-3 py-1 border border-border rounded text-sm text-foreground disabled:opacity-50 hover:bg-accent hover:text-accent-foreground">
             {t('prev')}

@@ -7,3 +7,5 @@ Sentry.init({
     Sentry.captureConsoleIntegration({ levels: ['error', 'warn'] }),
   ],
 });
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

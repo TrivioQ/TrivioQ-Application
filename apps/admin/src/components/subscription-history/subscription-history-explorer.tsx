@@ -219,7 +219,7 @@ export function SubscriptionHistoryExplorer() {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="text-sm text-muted-foreground font-medium px-2">
-                  {page} / {history.totalPages}
+                  {history.total === 0 ? 0 : page} / {history.total === 0 ? 0 : history.totalPages}
                 </span>
                 <Button variant="outline" className="h-8 w-8 p-0" onClick={() => handlePageChange(page + 1)} disabled={page >= history.totalPages || isLoading}>
                   <ChevronRight className="h-4 w-4" />

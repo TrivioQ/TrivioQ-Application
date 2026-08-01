@@ -88,7 +88,7 @@ export function DataTable<TData, TValue>({ columns, data, pageCount = 1, current
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-muted-foreground">{start && end && total ? t('showing', { from: start, to: end, total }) : t('pageOf', { current: currentPage, total: Math.max(1, pageCount) })}</div>
+        <div className="text-sm text-muted-foreground">{start && end && total ? t('showing', { from: start, to: end, total }) : t('pageOf', { current: data.length === 0 ? 0 : currentPage, total: data.length === 0 ? 0 : Math.max(1, pageCount) })}</div>
         <div className="flex items-center gap-2">
           <Button variant="outline" className="h-8 w-8 p-0" onClick={() => pushParams({ page: '1' })} disabled={currentPage <= 1 || isPending}>
             <ChevronsLeft className="h-4 w-4" />
@@ -97,7 +97,7 @@ export function DataTable<TData, TValue>({ columns, data, pageCount = 1, current
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-sm text-muted-foreground font-medium px-2">
-            {currentPage} / {Math.max(1, pageCount)}
+            {data.length === 0 ? 0 : currentPage} / {data.length === 0 ? 0 : Math.max(1, pageCount)}
           </span>
           <Button variant="outline" className="h-8 w-8 p-0" onClick={() => pushParams({ page: String(currentPage + 1) })} disabled={currentPage >= pageCount || isPending}>
             <ChevronRight className="h-4 w-4" />

@@ -75,7 +75,7 @@ export function QuestionsDataTable<TData, TValue>({ columns, result }: Props<TDa
           <button onClick={() => pushParams({ page: String(page - 1) })} disabled={page <= 1 || isPending} className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })} aria-label={t('previousPage')}>
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="font-medium px-2">{t('pageOf', { page, totalPages })}</span>
+          <span className="font-medium px-2">{t('pageOf', { page: total === 0 ? 0 : page, totalPages: total === 0 ? 0 : totalPages })}</span>
           <button onClick={() => pushParams({ page: String(page + 1) })} disabled={page >= totalPages || isPending} className={buttonVariants({ variant: 'outline', className: 'h-8 w-8 p-0 disabled:opacity-40' })} aria-label={t('nextPage')}>
             <ChevronRight className="h-4 w-4" />
           </button>

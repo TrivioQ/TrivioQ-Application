@@ -96,7 +96,7 @@ export default async function JobLogsPage({ searchParams }: { searchParams: Prom
               </>
             )}
             <span className="text-sm text-muted-foreground font-medium px-2">
-              {currentPage} / {totalPages}
+              {totalCount === 0 ? 0 : currentPage} / {totalCount === 0 ? 0 : totalPages}
             </span>
             {currentPage < totalPages ? (
               <>
