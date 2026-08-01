@@ -27,10 +27,10 @@ function formatLabel(dateStr: string, mode: 'weekly' | 'monthly', locale: string
   return d.toLocaleDateString(locale, { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
-const CustomTooltip = ({ active, payload, label, mode, t }: any) => {
+const CustomTooltip = ({ active, payload, label, mode, t, locale }: any) => {
   if (!active || !payload?.length) return null;
   const d = new Date(label);
-  const title = mode === 'monthly' ? d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }) : `${t('chart.weekOf')} ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
+  const title = mode === 'monthly' ? d.toLocaleDateString(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }) : `${t('chart.weekOf')} ${d.toLocaleDateString(locale, { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
 
   return (
     <div className="bg-overlay border border-border dark:border-white/10 rounded-xl p-3 text-xs shadow-xl">
@@ -59,7 +59,7 @@ export function ScoreTrendChart({ data, mode, namespace = 'dashboard' }: Props) 
         <CartesianGrid strokeDasharray="3 3" stroke={rgbaVar('--text-secondary', 0.2)} />
         <XAxis dataKey="periodStart" tick={{ fontSize: 10, fill: AXIS }} tickFormatter={(v) => formatLabel(v, mode, locale)} interval="preserveStartEnd" />
         <YAxis tick={{ fontSize: 10, fill: AXIS }} allowDecimals={false} width={44} />
-        <Tooltip content={<CustomTooltip mode={mode} t={t} />} cursor={{ fill: rgbaVar('--text-secondary', 0.08) }} />
+        <Tooltip content={<CustomTooltip mode={mode} t={t} locale={locale} />} cursor={{ fill: rgbaVar('--text-secondary', 0.08) }} />
         <Bar dataKey="baseScore" name={t('chart.base')} stackId="a" fill={BRAND[600]} radius={[0, 0, 0, 0]} />
         <Bar dataKey="bonusScore" name={t('chart.bonus')} stackId="a" fill={BRAND[300]} radius={[4, 4, 0, 0]} />
       </BarChart>

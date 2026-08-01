@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import { cookies } from 'next/headers';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, getTranslations } from 'next-intl/server';
 import { ThemeProvider, type Theme } from '@/context/theme-context';
 import { Toaster } from 'sonner';
 import '../globals.css';
@@ -13,13 +13,16 @@ const poppins = Poppins({
   weight: ['400', '500', '600', '700', '800', '900'],
 });
 
-export const metadata: Metadata = {
-  title: 'TrivioQ Admin Panel',
-  description: 'TrivioQ Admin Panel',
-  icons: {
-    icon: '/favicon.png',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('metadata.admin');
+  return {
+    title: t('title'),
+    description: t('description'),
+    icons: {
+      icon: '/favicon.png',
+    },
+  };
+}
 
 export default async function RootLayout({ children, params }: { children: React.ReactNode; params: Promise<{ locale: string }> }) {
   const { locale } = await params;

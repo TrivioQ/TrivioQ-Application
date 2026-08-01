@@ -341,7 +341,7 @@ export default function ActiveDropCard() {
                 {hintText ? (
                   <div className="flex-1 rounded-lg border border-brand-500/30 bg-brand-500/10 px-3 py-2">
                     <p className="text-[11px] font-bold text-brand-400 mb-0.5 flex items-center gap-1">
-                      <Lightbulb className="w-3.5 h-3.5" /> Hint {hintCostDeducted != null ? `(−${hintCostDeducted} ${t('pts')})` : ''}
+                      <Lightbulb className="w-3.5 h-3.5" /> {t('hintUsed', { pts: hintCostDeducted ?? 0 })}
                     </p>
                     <div className="text-xs text-brand-200">
                       <MarkdownContent>{hintText}</MarkdownContent>

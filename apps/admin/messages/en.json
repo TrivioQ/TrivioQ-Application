@@ -27,7 +27,26 @@
     "close": "Close",
     "searchPlaceholder": "Search\u2026",
     "showing": "Showing {from}\u2013{to} of {total}",
-    "pageOf": "Page {current} of {total}"
+    "pageOf": "Page {current} of {total}",
+    "markdownSupported": "(Markdown supported)",
+    "preview": "Preview",
+    "hidePreview": "Hide Preview",
+    "togglePreview": "Toggle preview",
+    "selectAtLeastOneCategory": "Select at least one category",
+    "selectCorrectAnswer": "Select a correct answer",
+    "notApplicable": "N/A",
+    "unknown": "Unknown",
+    "noneProvided": "None provided",
+    "backToTitle": "Back to {title}",
+    "userOverview": "User Overview",
+    "loadingStats": "Loading stats...",
+    "backTo": "Back to {title}"
+  },
+  "metadata": {
+    "admin": {
+      "title": "TrivioQ Admin Panel",
+      "description": "TrivioQ Admin Panel"
+    }
   },
   "dashboard": {
     "title": "Admin Dashboard",
@@ -78,6 +97,13 @@
   "layout": {
     "brand": "TrivioQ",
     "adminBadge": "Admin",
+    "theme": "Theme",
+    "themeSwitcher": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System",
+      "toggleTheme": "Toggle theme"
+    },
     "sidebar": {
       "dashboard": "Dashboard",
       "users": "Users",
@@ -91,7 +117,9 @@
       "subscriptionHistory": "Sub. History",
       "cronJobs": "Cron Jobs",
       "auditLogs": "Audit Logs",
-      "logout": "Logout"
+      "logout": "Logout",
+      "open": "Open sidebar",
+      "close": "Close sidebar"
     }
   },
   "users": {
@@ -558,6 +586,9 @@
       "removeRank": "Remove rank {number}",
       "addRank": "Add Rank",
       "invalidPayout": "Invalid payout values",
+      "titleRequired": "Title is required",
+      "startDateRequired": "Start date is required",
+      "mustBeNonNegative": "Must be ≥ 0",
       "cancel": "Cancel",
       "create": "Create Bonus Plan",
       "creating": "Creating\u2026",
@@ -688,6 +719,11 @@
       "viewDetails": "View Details",
       "sendNow": "Send Now",
       "delete": "Delete",
+      "audiences": {
+        "ALL_USERS": "All Users",
+        "USER_SEGMENT": "Segment",
+        "SPECIFIC_USERS": "Specific"
+      },
       "columns": {
         "type": "Type",
         "title": "Title",
@@ -824,12 +860,17 @@
     },
     "empty": "No audit logs found.",
     "loading": "Loading audit logs...",
+    "fetchError": "Failed to fetch audit logs",
+    "unknown": "Unknown",
+    "noneProvided": "None provided",
+    "notApplicable": "N/A",
     "viewDetails": "View Details",
     "previous": "Previous",
     "next": "Next",
     "showing": "Showing {from}\u2013{to} of {totalCount}",
     "modal": {
       "title": "Audit Log Details",
+      "description": "Detailed view of the administrative action.",
       "date": "Date",
       "admin": "Admin ID / Email",
       "targetUser": "Target User ID",

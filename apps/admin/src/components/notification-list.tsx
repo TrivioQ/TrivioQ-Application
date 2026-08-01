@@ -51,10 +51,10 @@ const statusColors: Record<string, string> = {
   FAILED: 'bg-destructive/10 text-destructive',
 };
 
-const audienceLabels: Record<string, string> = {
-  ALL_USERS: 'All Users',
-  USER_SEGMENT: 'Segment',
-  SPECIFIC_USERS: 'Specific',
+const audienceKeys: Record<string, 'allUsers' | 'userSegment' | 'specificUsers'> = {
+  ALL_USERS: 'allUsers',
+  USER_SEGMENT: 'userSegment',
+  SPECIFIC_USERS: 'specificUsers',
 };
 
 export function NotificationList() {
@@ -164,7 +164,7 @@ export function NotificationList() {
               </TableCell>
               <TableCell className="hidden lg:table-cell">
                 <Badge variant="outline">
-                  {audienceLabels[notification.audience] || notification.audience}
+                  {audienceKeys[notification.audience] ? t(`audiences.${audienceKeys[notification.audience]}`) : notification.audience}
                 </Badge>
               </TableCell>
               <TableCell>

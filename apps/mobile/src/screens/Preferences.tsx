@@ -58,11 +58,11 @@ export default function Preferences({ navigation }: any) {
         const response = await apiClient.put('/api/v1/users/preferences', newPreferences);
         return response.data;
       } catch (err: any) {
-        throw new Error(err.response?.data?.error || 'Failed to update preferences');
+        throw new Error(err.response?.data?.error || t('preferences.updateFailed'));
       }
     },
     onSuccess: () => {
-      toast.success(`${t('preferences.successTitle')}: ${t('preferences.successBody')}`);
+      toast.success(t('preferences.successBody'));
       queryClient.invalidateQueries({ queryKey: ['userMe'] });
       navigation.goBack();
     },
@@ -107,15 +107,15 @@ export default function Preferences({ navigation }: any) {
   }
 
   const themes: { label: string; value: Theme; iconName: keyof typeof Feather.glyphMap }[] = [
-    { label: 'Light', value: 'light', iconName: 'sun' },
-    { label: 'Dark', value: 'dark', iconName: 'moon' },
-    { label: 'System', value: 'system', iconName: 'monitor' },
+    { label: t('common.light'), value: 'light', iconName: 'sun' },
+    { label: t('common.dark'), value: 'dark', iconName: 'moon' },
+    { label: t('common.system'), value: 'system', iconName: 'monitor' },
   ];
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <BlurView intensity={isDark ? 30 : 60} tint={isDark ? 'dark' : 'light'} style={styles.glassCard}>
-        <Text style={styles.header}>App Theme</Text>
+        <Text style={styles.header}>{t('common.theme')}</Text>
         <View style={styles.themeRow}>
           {themes.map((tItem) => {
             const isActive = theme === tItem.value;
@@ -136,11 +136,11 @@ export default function Preferences({ navigation }: any) {
         <View style={styles.row}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{t('preferences.startTime')}</Text>
-            <TextInput style={styles.input} value={activeWindowStart} onChangeText={setActiveWindowStart} placeholder="09:00" placeholderTextColor={colors.textSecondary} />
+            <TextInput style={styles.input} value={activeWindowStart} onChangeText={setActiveWindowStart} placeholder={t('preferences.startTimePlaceholder')} placeholderTextColor={colors.textSecondary} />
           </View>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{t('preferences.endTime')}</Text>
-            <TextInput style={styles.input} value={activeWindowEnd} onChangeText={setActiveWindowEnd} placeholder="17:00" placeholderTextColor={colors.textSecondary} />
+            <TextInput style={styles.input} value={activeWindowEnd} onChangeText={setActiveWindowEnd} placeholder={t('preferences.endTimePlaceholder')} placeholderTextColor={colors.textSecondary} />
           </View>
         </View>
 

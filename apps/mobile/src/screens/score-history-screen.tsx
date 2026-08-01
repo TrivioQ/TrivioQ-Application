@@ -24,19 +24,19 @@ type TabKey = 'weekly' | 'monthly';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatPeriodLabel(period: ScorePeriod): string {
+function formatPeriodLabel(period: ScorePeriod, locale: string): string {
   const start = new Date(period.periodStart);
   if (period.periodType === 'WEEKLY') {
     const end = period.periodEnd ? new Date(period.periodEnd) : null;
-    const s = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const e = end ? end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+    const s = start.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+    const e = end ? end.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
     return `${s} – ${e}`;
   }
-  return start.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  return start.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
 }
 
-function getRankLabel(rank: number | null): string {
-  if (!rank) return '—';
+function getRankLabel(rank: number | null, noBonusLabel: string): string {
+  if (!rank) return noBonusLabel;
   if (rank === 1) return '🥇 #1';
   if (rank === 2) return '🥈 #2';
   if (rank === 3) return '🥉 #3';
@@ -65,12 +65,12 @@ function ScoringGuideCard({ label, pts, borderColor, textColor, diffLabel, style
 
 // ─── Period Row ───────────────────────────────────────────────────────────────
 
-function PeriodRow({ item, colors, styles, noBonusLabel }: { item: ScorePeriod; colors: ThemeColors; styles: ReturnType<typeof createStyles>; noBonusLabel: string }) {
+function PeriodRow({ item, colors, styles, noBonusLabel, locale }: { item: ScorePeriod; colors: ThemeColors; styles: ReturnType<typeof createStyles>; noBonusLabel: string; locale: string }) {
   return (
     <View style={styles.row}>
       <View style={styles.rowPeriodCell}>
         <Text style={styles.rowPeriodText} numberOfLines={2}>
-          {formatPeriodLabel(item)}
+          {formatPeriodLabel(item, locale)}
         </Text>
       </View>
       <View style={styles.rowCell}>
@@ -81,7 +81,7 @@ function PeriodRow({ item, colors, styles, noBonusLabel }: { item: ScorePeriod; 
         <Text style={[styles.rowValue, styles.rowTotal]}>{item.totalScore.toLocaleString()}</Text>
       </View>
       <View style={styles.rowCell}>
-        <Text style={[styles.rowValue, { color: getRankColor(item.rank, colors) }]}>{getRankLabel(item.rank)}</Text>
+        <Text style={[styles.rowValue, { color: getRankColor(item.rank, colors) }]}>{getRankLabel(item.rank, noBonusLabel)}</Text>
       </View>
     </View>
   );
@@ -90,7 +90,7 @@ function PeriodRow({ item, colors, styles, noBonusLabel }: { item: ScorePeriod; 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function ScoreHistoryScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { userId } = useAuth();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -196,7 +196,7 @@ export default function ScoreHistoryScreen() {
           )}
         </>
       }
-      renderItem={({ item }) => <PeriodRow item={item} colors={colors} styles={styles} noBonusLabel={t('scoreHistory.noBonusYet')} />}
+      renderItem={({ item }) => <PeriodRow item={item} colors={colors} styles={styles} noBonusLabel={t('scoreHistory.noBonusYet')} locale={i18n.language} />}
       ListEmptyComponent={
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>📭</Text>

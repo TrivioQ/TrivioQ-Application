@@ -13,11 +13,19 @@
     "loading": "Loading...",
     "notifications": "Notifications",
     "enable": "Enable",
-    "disable": "Disable"
+    "disable": "Disable",
+    "dashPlaceholder": "—",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   },
   "home": {
     "welcome": "Welcome to TrivioQ!",
     "subtitle": "Your daily trivia drops await.",
+    "greetingMorning": "☀️ Good morning",
+    "greetingAfternoon": "👋 Good afternoon",
+    "greetingEvening": "🌙 Good evening",
     "activeDrop": "Active Drop",
     "expiredDrop": "Drop Expired",
     "streak": "Current Streak",
@@ -99,6 +107,8 @@
     "plusTier": "✨ Plus"
   },
   "notifications": {
+    "title": "Notifications",
+    "viewAll": "View all notifications →",
     "all": "All",
     "unread": "Unread",
     "markAllRead": "Mark all read",
@@ -144,12 +154,16 @@
     "unanswered": "Unanswered",
     "revealed": "Revealed",
     "yourAnswer": "Your Answer:",
-    "correctAnswer": "Correct Answer:"
+    "correctAnswer": "Correct Answer:",
+    "pointsAwarded_one": "+{{count}} pt",
+    "pointsAwarded_other": "+{{count}} pts"
   },
   "preferences": {
     "windowHeader": "Active Window (HH:MM)",
     "startTime": "Start Time",
     "endTime": "End Time",
+    "startTimePlaceholder": "09:00",
+    "endTimePlaceholder": "17:00",
     "diffHeader": "Difficulty Distribution (Must equal 1.0)",
     "easyLabel": "Easy Percentage (e.g. 0.5)",
     "mediumLabel": "Medium Percentage (e.g. 0.3)",
@@ -158,7 +172,8 @@
     "successTitle": "Success",
     "successBody": "Preferences updated!",
     "saving": "Saving...",
-    "save": "Save Preferences"
+    "save": "Save Preferences",
+    "updateFailed": "Failed to update preferences"
   },
   "faq": {
     "title": "FAQ",
@@ -202,7 +217,9 @@
   "auth": {
     "loginSubtitle": "Elevate your knowledge daily.",
     "emailLabel": "Email Address",
+    "emailPlaceholder": "email@example.com",
     "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
     "signInButton": "Sign In",
     "orDivider": "OR",
     "googleButton": "Continue with Google",
@@ -210,6 +227,7 @@
     "signUpLink": "Sign Up",
     "missingFields": "Please enter both email and password",
     "loginFailed": "Login failed. Please check your credentials.",
+    "loginSuccess": "Successfully authenticated",
     "googleFailed": "Google sign-in failed.",
     "signupSubtitle": "Create your account to get started.",
     "displayNameLabel": "Full Name",
@@ -217,6 +235,7 @@
     "usernameLabel": "Username",
     "usernamePlaceholder": "letters, numbers, underscores, periods",
     "dateOfBirthLabel": "Date of Birth",
+    "dateOfBirthPlaceholder": "YYYY-MM-DD",
     "dateOfBirthHint": "Format: YYYY-MM-DD — you must be at least 13 years old",
     "referralCodeLabel": "Referral Code",
     "referralCodePlaceholder": "Referral code (optional)",
@@ -226,7 +245,46 @@
     "signupMissingFields": "Please fill in all required fields.",
     "invalidDateFormat": "Please enter your date of birth in YYYY-MM-DD format.",
     "ageTooYoung": "You must be at least 13 years old to create an account.",
-    "signupFailed": "Sign-up failed. Please try again."
+    "signupFailed": "Sign-up failed. Please try again.",
+    "signupSuccess": "Successfully registered",
+    "forgotPassword": "Forgot Password?",
+    "forgotPasswordTitle": "Forgot Password",
+    "forgotPasswordBody": "Password reset is coming soon. Please contact support."
+  },
+  "subscription": {
+    "vaultActivatedToast_one": "✅ {{count}} premium day activated!",
+    "vaultActivatedToast_other": "✅ {{count}} premium days activated!",
+    "activateFailed": "Failed to activate days. Please try again.",
+    "loadError": "Failed to load subscription details.",
+    "currentPlan": "Current Plan",
+    "nextBillingDate": "Next billing date",
+    "expiresOn": "Expires on",
+    "tiers": {
+      "free": "Free",
+      "plus": "🔮 Plus",
+      "premium": "👑 Premium",
+      "trial": "✨ Trial"
+    },
+    "features": {
+      "dailyDrop": "Daily trivia drop",
+      "onDemand": "On-demand drops",
+      "hints": "Hints",
+      "scoreHistory": "Score history",
+      "vaultDays": "Vault days"
+    },
+    "featureValues": {
+      "onePerDay": "1/day"
+    },
+    "upgradeButton": "⚡ Upgrade to Premium",
+    "vault": {
+      "bankedDays_one": "🎁 Banked Premium Day: {{count}}",
+      "bankedDays_other": "🎁 Banked Premium Days: {{count}}",
+      "safelyBanked": "Your days are safely banked. They will automatically unlock if you ever cancel your recurring subscription.",
+      "empty": "You have no banked days to activate.",
+      "daysToActivate": "Days to activate",
+      "activateButton_one": "Activate {{count}} Day",
+      "activateButton_other": "Activate {{count}} Days"
+    }
   },
   "friends": {
     "title": "Friends",
@@ -240,5 +298,8 @@
     "failedToLoad": "Failed to load friendships",
     "noFriendsYet": "You don't have any friends yet.",
     "noRequests": "No requests."
+  },
+  "legal": {
+    "unavailable": "This document is currently unavailable. Please try again later."
   }
 }

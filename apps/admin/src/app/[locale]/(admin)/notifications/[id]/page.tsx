@@ -69,7 +69,7 @@ export default function NotificationDetailPage({
       <div className="text-center py-12">
         <h2 className="text-xl font-semibold text-gray-900">{t('notFound')}</h2>
         <Link href={`/${locale}/notifications`} className="text-purple-600 hover:underline mt-2 inline-block">
-          ← Back to Notifications
+          ← {t('backLink')}
         </Link>
       </div>
     );

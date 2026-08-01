@@ -22,6 +22,7 @@ type EditableChoice = { id: string; text: string; order: number; isCorrect: bool
 
 export function QuestionModal({ question, categories, open, onOpenChange }: { question: QuestionRow; categories: { id: string; name: string }[]; open: boolean; onOpenChange: (open: boolean) => void }) {
   const t = useTranslations('questions.editModal');
+  const tc = useTranslations('common');
   const [isPending, startTransition] = useTransition();
 
   const [questionText, setQuestionText] = useState(question.questionText);
@@ -67,8 +68,8 @@ export function QuestionModal({ question, categories, open, onOpenChange }: { qu
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedCategories.length === 0) return toast.error('Select at least one category');
-    if (!choices.some((c) => c.isCorrect)) return toast.error('Select a correct answer');
+    if (selectedCategories.length === 0) return toast.error(tc('selectAtLeastOneCategory'));
+    if (!choices.some((c) => c.isCorrect)) return toast.error(tc('selectCorrectAnswer'));
 
     startTransition(async () => {
       const res = await updateQuestion(question.id, {
@@ -104,10 +105,10 @@ export function QuestionModal({ question, categories, open, onOpenChange }: { qu
           {/* Question Text */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="question">{t('questionText')} <span className="text-xs text-muted-foreground ml-1">(Markdown supported)</span></Label>
+              <Label htmlFor="question">{t('questionText')} <span className="text-xs text-muted-foreground ml-1">{tc('markdownSupported')}</span></Label>
               <Button type="button" variant="ghost" size="sm" className="h-7 px-2 gap-1 text-xs" onClick={() => setShowQuestionPreview((v) => !v)}>
                 {showQuestionPreview ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                {showQuestionPreview ? 'Hide Preview' : 'Preview'}
+                {showQuestionPreview ? tc('hidePreview') : tc('preview')}
               </Button>
             </div>
             <Textarea
@@ -137,7 +138,7 @@ export function QuestionModal({ question, categories, open, onOpenChange }: { qu
 
           {/* Choices */}
           <div className="space-y-3">
-            <Label>{t('choicesLabel')} <span className="text-xs text-muted-foreground ml-1">(Markdown supported)</span></Label>
+            <Label>{t('choicesLabel')} <span className="text-xs text-muted-foreground ml-1">{tc('markdownSupported')}</span></Label>
             {choices.map((choice, idx) => (
               <div key={choice.id} className="space-y-1">
                 <div className="flex items-start gap-2">
@@ -173,7 +174,7 @@ export function QuestionModal({ question, categories, open, onOpenChange }: { qu
                         variant="ghost"
                         size="sm"
                         className="h-9 w-9 p-0 shrink-0"
-                        title="Toggle preview"
+                        title={tc('togglePreview')}
                         onClick={() => setChoicePreviewIdx(choicePreviewIdx === idx ? null : idx)}
                       >
                         {choicePreviewIdx === idx ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -189,10 +190,10 @@ export function QuestionModal({ question, categories, open, onOpenChange }: { qu
           {/* Hint */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="hint">{t('hintLabel')} <span className="text-xs text-muted-foreground ml-1">(Markdown supported)</span></Label>
+              <Label htmlFor="hint">{t('hintLabel')} <span className="text-xs text-muted-foreground ml-1">{tc('markdownSupported')}</span></Label>
               <Button type="button" variant="ghost" size="sm" className="h-7 px-2 gap-1 text-xs" onClick={() => setShowHintPreview((v) => !v)}>
                 {showHintPreview ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                {showHintPreview ? 'Hide Preview' : 'Preview'}
+                {showHintPreview ? tc('hidePreview') : tc('preview')}
               </Button>
             </div>
             <Textarea id="hint" value={hintText} onChange={(e) => setHintText(e.target.value)} placeholder={t('hintPlaceholder')} className="resize-none font-mono text-sm" />
@@ -202,10 +203,10 @@ export function QuestionModal({ question, categories, open, onOpenChange }: { qu
           {/* Explanation / Solution */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="explanation">{t('explanationLabel')} <span className="text-xs text-muted-foreground ml-1">(Markdown supported)</span></Label>
+              <Label htmlFor="explanation">{t('explanationLabel')} <span className="text-xs text-muted-foreground ml-1">{tc('markdownSupported')}</span></Label>
               <Button type="button" variant="ghost" size="sm" className="h-7 px-2 gap-1 text-xs" onClick={() => setShowExplanationPreview((v) => !v)}>
                 {showExplanationPreview ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                {showExplanationPreview ? 'Hide Preview' : 'Preview'}
+                {showExplanationPreview ? tc('hidePreview') : tc('preview')}
               </Button>
             </div>
             <Textarea id="explanation" value={explanationText} onChange={(e) => setExplanationText(e.target.value)} placeholder={t('explanationPlaceholder')} className="resize-none font-mono text-sm" />

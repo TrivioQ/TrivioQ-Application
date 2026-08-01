@@ -39,7 +39,7 @@ function resolveChoiceText(choices: { id: string; text: string; isCorrect: boole
 }
 
 export default function HistoryScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { userId } = useAuth();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -60,7 +60,7 @@ export default function HistoryScreen() {
   const drops = dropsRes?.drops ?? [];
 
   const renderItem = ({ item }: { item: DropRecord }) => {
-    const date = item.answeredAt ? new Date(item.answeredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+    const date = item.answeredAt ? new Date(item.answeredAt).toLocaleDateString(i18n.language, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : t('common.dashPlaceholder');
 
     const isAnswered = item.wasCorrect !== null;
     const statusIcon = item.revealedAnswer ? '👁' : isAnswered ? (item.wasCorrect ? '✅' : '❌') : '⏳';
@@ -110,7 +110,7 @@ export default function HistoryScreen() {
           <Text style={[styles.status, { color: statusColor }]}>
             {statusIcon} {item.revealedAnswer ? t('history.revealed') : isAnswered ? (item.wasCorrect ? t('history.correct') : t('history.incorrect')) : t('history.unanswered')}
           </Text>
-          {item.pointsAwarded > 0 && <Text style={styles.points}>+{item.pointsAwarded} pts</Text>}
+          {item.pointsAwarded > 0 && <Text style={styles.points}>{t('history.pointsAwarded', { count: item.pointsAwarded })}</Text>}
         </View>
       </View>
     );
@@ -144,7 +144,7 @@ export default function HistoryScreen() {
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIllustration}>📋</Text>
             <Text style={styles.emptyTitle}>{t('history.empty')}</Text>
-            <Text style={styles.emptySubtitle}>{t('history.emptySubtitle')}</Text>
+            <Text style={styles.emptySubtitle}>{t('history.emptySubtitle', { defaultValue: '' })}</Text>
           </View>
         }
       />

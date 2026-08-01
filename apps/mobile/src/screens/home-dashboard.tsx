@@ -18,9 +18,9 @@ function formatTime(seconds: number) {
   return `${m}:${s}`;
 }
 
-function getGreeting(name: string | undefined | null) {
+function getGreeting(name: string | undefined | null, t: (key: string, options?: any) => string) {
   const hour = new Date().getHours();
-  const prefix = hour < 12 ? '☀️ Good morning' : hour < 17 ? '👋 Good afternoon' : '🌙 Good evening';
+  const prefix = hour < 12 ? t('home.greetingMorning') : hour < 17 ? t('home.greetingAfternoon') : t('home.greetingEvening');
   return name ? `${prefix}, ${name}` : prefix;
 }
 
@@ -136,7 +136,7 @@ export default function HomeDashboard({ navigation }: any) {
     <View style={styles.outerContainer}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* ── Greeting ── */}
-        <Text style={styles.greeting}>{getGreeting(displayName)}</Text>
+        <Text style={styles.greeting}>{getGreeting(displayName, t)}</Text>
         <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
 
         {/* ── Active Drop Banner (hero) ── */}

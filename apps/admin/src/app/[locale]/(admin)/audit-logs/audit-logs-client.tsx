@@ -34,7 +34,7 @@ export function AuditLogsClient({ targetUserId }: AuditLogsClientProps) {
       setTotalCount(result.data.total);
       setPage(p);
     } else {
-      toast.error('Failed to fetch audit logs');
+      toast.error(t('fetchError'));
     }
     setLoading(false);
   };
@@ -90,7 +90,7 @@ export function AuditLogsClient({ targetUserId }: AuditLogsClientProps) {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-medium text-sm">{log.adminEmail || 'Unknown'}</span>
+                        <span className="font-medium text-sm">{log.adminEmail || t('unknown')}</span>
                         <span className="text-xs text-muted-foreground">{log.adminId}</span>
                       </div>
                     </TableCell>
@@ -101,7 +101,7 @@ export function AuditLogsClient({ targetUserId }: AuditLogsClientProps) {
                       <TableCell className="font-mono text-xs">{log.targetUserId}</TableCell>
                     )}
                     <TableCell className="max-w-[200px] truncate" title={log.reason || ''}>
-                      {log.reason || <span className="text-muted-foreground italic">None provided</span>}
+                      {log.reason || <span className="text-muted-foreground italic">{t('noneProvided')}</span>}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" onClick={() => handleViewDetails(log)}>
@@ -152,7 +152,7 @@ export function AuditLogsClient({ targetUserId }: AuditLogsClientProps) {
             <DialogHeader>
               <DialogTitle>{t('modal.title')}</DialogTitle>
               <DialogDescription>
-                Detailed view of the administrative action.
+                {t('modal.description')}
               </DialogDescription>
             </DialogHeader>
             
@@ -182,15 +182,15 @@ export function AuditLogsClient({ targetUserId }: AuditLogsClientProps) {
                   </div>
                   <div>
                     <span className="font-semibold text-muted-foreground block mb-1">{t('modal.reason')}</span>
-                    {selectedLog.reason || <span className="italic">N/A</span>}
+                    {selectedLog.reason || <span className="italic">{t('notApplicable')}</span>}
                   </div>
                   <div>
                     <span className="font-semibold text-muted-foreground block mb-1">{t('modal.ipAddress')}</span>
-                    {selectedLog.ipAddress || <span className="italic">N/A</span>}
+                    {selectedLog.ipAddress || <span className="italic">{t('notApplicable')}</span>}
                   </div>
                   <div>
                     <span className="font-semibold text-muted-foreground block mb-1">{t('modal.userAgent')}</span>
-                    {selectedLog.userAgent || <span className="italic">N/A</span>}
+                    {selectedLog.userAgent || <span className="italic">{t('notApplicable')}</span>}
                   </div>
                 </div>
 

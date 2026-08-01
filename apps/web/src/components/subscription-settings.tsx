@@ -18,8 +18,8 @@ interface SubscriptionData {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string | null, locale: string): string {
-  if (!iso) return '—';
+function formatDate(iso: string | null, locale: string, fallback: string): string {
+  if (!iso) return fallback;
   return new Date(iso).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
@@ -120,6 +120,7 @@ function IconAlertCircle() {
 
 export function SubscriptionSettings() {
   const t = useTranslations('subscription');
+  const tc = useTranslations('common');
   const locale = useLocale();
 
   const [data, setData] = useState<SubscriptionData | null>(null);
@@ -218,7 +219,7 @@ export function SubscriptionSettings() {
           {isTrial && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-brand-100 dark:bg-brand-500/15 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-500/25">
               <IconSparkles />
-              Trial
+              {t('trial')}
             </span>
           )}
           {isFree && (
@@ -234,7 +235,7 @@ export function SubscriptionSettings() {
             <IconCalendar />
             <span>
               {isAutoRenewalEnabled ? t('nextBillingDate') : t('expiresOn')}
-              <span className="font-semibold">{formatDate(subscriptionExpiresAt, locale)}</span>
+              <span className="font-semibold">{formatDate(subscriptionExpiresAt, locale, tc('dashPlaceholder'))}</span>
             </span>
           </div>
         )}
@@ -243,7 +244,7 @@ export function SubscriptionSettings() {
             <IconCalendar />
             <span>
               {t('expiresOn')}
-              <span className="font-semibold text-brand-900 dark:text-brand-200">{formatDate(subscriptionExpiresAt, locale)}</span>
+              <span className="font-semibold text-brand-900 dark:text-brand-200">{formatDate(subscriptionExpiresAt, locale, tc('dashPlaceholder'))}</span>
             </span>
           </div>
         )}

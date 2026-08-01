@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import Markdown from 'react-native-markdown-display';
+import { useTranslation } from 'react-i18next';
 import apiClient from '../api/client';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
@@ -11,6 +12,7 @@ export default function PrivacyScreen() {
   const [doc, setDoc] = useState<LegalDoc | null>(null);
   const [loading, setLoading] = useState(true);
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const markdownStyles = useMemo(() => createMarkdownStyles(colors), [colors]);
 
@@ -30,7 +32,7 @@ export default function PrivacyScreen() {
         <Markdown style={markdownStyles}>{doc.content}</Markdown>
       ) : (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Privacy Policy is currently unavailable. Please try again later.</Text>
+          <Text style={styles.errorText}>{t('legal.unavailable')}</Text>
         </View>
       )}
     </ScrollView>

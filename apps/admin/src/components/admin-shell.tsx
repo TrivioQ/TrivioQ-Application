@@ -109,7 +109,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {/* Logo / brand */}
         <div className="px-6 py-5 border-b border-sidebar-border flex items-center justify-between shrink-0">
           <Link href="/" onClick={closeSidebar} className="flex items-center gap-2.5 group">
-            <Image src="/logo.png" alt="TrivioQ" width={28} height={28} className="w-7 h-7 shrink-0" />
+            <Image src="/logo.png" alt={t('brand')} width={28} height={28} className="w-7 h-7 shrink-0" />
             <span className="text-lg font-extrabold tracking-tight text-sidebar-foreground group-hover:text-sidebar-primary transition-colors">
               {t('brand')}{' '}
               <span className="text-brand-interactive">{t('adminBadge')}</span>
@@ -119,7 +119,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             type="button"
             onClick={closeSidebar}
             className="lg:hidden -mr-1 p-1.5 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-            aria-label="Close sidebar"
+            aria-label={t('sidebar.close')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -162,7 +162,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           {/* Theme switcher row */}
           <div className="flex items-center justify-between px-3 py-2 rounded-lg">
             <span className="text-xs font-medium text-sidebar-foreground/50 uppercase tracking-wider">
-              Theme
+              {t('theme')}
             </span>
             <ThemeSwitcher />
           </div>
@@ -188,7 +188,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             type="button"
             onClick={toggleSidebar}
             className="-ml-2 p-2 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Open sidebar"
+            aria-label={t('sidebar.open')}
             aria-expanded={sidebarOpen}
             aria-controls="admin-sidebar"
           >

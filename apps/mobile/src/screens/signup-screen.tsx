@@ -56,7 +56,7 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
     setIsPending(true);
     try {
       await registerWithEmail(email, password, username, displayName || username, dateOfBirth, referralCode || undefined);
-      toast.success('Successfully registered');
+      toast.success(t('auth.signupSuccess'));
     } catch (error: any) {
       console.error('Signup failed:', error);
       toast.error(error.message || t('auth.signupFailed'));
@@ -83,13 +83,13 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
           <TextInput style={styles.input} placeholder={t('auth.usernamePlaceholder')} placeholderTextColor={colors.textSecondary} value={username} onChangeText={(v) => setUsername(v.toLowerCase())} autoCapitalize="none" />
 
           <Text style={styles.label}>{t('auth.emailLabel')}</Text>
-          <TextInput style={styles.input} placeholder="email@example.com" placeholderTextColor={colors.textSecondary} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
+          <TextInput style={styles.input} placeholder={t('auth.emailPlaceholder')} placeholderTextColor={colors.textSecondary} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
 
           <Text style={styles.label}>{t('auth.passwordLabel')}</Text>
-          <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor={colors.textSecondary} value={password} onChangeText={setPassword} secureTextEntry />
+          <TextInput style={styles.input} placeholder={t('auth.passwordPlaceholder')} placeholderTextColor={colors.textSecondary} value={password} onChangeText={setPassword} secureTextEntry />
 
           <Text style={styles.label}>{t('auth.dateOfBirthLabel')}</Text>
-          <TextInput style={styles.input} placeholder="YYYY-MM-DD" placeholderTextColor={colors.textSecondary} value={dateOfBirth} onChangeText={setDateOfBirth} keyboardType="numbers-and-punctuation" maxLength={10} />
+          <TextInput style={styles.input} placeholder={t('auth.dateOfBirthPlaceholder')} placeholderTextColor={colors.textSecondary} value={dateOfBirth} onChangeText={setDateOfBirth} keyboardType="numbers-and-punctuation" maxLength={10} />
           <Text style={styles.hint}>{t('auth.dateOfBirthHint')}</Text>
 
           <Text style={styles.label}>{t('auth.referralCodeLabel')}</Text>

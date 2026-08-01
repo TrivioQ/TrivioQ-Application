@@ -43,7 +43,7 @@ export default function LoginScreen() {
     setIsPending(true);
     try {
       await loginWithEmail(email, password);
-      toast.success('Successfully authenticated');
+      toast.success(t('auth.loginSuccess'));
     } catch (error: any) {
       console.error('Login failed:', error);
       toast.error(error.message || t('auth.loginFailed'));
@@ -56,7 +56,7 @@ export default function LoginScreen() {
     setIsPending(true);
     try {
       await signInWithGoogle();
-      toast.success('Successfully authenticated');
+      toast.success(t('auth.loginSuccess'));
     } catch (error: any) {
       console.error('Google sign-in failed:', error);
       toast.error(error.message || t('auth.googleFailed'));
@@ -77,10 +77,10 @@ export default function LoginScreen() {
 
         <View style={styles.form}>
           <Text style={styles.label}>{t('auth.emailLabel')}</Text>
-          <TextInput style={styles.input} placeholder="email@example.com" placeholderTextColor={colors.textSecondary} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
+          <TextInput style={styles.input} placeholder={t('auth.emailPlaceholder')} placeholderTextColor={colors.textSecondary} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
 
           <Text style={styles.label}>{t('auth.passwordLabel')}</Text>
-          <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor={colors.textSecondary} value={password} onChangeText={setPassword} secureTextEntry />
+          <TextInput style={styles.input} placeholder={t('auth.passwordPlaceholder')} placeholderTextColor={colors.textSecondary} value={password} onChangeText={setPassword} secureTextEntry />
 
           {/* Forgot password link */}
           <TouchableOpacity style={styles.forgotPasswordRow} onPress={() => toast.info(`${t('auth.forgotPasswordTitle')}: ${t('auth.forgotPasswordBody')}`)}>

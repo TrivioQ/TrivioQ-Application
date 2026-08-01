@@ -45,8 +45,8 @@ const DIFF_COLOR: Record<string, string> = {
   HARD: 'text-error bg-error/10',
 };
 
-function formatDate(iso: string | null, locale: string) {
-  if (!iso) return '—';
+function formatDate(iso: string | null, locale: string, fallback: string) {
+  if (!iso) return fallback;
   return new Date(iso).toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
@@ -67,6 +67,7 @@ function StatCard({ label, value, sub, accent }: { label: string; value: React.R
 
 export function DashboardStats() {
   const t = useTranslations('dashboard');
+  const tc = useTranslations('common');
   const locale = useLocale();
 
   const { data: profile } = useQuery<UserProfile>({
@@ -119,7 +120,7 @@ export function DashboardStats() {
                 {profile.currentStreak} <Flame className="w-7 h-7 text-brand-500" />
               </>
             ) : (
-              '—'
+              tc('dashPlaceholder')
             )
           }
           sub={accuracyPct !== null ? t('accuracyLast10', { pct: accuracyPct }) : t('noDataYet')}
@@ -157,8 +158,8 @@ export function DashboardStats() {
         ) : (
           <div className="divide-y divide-white/5">
             {recentDrops.map((drop) => {
-              const selectedText = drop.selectedChoiceId != null ? (drop.question.choices.find((c) => c.id === drop.selectedChoiceId)?.text ?? '—') : null;
-              const correctText = drop.question.choices.find((c) => c.isCorrect)?.text ?? '—';
+              const selectedText = drop.selectedChoiceId != null ? (drop.question.choices.find((c) => c.id === drop.selectedChoiceId)?.text ?? tc('dashPlaceholder')) : null;
+              const correctText = drop.question.choices.find((c) => c.isCorrect)?.text ?? tc('dashPlaceholder');
 
               return (
                 <div key={drop.id} className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
@@ -204,7 +205,7 @@ export function DashboardStats() {
                         )}
                       </div>
                     )}
-                    <p className="text-[11px] text-text-muted mt-1">{formatDate(drop.answeredAt, locale)}</p>
+                    <p className="text-[11px] text-text-muted mt-1">{formatDate(drop.answeredAt, locale, tc('dashPlaceholder'))}</p>
                   </div>
 
                   <div className="shrink-0 sm:text-right self-end sm:self-auto">

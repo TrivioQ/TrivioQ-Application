@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import apiClient from '../api/client';
 
 interface UserNotification {
@@ -33,6 +34,7 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
   const styles = React.useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
   const [isVisible, setIsVisible] = useState(false);
+  const { t, i18n } = useTranslation();
 
   const { data: notifications } = useQuery<UserNotification[]>({
     queryKey: ['notifications-preview'],
@@ -93,9 +95,9 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
           <TouchableOpacity style={[styles.dropdown, { backgroundColor: colors.bgPrimary, borderColor: colors.borderColor }]} activeOpacity={1} onPress={(e) => e.stopPropagation()}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={[styles.title, { color: colors.textPrimary }]}>Notifications</Text>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>{t('notifications.title')}</Text>
               <TouchableOpacity onPress={() => markAllAsReadMutation.mutate()}>
-                <Text style={[styles.markAllRead, { color: colors.brand }]}>Mark all read</Text>
+                <Text style={[styles.markAllRead, { color: colors.brand }]}>{t('notifications.markAllRead')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -103,7 +105,7 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
             {!notifications || notifications.length === 0 ? (
               <View style={styles.empty}>
                 <Ionicons name="notifications-outline" size={48} color={colors.textSecondary} />
-                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No notifications yet</Text>
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('notifications.noNotificationsSub')}</Text>
               </View>
             ) : (
               <FlatList
@@ -123,7 +125,7 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
                         {item.body}
                       </Text>
                       <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
-                        {new Date(item.createdAt).toLocaleDateString(undefined, {
+                        {new Date(item.createdAt).toLocaleDateString(i18n.language, {
                           month: 'short',
                           day: 'numeric',
                           hour: '2-digit',
@@ -139,7 +141,7 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
 
             {/* Footer */}
             <TouchableOpacity style={[styles.footer, { backgroundColor: colors.bgSecondary }]} onPress={handleViewAll}>
-              <Text style={[styles.footerText, { color: colors.brand }]}>View all notifications →</Text>
+              <Text style={[styles.footerText, { color: colors.brand }]}>{t('notifications.viewAll')}</Text>
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>

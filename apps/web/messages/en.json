@@ -28,7 +28,14 @@
     "easy": "Easy",
     "medium": "Medium",
     "hard": "Hard",
-    "dismissNotification": "Dismiss notification"
+    "dismissNotification": "Dismiss notification",
+    "dashPlaceholder": "—",
+    "categoryCombobox": {
+      "searchPlaceholder": "Search categories...",
+      "clearAll": "Clear all",
+      "selectAll": "Select all",
+      "noMatch": "No categories match your search."
+    }
   },
   "metadata": {
     "homeTitle": "TrivioQ",
@@ -404,7 +411,13 @@
     "step4LoadingMsg5": "Almost there \u2014 getting everything ready for you...",
     "step4LoadingHint": "This usually takes just a moment.",
     "submitting": "Setting up...",
-    "submitFailed": "Setup failed. Please try again."
+    "submitFailed": "Setup failed. Please try again.",
+    "trialAcceptance": "I accept the 7-day Premium free trial. I understand no payment is required and I can subscribe later.",
+    "trialRequiredError": "Trial acceptance is required.",
+    "timesInvalidError": "Times invalid.",
+    "summaryCategories": "{count} categories selected",
+    "summaryActiveWindow": "Active window {start}\u2013{end}",
+    "summaryTrialActivated": "7-day Premium trial activated"
   },
   "subscription": {
     "title": "Subscription",
@@ -414,6 +427,7 @@
     "premium": "Premium",
     "plus": "Plus",
     "free": "Free",
+    "trial": "Trial",
     "nextBillingDate": "Next billing date: ",
     "expiresOn": "Expires on: ",
     "plusExpires": "Plus expires: ",

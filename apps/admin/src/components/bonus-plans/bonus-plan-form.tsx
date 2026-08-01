@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm, useFieldArray, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -17,20 +17,22 @@ import { toast } from 'sonner';
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
-const schema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  periodType: z.enum(['WEEK', 'MONTH']),
-  rewardType: z.enum(['POINTS', 'PREMIUM_DAYS']),
-  startDate: z.date().refine((d) => d instanceof Date && !isNaN(d.getTime()), {
-    message: 'Start date is required',
-  }),
-  payoutValues: z
-    .array(z.object({ value: z.number().int().min(0, 'Must be ≥ 0') }))
-    .min(1)
-    .max(10),
-});
+function buildSchema(t: (key: string) => string) {
+  return z.object({
+    title: z.string().min(1, t('titleRequired')),
+    periodType: z.enum(['WEEK', 'MONTH']),
+    rewardType: z.enum(['POINTS', 'PREMIUM_DAYS']),
+    startDate: z.date().refine((d) => d instanceof Date && !isNaN(d.getTime()), {
+      message: t('startDateRequired'),
+    }),
+    payoutValues: z
+      .array(z.object({ value: z.number().int().min(0, t('mustBeNonNegative')) }))
+      .min(1)
+      .max(10),
+  });
+}
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<ReturnType<typeof buildSchema>>;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -93,6 +95,7 @@ interface BonusPlanFormProps {
 
 export function BonusPlanForm({ initialValues, onSuccess, onCancel }: BonusPlanFormProps) {
   const t = useTranslations('bonusPlans.form');
+  const schema = useMemo(() => buildSchema(t), [t]);
   const isEdit = !!initialValues;
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);

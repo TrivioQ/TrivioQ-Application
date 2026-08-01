@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Linking } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import apiClient from '../api/client';
 import { toast } from 'sonner-native';
 import { useTheme } from '../context/ThemeContext';
@@ -20,9 +21,9 @@ interface SubscriptionData {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string | null): string {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-US', {
+function formatDate(iso: string | null, locale: string, fallback: string): string {
+  if (!iso) return fallback;
+  return new Date(iso).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -52,6 +53,7 @@ function Stepper({ value, min, max, onChange }: { value: number; min: number; ma
 export default function SubscriptionScreen() {
   const queryClient = useQueryClient();
   const { colors } = useTheme();
+  const { t, i18n } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [daysToActivate, setDaysToActivate] = useState(1);
   const [activating, setActivating] = useState(false);
@@ -69,15 +71,15 @@ export default function SubscriptionScreen() {
     setActivating(true);
     try {
       await apiClient.post('/api/v1/subscriptions/activate-vault', { daysToActivate });
-      toast.success(`✅ ${daysToActivate} premium day${daysToActivate > 1 ? 's' : ''} activated!`);
+      toast.success(t('subscription.vaultActivatedToast', { count: daysToActivate }));
       setDaysToActivate(1);
       queryClient.invalidateQueries({ queryKey: ['subscriptionStatus'] });
     } catch {
-      toast.error('Failed to activate days. Please try again.');
+      toast.error(t('subscription.activateFailed'));
     } finally {
       setActivating(false);
     }
-  }, [data, daysToActivate, queryClient]);
+  }, [data, daysToActivate, queryClient, t]);
 
   if (isLoading) {
     return (
@@ -90,7 +92,7 @@ export default function SubscriptionScreen() {
   if (isError || !data) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>Failed to load subscription details.</Text>
+        <Text style={styles.errorText}>{t('subscription.loadError')}</Text>
       </View>
     );
   }
@@ -107,42 +109,42 @@ export default function SubscriptionScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* ── Current Plan Card ────────────────────────────────────────────── */}
       <View style={styles.card}>
-        <Text style={styles.cardHeader}>Current Plan</Text>
+        <Text style={styles.cardHeader}>{t('subscription.currentPlan')}</Text>
 
         {isAutoRenew && (
           <>
             <View style={[styles.badge, styles.badgeGold]}>
-              <Text style={[styles.badgeText, styles.badgeTextGold]}>👑 Premium</Text>
+              <Text style={[styles.badgeText, styles.badgeTextGold]}>{t('subscription.tiers.premium')}</Text>
             </View>
-            <Text style={styles.metaLabel}>{isAutoRenewalEnabled ? 'Next billing date' : 'Expires on'}</Text>
-            <Text style={styles.metaValue}>{formatDate(subscriptionExpiresAt)}</Text>
+            <Text style={styles.metaLabel}>{isAutoRenewalEnabled ? t('subscription.nextBillingDate') : t('subscription.expiresOn')}</Text>
+            <Text style={styles.metaValue}>{formatDate(subscriptionExpiresAt, i18n.language, t('common.dashPlaceholder'))}</Text>
           </>
         )}
 
         {(isVault || isTrial) && (
           <>
             <View style={[styles.badge, styles.badgePurple]}>
-              <Text style={[styles.badgeText, styles.badgeTextPurple]}>{isTrial ? '✨ Trial' : '🔮 Plus'}</Text>
+              <Text style={[styles.badgeText, styles.badgeTextPurple]}>{isTrial ? t('subscription.tiers.trial') : t('subscription.tiers.plus')}</Text>
             </View>
-            <Text style={styles.metaLabel}>Expires on</Text>
-            <Text style={styles.metaValue}>{formatDate(subscriptionExpiresAt)}</Text>
+            <Text style={styles.metaLabel}>{t('subscription.expiresOn')}</Text>
+            <Text style={styles.metaValue}>{formatDate(subscriptionExpiresAt, i18n.language, t('common.dashPlaceholder'))}</Text>
           </>
         )}
 
         {isFree && (
           <>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>Free</Text>
+              <Text style={styles.badgeText}>{t('subscription.tiers.free')}</Text>
             </View>
 
             {/* Feature comparison */}
             <View style={styles.featureTable}>
               {[
-                { feature: 'Daily trivia drop', free: '✅', plus: '✅', premium: '✅' },
-                { feature: 'On-demand drops', free: '❌', plus: '1/day', premium: '∞' },
-                { feature: 'Hints', free: '❌', plus: '✅', premium: '✅' },
-                { feature: 'Score history', free: '❌', plus: '✅', premium: '✅' },
-                { feature: 'Vault days', free: '❌', plus: '✅', premium: '✅' },
+                { feature: t('subscription.features.dailyDrop'), free: '✅', plus: '✅', premium: '✅' },
+                { feature: t('subscription.features.onDemand'), free: '❌', plus: t('subscription.featureValues.onePerDay'), premium: '∞' },
+                { feature: t('subscription.features.hints'), free: '❌', plus: '✅', premium: '✅' },
+                { feature: t('subscription.features.scoreHistory'), free: '❌', plus: '✅', premium: '✅' },
+                { feature: t('subscription.features.vaultDays'), free: '❌', plus: '✅', premium: '✅' },
               ].map((row) => (
                 <View key={row.feature} style={styles.featureRow}>
                   <Text style={styles.featureLabel}>{row.feature}</Text>
@@ -153,9 +155,9 @@ export default function SubscriptionScreen() {
               ))}
               <View style={styles.featureHeaderRow}>
                 <Text style={styles.featureHeaderLabel} />
-                <Text style={styles.featureHeader}>Free</Text>
-                <Text style={[styles.featureHeader, { color: colors.brand }]}>Plus</Text>
-                <Text style={[styles.featureHeader, { color: colors.goldDeep }]}>👑 Premium</Text>
+                <Text style={styles.featureHeader}>{t('subscription.tiers.free')}</Text>
+                <Text style={[styles.featureHeader, { color: colors.brand }]}>{t('subscription.tiers.plus')}</Text>
+                <Text style={[styles.featureHeader, { color: colors.goldDeep }]}>{t('subscription.tiers.premium')}</Text>
               </View>
             </View>
 
@@ -169,7 +171,7 @@ export default function SubscriptionScreen() {
                 )
               }
             >
-              <Text style={styles.upgradeButtonText}>⚡ Upgrade to Premium</Text>
+              <Text style={styles.upgradeButtonText}>{t('subscription.upgradeButton')}</Text>
             </TouchableOpacity>
           </>
         )}
@@ -177,17 +179,17 @@ export default function SubscriptionScreen() {
 
       {/* ── Vault Card ───────────────────────────────────────────────────── */}
       <View style={styles.card}>
-        <Text style={styles.cardHeader}>🎁 Banked Premium Days: {onDemandTokensAvailable}</Text>
+        <Text style={styles.cardHeader}>{t('subscription.vault.bankedDays', { count: onDemandTokensAvailable })}</Text>
 
-        {isAutoRenew && <Text style={styles.vaultSafeText}>Your days are safely banked. They will automatically unlock if you ever cancel your recurring subscription.</Text>}
+        {isAutoRenew && <Text style={styles.vaultSafeText}>{t('subscription.vault.safelyBanked')}</Text>}
 
         {canActivate && (
           <>
             {onDemandTokensAvailable === 0 ? (
-              <Text style={styles.vaultEmptyText}>You have no banked days to activate.</Text>
+              <Text style={styles.vaultEmptyText}>{t('subscription.vault.empty')}</Text>
             ) : (
               <>
-                <Text style={styles.stepperLabel}>Days to activate</Text>
+                <Text style={styles.stepperLabel}>{t('subscription.vault.daysToActivate')}</Text>
                 <Stepper value={daysToActivate} min={stepMin} max={onDemandTokensAvailable} onChange={setDaysToActivate} />
               </>
             )}
@@ -197,7 +199,7 @@ export default function SubscriptionScreen() {
                 <ActivityIndicator size="small" color={colors.onAccent} />
               ) : (
                 <Text style={styles.activateButtonText}>
-                  Activate {daysToActivate} Day{daysToActivate !== 1 ? 's' : ''}
+                  {t('subscription.vault.activateButton', { count: daysToActivate })}
                 </Text>
               )}
             </TouchableOpacity>

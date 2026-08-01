@@ -30,8 +30,8 @@ function formatPeriodLabel(period: ScorePeriod, locale: string): string {
   return start.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
 }
 
-function RankBadge({ rank }: { rank: number | null }) {
-  if (!rank) return <span className="text-text-muted text-sm">—</span>;
+function RankBadge({ rank, fallback }: { rank: number | null; fallback: string }) {
+  if (!rank) return <span className="text-text-muted text-sm">{fallback}</span>;
   const colors: Record<number, string> = {
     1: 'bg-brand-500/20 text-brand-300 border-brand-500/40',
     2: 'bg-text-muted/20 text-text-muted border-text-muted/40',
@@ -41,7 +41,7 @@ function RankBadge({ rank }: { rank: number | null }) {
   return <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${cls}`}>{rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`}</span>;
 }
 
-function HistoryTable({ data, t, locale }: { data: ScorePeriod[]; t: ReturnType<typeof useTranslations<'scoreHistory'>>; locale: string }) {
+function HistoryTable({ data, t, locale, fallback }: { data: ScorePeriod[]; t: ReturnType<typeof useTranslations<'scoreHistory'>>; locale: string; fallback: string }) {
   if (data.length === 0) {
     return (
       <div className="py-20 text-center text-text-muted">
@@ -68,12 +68,12 @@ function HistoryTable({ data, t, locale }: { data: ScorePeriod[]; t: ReturnType<
             <tr key={row.id} className="hover:bg-white/10 dark:hover:bg-white/[0.02] transition-colors">
               <td className="px-4 sm:px-6 py-4 text-sm text-text font-medium max-w-[140px] sm:max-w-none truncate">{formatPeriodLabel(row, locale)}</td>
               <td className="px-4 sm:px-6 py-4 text-right font-mono text-text">{row.baseScore.toLocaleString()}</td>
-              <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-right">{row.bonusScore > 0 ? <span className="text-success font-bold font-mono">+{row.bonusScore.toLocaleString()}</span> : <span className="text-text-muted font-mono">—</span>}</td>
+              <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-right">{row.bonusScore > 0 ? <span className="text-success font-bold font-mono">+{row.bonusScore.toLocaleString()}</span> : <span className="text-text-muted font-mono">{fallback}</span>}</td>
               <td className="px-4 sm:px-6 py-4 text-right">
                 <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-brand-300">{row.totalScore.toLocaleString()}</span>
               </td>
               <td className="px-4 sm:px-6 py-4 text-right">
-                <RankBadge rank={row.rank} />
+                <RankBadge rank={row.rank} fallback={fallback} />
               </td>
             </tr>
           ))}
@@ -85,6 +85,7 @@ function HistoryTable({ data, t, locale }: { data: ScorePeriod[]; t: ReturnType<
 
 export function ScoreHistoryTabs({ weekly, monthly }: ScoreHistoryTabsProps) {
   const t = useTranslations('scoreHistory');
+  const tc = useTranslations('common');
   const locale = useLocale();
   const [activeTab, setActiveTab] = useState<'weekly' | 'monthly'>('weekly');
 
@@ -98,7 +99,7 @@ export function ScoreHistoryTabs({ weekly, monthly }: ScoreHistoryTabsProps) {
         ))}
       </div>
 
-      <HistoryTable data={activeTab === 'weekly' ? weekly : monthly} t={t} locale={locale} />
+      <HistoryTable data={activeTab === 'weekly' ? weekly : monthly} t={t} locale={locale} fallback={tc('dashPlaceholder')} />
 
       <p className="text-center text-text-muted text-xs">{t('historyNote')}</p>
     </div>

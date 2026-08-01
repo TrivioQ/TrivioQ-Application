@@ -18,6 +18,7 @@ const ROTATION_INTERVAL_MS = 2800;
 export function GetStartedWizard() {
   const router = useRouter();
   const t = useTranslations('getStarted');
+  const tCommon = useTranslations('common');
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
 
@@ -46,11 +47,11 @@ export function GetStartedWizard() {
       if (selectedCategories.length < 30) return { ok: false, reason: t('step1MinError') };
     }
     if (step === 2) {
-      if (!trialAccepted) return { ok: false, reason: 'Trial acceptance is required.' };
+      if (!trialAccepted) return { ok: false, reason: t('trialRequiredError') };
     }
     if (step === 3) {
       if (!isValidTime(activeStart) || !isValidTime(activeEnd)) {
-        return { ok: false, reason: 'Times invalid.' };
+        return { ok: false, reason: t('timesInvalidError') };
       }
     }
     return { ok: true };
@@ -130,7 +131,7 @@ export function GetStartedWizard() {
                 <TrialStep />
                 <label className="flex items-start gap-3 p-4 rounded-2xl border border-border bg-bg-secondary/40 cursor-pointer">
                   <input type="checkbox" checked={trialAccepted} onChange={(e) => setTrialAccepted(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 rounded border-border bg-bg-secondary text-brand-600 dark:text-brand-500 accent-brand-600 dark:accent-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 cursor-pointer" />
-                  <span className="text-sm text-text">I accept the 7-day Premium free trial. I understand no payment is required and I can subscribe later.</span>
+                  <span className="text-sm text-text">{t('trialAcceptance')}</span>
                 </label>
               </div>
             )}
@@ -140,11 +141,9 @@ export function GetStartedWizard() {
                 <h2 className="text-2xl font-bold text-text">{t('step4Title')}</h2>
                 <p className="text-sm text-text-muted mt-1">{t('step4Desc')}</p>
                 <ul className="text-sm text-text-muted space-y-1 list-disc pl-5">
-                  <li>{selectedCategories.length} categories selected</li>
-                  <li>
-                    Active window {activeStart}–{activeEnd}
-                  </li>
-                  <li>7-day Premium trial activated</li>
+                  <li>{t('summaryCategories', { count: selectedCategories.length })}</li>
+                  <li>{t('summaryActiveWindow', { start: activeStart, end: activeEnd })}</li>
+                  <li>{t('summaryTrialActivated')}</li>
                 </ul>
               </div>
             )}
@@ -170,7 +169,7 @@ export function GetStartedWizard() {
         {!submitting && (
           <div className="flex items-center justify-between pt-2">
             <button type="button" onClick={back} disabled={step === 1} className="px-5 py-2.5 rounded-xl text-sm font-bold text-text-muted hover:text-text disabled:opacity-30 disabled:cursor-not-allowed">
-              Back
+              {tCommon('back')}
             </button>
             <button type="button" onClick={next} className="bg-brand-600 hover:bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all">
               {advanceLabel}

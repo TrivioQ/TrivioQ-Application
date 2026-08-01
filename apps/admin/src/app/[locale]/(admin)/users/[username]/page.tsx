@@ -25,12 +25,12 @@ export default async function UserStatsPage({ params }: { params: Promise<{ user
       <div>
         <Link href="/users" className={buttonVariants({ variant: 'ghost', size: 'sm', className: '-ml-3 mb-2' })}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to {t('title')}
+          {t('backTo', { title: t('title') })}
         </Link>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">User Overview</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('userOverview')}</h1>
       </div>
 
-      <Suspense fallback={<div>Loading stats...</div>}>
+      <Suspense fallback={<div>{t('loadingStats')}</div>}>
         <UserStatsClient
           user={user as any}
           weeklyScore={weeklyScore as any}

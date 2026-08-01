@@ -113,7 +113,7 @@ export default function ProfileScreen({ navigation }: any) {
             <Ionicons name="camera" size={14} color={colors.onAccent} />
           </View>
         </TouchableOpacity>
-        <Text style={styles.displayName}>{data?.displayName ?? data?.username ?? '—'}</Text>
+        <Text style={styles.displayName}>{data?.displayName ?? data?.username ?? t('common.dashPlaceholder')}</Text>
         <Text style={styles.email}>{data?.email}</Text>
         <View style={[styles.tierBadge, isPaid && styles.tierBadgePremium]}>
           <Text style={[styles.tierText, isPaid && styles.tierTextPremium]}>{isPremium ? t('profile.premiumTier') : isPlus ? t('profile.plusTier') : t('profile.freeTier')}</Text>
