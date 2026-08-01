@@ -49,6 +49,10 @@ export function useAuthSync({ onSuccess, onError }: AuthSyncOptions = {}) {
   };
 
   const handleError = (err: any) => {
+    if (err?.code === 'ACCOUNT_PENDING_DELETION') {
+      onError?.(err?.message || 'Account pending deletion');
+      return; // UI will handle this specific flow
+    }
     const msg = err?.message || t('unexpectedError');
     toast.error(msg);
     onError?.(msg);

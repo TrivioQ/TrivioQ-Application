@@ -65,7 +65,7 @@ We do not sell your personal data. We may share information in the following lim
 
 ## 5. Data Retention
 
-We retain your account data for as long as your account is active or as needed to provide you with the Service. If you request account deletion, we will delete or anonymise your personal data within **30 days**, except where we are required by law to retain certain records or where data has been incorporated into aggregated, anonymised statistics that do not identify you.
+We retain your account data for as long as your account is active or as needed to provide you with the Service. If you request account deletion, your account will enter a pending deletion state for **30 days**. During this period, you may reactivate your account by logging in. After 30 days, we will permanently delete or anonymise your personal data, except where we are required by law to retain certain records or where data has been incorporated into aggregated, anonymised statistics that do not identify you.
 
 Score and leaderboard history data may be retained in anonymised form for analytical purposes after account deletion.
 

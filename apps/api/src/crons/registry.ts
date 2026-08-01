@@ -3,6 +3,7 @@ import { distributeBonuses, getWeekStart, getMonthStart } from '../utils/scoring
 import { initDropPlanner } from '../services/drop-planner-service';
 import { initNotificationCrons } from './notification-crons';
 import { initQuestionValidationCron } from './question-validation-cron';
+import { runAccountDeletionCron } from './account-deletion-cron';
 
 export function registerAllCrons() {
   // ── Weekly bonus — every Monday at 00:05 ─────────────────────────────────────
@@ -30,4 +31,9 @@ export function registerAllCrons() {
 
   // ── AI question validation — runs daily at 10:00 AM UTC ────────────────────────
   initQuestionValidationCron();
+
+  // ── Account Deletion — runs daily at 03:00 AM ──────────────────────────────────
+  CronManager.register('Account Deletion', '0 3 * * *', async () => {
+    await runAccountDeletionCron();
+  });
 }

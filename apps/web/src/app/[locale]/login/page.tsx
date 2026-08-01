@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useAuth } from '@/context/auth-provider';
 
@@ -15,6 +16,8 @@ function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [keepMeLoggedIn, setKeepMeLoggedIn] = useState(false);
+  const [pendingReactivationToken, setPendingReactivationToken] = useState<string | null>(null);
+  const [isReactivating, setIsReactivating] = useState(false);
 
   // Errors are shown as toast notifications via useAuthSync → useNotification
   const { isPending, loginWithEmailSync, signInWithGoogleSync } = useAuthSync();
@@ -49,8 +52,57 @@ function LoginForm() {
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await loginWithEmailSync(email, password, keepMeLoggedIn);
+    try {
+      await loginWithEmailSync(email, password, keepMeLoggedIn);
+    } catch (err: any) {
+      if (err?.code === 'ACCOUNT_PENDING_DELETION' && err?.data?.idToken) {
+        setPendingReactivationToken(err.data.idToken);
+      }
+    }
   };
+
+  const handleReactivate = async () => {
+    if (!pendingReactivationToken) return;
+    setIsReactivating(true);
+    try {
+      const res = await fetch('/api/auth/reactivate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: pendingReactivationToken }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to reactivate');
+      }
+
+      toast.success('Account reactivated successfully!');
+      window.location.href = '/dashboard';
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to reactivate account');
+      setPendingReactivationToken(null);
+    } finally {
+      setIsReactivating(false);
+    }
+  };
+
+  if (pendingReactivationToken) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4 sm:px-6 py-12 lg:px-8 selection:bg-brand-500 selection:text-text">
+        <div className="w-full max-w-md space-y-6 sm:space-y-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl p-6 sm:p-10 rounded-3xl border border-brand-100 dark:border-white/10 shadow-2xl shadow-brand-500/15 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-text">Account Pending Deletion</h2>
+          <p className="mt-2 text-sm text-text-muted">Your account is currently scheduled for permanent deletion. Would you like to reactivate it?</p>
+          <div className="flex gap-4 mt-8">
+            <button onClick={() => setPendingReactivationToken(null)} disabled={isReactivating} className="flex-1 rounded-md bg-bg-secondary px-3 py-3 text-sm font-semibold text-text shadow-sm ring-1 ring-inset ring-border hover:bg-bg disabled:opacity-50">
+              Cancel
+            </button>
+            <button onClick={handleReactivate} disabled={isReactivating} className="flex-1 rounded-md bg-brand-500 px-3 py-3 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50 transition-colors">
+              {isReactivating ? 'Reactivating...' : 'Reactivate Account'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleGoogleLogin = async () => {
     await signInWithGoogleSync();

@@ -24,6 +24,10 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
     const existingUser = await prisma.user.findUnique({ where: { firebaseUid } });
 
     if (existingUser) {
+      if (existingUser.accountStatus === 'PENDING_DELETION') {
+        return res.status(403).json({ error: 'ACCOUNT_PENDING_DELETION', message: 'Your account is scheduled for deletion.' });
+      }
+
       // Returning user — just bump lastLogin, don't overwrite profile
       const user = await prisma.user.update({
         where: { firebaseUid },
@@ -168,17 +172,48 @@ router.delete('/', verifyFirebaseToken, async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    console.log(`Deleting account for user: ${email} (${firebaseUid})`);
+    console.log(`Marking account for deletion: ${email} (${firebaseUid})`);
 
-    // 1. Delete from database
-    await prisma.user.delete({ where: { firebaseUid } });
+    const scheduledDeletionAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
 
-    // 2. Delete from Firebase
-    await admin.auth().deleteUser(firebaseUid);
+    // 1. Update database status to pending deletion
+    await prisma.user.update({
+      where: { firebaseUid },
+      data: {
+        accountStatus: 'PENDING_DELETION',
+        scheduledDeletionAt,
+        deletionWarningSent: false,
+      },
+    });
 
-    res.json({ message: 'Account deleted successfully' });
+    // We do NOT delete from Firebase yet so they can log back in to reactivate.
+
+    res.json({ message: 'Account marked for deletion in 30 days' });
   } catch (error) {
-    console.error('Failed to delete user account:', error);
+    res.status(500).json({ error: error.message || 'Internal server error' });
+  }
+});
+
+router.post('/reactivate', verifyFirebaseToken, async (req: Request, res: Response) => {
+  try {
+    const firebaseUid = (req as any).firebaseUid;
+
+    if (!firebaseUid) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const user = await prisma.user.update({
+      where: { firebaseUid },
+      data: {
+        accountStatus: 'ACTIVE',
+        scheduledDeletionAt: null,
+        deletionWarningSent: false,
+      },
+    });
+
+    res.json(user);
+  } catch (error) {
+    console.error('Failed to reactivate user account:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

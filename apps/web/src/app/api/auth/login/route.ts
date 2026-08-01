@@ -91,6 +91,16 @@ export async function syncAndRespond(idToken: string, extraData: Record<string, 
     if (!upstream.ok) {
       const errorText = await upstream.text();
       console.error('[auth] Backend sync failed:', upstream.status, errorText);
+
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.error === 'ACCOUNT_PENDING_DELETION') {
+          return NextResponse.json({ message: errorJson.message, code: 'ACCOUNT_PENDING_DELETION', idToken }, { status: 403 });
+        }
+      } catch {
+        // Not JSON, fall through
+      }
+
       return NextResponse.json({ message: 'Backend synchronization failed', details: errorText }, { status: upstream.status });
     }
 

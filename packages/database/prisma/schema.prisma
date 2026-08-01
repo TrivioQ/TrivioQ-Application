@@ -44,11 +44,19 @@ model User {
   notificationPreferences UserNotificationPreference?
   userNotifications  UserNotification[]
   webPushSubscriptions WebPushSubscription[]
+  accountStatus        AccountStatus @default(ACTIVE)
+  scheduledDeletionAt  DateTime?
+  deletionWarningSent  Boolean       @default(false)
 }
 
 enum Role {
   USER
   ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  PENDING_DELETION
 }
 
 enum PeriodType {

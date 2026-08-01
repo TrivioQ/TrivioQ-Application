@@ -127,7 +127,7 @@ You agree to defend, indemnify, and hold harmless Enatos Tech and its affiliates
 
 We may suspend or terminate your account and access to the Service at any time, with or without cause and with or without notice, if we believe you have violated these Terms or for any other reason at our sole discretion.
 
-You may terminate your account at any time by contacting us at **support@enatostech.com**. Upon termination, your right to use the Service ceases immediately. Provisions of these Terms that by their nature should survive termination shall do so, including Sections 6, 8, 11, 12, 13, and 16.
+You may terminate your account at any time by contacting us at **support@enatostech.com** or by initiating account deletion from your account settings. Upon initiating deletion, your account will enter a pending deletion state for 30 days before being permanently deleted, during which you may reactivate it. Provisions of these Terms that by their nature should survive termination shall do so, including Sections 6, 8, 11, 12, 13, and 16.
 
 ---
 

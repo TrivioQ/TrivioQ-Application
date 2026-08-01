@@ -217,7 +217,15 @@ export async function getSubscriptionHistory(userId: string, page = 1, pageSize 
 
 export async function deleteUser(userId: string) {
   try {
-    await prisma.user.delete({ where: { id: userId } });
+    const scheduledDeletionAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        accountStatus: 'PENDING_DELETION',
+        scheduledDeletionAt,
+        deletionWarningSent: false
+      }
+    });
     revalidatePath('/users');
     return { success: true };
   } catch (error) {

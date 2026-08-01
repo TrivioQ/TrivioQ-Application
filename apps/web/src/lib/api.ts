@@ -10,6 +10,7 @@ export interface APICallOptions extends Omit<RequestInit, 'body'> {
 export interface APIErrorBody {
   message?: string;
   code?: string;
+  [key: string]: any;
 }
 
 // ---------------------------------------------------------------------------
@@ -21,6 +22,7 @@ export class APIError extends Error {
     public readonly status: number,
     message: string,
     public readonly code?: string,
+    public readonly data?: any,
   ) {
     super(message);
     this.name = 'APIError';
@@ -71,7 +73,7 @@ export async function makeAPICall<T = unknown>(path: string, { body, headers, ..
       }
     }
 
-    throw new APIError(response.status, errorData.message ?? `Request failed with status ${response.status}`, errorData.code);
+    throw new APIError(response.status, errorData.message ?? `Request failed with status ${response.status}`, errorData.code, errorData);
   }
 
   // 204 No Content — return undefined cast to T
