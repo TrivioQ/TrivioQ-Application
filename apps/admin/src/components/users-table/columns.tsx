@@ -10,6 +10,7 @@ import { useState, useTransition } from 'react';
 import { UserModal } from './user-modal';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 
 // Using a partial User type since we don't need everything
 export type UserRow = {
@@ -69,6 +70,14 @@ export const columns: ColumnDef<UserRow>[] = [
   {
     accessorKey: 'username',
     header: ({ column }) => <UsernameHeader column={column} />,
+    cell: ({ row }) => {
+      const username = row.getValue('username') as string;
+      return (
+        <Link href={`/users/${username}`} className="font-medium hover:underline text-primary">
+          {username}
+        </Link>
+      );
+    },
   },
   {
     accessorKey: 'email',
