@@ -54,7 +54,7 @@ die()     { error "$*"; exit 1; }
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 COMPOSE_FILE="${PROJECT_ROOT}/docker-compose.yml"
-ENV_FILE="${PROJECT_ROOT}/.env"
+ENV_FILE="${PROJECT_ROOT}/.env.docker"
 ENV_EXAMPLE="${PROJECT_ROOT}/.env.docker.example"
 BACKUP_DIR="${PROJECT_ROOT}/backups"
 
@@ -116,14 +116,14 @@ cd_to_project() {
 
 ensure_main_and_pull() {
   cd_to_project
-  local current_branch
-  current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-  if [[ "${current_branch}" != "main" ]]; then
-    info "Not on the 'main' branch (current branch is '${current_branch}'). Switching to main..."
-    git checkout main || die "Failed to switch to main branch."
-  fi
-  info "Pulling latest changes from main branch..."
-  git pull origin main || die "Failed to pull latest changes from main branch."
+  # local current_branch
+  # current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  # if [[ "${current_branch}" != "main" ]]; then
+  #   info "Not on the 'main' branch (current branch is '${current_branch}'). Switching to main..."
+  #   git checkout main || die "Failed to switch to main branch."
+  # fi
+  # info "Pulling latest changes from main branch..."
+  # git pull origin main || die "Failed to pull latest changes from main branch."
 }
 
 # ---------------------------------------------------------------------------
@@ -161,10 +161,10 @@ cmd_deploy() {
   ensure_main_and_pull
 
   info "Building all Docker images ..."
-  docker compose -f "${COMPOSE_FILE}" build
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" build
 
   info "Starting all services in detached mode ..."
-  docker compose -f "${COMPOSE_FILE}" up -d
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" up -d
 
   info "Waiting for services to become healthy (up to 120s) ..."
   sleep 10
@@ -183,14 +183,14 @@ cmd_redeploy() {
 
   if [[ -n "${service}" ]]; then
     info "Rebuilding image for: ${service}"
-    docker compose -f "${COMPOSE_FILE}" build "${service}"
+    docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" build "${service}"
     info "Recreating container: ${service}"
-    docker compose -f "${COMPOSE_FILE}" up -d --no-deps --force-recreate "${service}"
+    docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" up -d --no-deps --force-recreate "${service}"
   else
     info "Rebuilding all changed images ..."
-    docker compose -f "${COMPOSE_FILE}" build
+    docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" build
     info "Restarting all services ..."
-    docker compose -f "${COMPOSE_FILE}" up -d --force-recreate
+    docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" up -d --force-recreate
   fi
 
   success "Redeploy complete."
@@ -200,8 +200,8 @@ cmd_rebuild() {
   info "Forcing full --no-cache rebuild of all images ..."
   check_docker
   cd_to_project
-  docker compose -f "${COMPOSE_FILE}" build --no-cache
-  docker compose -f "${COMPOSE_FILE}" up -d
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" build --no-cache
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" up -d
   success "Full rebuild and restart complete."
 }
 
@@ -209,7 +209,7 @@ cmd_start() {
   info "Starting all services ..."
   check_docker
   cd_to_project
-  docker compose -f "${COMPOSE_FILE}" up -d
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" up -d
   success "Services started."
   cmd_status
 }
@@ -218,7 +218,7 @@ cmd_stop() {
   info "Stopping all services (data volumes preserved) ..."
   check_docker
   cd_to_project
-  docker compose -f "${COMPOSE_FILE}" down
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" down
   success "All services stopped."
 }
 
@@ -228,10 +228,10 @@ cmd_restart() {
   cd_to_project
   if [[ -n "${service}" ]]; then
     info "Restarting service: ${service}"
-    docker compose -f "${COMPOSE_FILE}" restart "${service}"
+    docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" restart "${service}"
   else
     info "Restarting all services ..."
-    docker compose -f "${COMPOSE_FILE}" restart
+    docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" restart
   fi
   success "Restart complete."
 }
@@ -241,7 +241,7 @@ cmd_status() {
   cd_to_project
   echo ""
   echo -e "${BOLD}=== Service Status ===${RESET}"
-  docker compose -f "${COMPOSE_FILE}" ps
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" ps
   echo ""
   echo -e "${BOLD}=== Port Map ===${RESET}"
   echo "  PostgreSQL  → http://192.168.0.101:5432"
@@ -258,10 +258,10 @@ cmd_logs() {
   cd_to_project
   if [[ -n "${service}" ]]; then
     info "Tailing logs for: ${service} (Ctrl+C to exit)"
-    docker compose -f "${COMPOSE_FILE}" logs -f "${service}"
+    docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" logs -f "${service}"
   else
     info "Tailing logs for all services (Ctrl+C to exit)"
-    docker compose -f "${COMPOSE_FILE}" logs -f
+    docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" logs -f
   fi
 }
 
@@ -270,7 +270,7 @@ cmd_migrate() {
   check_docker
   check_env
   cd_to_project
-  docker compose -f "${COMPOSE_FILE}" run --rm migrate
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" run --rm migrate
   success "Migrations applied."
 }
 
@@ -289,7 +289,7 @@ cmd_backup() {
   local pg_user="${POSTGRES_USER:-trivioq}"
   local pg_db="${POSTGRES_DB:-trivioq}"
 
-  docker compose -f "${COMPOSE_FILE}" exec -T postgres \
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec -T postgres \
     pg_dump -U "${pg_user}" "${pg_db}" > "${backup_file}"
 
   local size
@@ -303,7 +303,7 @@ cmd_shell() {
   check_docker
   cd_to_project
   info "Opening shell in container: ${service}"
-  docker compose -f "${COMPOSE_FILE}" exec "${service}" sh
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec "${service}" sh
 }
 
 cmd_teardown() {
@@ -316,7 +316,7 @@ cmd_teardown() {
   fi
   check_docker
   cd_to_project
-  docker compose -f "${COMPOSE_FILE}" down -v
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" down -v
   success "All services and volumes removed."
 }
 

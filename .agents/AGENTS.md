@@ -1,5 +1,7 @@
 # Global Project Rules
 
+Ensure you strictly follow all the rules defined in this document every time.
+
 ## Localization Requirement
 
 All text values, messages, labels, or content that are displayed to users in the UI MUST be localized.
@@ -22,3 +24,7 @@ Desktop, Mobile, Tablet must be supported
 ## Theme Support
 
 Ensure Light and Dark mode is supported
+
+## Code Redundancy and Best Practices
+
+Always look for opportunities to reduce code redundancy in any file you modify. Refactor duplicated logic or UI elements (e.g., using array mapping, extracting helper functions, or building reusable components) to maintain a DRY (Don't Repeat Yourself) codebase.

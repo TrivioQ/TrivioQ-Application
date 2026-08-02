@@ -68,7 +68,8 @@ ENV SENTRY_IGNORE_API_ERRORS=true
 ENV SKIP_ENV_VALIDATION=1
 
 WORKDIR /app/apps/admin
-RUN pnpm run build
+RUN pnpm run build && \
+    rm -rf .next/standalone/node_modules/@prisma .next/standalone/node_modules/.prisma
 
 # -----------------------------------------------------------------------------
 # Stage 4: runner — minimal production image

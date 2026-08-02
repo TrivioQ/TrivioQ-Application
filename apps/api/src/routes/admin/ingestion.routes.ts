@@ -5,6 +5,7 @@ import Redis from 'ioredis';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
 const router = Router();
 
@@ -15,7 +16,7 @@ const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', 
 const ingestionQueue = new Queue('pdf-ingestion', { connection: connection as any });
 
 // Setup multer to save in a temporary location, then we move it
-const upload = multer({ dest: path.resolve(process.cwd(), 'temp_uploads') });
+const upload = multer({ dest: path.resolve(os.tmpdir(), 'trivioq_uploads') });
 
 /**
  * @route   GET /api/v1/admin/ingestion/jobs

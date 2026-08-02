@@ -82,7 +82,36 @@ function SettingRow({ setting }: { setting: Setting }) {
   );
 }
 
-export default function SettingsEditor({ settings, pageCount = 1, currentPage = 1, search = '' }: { settings: Setting[]; pageCount?: number; currentPage?: number; search?: string }) {
+function SettingsTable({ settings }: { settings: Setting[] }) {
+  const t = useTranslations('appSettings');
+  return (
+    <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm text-card-foreground mb-6">
+      <table className="w-full min-w-[480px] text-sm">
+        <thead>
+          <tr className="border-b border-border bg-muted/50 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <th className="py-3 px-4 sm:px-6">{t('columns.setting')}</th>
+            <th className="py-3 px-4 sm:px-6">{t('columns.type')}</th>
+            <th className="py-3 px-4 sm:px-6">{t('columns.value')}</th>
+            <th className="hidden md:table-cell py-3 px-4 sm:px-6">{t('columns.lastUpdated')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {settings.length === 0 ? (
+            <tr>
+              <td colSpan={4} className="text-center py-8 text-muted-foreground">
+                {t('noSettings')}
+              </td>
+            </tr>
+          ) : (
+            settings.map((s) => <SettingRow key={s.key} setting={s} />)
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default function SettingsEditor({ settings, search = '' }: { settings: Setting[]; search?: string }) {
   const t = useTranslations('appSettings');
   const router = useRouter();
   const pathname = usePathname();
@@ -96,15 +125,20 @@ export default function SettingsEditor({ settings, pageCount = 1, currentPage = 
     } else {
       params.delete('search');
     }
-    params.set('page', '1');
+    params.delete('page'); // Ensure page is removed if it was present
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', newPage.toString());
-    router.push(`${pathname}?${params.toString()}`);
-  };
+  // Group settings
+  const generalSettings = settings.filter(s => !s.key.startsWith('ingestion_'));
+  const ingestionSettings = settings.filter(s => s.key.startsWith('ingestion_'));
+  
+  // Extract unique phases from ingestion settings (e.g. 'scout', 'extraction')
+  const ingestionPhases = Array.from(new Set(
+    ingestionSettings
+      .map(s => s.key.split('_')[1])
+      .filter(Boolean)
+  ));
 
   return (
     <div className="space-y-4">
@@ -117,39 +151,42 @@ export default function SettingsEditor({ settings, pageCount = 1, currentPage = 
         )}
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm text-card-foreground">
-        <table className="w-full min-w-[480px] text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted/50 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              <th className="py-3 px-4 sm:px-6">{t('columns.setting')}</th>
-              <th className="py-3 px-4 sm:px-6">{t('columns.type')}</th>
-              <th className="py-3 px-4 sm:px-6">{t('columns.value')}</th>
-              <th className="hidden md:table-cell py-3 px-4 sm:px-6">{t('columns.lastUpdated')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {settings.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="text-center py-8 text-muted-foreground">
-                  {t('noSettings')}
-                </td>
-              </tr>
-            ) : (
-              settings.map((s) => <SettingRow key={s.key} setting={s} />)
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* Group: General Settings */}
+      {generalSettings.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4 text-foreground">{t('categories.general') || 'General Settings'}</h2>
+          <SettingsTable settings={generalSettings} />
+        </div>
+      )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-muted-foreground">{t('showingPage', { current: settings.length === 0 ? 0 : currentPage, total: settings.length === 0 ? 0 : Math.max(1, pageCount) })}</div>
-        <div className="flex items-center space-x-2">
-          <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} className="px-3 py-1 border border-border rounded text-sm text-foreground disabled:opacity-50 hover:bg-accent hover:text-accent-foreground">
-            {t('prev')}
-          </button>
-          <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= pageCount} className="px-3 py-1 border border-border rounded text-sm text-foreground disabled:opacity-50 hover:bg-accent hover:text-accent-foreground">
-            {t('next')}
-          </button>
+      {/* Group: Ingestion Settings */}
+      {ingestionSettings.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-xl font-semibold mb-6 text-foreground">{t('categories.ingestion') || 'Ingestion Settings'}</h2>
+          
+          {ingestionPhases.map(phase => {
+            const phaseSettings = ingestionSettings.filter(s => s.key.startsWith(`ingestion_${phase}_`));
+            if (phaseSettings.length === 0) return null;
+            
+            // Try to translate the phase name, fallback to capitalized string
+            const phaseKey = `phases.${phase}` as any;
+            const phaseName = t(phaseKey) !== `phases.${phase}` 
+              ? t(phaseKey) 
+              : phase.charAt(0).toUpperCase() + phase.slice(1) + ' Phase';
+
+            return (
+              <div key={phase} className="ml-0 sm:ml-6 mb-8">
+                <h3 className="text-lg font-medium mb-3 text-foreground border-b pb-2">{phaseName}</h3>
+                <SettingsTable settings={phaseSettings} />
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
+        <div className="text-sm text-muted-foreground">
+          {t('showingPage', { current: 1, total: 1 }).replace('page 1 of 1', `${settings.length} settings`)}
         </div>
       </div>
     </div>

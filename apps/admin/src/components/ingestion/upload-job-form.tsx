@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,16 +9,27 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
+import { getSettings } from '@/app/actions/setting-actions';
 
 export function UploadJobForm() {
   const router = useRouter();
+  const t = useTranslations('system.ingestion.form');
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [settings, setSettings] = useState<any[]>([]);
+
+  useEffect(() => {
+    getSettings({ pageSize: 1000 }).then(res => {
+      if (res.success && res.data) {
+        setSettings(res.data);
+      }
+    });
+  }, []);
 
   const [formData, setFormData] = useState({
     processType: 'question-extraction',
     topic: '',
-    categorySlugs: '',
     pagesFrom: '',
     pagesTo: '',
     extractionSpecialInstruction: '',
@@ -40,7 +51,7 @@ export function UploadJobForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      toast.error('Please select a PDF file');
+      toast.error(t('selectPdfError'));
       return;
     }
 
@@ -48,15 +59,10 @@ export function UploadJobForm() {
     try {
       const data = new FormData();
       data.append('pdf', file);
-      
+
       Object.entries(formData).forEach(([key, value]) => {
         if (value) {
-          if (key === 'categorySlugs') {
-            const slugs = value.split(',').map(s => s.trim()).filter(Boolean);
-            data.append(key, JSON.stringify(slugs));
-          } else {
-            data.append(key, value);
-          }
+          data.append(key, value);
         }
       });
 
@@ -69,12 +75,12 @@ export function UploadJobForm() {
         throw new Error('Failed to create job');
       }
 
-      toast.success('Job created successfully');
+      toast.success(t('createSuccess'));
       router.push('/ingestion');
       router.refresh();
     } catch (err: any) {
       console.error(err);
-      toast.error('Error creating job');
+      toast.error(t('createError'));
     } finally {
       setLoading(false);
     }
@@ -85,7 +91,7 @@ export function UploadJobForm() {
       <Card>
         <CardContent className="pt-6 space-y-4">
           <div className="space-y-2">
-            <Label>PDF File *</Label>
+            <Label>{t('pdfFile')}</Label>
             <Input 
               type="file" 
               accept=".pdf" 
@@ -96,120 +102,116 @@ export function UploadJobForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Process Type</Label>
+              <Label>{t('processType')}</Label>
               <Select value={formData.processType} onValueChange={(v) => v && handleSelect('processType', v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={t('selectType')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="question-extraction">Question Extraction</SelectItem>
-                  <SelectItem value="quiz-generation">Quiz Generation</SelectItem>
+                  <SelectItem value="question-extraction">{t('questionExtraction')}</SelectItem>
+                  <SelectItem value="quiz-generation">{t('quizGeneration')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="space-y-2">
-              <Label>Topic</Label>
+              <Label>{t('topic')}</Label>
               <Input 
                 name="topic" 
                 value={formData.topic} 
                 onChange={handleChange} 
-                placeholder="e.g. World History" 
+                placeholder={t('topicPlaceholder')} 
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Category Slugs (comma separated)</Label>
-            <Input 
-              name="categorySlugs" 
-              value={formData.categorySlugs} 
-              onChange={handleChange} 
-              placeholder="e.g. history, geography" 
-            />
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Page Range (From)</Label>
+              <Label>{t('pageRangeFrom')}</Label>
               <Input 
                 name="pagesFrom" 
                 type="number" 
                 value={formData.pagesFrom} 
                 onChange={handleChange} 
-                placeholder="e.g. 1" 
+                placeholder={t('pagePlaceholder')} 
               />
             </div>
             <div className="space-y-2">
-              <Label>Page Range (To)</Label>
+              <Label>{t('pageRangeTo')}</Label>
               <Input 
                 name="pagesTo" 
                 type="number" 
                 value={formData.pagesTo} 
                 onChange={handleChange} 
-                placeholder="e.g. 50" 
+                placeholder={t('pageToPlaceholder')} 
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Extraction Special Instruction</Label>
+            <Label>{t('extractionInstruction')}</Label>
             <Textarea 
               name="extractionSpecialInstruction" 
               value={formData.extractionSpecialInstruction} 
               onChange={handleChange} 
-              placeholder="Instructions injected into the extraction prompt..." 
+              placeholder={t('extractionInstructionPlaceholder')} 
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Enhancement Special Instruction</Label>
+            <Label>{t('enhancementInstruction')}</Label>
             <Textarea 
               name="enhancementSpecialInstruction" 
               value={formData.enhancementSpecialInstruction} 
               onChange={handleChange} 
-              placeholder="Instructions injected into the enhancement prompt..." 
+              placeholder={t('enhancementInstructionPlaceholder')} 
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Scout Provider</Label>
-              <Input 
-                name="scoutProvider" 
-                value={formData.scoutProvider} 
-                onChange={handleChange} 
-                placeholder="e.g. google" 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Extraction Provider</Label>
-              <Input 
-                name="extractionProvider" 
-                value={formData.extractionProvider} 
-                onChange={handleChange} 
-                placeholder="e.g. openai" 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Enhancement Provider</Label>
-              <Input 
-                name="enhancementProvider" 
-                value={formData.enhancementProvider} 
-                onChange={handleChange} 
-                placeholder="e.g. anthropic" 
-              />
-            </div>
+            {(['scoutProvider', 'extractionProvider', 'enhancementProvider'] as const).map((providerKey) => {
+              const phase = providerKey.replace('Provider', '');
+              const phaseSettings = settings.filter(s => s.key.startsWith(`ingestion_${phase}_`) && s.key !== `ingestion_${phase}_provider`);
+              
+              return (
+                <div key={providerKey} className="space-y-2">
+                  <Label>{t(providerKey as any)}</Label>
+                  <Select value={formData[providerKey]} onValueChange={(v) => v && handleSelect(providerKey, v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('selectProvider')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(['google', 'nvidia', 'deepseek', 'local'] as const).map((provider) => (
+                        <SelectItem key={provider} value={provider}>
+                          {t(`providers.${provider}` as any)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formData[providerKey] && phaseSettings.length > 0 && (
+                    <div className="mt-2 text-xs text-muted-foreground bg-muted p-2 rounded-md space-y-1">
+                      {phaseSettings.map(s => (
+                        <div key={s.key} className="flex justify-between items-center gap-2">
+                          <span className="font-medium truncate" title={s.label || s.key}>{s.label || s.key.replace(`ingestion_${phase}_`, '')}:</span>
+                          <span className="truncate max-w-[150px]" title={s.value}>{s.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
 
       <div className="flex justify-end gap-2">
-        <Button variant="outline" type="button" onClick={() => router.back()}>Cancel</Button>
+        <Button variant="outline" type="button" onClick={() => router.back()}>{t('cancel')}</Button>
         <Button type="submit" disabled={loading || !file}>
-          {loading ? 'Uploading...' : 'Start Job'}
+          {loading ? t('uploading') : t('startJob')}
         </Button>
       </div>
     </form>
   );
 }
+

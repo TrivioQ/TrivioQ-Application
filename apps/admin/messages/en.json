@@ -618,7 +618,18 @@
     "prev": "Prev",
     "next": "Next",
     "validationError": "Value must be a number",
-    "saveFailed": "Failed to save"
+    "saveFailed": "Failed to save",
+    "categories": {
+      "general": "General Settings",
+      "ingestion": "Ingestion Settings"
+    },
+    "phases": {
+      "scout": "Scout Phase",
+      "extraction": "Extraction Phase",
+      "enhancement": "Enhancement Phase/AI Validation Phase",
+      "summarization": "Summarization Phase",
+      "generation": "Generation Phase"
+    }
   },
   "subscriptionHistory": {
     "title": "Subscription History",
@@ -916,6 +927,39 @@
         "retryTitle": "Retry Job",
         "retryMessage": "Are you sure you want to retry this job?",
         "retryConfirm": "Retry"
+      },
+      "form": {
+        "pdfFile": "PDF File *",
+        "processType": "Process Type",
+        "selectType": "Select type",
+        "questionExtraction": "Question Extraction",
+        "quizGeneration": "Quiz Generation",
+        "topic": "Topic",
+        "topicPlaceholder": "e.g. World History",
+        "pageRangeFrom": "Page Range (From)",
+        "pageRangeTo": "Page Range (To)",
+        "pagePlaceholder": "e.g. 1",
+        "pageToPlaceholder": "e.g. 50",
+        "extractionInstruction": "Extraction Special Instruction",
+        "extractionInstructionPlaceholder": "Instructions injected into the extraction prompt...",
+        "enhancementInstruction": "Enhancement Special Instruction",
+        "enhancementInstructionPlaceholder": "Instructions injected into the enhancement prompt...",
+        "scoutProvider": "Scout Provider",
+        "extractionProvider": "Extraction Provider",
+        "enhancementProvider": "Enhancement Provider",
+        "selectProvider": "Select provider",
+        "cancel": "Cancel",
+        "startJob": "Start Job",
+        "uploading": "Uploading...",
+        "selectPdfError": "Please select a PDF file",
+        "createSuccess": "Job created successfully",
+        "createError": "Error creating job",
+        "providers": {
+          "google": "Google",
+          "nvidia": "Nvidia",
+          "deepseek": "Deepseek",
+          "local": "Local"
+        }
       }
     },
     "jobLogs": {

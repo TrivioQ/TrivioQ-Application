@@ -177,7 +177,7 @@ services:
     container_name: trivioq-api
     restart: unless-stopped
     env_file:
-      - .env
+      - .env.docker
     environment:
       NODE_ENV: production
       PORT: 3013
@@ -217,7 +217,7 @@ services:
     container_name: trivioq-worker-cron
     restart: unless-stopped
     env_file:
-      - .env
+      - .env.docker
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
@@ -244,7 +244,7 @@ services:
     container_name: trivioq-worker-dispatcher
     restart: unless-stopped
     env_file:
-      - .env
+      - .env.docker
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
@@ -271,7 +271,7 @@ services:
     container_name: trivioq-worker-drop
     restart: unless-stopped
     env_file:
-      - .env
+      - .env.docker
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
@@ -298,7 +298,7 @@ services:
     container_name: trivioq-worker-notification
     restart: unless-stopped
     env_file:
-      - .env
+      - .env.docker
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
@@ -325,7 +325,7 @@ services:
     container_name: trivioq-worker-email
     restart: unless-stopped
     env_file:
-      - .env
+      - .env.docker
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
@@ -343,6 +343,33 @@ services:
     logging: *default-logging
 
   # -------------------------------------------------------------------------
+  # Worker: Ingestion Processor
+  # -------------------------------------------------------------------------
+  worker-ingestion:
+    image: trivioq-api:latest
+    container_name: trivioq-worker-ingestion
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
+      DATABASE_DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
+      REDIS_URL: redis://redis:6379
+      FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
+    volumes:
+      - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+    networks:
+      - trivioq-network
+    depends_on:
+      api:
+        condition: service_healthy
+    command: ["node", "dist/workers/ingestion-worker.js"]
+    healthcheck:
+      disable: true
+    logging: *default-logging
+
+  # -------------------------------------------------------------------------
   # Web — Next.js 14 user-facing application
   # -------------------------------------------------------------------------
   web:
@@ -354,7 +381,7 @@ services:
     container_name: trivioq-web
     restart: unless-stopped
     env_file:
-      - .env
+      - .env.docker
     environment:
       NODE_ENV: production
       PORT: 3011
@@ -388,7 +415,7 @@ services:
     container_name: trivioq-admin
     restart: unless-stopped
     env_file:
-      - .env
+      - .env.docker
     environment:
       NODE_ENV: production
       PORT: 3012
