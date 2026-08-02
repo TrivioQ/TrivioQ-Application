@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
-import { Play, AlertTriangle, Copy, Check } from 'lucide-react';
+import { Play, AlertTriangle, Copy, Check, Square } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -133,6 +133,28 @@ export function JobDetail({ jobId }: { jobId: string }) {
     }
   };
 
+  const pauseJob = async () => {
+    if (!job) return;
+    const ok = await confirm({
+      title: t('confirmations.pauseTitle', { fallback: 'Pause Job' }),
+      message: t('confirmations.pauseMessage', { fallback: 'Are you sure you want to pause this job?' }),
+      confirmLabel: t('confirmations.pauseConfirm', { fallback: 'Pause' }),
+      cancelLabel: t('confirmations.cancel'),
+    });
+    if (!ok) return;
+
+    const res = await fetch(`/api/v1/admin/ingestion/jobs/${job.id}/pause`, {
+      method: 'POST',
+    });
+
+    if (res.ok) {
+      toast.success(t('pauseSuccess', { fallback: 'Job paused' }));
+      fetchJob();
+    } else {
+      toast.error(t('errorAction'));
+    }
+  };
+
   const copyErrorLogs = () => {
     if (!job?.errorLogs) return;
     navigator.clipboard.writeText(job.errorLogs).then(() => {
@@ -200,7 +222,17 @@ export function JobDetail({ jobId }: { jobId: string }) {
                   {t('staleWarning')}
                 </Badge>
               )}
-              <Badge variant={statusVariant(job.status)}>{job.status}</Badge>
+              {job.status === 'PROCESSING' && !stale ? (
+                <Badge className="animate-pulse bg-emerald-600 hover:bg-emerald-600 text-white flex items-center gap-1">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                  </span>
+                  {job.status}
+                </Badge>
+              ) : (
+                <Badge variant={statusVariant(job.status)}>{job.status}</Badge>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -333,34 +365,44 @@ export function JobDetail({ jobId }: { jobId: string }) {
         </CardContent>
 
         {/* Retry / restart footer */}
-        {(job.status === 'FAILED' || job.status === 'COMPLETED') && (
-          <CardFooter className="flex flex-col sm:flex-row items-center gap-4 bg-muted/50 p-4 border-t">
-            <div className="flex items-center gap-4 w-full sm:w-auto">
-              <div className="flex items-center gap-2">
-                <Label>{t('restartFrom')}</Label>
-                <Select value={forcePhase} onValueChange={(val) => val && setForcePhase(val)}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder={t('phases.none')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">{t('phases.none')}</SelectItem>
-                    {job.processType !== 'QUIZ_GENERATION' && (
-                      <SelectItem value="SCOUT">{t('phases.scout')}</SelectItem>
-                    )}
-                    <SelectItem value="EXTRACTION">{t('phases.extraction')}</SelectItem>
-                    <SelectItem value="ENHANCEMENT">{t('phases.enhancement')}</SelectItem>
-                    <SelectItem value="UPLOAD">{t('phases.upload')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button onClick={retryJob}>
-                <Play className="mr-2 h-4 w-4" />
-                {t('confirmations.retryConfirm')}
-              </Button>
+        {/* Actions footer */}
+        <CardFooter className="flex flex-col sm:flex-row items-center gap-4 bg-muted/50 p-4 border-t">
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+            <div className="flex items-center gap-2">
+              <Label>{t('restartFrom')}</Label>
+              <Select value={forcePhase} onValueChange={(val) => val && setForcePhase(val)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder={t('phases.none')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t('phases.none')}</SelectItem>
+                  {job.processType !== 'QUIZ_GENERATION' && (
+                    <SelectItem value="SCOUT">{t('phases.scout')}</SelectItem>
+                  )}
+                  <SelectItem value="EXTRACTION">{t('phases.extraction')}</SelectItem>
+                  <SelectItem value="ENHANCEMENT">{t('phases.enhancement')}</SelectItem>
+                  <SelectItem value="UPLOAD">{t('phases.upload')}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </CardFooter>
-        )}
+
+            <Button onClick={retryJob}>
+              <Play className="mr-2 h-4 w-4" />
+              {job.status === 'PROCESSING' 
+                ? t('confirmations.retriggerConfirm', { fallback: 'Retrigger' }) 
+                : job.status === 'PAUSED' 
+                  ? t('confirmations.resumeConfirm', { fallback: 'Resume' })
+                  : t('confirmations.retryConfirm')}
+            </Button>
+
+            {job.status === 'PROCESSING' && (
+              <Button onClick={pauseJob} variant="secondary">
+                <Square className="mr-2 h-4 w-4" />
+                {t('confirmations.pauseConfirm', { fallback: 'Pause' })}
+              </Button>
+            )}
+          </div>
+        </CardFooter>
       </Card>
     </div>
   );

@@ -206,7 +206,7 @@ router.post('/jobs/:id/retry', async (req: Request, res: Response) => {
     }
 
     if (job.status === IngestionStatus.PROCESSING) {
-      return res.status(400).json({ error: 'Job is already processing' });
+      await cancelWorkerJob(id);
     }
 
     await prisma.ingestionJob.update({
@@ -219,6 +219,38 @@ router.post('/jobs/:id/retry', async (req: Request, res: Response) => {
     return res.status(200).json({ success: true, message: 'Job queued for retry' });
   } catch (error: any) {
     console.error('Error retrying ingestion job:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @route   POST /api/v1/admin/ingestion/jobs/:id/pause
+ * @desc    Pause a running job
+ * @access  Private (Admin Only)
+ */
+router.post('/jobs/:id/pause', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const job = await prisma.ingestionJob.findUnique({ where: { id } });
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    if (job.status !== IngestionStatus.PROCESSING) {
+      return res.status(400).json({ error: 'Job is not processing' });
+    }
+
+    await cancelWorkerJob(id);
+
+    await prisma.ingestionJob.update({
+      where: { id },
+      data: { status: IngestionStatus.PAUSED },
+    });
+
+    return res.status(200).json({ success: true, message: 'Job paused' });
+  } catch (error: any) {
+    console.error('Error pausing ingestion job:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
