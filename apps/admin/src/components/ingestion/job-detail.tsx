@@ -17,6 +17,7 @@ interface IngestionJob {
   processType: string;
   status: string;
   progress: number;
+  overallProgress: number;
   currentPhase: string | null;
   fileName: string;
   totalQuestions: number;
@@ -88,7 +89,7 @@ export function JobDetail({ jobId }: { jobId: string }) {
     });
     
     if (res.ok) {
-      toast.success('Job queued for retry');
+      toast.success(t('retryQueued'));
       fetchJob();
     } else {
       toast.error(t('errorAction'));
@@ -100,7 +101,7 @@ export function JobDetail({ jobId }: { jobId: string }) {
   }
 
   if (error || !job) {
-    return <p className="text-sm text-destructive py-6 text-center">{error || 'Job not found'}</p>;
+    return <p className="text-sm text-destructive py-6 text-center">{error || t('notFound')}</p>;
   }
 
   return (
@@ -110,7 +111,7 @@ export function JobDetail({ jobId }: { jobId: string }) {
           <div className="flex justify-between items-start">
             <div>
               <CardTitle>{job.fileName}</CardTitle>
-              <CardDescription>ID: {job.id}</CardDescription>
+              <CardDescription>{t('idLabel', { id: job.id })}</CardDescription>
             </div>
             <Badge variant={job.status === 'FAILED' ? 'destructive' : job.status === 'COMPLETED' ? 'default' : 'secondary'}>
               {job.status}
@@ -120,37 +121,64 @@ export function JobDetail({ jobId }: { jobId: string }) {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-muted-foreground">Process Type: </span>
+              <span className="text-muted-foreground">{t('form.processType')}: </span>
               <span className="font-medium">{job.processType === 'QUIZ_GENERATION' ? t('form.quizGeneration') : job.processType === 'QUESTION_EXTRACTION' ? t('form.questionExtraction') : job.processType}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Current Phase: </span>
+              <span className="text-muted-foreground">{t('phase')}: </span>
               <span className="font-medium">{job.currentPhase || '—'}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Progress: </span>
+              <span className="text-muted-foreground">{t('overallProgress')}: </span>
+              <span className="font-medium">{job.overallProgress}%</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">{t('progress')}: </span>
               <span className="font-medium">{job.progress}%</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Questions Extracted: </span>
+              <span className="text-muted-foreground">{t('questions')}: </span>
               <span className="font-medium">{job.totalQuestions}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Created At: </span>
+              <span className="text-muted-foreground">{t('createdAt')}: </span>
               <span className="font-medium">{format(new Date(job.createdAt), 'PP p')}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Updated At: </span>
+              <span className="text-muted-foreground">{t('updatedAt')}: </span>
               <span className="font-medium">{format(new Date(job.updatedAt), 'PP p')}</span>
             </div>
           </div>
 
-          <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
-            <div 
-              className="bg-primary h-full transition-all duration-500 ease-in-out" 
-              style={{ width: `${job.progress}%` }} 
-            />
+          {/* Overall Progress bar */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{t('overallProgress')}</span>
+              <span className="font-semibold">{job.overallProgress}%</span>
+            </div>
+            <div className="w-full bg-secondary h-3 rounded-full overflow-hidden">
+              <div
+                className="bg-primary h-full transition-all duration-500 ease-in-out"
+                style={{ width: `${job.overallProgress}%` }}
+              />
+            </div>
           </div>
+
+          {/* Phase Progress bar — only shown while processing */}
+          {job.status === 'PROCESSING' && (
+            <div className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">{t('progress')}</span>
+                <span className="font-medium text-muted-foreground">{job.progress}%</span>
+              </div>
+              <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-primary/60 h-full transition-all duration-500 ease-in-out"
+                  style={{ width: `${job.progress}%` }}
+                />
+              </div>
+            </div>
+          )}
 
           {job.errorLogs && (
             <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-md text-sm whitespace-pre-wrap font-mono overflow-auto max-h-64">
@@ -160,7 +188,7 @@ export function JobDetail({ jobId }: { jobId: string }) {
 
           {job.manifestData && (
             <div className="mt-4 p-4 bg-muted rounded-md text-sm whitespace-pre-wrap font-mono overflow-auto max-h-64">
-              <strong>Manifest Config:</strong>
+              <strong>{t('manifestConfig')}</strong>
               <pre className="mt-2">{JSON.stringify(job.manifestData, null, 2)}</pre>
             </div>
           )}
@@ -170,24 +198,24 @@ export function JobDetail({ jobId }: { jobId: string }) {
           {(job.status === 'FAILED' || job.status === 'COMPLETED') && (
             <div className="flex items-center gap-4 w-full sm:w-auto">
               <div className="flex items-center gap-2">
-                <Label>Restart From:</Label>
+                <Label>{t('restartFrom')}</Label>
                 <Select value={forcePhase} onValueChange={(val) => val && setForcePhase(val)}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Select phase" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No Reset (Resume)</SelectItem>
-                    <SelectItem value="SCOUT">Scout Phase</SelectItem>
-                    <SelectItem value="EXTRACTION">Extraction Phase</SelectItem>
-                    <SelectItem value="ENHANCEMENT">Enhancement Phase</SelectItem>
-                    <SelectItem value="UPLOAD">Upload Phase</SelectItem>
+                    <SelectItem value="none">{t('phases.none')}</SelectItem>
+                    <SelectItem value="SCOUT">{t('phases.scout')}</SelectItem>
+                    <SelectItem value="EXTRACTION">{t('phases.extraction')}</SelectItem>
+                    <SelectItem value="ENHANCEMENT">{t('phases.enhancement')}</SelectItem>
+                    <SelectItem value="UPLOAD">{t('phases.upload')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               <Button onClick={retryJob}>
                 <Play className="mr-2 h-4 w-4" />
-                Retry
+                {t('confirmations.retryConfirm')}
               </Button>
             </div>
           )}

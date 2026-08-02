@@ -15,6 +15,7 @@ interface IngestionJob {
   processType: string;
   status: string;
   progress: number;
+  overallProgress: number;
   currentPhase: string | null;
   fileName: string;
   totalQuestions: number;
@@ -143,20 +144,39 @@ export function IngestionDashboard() {
                 <span className="font-medium">{job.currentPhase || '—'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">{t('progress')}:</span>
-                <span className="font-medium">{job.progress}%</span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-muted-foreground">{t('questions')}:</span>
                 <span className="font-medium">{job.totalQuestions}</span>
               </div>
-              
-              <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-2">
-                <div 
-                  className="bg-primary h-full transition-all duration-500 ease-in-out" 
-                  style={{ width: `${job.progress}%` }} 
-                />
+
+              {/* Overall Progress */}
+              <div className="space-y-1 pt-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">{t('overallProgress')}</span>
+                  <span className="font-medium">{job.overallProgress}%</span>
+                </div>
+                <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                  <div
+                    className="bg-primary h-full transition-all duration-500 ease-in-out"
+                    style={{ width: `${job.overallProgress}%` }}
+                  />
+                </div>
               </div>
+
+              {/* Phase Progress — only while actively processing */}
+              {job.status === 'PROCESSING' && (
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">{t('progress')}</span>
+                    <span className="font-medium">{job.progress}%</span>
+                  </div>
+                  <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-primary/60 h-full transition-all duration-500 ease-in-out"
+                      style={{ width: `${job.progress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
 

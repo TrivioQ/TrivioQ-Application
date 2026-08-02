@@ -523,7 +523,8 @@ model IngestionJob {
   storagePath      String          // absolute path on the server host volume
   status           IngestionStatus @default(QUEUED)
   currentPhase     String?         // 'SCOUT', 'EXTRACTION', 'ENHANCEMENT', 'UPLOAD'
-  progress         Int             @default(0) // percentage 0-100
+  progress         Int             @default(0) // phase-level progress 0-100
+  overallProgress  Int             @default(0) // overall job progress 0-100 (weighted across all phases)
   totalQuestions   Int             @default(0) // populated during extraction/enhancement
   errorLogs        String?         @db.Text
   processedAt      DateTime?

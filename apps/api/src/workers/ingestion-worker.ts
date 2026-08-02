@@ -180,18 +180,35 @@ const ingestionWorker = new Worker<PdfIngestionJob>(
         summarizationSpecialInstruction: manifestData.summarizationSpecialInstruction,
       });
 
+      // Cumulative start offsets (0–100 scale) per phase, reflecting real-world duration proportions.
+      // QUESTION_EXTRACTION: SCOUT=20%, EXTRACTION=40%, ENHANCEMENT=30%, UPLOAD=10%
+      // QUIZ_GENERATION:     EXTRACTION=60%, ENHANCEMENT=30%, UPLOAD=10%
+      const PHASE_OFFSETS: Record<string, Record<string, number>> = {
+        QUESTION_EXTRACTION: { SCOUT: 0, EXTRACTION: 20, ENHANCEMENT: 60, UPLOAD: 90 },
+        QUIZ_GENERATION: { EXTRACTION: 0, ENHANCEMENT: 60, UPLOAD: 90 },
+      };
+      const PHASE_WIDTHS: Record<string, Record<string, number>> = {
+        QUESTION_EXTRACTION: { SCOUT: 20, EXTRACTION: 40, ENHANCEMENT: 30, UPLOAD: 10 },
+        QUIZ_GENERATION: { EXTRACTION: 60, ENHANCEMENT: 30, UPLOAD: 10 },
+      };
+      const processKey = dbJob.processType === ProcessType.QUIZ_GENERATION ? 'QUIZ_GENERATION' : 'QUESTION_EXTRACTION';
+
       const onProgress = async (phase: string, current: number, total: number) => {
-        const progressPercentage = total > 0 ? Math.floor((current / total) * 100) : 0;
+        const phaseProgress = total > 0 ? current / total : 0;
+        const offset = PHASE_OFFSETS[processKey][phase] ?? 0;
+        const width = PHASE_WIDTHS[processKey][phase] ?? 0;
+        const overall = Math.min(99, Math.floor(offset + phaseProgress * width));
 
         await prisma.ingestionJob.update({
           where: { id: jobId },
           data: {
             currentPhase: phase,
-            progress: progressPercentage,
+            progress: Math.floor(phaseProgress * 100),
+            overallProgress: overall,
           },
         });
 
-        await job.updateProgress(progressPercentage);
+        await job.updateProgress(overall);
       };
 
       await orchestrator.run(undefined, onProgress);
@@ -205,6 +222,7 @@ const ingestionWorker = new Worker<PdfIngestionJob>(
           status: IngestionStatus.COMPLETED,
           currentPhase: 'COMPLETED',
           progress: 100,
+          overallProgress: 100,
           totalQuestions: totalExtracted,
           processedAt: new Date(),
         },
