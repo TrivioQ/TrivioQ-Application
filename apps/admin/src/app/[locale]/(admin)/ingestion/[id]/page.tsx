@@ -1,4 +1,4 @@
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { JobDetail } from '@/components/ingestion/job-detail';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,9 @@ export const metadata = {
   title: 'Job Details - TrivioQ Admin',
 };
 
-export default function JobDetailsPage({ params }: { params: { id: string } }) {
-  const t = useTranslations('system.ingestion');
+export default async function JobDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const t = await getTranslations('system.ingestion');
 
   return (
     <div className="space-y-6">
@@ -30,7 +31,7 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      <JobDetail jobId={params.id} />
+      <JobDetail jobId={id} />
     </div>
   );
 }
