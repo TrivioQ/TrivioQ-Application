@@ -5,7 +5,6 @@ import Redis from 'ioredis';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 
 const router = Router();
 
@@ -15,8 +14,27 @@ const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', 
 
 const ingestionQueue = new Queue('pdf-ingestion', { connection: connection as any });
 
-// Setup multer to save in a temporary location, then we move it
-const upload = multer({ dest: path.resolve(os.tmpdir(), 'trivioq_uploads') });
+// Multer temp dir: use a subdirectory within the ingestion volume so that
+// both the temp file and the final destination are on the same filesystem.
+// This avoids EXDEV "cross-device link not permitted" errors when renaming
+// across Docker volume boundaries (e.g. /tmp → /app/ingestion on a different device).
+const ingestionRoot = () => path.resolve(process.cwd(), process.env.INGESTION_DIR ?? 'ingestion');
+const multerTempDir = () => path.join(ingestionRoot(), '.tmp');
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      const tmpDir = multerTempDir();
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+      cb(null, tmpDir);
+    },
+    filename: (_req, _file, cb) => {
+      cb(null, `upload_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    },
+  }),
+});
 
 /**
  * @route   GET /api/v1/admin/ingestion/jobs
@@ -81,23 +99,24 @@ router.post('/jobs', upload.single('pdf'), async (req: Request, res: Response) =
       ...(Object.keys(providers).length > 0 && { providers }),
     };
 
+    const dbProcessType = processType === 'quiz-generation' ? ProcessType.QUIZ_GENERATION : ProcessType.QUESTION_EXTRACTION;
+
     // We generate a UUID for the bookId (which will be the DB job ID)
     // To do this reliably before moving the file, let's create the DB record first
     const newJob = await prisma.ingestionJob.create({
       data: {
-        processType: processType || ProcessType.QUESTION_EXTRACTION,
+        processType: dbProcessType,
         status: IngestionStatus.QUEUED,
         fileName: req.file.originalname,
         fileSize: req.file.size,
         storagePath: '', // We will update this
         manifestData: manifestData,
-        adminId: (req as any).user?.uid, // assuming firebase middleware attaches user
+        adminId: (req as any).user?.id, // assuming firebase middleware attaches user
       },
     });
 
     const bookId = newJob.id;
-    const ingestionRoot = path.resolve(process.cwd(), process.env.INGESTION_DIR ?? 'ingestion');
-    const bookDir = path.join(ingestionRoot, bookId);
+    const bookDir = path.join(ingestionRoot(), bookId);
 
     if (!fs.existsSync(bookDir)) {
       fs.mkdirSync(bookDir, { recursive: true });
@@ -116,11 +135,16 @@ router.post('/jobs', upload.single('pdf'), async (req: Request, res: Response) =
       data: { storagePath: targetPdfPath },
     });
 
-    // Add to BullMQ
+    // Add to BullMQ — remove any stale job with this ID first (e.g. from a
+    // previous failed attempt) so BullMQ does not silently ignore the add.
+    const existingBullJob = await ingestionQueue.getJob(bookId);
+    if (existingBullJob) {
+      await existingBullJob.remove();
+    }
     await ingestionQueue.add(
       'pdf-ingestion',
       { jobId: bookId },
-      { jobId: bookId }, // setting BullMQ job ID same as DB job ID
+      { jobId: bookId, removeOnFail: true }, // removeOnFail prevents stale IDs blocking future retries
     );
 
     return res.status(201).json({ success: true, data: { id: bookId } });
@@ -183,12 +207,19 @@ router.post('/jobs/:id/retry', async (req: Request, res: Response) => {
       data: { status: IngestionStatus.QUEUED, errorLogs: null },
     });
 
-    // Add to BullMQ
-    await ingestionQueue.add(
-      'pdf-ingestion',
-      { jobId: id, forcePhase },
-      { jobId: id, removeOnComplete: true }, // overwrite if exists
-    );
+    // BullMQ silently ignores add() if a job with the same ID already exists
+    // (even in failed/completed state). Explicitly remove the stale BullMQ job
+    // first so the worker actually picks up the new entry.
+    try {
+      const existingBullJob = await ingestionQueue.getJob(id);
+      if (existingBullJob) {
+        await existingBullJob.remove();
+      }
+    } catch (removeErr) {
+      console.warn(`[RetryRoute] Could not remove existing BullMQ job ${id}:`, removeErr);
+    }
+
+    await ingestionQueue.add('pdf-ingestion', { jobId: id, forcePhase }, { jobId: id, removeOnFail: true });
 
     return res.status(200).json({ success: true, message: 'Job queued for retry' });
   } catch (error: any) {

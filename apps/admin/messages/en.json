@@ -948,6 +948,7 @@
         "pageToPlaceholder": "e.g. 50",
         "extractionInstruction": "Extraction Special Instruction",
         "extractionInstructionPlaceholder": "Instructions injected into the extraction prompt...",
+        "enhancementPhaseOnly": "Enhancement Phase",
         "enhancementInstruction": "Enhancement Special Instruction",
         "enhancementInstructionPlaceholder": "Instructions injected into the enhancement prompt...",
         "scoutProvider": "Scout Provider",

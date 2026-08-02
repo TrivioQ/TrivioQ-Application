@@ -125,7 +125,7 @@ export function IngestionDashboard() {
                   {job.fileName}
                 </CardTitle>
                 <CardDescription className="text-xs font-mono bg-muted inline-block px-2 py-0.5 rounded">
-                  {job.processType}
+                  {job.processType === 'QUIZ_GENERATION' ? t('form.quizGeneration') : job.processType === 'QUESTION_EXTRACTION' ? t('form.questionExtraction') : job.processType}
                 </CardDescription>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">

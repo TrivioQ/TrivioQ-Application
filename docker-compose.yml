@@ -36,6 +36,7 @@ volumes:
   trivioq_postgres_data:
   trivioq_redis_data:
   trivioq_glitchtip_uploads:
+  trivioq_ingestion_data:
 
 # ---------------------------------------------------------------------------
 # Reusable YAML anchors
@@ -192,6 +193,7 @@ services:
     volumes:
       # Firebase service account injected at runtime — never baked into the image
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+      - trivioq_ingestion_data:/app/ingestion
     networks:
       - trivioq-network
     depends_on:
@@ -359,6 +361,7 @@ services:
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
     volumes:
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
+      - trivioq_ingestion_data:/app/ingestion
     networks:
       - trivioq-network
     depends_on:

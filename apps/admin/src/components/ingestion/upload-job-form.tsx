@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AppSelect } from '@/components/ui/app-select';
 import { Card, CardContent } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import { getSettings } from '@/app/actions/setting-actions';
@@ -108,15 +108,19 @@ export function UploadJobForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>{t('processType')}</Label>
-              <Select value={formData.processType} onValueChange={(v) => v && handleSelect('processType', v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('selectType')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="question-extraction">{t('questionExtraction')}</SelectItem>
-                  <SelectItem value="quiz-generation">{t('quizGeneration')}</SelectItem>
-                </SelectContent>
-              </Select>
+              <AppSelect 
+                value={formData.processType} 
+                onValueChange={(v: any) => {
+                  if (typeof v === 'string' && v) {
+                    handleSelect('processType', v);
+                  }
+                }}
+                placeholder={t('selectType')}
+                options={[
+                  { value: 'question-extraction', label: t('questionExtraction') },
+                  { value: 'quiz-generation', label: t('quizGeneration') }
+                ]}
+              />
             </div>
             
             <div className="space-y-2">
@@ -184,7 +188,9 @@ export function UploadJobForm() {
               
               return (
                 <div key={phase} className="space-y-2">
-                  <Label className="text-base font-semibold">{tApp(`phases.${phase}` as any)}</Label>
+                  <Label className="text-base font-semibold">
+                    {phase === 'enhancement' ? t('enhancementPhaseOnly') : tApp(`phases.${phase}` as any)}
+                  </Label>
                   <div className="text-sm font-medium text-muted-foreground mb-2">
                     {t('providerLabel')} {displayProvider}
                   </div>

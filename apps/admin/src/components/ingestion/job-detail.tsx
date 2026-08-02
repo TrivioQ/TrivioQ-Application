@@ -121,7 +121,7 @@ export function JobDetail({ jobId }: { jobId: string }) {
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">Process Type: </span>
-              <span className="font-medium">{job.processType}</span>
+              <span className="font-medium">{job.processType === 'QUIZ_GENERATION' ? t('form.quizGeneration') : job.processType === 'QUESTION_EXTRACTION' ? t('form.questionExtraction') : job.processType}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Current Phase: </span>

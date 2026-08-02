@@ -13,7 +13,24 @@
 FROM node:20-alpine AS base
 
 # OpenSSL is required by Prisma on Alpine (musl libc variant)
-RUN apk add --no-cache libc6-compat openssl
+# imagemagick + ghostscript are required by the gm npm package used in the
+# ingestion worker to convert PDF pages to images for AI processing.
+RUN apk add --no-cache \
+    libc6-compat \
+    openssl \
+    imagemagick \
+    imagemagick-pdf \
+    ghostscript \
+    graphicsmagick
+
+# Alpine's ImageMagick ships with a strict security policy that blocks PDF
+# processing by default. Remove those restrictions so pdf2pic can convert PDFs.
+RUN if [ -f /etc/ImageMagick-7/policy.xml ]; then \
+      sed -i 's/<policy domain="coder" rights="none" pattern="PDF"/<policy domain="coder" rights="read|write" pattern="PDF"/g' /etc/ImageMagick-7/policy.xml; \
+    fi && \
+    if [ -f /etc/ImageMagick-6/policy.xml ]; then \
+      sed -i 's/<policy domain="coder" rights="none" pattern="PDF"/<policy domain="coder" rights="read|write" pattern="PDF"/g' /etc/ImageMagick-6/policy.xml; \
+    fi
 
 # Enable Corepack so pnpm is available from the packageManager field
 RUN corepack enable
