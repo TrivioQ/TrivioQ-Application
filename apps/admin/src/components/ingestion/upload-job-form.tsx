@@ -15,6 +15,7 @@ import { getSettings } from '@/app/actions/setting-actions';
 export function UploadJobForm() {
   const router = useRouter();
   const t = useTranslations('system.ingestion.form');
+  const tApp = useTranslations('appSettings');
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [settings, setSettings] = useState<any[]>([]);
@@ -33,11 +34,15 @@ export function UploadJobForm() {
     pagesFrom: '',
     pagesTo: '',
     extractionSpecialInstruction: '',
-    enhancementSpecialInstruction: '',
-    scoutProvider: '',
-    extractionProvider: '',
-    enhancementProvider: ''
+    enhancementSpecialInstruction: ''
   });
+
+  const getActivePhases = (processType: string) => {
+    if (processType === 'quiz-generation') {
+      return ['summarization', 'generation', 'enhancement'];
+    }
+    return ['scout', 'extraction', 'enhancement'];
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -169,33 +174,32 @@ export function UploadJobForm() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {(['scoutProvider', 'extractionProvider', 'enhancementProvider'] as const).map((providerKey) => {
-              const phase = providerKey.replace('Provider', '');
+            {getActivePhases(formData.processType).map((phase) => {
+              const providerSetting = settings.find(s => s.key === `ingestion_${phase}_provider`);
+              const providerName = providerSetting ? providerSetting.value : 'unknown';
+              const displayProvider = ['google', 'nvidia', 'deepseek', 'local'].includes(providerName) 
+                ? tApp(`providers.${providerName}` as any) 
+                : providerName === 'unknown' ? t('unknownProvider') : providerName;
               const phaseSettings = settings.filter(s => s.key.startsWith(`ingestion_${phase}_`) && s.key !== `ingestion_${phase}_provider`);
               
               return (
-                <div key={providerKey} className="space-y-2">
-                  <Label>{t(providerKey as any)}</Label>
-                  <Select value={formData[providerKey]} onValueChange={(v) => v && handleSelect(providerKey, v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('selectProvider')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(['google', 'nvidia', 'deepseek', 'local'] as const).map((provider) => (
-                        <SelectItem key={provider} value={provider}>
-                          {t(`providers.${provider}` as any)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {formData[providerKey] && phaseSettings.length > 0 && (
-                    <div className="mt-2 text-xs text-muted-foreground bg-muted p-2 rounded-md space-y-1">
+                <div key={phase} className="space-y-2">
+                  <Label className="text-base font-semibold">{tApp(`phases.${phase}` as any)}</Label>
+                  <div className="text-sm font-medium text-muted-foreground mb-2">
+                    {t('providerLabel')} {displayProvider}
+                  </div>
+                  {phaseSettings.length > 0 ? (
+                    <div className="text-xs text-muted-foreground bg-muted p-2 rounded-md space-y-1">
                       {phaseSettings.map(s => (
-                        <div key={s.key} className="flex justify-between items-center gap-2">
-                          <span className="font-medium truncate" title={s.label || s.key}>{s.label || s.key.replace(`ingestion_${phase}_`, '')}:</span>
-                          <span className="truncate max-w-[150px]" title={s.value}>{s.value}</span>
+                        <div key={s.key} className="flex justify-between items-center gap-2 overflow-hidden">
+                          <span className="font-medium truncate min-w-0 flex-shrink-0" title={s.label || s.key}>{s.label || s.key.replace(`ingestion_${phase}_`, '')}:</span>
+                          <span className="truncate min-w-0 text-right text-foreground" title={s.value}>{s.value}</span>
                         </div>
                       ))}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-muted-foreground bg-muted p-2 rounded-md italic">
+                      {t('noAdditionalSettings')}
                     </div>
                   )}
                 </div>

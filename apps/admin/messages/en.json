@@ -629,6 +629,12 @@
       "enhancement": "Enhancement Phase/AI Validation Phase",
       "summarization": "Summarization Phase",
       "generation": "Generation Phase"
+    },
+    "providers": {
+      "google": "Google",
+      "nvidia": "Nvidia",
+      "deepseek": "Deepseek",
+      "local": "Local"
     }
   },
   "subscriptionHistory": {
@@ -954,6 +960,9 @@
         "selectPdfError": "Please select a PDF file",
         "createSuccess": "Job created successfully",
         "createError": "Error creating job",
+        "providerLabel": "Provider:",
+        "unknownProvider": "Unknown",
+        "noAdditionalSettings": "No additional settings",
         "providers": {
           "google": "Google",
           "nvidia": "Nvidia",

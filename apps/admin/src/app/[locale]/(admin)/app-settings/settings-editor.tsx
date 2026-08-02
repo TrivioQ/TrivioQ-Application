@@ -56,7 +56,20 @@ function SettingRow({ setting }: { setting: Setting }) {
       <td className="py-4 px-4 sm:py-4 sm:px-6">
         {editing ? (
           <div className="flex flex-wrap items-center gap-2">
-            <input type={setting.dataType === 'number' ? 'number' : 'text'} value={draft} onChange={(e) => setDraft(e.target.value)} className="w-full sm:w-32 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
+            {setting.key.endsWith('_provider') ? (
+              <select
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                className="w-full sm:w-32 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="google">{t('providers.google')}</option>
+                <option value="nvidia">{t('providers.nvidia')}</option>
+                <option value="deepseek">{t('providers.deepseek')}</option>
+                <option value="local">{t('providers.local')}</option>
+              </select>
+            ) : (
+              <input type={setting.dataType === 'number' ? 'number' : 'text'} value={draft} onChange={(e) => setDraft(e.target.value)} className="w-full sm:w-32 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
+            )}
             <button onClick={handleSave} disabled={isPending} className="rounded-md bg-green-600 p-1.5 text-white hover:bg-green-700 disabled:opacity-50">
               <Check size={14} />
             </button>
