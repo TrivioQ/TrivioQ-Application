@@ -84,7 +84,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     this.lastCallTime = Date.now();
   }
 
-  async run(options?: { reuploadOnly?: boolean }, onProgress?: (phase: string, current: number, total: number) => void): Promise<void> {
+  async run(options?: { reuploadOnly?: boolean }, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     this.state.initOrLoad();
     console.log(`[QuestionExtraction] Starting ingestion for ${this.imagePaths.length} images`);
     console.log(`[QuestionExtraction] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
@@ -126,7 +126,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   // ── Phase 1: Scout ────────────────────────────────────────────────────────
 
-  private async runScoutPhase(onProgress?: (phase: string, current: number, total: number) => void): Promise<void> {
+  private async runScoutPhase(onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const startIndex = stateData.lastProcessedImageIndex + 1;
     const temperature = this.config.temperatures?.scout;
@@ -135,7 +135,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     console.log(`[Scout] Stage Config — Provider: ${this.scoutProvider.constructor.name}, Model: ${this.scoutProvider.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.scout}ms`);
 
     for (let i = startIndex; i < this.imagePaths.length; i++) {
-      onProgress?.('SCOUT', i + 1, this.imagePaths.length);
+      await onProgress?.('SCOUT', i + 1, this.imagePaths.length);
       const imagePath = this.imagePaths[i];
 
       try {
@@ -174,7 +174,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   // ── Phase 2: Extraction ───────────────────────────────────────────────────
 
-  private async runExtractionPhase(onProgress?: (phase: string, current: number, total: number) => void): Promise<void> {
+  private async runExtractionPhase(onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const imageClassifications = (stateData.metadata?.imageClassifications as Record<string, ImageType>) ?? {};
     const temperature = this.config.temperatures?.extraction;
@@ -324,7 +324,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     }
 
     for (let i = startIndex; i < groups.length; i++) {
-      onProgress?.('EXTRACTION', i + 1, groups.length);
+      await onProgress?.('EXTRACTION', i + 1, groups.length);
       const { images: group, spatialInstructions, answerKeyRef, hasUnderneathKeys } = groups[i];
       try {
         const imagesB64 = group.map((img) => this.imageToBase64(img));
@@ -553,7 +553,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   // ── Phase 3: Enhancement ──────────────────────────────────────────────────
 
-  private async runEnhancementPhase(onProgress?: (phase: string, current: number, total: number) => void): Promise<void> {
+  private async runEnhancementPhase(onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const questionsToEnhance = stateData.questions.filter((q) => q.status === 'READY_FOR_ENHANCEMENT');
     const temperature = this.config.temperatures?.enhancement;
@@ -567,7 +567,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     const enhancementPrompt = buildEnhancementPrompt(this.availableCategories, this.enhancementSpecialInstruction);
 
     for (let i = 0; i < questionsToEnhance.length; i += concurrency) {
-      onProgress?.('ENHANCEMENT', Math.min(i + concurrency, questionsToEnhance.length), questionsToEnhance.length);
+      await onProgress?.('ENHANCEMENT', Math.min(i + concurrency, questionsToEnhance.length), questionsToEnhance.length);
       const chunk = questionsToEnhance.slice(i, i + concurrency);
 
       const processedChunk = await Promise.all(
@@ -625,7 +625,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   // ── Phase 4: Upload ───────────────────────────────────────────────────────
 
-  private async uploadPhase(onProgress?: (phase: string, current: number, total: number) => void): Promise<void> {
+  private async uploadPhase(onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const readyQuestions = stateData.questions.filter((q) => q.status === 'READY_FOR_UPLOAD');
 
@@ -633,7 +633,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     if (readyQuestions.length === 0) return;
 
     for (let i = 0; i < readyQuestions.length; i++) {
-      onProgress?.('UPLOAD', i + 1, readyQuestions.length);
+      await onProgress?.('UPLOAD', i + 1, readyQuestions.length);
       const q = readyQuestions[i];
       try {
         // ── Self-referential guard ────────────────────────────────────────────

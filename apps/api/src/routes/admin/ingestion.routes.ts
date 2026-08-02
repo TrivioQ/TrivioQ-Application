@@ -191,6 +191,43 @@ router.get('/jobs/:id', async (req: Request, res: Response) => {
 });
 
 /**
+ * @route   GET /api/v1/admin/ingestion/jobs/:id/artifact
+ * @desc    Get or download the state.json artifact for an ingestion job
+ * @access  Private (Admin Only)
+ */
+router.get('/jobs/:id/artifact', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const download = req.query.download === 'true';
+
+    const job = await prisma.ingestionJob.findUnique({
+      where: { id },
+      select: { storagePath: true },
+    });
+
+    if (!job || !job.storagePath) {
+      return res.status(404).json({ error: 'Job not found or has no storage path' });
+    }
+
+    const artifactPath = path.join(path.dirname(job.storagePath), 'data', 'state.json');
+
+    if (!fs.existsSync(artifactPath)) {
+      return res.status(404).json({ error: 'Artifact (state.json) not found for this job' });
+    }
+
+    if (download) {
+      return res.download(artifactPath, `job-${id}-state.json`);
+    } else {
+      res.setHeader('Content-Type', 'application/json');
+      return fs.createReadStream(artifactPath).pipe(res);
+    }
+  } catch (error: any) {
+    console.error('Error fetching artifact:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
  * @route   POST /api/v1/admin/ingestion/jobs/:id/retry
  * @desc    Retry a failed/completed job, optionally resetting to a specific phase
  * @access  Private (Admin Only)

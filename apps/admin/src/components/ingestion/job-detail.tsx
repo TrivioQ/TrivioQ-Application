@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
-import { Play, AlertTriangle, Copy, Check, Square } from 'lucide-react';
+import { Play, AlertTriangle, Copy, Check, Square, FileJson, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -62,6 +63,7 @@ export function JobDetail({ jobId }: { jobId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [forcePhase, setForcePhase] = useState<string>('none');
   const [copied, setCopied] = useState(false);
+  const [jobIdCopied, setJobIdCopied] = useState(false);
 
   // ── Fetch job data ──────────────────────────────────────────────────────────
 
@@ -163,6 +165,15 @@ export function JobDetail({ jobId }: { jobId: string }) {
     });
   };
 
+  const copyJobId = () => {
+    if (!job) return;
+    navigator.clipboard.writeText(job.id).then(() => {
+      setJobIdCopied(true);
+      toast.success(t('copiedId', { fallback: 'Job ID copied to clipboard' }));
+      setTimeout(() => setJobIdCopied(false), 2000);
+    });
+  };
+
   // ── Phase-aware progress description ────────────────────────────────────────
 
   const phaseDetail = (() => {
@@ -213,7 +224,18 @@ export function JobDetail({ jobId }: { jobId: string }) {
           <div className="flex justify-between items-start flex-wrap gap-2">
             <div>
               <CardTitle>{job.fileName}</CardTitle>
-              <CardDescription>{t('idLabel', { id: job.id })}</CardDescription>
+              <div className="flex items-center gap-2 mt-1">
+                <CardDescription className="font-mono">{t('idLabel', { id: job.id })}</CardDescription>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  onClick={copyJobId}
+                  title={t('copyId', { fallback: 'Copy Job ID' })}
+                >
+                  {jobIdCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                </Button>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {stale && (
@@ -400,6 +422,20 @@ export function JobDetail({ jobId }: { jobId: string }) {
                 <Square className="mr-2 h-4 w-4" />
                 {t('confirmations.pauseConfirm', { fallback: 'Pause' })}
               </Button>
+            )}
+
+            {/* Artifact actions (disabled if job hasn't started or no artifact exists yet) */}
+            {job.status !== 'QUEUED' && (
+              <div className="flex items-center gap-2 ml-auto">
+                <Button variant="outline" render={<Link href={`/ingestion/${job.id}/artifact`} target="_blank" />}>
+                  <FileJson className="mr-2 h-4 w-4" />
+                  {t('viewArtifact', { fallback: 'View Artifact' })}
+                </Button>
+                <Button variant="outline" render={<a href={`/api/v1/admin/ingestion/jobs/${job.id}/artifact?download=true`} />}>
+                  <Download className="mr-2 h-4 w-4" />
+                  {t('downloadArtifact', { fallback: 'Download Artifact' })}
+                </Button>
+              </div>
             )}
           </div>
         </CardFooter>

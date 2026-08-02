@@ -85,10 +85,17 @@ const pendingSyncStore = {
 
 // ── DB sync helper (retries with backoff; NEVER throws) ───────────────────────
 
-async function syncProgressToDB(jobId: string, data: Record<string, unknown>, retries = 3): Promise<void> {
+async function syncProgressToDB(jobId: string, data: Record<string, unknown>, retries = 3, requireProcessing = false): Promise<void> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      await prisma.ingestionJob.update({ where: { id: jobId }, data });
+      if (requireProcessing) {
+        await prisma.ingestionJob.updateMany({
+          where: { id: jobId, status: IngestionStatus.PROCESSING },
+          data,
+        });
+      } else {
+        await prisma.ingestionJob.update({ where: { id: jobId }, data });
+      }
       pendingSyncStore.delete(jobId); // clear any previously saved pending entry
       return;
     } catch {
@@ -146,7 +153,7 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
   // Start heartbeat timer (every 30 s)
   const heartbeatTimer = setInterval(async () => {
     if (signal.aborted) return;
-    await syncProgressToDB(jobId, { lastHeartbeatAt: new Date() }, 2);
+    await syncProgressToDB(jobId, { lastHeartbeatAt: new Date() }, 2, true);
   }, 30_000);
 
   runningJobs.set(jobId, { bookId, dataDir, abortController, heartbeatTimer });
@@ -327,6 +334,7 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
           lastHeartbeatAt: new Date(),
         },
         3,
+        true, // requireProcessing = true so ghost processes don't overwrite COMPLETED jobs
       );
     };
 
@@ -428,8 +436,8 @@ setInterval(async () => {
   for (const [jobId, ctx] of runningJobs.entries()) {
     try {
       const stateData = new IngestionState(ctx.bookId, ctx.dataDir).initOrLoad();
-      await prisma.ingestionJob.update({
-        where: { id: jobId },
+      await prisma.ingestionJob.updateMany({
+        where: { id: jobId, status: IngestionStatus.PROCESSING },
         data: {
           lastHeartbeatAt: new Date(),
           questionsExtracted: stateData.questions.length,

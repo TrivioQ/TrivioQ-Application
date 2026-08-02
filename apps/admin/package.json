@@ -36,6 +36,7 @@
     "react-dom": "19.2.4",
     "react-hook-form": "^7.74.0",
     "react-markdown": "^10.1.0",
+    "react18-json-view": "^0.2.10",
     "recharts": "^3.8.1",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
