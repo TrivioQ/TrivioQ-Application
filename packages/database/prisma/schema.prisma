@@ -526,6 +526,11 @@ model IngestionJob {
   progress         Int             @default(0) // phase-level progress 0-100
   overallProgress  Int             @default(0) // overall job progress 0-100 (weighted across all phases)
   totalQuestions   Int             @default(0) // populated during extraction/enhancement
+  currentPage      Int?            // page currently being processed (lastProcessedImageIndex + 1)
+  totalPages       Int?            // total pages in the PDF being processed
+  questionsExtracted Int?          // questions.length across all statuses
+  questionsUploaded  Int?          // questions with status=UPLOADED
+  lastHeartbeatAt  DateTime?       // updated every 30s while PROCESSING; used to detect stalled jobs
   errorLogs        String?         @db.Text
   processedAt      DateTime?
   manifestData     Json?           // The config options previously stored in manifest.json (categorySlugs, topic, instructions)
@@ -534,3 +539,4 @@ model IngestionJob {
 
   @@index([status, createdAt(sort: Desc)])
 }
+

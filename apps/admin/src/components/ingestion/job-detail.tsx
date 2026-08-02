@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { format } from 'date-fns';
-import { Play } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
+import { Play, AlertTriangle, Copy, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface IngestionJob {
   id: string;
@@ -21,51 +23,88 @@ interface IngestionJob {
   currentPhase: string | null;
   fileName: string;
   totalQuestions: number;
+  questionsExtracted: number | null;
+  questionsUploaded: number | null;
+  currentPage: number | null;
+  totalPages: number | null;
+  lastHeartbeatAt: string | null;
   createdAt: string;
   updatedAt: string;
+  processedAt: string | null;
   errorLogs: string | null;
-  manifestData: any;
+  manifestData: Record<string, unknown> | null;
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const STALE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+
+function isStale(job: IngestionJob): boolean {
+  if (job.status !== 'PROCESSING') return false;
+  const ref = job.lastHeartbeatAt ?? job.updatedAt;
+  return Date.now() - new Date(ref).getTime() > STALE_THRESHOLD_MS;
+}
+
+function statusVariant(status: string): 'destructive' | 'default' | 'secondary' | 'outline' {
+  if (status === 'FAILED') return 'destructive';
+  if (status === 'COMPLETED') return 'default';
+  return 'secondary';
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export function JobDetail({ jobId }: { jobId: string }) {
   const t = useTranslations('system.ingestion');
   const confirm = useConfirm();
+
   const [job, setJob] = useState<IngestionJob | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [forcePhase, setForcePhase] = useState<string>('none');
+  const [copied, setCopied] = useState(false);
 
-  const fetchJob = useCallback(async (signal?: AbortSignal) => {
-    try {
-      const res = await fetch(`/api/v1/admin/ingestion/jobs/${jobId}`, { signal });
-      if (!res.ok) throw new Error('Failed to load job');
-      const data = await res.json();
-      
-      if (!signal?.aborted) {
-        setJob(data.data);
+  // ── Fetch job data ──────────────────────────────────────────────────────────
+
+  const fetchJob = useCallback(
+    async (signal?: AbortSignal) => {
+      try {
+        const res = await fetch(`/api/v1/admin/ingestion/jobs/${jobId}`, { signal });
+        if (!res.ok) throw new Error('Failed to load job');
+        const data = await res.json();
+        if (!signal?.aborted) setJob(data.data);
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        if (!signal?.aborted) setError(t('loadError'));
+      } finally {
+        if (!signal?.aborted) setLoading(false);
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
-      if (!signal?.aborted) setError(t('loadError'));
-    } finally {
-      if (!signal?.aborted) setLoading(false);
-    }
-  }, [jobId, t]);
+    },
+    [jobId, t],
+  );
 
   useEffect(() => {
     const controller = new AbortController();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchJob(controller.signal);
+    
+    // Wrap the initial fetch in an async function to avoid synchronous setState warning
+    void (async () => {
+      await fetchJob(controller.signal);
+    })();
 
+    // Poll every 5 s while job is active; stop when terminal status reached
     const intervalId = setInterval(() => {
-      fetchJob();
-    }, 5000); // refresh every 5s
+      if (job?.status === 'COMPLETED' || job?.status === 'FAILED') return;
+      void (async () => {
+        await fetchJob();
+      })();
+    }, 5000);
 
     return () => {
       controller.abort();
       clearInterval(intervalId);
     };
-  }, [fetchJob]);
+  }, [fetchJob, job?.status]);
+
+  // ── Actions ─────────────────────────────────────────────────────────────────
 
   const retryJob = async () => {
     if (!job) return;
@@ -77,17 +116,15 @@ export function JobDetail({ jobId }: { jobId: string }) {
     });
     if (!ok) return;
 
-    const payload: any = {};
-    if (forcePhase !== 'none') {
-      payload.forcePhase = forcePhase;
-    }
+    const payload: Record<string, string> = {};
+    if (forcePhase !== 'none') payload.forcePhase = forcePhase;
 
-    const res = await fetch(`/api/v1/admin/ingestion/jobs/${job.id}/retry`, { 
+    const res = await fetch(`/api/v1/admin/ingestion/jobs/${job.id}/retry`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
-    
+
     if (res.ok) {
       toast.success(t('retryQueued'));
       fetchJob();
@@ -96,61 +133,132 @@ export function JobDetail({ jobId }: { jobId: string }) {
     }
   };
 
+  const copyErrorLogs = () => {
+    if (!job?.errorLogs) return;
+    navigator.clipboard.writeText(job.errorLogs).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  // ── Phase-aware progress description ────────────────────────────────────────
+
+  const phaseDetail = (() => {
+    if (!job || job.status !== 'PROCESSING') return null;
+    const phase = job.currentPhase;
+    const isQuiz = job.processType === 'QUIZ_GENERATION';
+
+    if (phase === 'SCOUT') {
+      return job.currentPage !== null && job.totalPages !== null
+        ? t('phaseDetail.scouting', { current: job.currentPage, total: job.totalPages })
+        : t('phaseDetail.scoutingGeneric');
+    }
+    if (phase === 'EXTRACTION') {
+      const label = isQuiz ? t('phaseDetail.generating') : t('phaseDetail.extracting');
+      return job.currentPage !== null && job.totalPages !== null
+        ? `${label} — ${t('phaseDetail.page', { current: job.currentPage, total: job.totalPages })}`
+        : label;
+    }
+    if (phase === 'ENHANCEMENT') {
+      const extracted = job.questionsExtracted ?? job.totalQuestions;
+      return t('phaseDetail.enhancing', { count: extracted });
+    }
+    if (phase === 'UPLOAD') {
+      const uploaded = job.questionsUploaded ?? 0;
+      const total = job.questionsExtracted ?? job.totalQuestions;
+      return t('phaseDetail.uploading', { uploaded, total });
+    }
+    return null;
+  })();
+
+  // ── Render states ────────────────────────────────────────────────────────────
+
   if (loading) {
     return <p className="text-sm text-muted-foreground py-6 text-center">{t('loading')}</p>;
   }
 
   if (error || !job) {
-    return <p className="text-sm text-destructive py-6 text-center">{error || t('notFound')}</p>;
+    return <p className="text-sm text-destructive py-6 text-center">{error ?? t('notFound')}</p>;
   }
+
+  const stale = isStale(job);
+  const heartbeatRef = job.lastHeartbeatAt ?? job.updatedAt;
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start flex-wrap gap-2">
             <div>
               <CardTitle>{job.fileName}</CardTitle>
               <CardDescription>{t('idLabel', { id: job.id })}</CardDescription>
             </div>
-            <Badge variant={job.status === 'FAILED' ? 'destructive' : job.status === 'COMPLETED' ? 'default' : 'secondary'}>
-              {job.status}
-            </Badge>
+            <div className="flex items-center gap-2">
+              {stale && (
+                <Badge variant="outline" className="text-amber-500 border-amber-500 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  {t('staleWarning')}
+                </Badge>
+              )}
+              <Badge variant={statusVariant(job.status)}>{job.status}</Badge>
+            </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+
+        <CardContent className="space-y-5">
+          {/* Metadata grid */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">{t('form.processType')}: </span>
-              <span className="font-medium">{job.processType === 'QUIZ_GENERATION' ? t('form.quizGeneration') : job.processType === 'QUESTION_EXTRACTION' ? t('form.questionExtraction') : job.processType}</span>
+              <span className="font-medium">
+                {job.processType === 'QUIZ_GENERATION'
+                  ? t('form.quizGeneration')
+                  : job.processType === 'QUESTION_EXTRACTION'
+                    ? t('form.questionExtraction')
+                    : job.processType}
+              </span>
             </div>
             <div>
               <span className="text-muted-foreground">{t('phase')}: </span>
-              <span className="font-medium">{job.currentPhase || '—'}</span>
+              <span className="font-medium">{job.currentPhase ?? '—'}</span>
             </div>
             <div>
               <span className="text-muted-foreground">{t('overallProgress')}: </span>
               <span className="font-medium">{job.overallProgress}%</span>
             </div>
             <div>
-              <span className="text-muted-foreground">{t('progress')}: </span>
-              <span className="font-medium">{job.progress}%</span>
+              <span className="text-muted-foreground">{t('questionsExtracted')}: </span>
+              <span className="font-medium">{job.questionsExtracted ?? job.totalQuestions}</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">{t('questions')}: </span>
-              <span className="font-medium">{job.totalQuestions}</span>
-            </div>
+            {job.questionsUploaded !== null && (
+              <div>
+                <span className="text-muted-foreground">{t('questionsUploaded')}: </span>
+                <span className="font-medium">{job.questionsUploaded}</span>
+              </div>
+            )}
+            {job.totalPages !== null && (
+              <div>
+                <span className="text-muted-foreground">{t('totalPages')}: </span>
+                <span className="font-medium">{job.totalPages}</span>
+              </div>
+            )}
             <div>
               <span className="text-muted-foreground">{t('createdAt')}: </span>
               <span className="font-medium">{format(new Date(job.createdAt), 'PP p')}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">{t('updatedAt')}: </span>
-              <span className="font-medium">{format(new Date(job.updatedAt), 'PP p')}</span>
+              <span className="text-muted-foreground">{t('lastUpdated')}: </span>
+              <span className="font-medium">{formatDistanceToNow(new Date(heartbeatRef), { addSuffix: true })}</span>
             </div>
+            {job.processedAt && (
+              <div>
+                <span className="text-muted-foreground">{t('processedAt')}: </span>
+                <span className="font-medium">{format(new Date(job.processedAt), 'PP p')}</span>
+              </div>
+            )}
           </div>
 
-          {/* Overall Progress bar */}
+          {/* Overall progress bar */}
           <div className="space-y-1">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">{t('overallProgress')}</span>
@@ -164,11 +272,13 @@ export function JobDetail({ jobId }: { jobId: string }) {
             </div>
           </div>
 
-          {/* Phase Progress bar — only shown while processing */}
+          {/* Phase progress bar — only while processing */}
           {job.status === 'PROCESSING' && (
             <div className="space-y-1">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t('progress')}</span>
+                <span className="text-muted-foreground">
+                  {phaseDetail ?? t('progress')}
+                </span>
                 <span className="font-medium text-muted-foreground">{job.progress}%</span>
               </div>
               <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
@@ -180,12 +290,40 @@ export function JobDetail({ jobId }: { jobId: string }) {
             </div>
           )}
 
-          {job.errorLogs && (
-            <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-md text-sm whitespace-pre-wrap font-mono overflow-auto max-h-64">
-              {job.errorLogs}
+          {/* Completed summary */}
+          {job.status === 'COMPLETED' && (
+            <div className="rounded-md bg-muted/50 p-4 text-sm space-y-1">
+              <p className="font-medium text-foreground">{t('completedSummary.title')}</p>
+              <p className="text-muted-foreground">
+                {t('completedSummary.extracted', { count: job.questionsExtracted ?? job.totalQuestions })}
+              </p>
+              <p className="text-muted-foreground">
+                {t('completedSummary.uploaded', { count: job.questionsUploaded ?? 0 })}
+              </p>
             </div>
           )}
 
+          {/* Error panel */}
+          {job.errorLogs && (
+            <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 text-destructive overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-destructive/20">
+                <span className="text-sm font-semibold">{t('errorPanel.title')}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-destructive hover:text-destructive"
+                  onClick={copyErrorLogs}
+                >
+                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                </Button>
+              </div>
+              <pre className="text-xs p-4 whitespace-pre-wrap font-mono overflow-auto max-h-64">
+                {job.errorLogs}
+              </pre>
+            </div>
+          )}
+
+          {/* Manifest config */}
           {job.manifestData && (
             <div className="mt-4 p-4 bg-muted rounded-md text-sm whitespace-pre-wrap font-mono overflow-auto max-h-64">
               <strong>{t('manifestConfig')}</strong>
@@ -194,32 +332,35 @@ export function JobDetail({ jobId }: { jobId: string }) {
           )}
         </CardContent>
 
-        <CardFooter className="flex flex-col sm:flex-row items-center gap-4 bg-muted/50 p-4 border-t">
-          {(job.status === 'FAILED' || job.status === 'COMPLETED') && (
+        {/* Retry / restart footer */}
+        {(job.status === 'FAILED' || job.status === 'COMPLETED') && (
+          <CardFooter className="flex flex-col sm:flex-row items-center gap-4 bg-muted/50 p-4 border-t">
             <div className="flex items-center gap-4 w-full sm:w-auto">
               <div className="flex items-center gap-2">
                 <Label>{t('restartFrom')}</Label>
                 <Select value={forcePhase} onValueChange={(val) => val && setForcePhase(val)}>
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select phase" />
+                    <SelectValue placeholder={t('phases.none')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">{t('phases.none')}</SelectItem>
-                    <SelectItem value="SCOUT">{t('phases.scout')}</SelectItem>
+                    {job.processType !== 'QUIZ_GENERATION' && (
+                      <SelectItem value="SCOUT">{t('phases.scout')}</SelectItem>
+                    )}
                     <SelectItem value="EXTRACTION">{t('phases.extraction')}</SelectItem>
                     <SelectItem value="ENHANCEMENT">{t('phases.enhancement')}</SelectItem>
                     <SelectItem value="UPLOAD">{t('phases.upload')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <Button onClick={retryJob}>
                 <Play className="mr-2 h-4 w-4" />
                 {t('confirmations.retryConfirm')}
               </Button>
             </div>
-          )}
-        </CardFooter>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

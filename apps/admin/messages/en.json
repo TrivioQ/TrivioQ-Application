@@ -926,13 +926,36 @@
       "overallProgress": "Overall Progress",
       "phase": "Current Phase",
       "questions": "Questions Extracted",
+      "questionsExtracted": "Questions Extracted",
+      "questionsUploaded": "Questions Uploaded",
+      "totalPages": "Total Pages",
       "notFound": "Job not found",
       "createdAt": "Created At",
       "updatedAt": "Updated At",
+      "lastUpdated": "Last Updated",
+      "processedAt": "Completed At",
       "retryQueued": "Job queued for retry",
       "manifestConfig": "Manifest Config:",
       "restartFrom": "Restart From:",
       "idLabel": "ID: {id}",
+      "staleWarning": "May be stalled",
+      "phaseDetail": {
+        "scouting": "Classifying page {current} of {total}",
+        "scoutingGeneric": "Classifying page images",
+        "extracting": "Extracting questions",
+        "generating": "Generating questions",
+        "page": "page {current} of {total}",
+        "enhancing": "Enhancing {count} questions",
+        "uploading": "Uploading {uploaded} of {total} questions"
+      },
+      "completedSummary": {
+        "title": "Job completed successfully",
+        "extracted": "{count} questions extracted",
+        "uploaded": "{count} questions submitted for review"
+      },
+      "errorPanel": {
+        "title": "Error Details"
+      },
       "phases": {
         "none": "No Reset (Resume)",
         "scout": "Scout Phase",
@@ -987,6 +1010,7 @@
         }
       }
     },
+
     "jobLogs": {
       "title": "Job Logs",
       "description": "Permanent history of background worker executions across all queues.",

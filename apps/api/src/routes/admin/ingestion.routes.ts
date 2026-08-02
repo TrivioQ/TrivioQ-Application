@@ -1,23 +1,43 @@
 import { Router, Request, Response } from 'express';
 import { prisma, ProcessType, IngestionStatus } from '@trivioq/database';
-import { Queue } from 'bullmq';
-import Redis from 'ioredis';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 
 const router = Router();
 
-const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
-  maxRetriesPerRequest: null,
-});
+// ── Worker URL ────────────────────────────────────────────────────────────────
+// The ingestion worker runs as a separate container with its own HTTP server.
+// Calls are internal (container-to-container) and never exposed to the internet.
+const WORKER_INGESTION_URL = process.env.WORKER_INGESTION_URL ?? 'http://localhost:3014';
 
-const ingestionQueue = new Queue('pdf-ingestion', { connection: connection as any });
+async function triggerWorkerJob(jobId: string, forcePhase?: string): Promise<void> {
+  const res = await fetch(`${WORKER_INGESTION_URL}/internal/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jobId, forcePhase }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Worker responded ${res.status}: ${body}`);
+  }
+}
 
-// Multer temp dir: use a subdirectory within the ingestion volume so that
-// both the temp file and the final destination are on the same filesystem.
-// This avoids EXDEV "cross-device link not permitted" errors when renaming
-// across Docker volume boundaries (e.g. /tmp → /app/ingestion on a different device).
+async function cancelWorkerJob(jobId: string): Promise<void> {
+  try {
+    await fetch(`${WORKER_INGESTION_URL}/internal/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId }),
+    });
+  } catch {
+    // Best-effort — the job may have already finished
+  }
+}
+
+// ── Multer (file upload) ──────────────────────────────────────────────────────
+// Use a subdirectory within the ingestion volume so that both the temp file
+// and final destination are on the same filesystem, avoiding EXDEV errors.
 const ingestionRoot = () => path.resolve(process.cwd(), process.env.INGESTION_DIR ?? 'ingestion');
 const multerTempDir = () => path.join(ingestionRoot(), '.tmp');
 
@@ -59,7 +79,7 @@ router.get('/jobs', async (req: Request, res: Response) => {
 
 /**
  * @route   POST /api/v1/admin/ingestion/jobs
- * @desc    Upload a PDF and create a new ingestion job
+ * @desc    Upload a PDF and create a new ingestion job, then trigger the worker
  * @access  Private (Admin Only)
  */
 router.post('/jobs', upload.single('pdf'), async (req: Request, res: Response) => {
@@ -101,17 +121,16 @@ router.post('/jobs', upload.single('pdf'), async (req: Request, res: Response) =
 
     const dbProcessType = processType === 'quiz-generation' ? ProcessType.QUIZ_GENERATION : ProcessType.QUESTION_EXTRACTION;
 
-    // We generate a UUID for the bookId (which will be the DB job ID)
-    // To do this reliably before moving the file, let's create the DB record first
+    // Create the DB record first to obtain the UUID that becomes the bookId/directory name
     const newJob = await prisma.ingestionJob.create({
       data: {
         processType: dbProcessType,
         status: IngestionStatus.QUEUED,
         fileName: req.file.originalname,
         fileSize: req.file.size,
-        storagePath: '', // We will update this
-        manifestData: manifestData,
-        adminId: (req as any).user?.id, // assuming firebase middleware attaches user
+        storagePath: '', // updated below once directory is known
+        manifestData,
+        adminId: (req as any).user?.id,
       },
     });
 
@@ -123,11 +142,9 @@ router.post('/jobs', upload.single('pdf'), async (req: Request, res: Response) =
     }
 
     const targetPdfPath = path.join(bookDir, req.file.originalname);
-
-    // Move from temp to actual target
     fs.renameSync(req.file.path, targetPdfPath);
 
-    // Save manifest file in folder just in case (optional, but good for local debugging)
+    // Save manifest file for local debugging
     fs.writeFileSync(path.join(bookDir, 'manifest.json'), JSON.stringify({ bookId, ...manifestData }, null, 2));
 
     await prisma.ingestionJob.update({
@@ -135,22 +152,12 @@ router.post('/jobs', upload.single('pdf'), async (req: Request, res: Response) =
       data: { storagePath: targetPdfPath },
     });
 
-    // Add to BullMQ — remove any stale job with this ID first (e.g. from a
-    // previous failed attempt) so BullMQ does not silently ignore the add.
-    const existingBullJob = await ingestionQueue.getJob(bookId);
-    if (existingBullJob) {
-      await existingBullJob.remove();
-    }
-    await ingestionQueue.add(
-      'pdf-ingestion',
-      { jobId: bookId },
-      { jobId: bookId, removeOnFail: true }, // removeOnFail prevents stale IDs blocking future retries
-    );
+    // Trigger the worker — fire-and-forget via HTTP
+    await triggerWorkerJob(bookId);
 
     return res.status(201).json({ success: true, data: { id: bookId } });
   } catch (error: any) {
     console.error('Error creating ingestion job:', error);
-    // Cleanup temp file if it exists
     if (req.file && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
@@ -185,7 +192,7 @@ router.get('/jobs/:id', async (req: Request, res: Response) => {
 
 /**
  * @route   POST /api/v1/admin/ingestion/jobs/:id/retry
- * @desc    Retry a failed job or resume from a specific phase
+ * @desc    Retry a failed/completed job, optionally resetting to a specific phase
  * @access  Private (Admin Only)
  */
 router.post('/jobs/:id/retry', async (req: Request, res: Response) => {
@@ -207,19 +214,7 @@ router.post('/jobs/:id/retry', async (req: Request, res: Response) => {
       data: { status: IngestionStatus.QUEUED, errorLogs: null },
     });
 
-    // BullMQ silently ignores add() if a job with the same ID already exists
-    // (even in failed/completed state). Explicitly remove the stale BullMQ job
-    // first so the worker actually picks up the new entry.
-    try {
-      const existingBullJob = await ingestionQueue.getJob(id);
-      if (existingBullJob) {
-        await existingBullJob.remove();
-      }
-    } catch (removeErr) {
-      console.warn(`[RetryRoute] Could not remove existing BullMQ job ${id}:`, removeErr);
-    }
-
-    await ingestionQueue.add('pdf-ingestion', { jobId: id, forcePhase }, { jobId: id, removeOnFail: true });
+    await triggerWorkerJob(id, forcePhase);
 
     return res.status(200).json({ success: true, message: 'Job queued for retry' });
   } catch (error: any) {
@@ -230,7 +225,7 @@ router.post('/jobs/:id/retry', async (req: Request, res: Response) => {
 
 /**
  * @route   DELETE /api/v1/admin/ingestion/jobs/:id
- * @desc    Delete an ingestion job and its files
+ * @desc    Delete an ingestion job, cancel it if running, and remove its files
  * @access  Private (Admin Only)
  */
 router.delete('/jobs/:id', async (req: Request, res: Response) => {
@@ -242,15 +237,8 @@ router.delete('/jobs/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Job not found' });
     }
 
-    // Try to remove BullMQ job
-    try {
-      const bullJob = await ingestionQueue.getJob(id);
-      if (bullJob) {
-        await bullJob.remove();
-      }
-    } catch (e) {
-      console.log('Error removing bull job', e);
-    }
+    // Best-effort cancel if running
+    await cancelWorkerJob(id);
 
     // Remove files
     if (job.storagePath) {

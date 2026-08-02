@@ -188,6 +188,8 @@ services:
       REDIS_PORT: 6379
       REDIS_URL: redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
+      # Internal URL for triggering the ingestion worker (container-to-container)
+      WORKER_INGESTION_URL: http://worker-ingestion:3014
     ports:
       - "3013:3013"
     volumes:
@@ -345,7 +347,9 @@ services:
     logging: *default-logging
 
   # -------------------------------------------------------------------------
-  # Worker: Ingestion Processor
+  # Worker: Ingestion Processor (Fire-and-Forget, standalone HTTP server)
+  # Runs as its own Express server on port 3014 (internal only).
+  # Receives triggers from the API container via HTTP POST /internal/run.
   # -------------------------------------------------------------------------
   worker-ingestion:
     image: trivioq-api:latest
@@ -357,19 +361,25 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@pgbouncer:6432/${POSTGRES_DB:-trivioq}?schema=public&pgbouncer=true
       DATABASE_DIRECT_URL: postgresql://${POSTGRES_USER:-trivioq}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-trivioq}?schema=public
-      REDIS_URL: redis://redis:6379
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-service-account.json
+      WORKER_INGESTION_PORT: 3014
     volumes:
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
       - trivioq_ingestion_data:/app/ingestion
     networks:
       - trivioq-network
     depends_on:
-      api:
-        condition: service_healthy
+      pgbouncer:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
     command: ["node", "dist/workers/ingestion-worker.js"]
     healthcheck:
-      disable: true
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3014/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     logging: *default-logging
 
   # -------------------------------------------------------------------------
