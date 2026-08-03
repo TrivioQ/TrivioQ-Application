@@ -937,6 +937,11 @@
       "retryQueued": "Job queued for retry",
       "manifestConfig": "Manifest Config:",
       "restartFrom": "Restart From:",
+      "viewArtifact": "View Artifact",
+      "downloadArtifact": "Download Artifact",
+      "pauseSuccess": "Job paused",
+      "copiedId": "Job ID copied to clipboard",
+      "copyId": "Copy Job ID",
       "idLabel": "ID: {id}",
       "staleWarning": "May be stalled",
       "phaseDetail": {
@@ -970,7 +975,12 @@
         "cancel": "Cancel",
         "retryTitle": "Retry Job",
         "retryMessage": "Are you sure you want to retry this job?",
-        "retryConfirm": "Retry"
+        "retryConfirm": "Retry",
+        "pauseTitle": "Pause Job",
+        "pauseMessage": "Are you sure you want to pause this job?",
+        "pauseConfirm": "Pause",
+        "retriggerConfirm": "Retrigger",
+        "resumeConfirm": "Resume"
       },
       "form": {
         "pdfFile": "PDF File *",
