@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 
 interface IngestionJob {
@@ -81,7 +82,7 @@ export function IngestionDashboard() {
     }
   };
 
-  const retryJob = async (job: IngestionJob) => {
+  const retryJob = async (job: IngestionJob, phaseToForce: string) => {
     const ok = await confirm({
       title: t('confirmations.retryTitle'),
       message: t('confirmations.retryMessage'),
@@ -90,7 +91,15 @@ export function IngestionDashboard() {
     });
     if (!ok) return;
 
-    const res = await fetch(`/api/v1/admin/ingestion/jobs/${job.id}/retry`, { method: 'POST' });
+    const payload: Record<string, string> = {};
+    if (phaseToForce !== 'none') payload.forcePhase = phaseToForce;
+
+    const res = await fetch(`/api/v1/admin/ingestion/jobs/${job.id}/retry`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
     if (res.ok) {
       toast.success('Job queued for retry');
       fetchJobs();
@@ -187,10 +196,31 @@ export function IngestionDashboard() {
             </Button>
             
             {job.status === 'FAILED' || job.status === 'COMPLETED' ? (
-              <Button variant="outline" size="sm" onClick={() => retryJob(job)} className="flex-1">
-                <Play className="w-3 h-3 mr-2" />
-                {t('retryJob')}
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button variant="outline" size="sm" className="flex-1" />}>
+                  <Play className="w-3 h-3 mr-2" />
+                  {t('retryJob')}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => retryJob(job, 'none')}>
+                    {t('phases.none')}
+                  </DropdownMenuItem>
+                  {job.processType !== 'QUIZ_GENERATION' && (
+                    <DropdownMenuItem onClick={() => retryJob(job, 'SCOUT')}>
+                      {t('phases.scout')}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => retryJob(job, 'EXTRACTION')}>
+                    {t('phases.extraction')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => retryJob(job, 'ENHANCEMENT')}>
+                    {t('phases.enhancement')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => retryJob(job, 'UPLOAD')}>
+                    {t('phases.upload')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : null}
 
             <Button variant="outline" size="sm" onClick={() => deleteJob(job)} className="flex-1" title={t('deleteJob')}>
