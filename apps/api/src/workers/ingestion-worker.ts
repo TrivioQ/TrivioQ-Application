@@ -49,6 +49,35 @@ interface RunningJobContext {
 
 const runningJobs = new Map<string, RunningJobContext>();
 
+// ── Job Queue (Concurrency Control) ───────────────────────────────────────────
+
+interface PendingJob {
+  jobId: string;
+  forcePhase?: string;
+}
+
+const jobQueue: PendingJob[] = [];
+let currentLockHolder: string | null = null;
+
+function processNextJob() {
+  if (currentLockHolder !== null || jobQueue.length === 0) return;
+  const nextJob = jobQueue.shift();
+  if (!nextJob) return;
+
+  currentLockHolder = nextJob.jobId;
+  runJob(nextJob.jobId, nextJob.forcePhase)
+    .catch((err) => {
+      console.error(`[IngestionWorker] Unhandled error in runJob(${nextJob.jobId}):`, err);
+    })
+    .finally(() => {
+      // If this job still holds the lock (e.g. it failed or never reached UPLOAD phase), release it.
+      if (currentLockHolder === nextJob.jobId) {
+        currentLockHolder = null;
+        processNextJob();
+      }
+    });
+}
+
 // ── Pending sync store (persists final status to disk when DB is down) ────────
 
 const pendingSyncStore = {
@@ -320,6 +349,13 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
       const questionsUploaded = stateData.questions.filter((q) => q.status === 'UPLOADED').length;
       const currentPage = stateData.lastProcessedImageIndex + 1;
 
+      // Release lock if we reached UPLOAD phase so the next job can start processing
+      if (phase === 'UPLOAD' && currentLockHolder === jobId) {
+        console.log(`[IngestionWorker] Job ${jobId} reached UPLOAD phase. Releasing lock for next job.`);
+        currentLockHolder = null;
+        processNextJob();
+      }
+
       // Sync to DB — NEVER throws even if DB is down
       await syncProgressToDB(
         jobId,
@@ -419,11 +455,10 @@ async function recoverOnStartup(): Promise<void> {
         where: { id: job.id },
         data: { status: IngestionStatus.QUEUED },
       });
-      // Fire and forget
-      runJob(job.id).catch((err) => {
-        console.error(`[Startup] Error re-triggering job ${job.id}:`, err);
-      });
+      // Queue the job instead of fire-and-forget
+      jobQueue.push({ jobId: job.id });
     }
+    processNextJob();
   }
 
   console.log('[Startup] Recovery scan complete.');
@@ -480,19 +515,17 @@ app.post('/internal/run', (req, res) => {
     return res.status(400).json({ error: 'jobId is required' });
   }
 
-  if (runningJobs.has(jobId)) {
-    console.log(`[IngestionWorker] Job ${jobId} is already running, ignoring duplicate trigger.`);
-    return res.status(409).json({ error: 'Job is already running' });
+  if (runningJobs.has(jobId) || jobQueue.some((j) => j.jobId === jobId)) {
+    console.log(`[IngestionWorker] Job ${jobId} is already running or queued, ignoring duplicate trigger.`);
+    return res.status(409).json({ error: 'Job is already running or queued' });
   }
 
   console.log(`[IngestionWorker] Received trigger for job ${jobId}${forcePhase ? ` (forcePhase=${forcePhase})` : ''}`);
 
-  // Fire and forget — response returns immediately
-  runJob(jobId, forcePhase).catch((err) => {
-    console.error(`[IngestionWorker] Unhandled error in runJob(${jobId}):`, err);
-  });
+  jobQueue.push({ jobId, forcePhase });
+  processNextJob();
 
-  return res.status(200).json({ ok: true, message: 'Job started' });
+  return res.status(200).json({ ok: true, message: 'Job queued' });
 });
 
 /** Cancel a running job */
