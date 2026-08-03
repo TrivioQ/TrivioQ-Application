@@ -463,6 +463,7 @@ services:
     image: glitchtip/glitchtip:latest
     container_name: trivioq-glitchtip-web
     restart: unless-stopped
+    profiles: ["glitchtip"]
     environment:
       <<: *glitchtip-env
     ports:
@@ -492,6 +493,7 @@ services:
     image: glitchtip/glitchtip:latest
     container_name: trivioq-glitchtip-worker
     restart: unless-stopped
+    profiles: ["glitchtip"]
     command: ["./bin/run-worker.sh"]
     environment:
       <<: *glitchtip-env
@@ -515,6 +517,7 @@ services:
     image: glitchtip/glitchtip:latest
     container_name: trivioq-glitchtip-init
     restart: "no" # exits after running — intentional
+    profiles: ["glitchtip"]
     command: ["./manage.py", "createsuperuser", "--noinput"]
     environment:
       <<: *glitchtip-env

@@ -58,13 +58,20 @@ ENV_FILE="${PROJECT_ROOT}/.env.docker"
 ENV_EXAMPLE="${PROJECT_ROOT}/.env.docker.example"
 BACKUP_DIR="${PROJECT_ROOT}/backups"
 
-# Set COMPOSE_PROFILES based on tunnel token
+# Set COMPOSE_PROFILES based on environment variables
+_profiles=()
+
 _tunnel_token=$(grep -E '^CLOUDFLARE_TUNNEL_TOKEN=' "${ENV_FILE}" 2>/dev/null | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'" || true)
 if [[ -n "${_tunnel_token}" ]]; then
-  export COMPOSE_PROFILES="tunnel"
-else
-  export COMPOSE_PROFILES=""
+  _profiles+=("tunnel")
 fi
+
+_enable_sentry=$(grep -E '^ENABLE_SENTRY=' "${ENV_FILE}" 2>/dev/null | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'" || true)
+if [[ "${_enable_sentry}" == "true" ]]; then
+  _profiles+=("glitchtip")
+fi
+
+export COMPOSE_PROFILES=$(IFS=,; echo "${_profiles[*]}")
 
 # ---------------------------------------------------------------------------
 # Helpers
