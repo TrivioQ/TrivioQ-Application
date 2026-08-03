@@ -134,9 +134,14 @@ export function IngestionDashboard() {
                 <CardTitle className="text-base font-semibold truncate" title={job.fileName}>
                   {job.fileName}
                 </CardTitle>
-                <CardDescription className="text-xs font-mono bg-muted inline-block px-2 py-0.5 rounded">
-                  {job.processType === 'QUIZ_GENERATION' ? t('form.quizGeneration') : job.processType === 'QUESTION_EXTRACTION' ? t('form.questionExtraction') : job.processType}
-                </CardDescription>
+                <div className="flex flex-col gap-1.5 items-start">
+                  <CardDescription className="text-xs font-mono bg-muted inline-block px-2 py-0.5 rounded">
+                    {job.processType === 'QUIZ_GENERATION' ? t('form.quizGeneration') : job.processType === 'QUESTION_EXTRACTION' ? t('form.questionExtraction') : job.processType}
+                  </CardDescription>
+                  <CardDescription className="text-xs font-mono truncate w-full" title={job.id}>
+                    {t('idLabel', { id: job.id })}
+                  </CardDescription>
+                </div>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
                 <Badge variant={job.status === 'FAILED' ? 'destructive' : job.status === 'COMPLETED' ? 'default' : 'secondary'}>
