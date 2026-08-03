@@ -9,8 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -61,7 +60,6 @@ export function JobDetail({ jobId }: { jobId: string }) {
   const [job, setJob] = useState<IngestionJob | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [forcePhase, setForcePhase] = useState<string>('none');
   const [copied, setCopied] = useState(false);
   const [jobIdCopied, setJobIdCopied] = useState(false);
 
@@ -108,7 +106,7 @@ export function JobDetail({ jobId }: { jobId: string }) {
 
   // ── Actions ─────────────────────────────────────────────────────────────────
 
-  const retryJob = async () => {
+  const retryJob = async (phaseToForce: string = 'none') => {
     if (!job) return;
     const ok = await confirm({
       title: t('confirmations.retryTitle'),
@@ -119,7 +117,7 @@ export function JobDetail({ jobId }: { jobId: string }) {
     if (!ok) return;
 
     const payload: Record<string, string> = {};
-    if (forcePhase !== 'none') payload.forcePhase = forcePhase;
+    if (phaseToForce !== 'none') payload.forcePhase = phaseToForce;
 
     const res = await fetch(`/api/v1/admin/ingestion/jobs/${job.id}/retry`, {
       method: 'POST',
@@ -386,36 +384,38 @@ export function JobDetail({ jobId }: { jobId: string }) {
           )}
         </CardContent>
 
-        {/* Retry / restart footer */}
         {/* Actions footer */}
         <CardFooter className="flex flex-col sm:flex-row items-center gap-4 bg-muted/50 p-4 border-t">
           <div className="flex items-center gap-4 w-full sm:w-auto">
-            <div className="flex items-center gap-2">
-              <Label>{t('restartFrom')}</Label>
-              <Select value={forcePhase} onValueChange={(val) => val && setForcePhase(val)}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder={t('phases.none')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">{t('phases.none')}</SelectItem>
-                  {job.processType !== 'QUIZ_GENERATION' && (
-                    <SelectItem value="SCOUT">{t('phases.scout')}</SelectItem>
-                  )}
-                  <SelectItem value="EXTRACTION">{t('phases.extraction')}</SelectItem>
-                  <SelectItem value="ENHANCEMENT">{t('phases.enhancement')}</SelectItem>
-                  <SelectItem value="UPLOAD">{t('phases.upload')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button onClick={retryJob}>
-              <Play className="mr-2 h-4 w-4" />
-              {job.status === 'PROCESSING' 
-                ? t('confirmations.retriggerConfirm', { fallback: 'Retrigger' }) 
-                : job.status === 'PAUSED' 
-                  ? t('confirmations.resumeConfirm', { fallback: 'Resume' })
-                  : t('confirmations.retryConfirm')}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger render={<Button />}>
+                <Play className="mr-2 h-4 w-4" />
+                {job.status === 'PROCESSING' 
+                  ? t('confirmations.retriggerConfirm', { fallback: 'Retrigger' }) 
+                  : job.status === 'PAUSED' 
+                    ? t('confirmations.resumeConfirm', { fallback: 'Resume' })
+                    : t('confirmations.retryConfirm')}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => retryJob('none')}>
+                  {t('phases.none')}
+                </DropdownMenuItem>
+                {job.processType !== 'QUIZ_GENERATION' && (
+                  <DropdownMenuItem onClick={() => retryJob('SCOUT')}>
+                    {t('phases.scout')}
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => retryJob('EXTRACTION')}>
+                  {t('phases.extraction')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => retryJob('ENHANCEMENT')}>
+                  {t('phases.enhancement')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => retryJob('UPLOAD')}>
+                  {t('phases.upload')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {job.status === 'PROCESSING' && (
               <Button onClick={pauseJob} variant="secondary">
