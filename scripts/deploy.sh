@@ -58,6 +58,14 @@ ENV_FILE="${PROJECT_ROOT}/.env.docker"
 ENV_EXAMPLE="${PROJECT_ROOT}/.env.docker.example"
 BACKUP_DIR="${PROJECT_ROOT}/backups"
 
+# Set COMPOSE_PROFILES based on tunnel token
+_tunnel_token=$(grep -E '^CLOUDFLARE_TUNNEL_TOKEN=' "${ENV_FILE}" 2>/dev/null | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'" || true)
+if [[ -n "${_tunnel_token}" ]]; then
+  export COMPOSE_PROFILES="tunnel"
+else
+  export COMPOSE_PROFILES=""
+fi
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

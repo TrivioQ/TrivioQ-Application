@@ -538,6 +538,7 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: trivioq-tunnel
     restart: unless-stopped
+    profiles: ["tunnel"]
     command: tunnel run
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
