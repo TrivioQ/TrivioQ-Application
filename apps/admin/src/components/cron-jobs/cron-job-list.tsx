@@ -199,10 +199,12 @@ export function CronJobList() {
                 <FastForward className="w-3 h-3 mr-2" />
                 {t('triggerNow')}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => terminateJob(job)} className="flex-1" title={t('terminate')}>
-                <Ban className="w-3 h-3 mr-2 text-destructive" />
-                {t('terminate')}
-              </Button>
+              {job.isExecuting && (
+                <Button variant="outline" size="sm" onClick={() => terminateJob(job)} className="flex-1" title={t('terminate')}>
+                  <Ban className="w-3 h-3 mr-2 text-destructive" />
+                  {t('terminate')}
+                </Button>
+              )}
               <Button variant="ghost" size="sm" onClick={() => setLogsJobId(job.id)} className="flex-1">
                 <FileText className="w-3 h-3 mr-2" />
                 {t('viewLogs')}
