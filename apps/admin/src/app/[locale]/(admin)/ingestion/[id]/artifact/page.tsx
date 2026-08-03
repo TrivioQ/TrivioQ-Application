@@ -29,7 +29,7 @@ export default function ArtifactViewPage() {
         const res = await fetch(`/api/v1/admin/ingestion/jobs/${id}/artifact`);
         if (!res.ok) {
           if (res.status === 404) {
-            throw new Error(t('artifactNotFound', { fallback: 'Artifact (state.json) not found for this job. It may not have started yet.' }));
+            throw new Error(t('artifactNotFound', { fallback: 'Artifact not found for this job. It may not have started yet.' }));
           }
           throw new Error('Failed to load artifact');
         }

@@ -209,10 +209,10 @@ router.get('/jobs/:id/artifact', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Job not found or has no storage path' });
     }
 
-    const artifactPath = path.join(path.dirname(job.storagePath), 'data', 'state.json');
+    const artifactPath = path.join(path.dirname(job.storagePath), 'data', `${id}_state.json`);
 
     if (!fs.existsSync(artifactPath)) {
-      return res.status(404).json({ error: 'Artifact (state.json) not found for this job' });
+      return res.status(404).json({ error: `Artifact (${id}_state.json) not found for this job` });
     }
 
     if (download) {
