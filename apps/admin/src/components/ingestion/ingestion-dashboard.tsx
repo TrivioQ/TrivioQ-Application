@@ -120,7 +120,7 @@ export function IngestionDashboard() {
       {jobs.map((job) => (
         <Card key={job.id} className="bg-background shadow-sm flex flex-col">
           <CardHeader className="pb-3">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start justify-between gap-4 min-w-0">
               <div className="space-y-1.5 min-w-0">
                 <CardTitle className="text-base font-semibold truncate" title={job.fileName}>
                   {job.fileName}
