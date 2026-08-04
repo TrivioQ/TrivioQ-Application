@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Play, Trash2, Eye } from 'lucide-react';
+import { Play, Trash2, Eye, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -20,8 +20,17 @@ interface IngestionJob {
   currentPhase: string | null;
   fileName: string;
   totalQuestions: number;
+  lastHeartbeatAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+const STALE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+
+function isStale(job: IngestionJob): boolean {
+  if (job.status !== 'PROCESSING') return false;
+  const ref = job.lastHeartbeatAt ?? job.updatedAt;
+  return Date.now() - new Date(ref).getTime() > STALE_THRESHOLD_MS;
 }
 
 export function IngestionDashboard() {
@@ -144,9 +153,24 @@ export function IngestionDashboard() {
                 </div>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
-                <Badge variant={job.status === 'FAILED' ? 'destructive' : job.status === 'COMPLETED' ? 'default' : 'secondary'}>
-                  {job.status}
-                </Badge>
+                {isStale(job) && (
+                  <Badge variant="outline" className="text-amber-500 border-amber-500 flex items-center gap-1" title={t('staleWarning')}>
+                    <AlertTriangle className="h-3 w-3" />
+                  </Badge>
+                )}
+                {job.status === 'PROCESSING' && !isStale(job) ? (
+                  <Badge className="animate-pulse bg-emerald-600 hover:bg-emerald-600 text-white flex items-center gap-1">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                    </span>
+                    {job.status}
+                  </Badge>
+                ) : (
+                  <Badge variant={job.status === 'FAILED' ? 'destructive' : job.status === 'COMPLETED' ? 'default' : 'secondary'}>
+                    {job.status}
+                  </Badge>
+                )}
               </div>
             </div>
           </CardHeader>
