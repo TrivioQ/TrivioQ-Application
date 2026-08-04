@@ -431,7 +431,7 @@ export function JobDetail({ jobId }: { jobId: string }) {
                   <FileJson className="mr-2 h-4 w-4" />
                   {t('viewArtifact', { fallback: 'View Artifact' })}
                 </Button>
-                <Button variant="outline" render={<a href={`/api/v1/admin/ingestion/jobs/${job.id}/artifact?download=true`} />}>
+                <Button variant="outline" render={<a href={`/api/v1/admin/ingestion/jobs/${job.id}/artifact?download=true`} download={`job-${job.id}-state.json`} />}>
                   <Download className="mr-2 h-4 w-4" />
                   {t('downloadArtifact', { fallback: 'Download Artifact' })}
                 </Button>

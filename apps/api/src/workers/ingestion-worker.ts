@@ -458,6 +458,24 @@ async function recoverOnStartup(): Promise<void> {
       // Queue the job instead of fire-and-forget
       jobQueue.push({ jobId: job.id });
     }
+  }
+
+  // 3. Re-queue any jobs that were already QUEUED
+  const queuedJobs = await prisma.ingestionJob.findMany({
+    where: { status: IngestionStatus.QUEUED },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  if (queuedJobs.length > 0) {
+    console.log(`[Startup] Found ${queuedJobs.length} QUEUED job(s). Adding to queue...`);
+    for (const job of queuedJobs) {
+      if (!jobQueue.some((j) => j.jobId === job.id)) {
+        jobQueue.push({ jobId: job.id });
+      }
+    }
+  }
+
+  if (stalledJobs.length > 0 || queuedJobs.length > 0) {
     processNextJob();
   }
 

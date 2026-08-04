@@ -216,7 +216,9 @@ router.get('/jobs/:id/artifact', async (req: Request, res: Response) => {
     }
 
     if (download) {
-      return res.download(artifactPath, `job-${id}-state.json`);
+      res.setHeader('Content-Disposition', `attachment; filename="job-${id}-state.json"`);
+      res.setHeader('Content-Type', 'application/octet-stream');
+      return fs.createReadStream(artifactPath).pipe(res);
     } else {
       res.setHeader('Content-Type', 'application/json');
       return fs.createReadStream(artifactPath).pipe(res);

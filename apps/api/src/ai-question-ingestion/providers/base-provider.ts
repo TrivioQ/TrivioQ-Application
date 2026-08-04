@@ -106,14 +106,14 @@ export abstract class BaseAIProvider {
         return await apiCall();
       } catch (error: any) {
         if (error instanceof ApiFatalError) {
-          console.error(`[${this.constructor.name}] FATAL: Unrecoverable error. Stopping ingestion process. Error: ${error.message}`);
-          process.exit(1);
+          console.error(`[${this.constructor.name}] FATAL: Unrecoverable error. Error: ${error.message}`);
+          throw new Error(`Fatal API error (${this.constructor.name}): ${error.message}`);
         }
 
         if (error instanceof ApiRateLimitError) {
           if (attempt === maxRetries) {
-            console.error(`[${this.constructor.name}] FATAL: Max retries exhausted. Stopping ingestion process. HTTP ${error.status}: ${error.message}`);
-            process.exit(1);
+            console.error(`[${this.constructor.name}] Max retries exhausted. HTTP ${error.status}: ${error.message}`);
+            throw new Error(`Max retries exhausted (${this.constructor.name}): HTTP ${error.status}`);
           }
           let retryDelay = delay;
           if (error.retryAfterMs) {
@@ -127,8 +127,8 @@ export abstract class BaseAIProvider {
 
         // Generic error (network timeout, etc.)
         if (attempt === maxRetries) {
-          console.error(`[${this.constructor.name}] FATAL: Max retries exhausted. Stopping ingestion process. Error: ${error instanceof Error ? error.message : error}`);
-          process.exit(1);
+          console.error(`[${this.constructor.name}] Max retries exhausted. Error: ${error instanceof Error ? error.message : error}`);
+          throw new Error(`Max retries exhausted (${this.constructor.name}): ${error instanceof Error ? error.message : error}`);
         }
         console.warn(`[${this.constructor.name}] Error (Attempt ${attempt}/${maxRetries}): ${error instanceof Error ? error.message : error}. Retrying in ${delay}ms...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
