@@ -205,7 +205,7 @@ cmd_redeploy() {
     info "Rebuilding all changed images ..."
     docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" build
     info "Restarting all services ..."
-    docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" up -d --force-recreate
+    docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" up -d
   fi
 
   success "Redeploy complete."
