@@ -110,7 +110,7 @@ export function IngestionDashboard() {
     });
 
     if (res.ok) {
-      toast.success('Job queued for retry');
+      toast.success(t('retryQueued'));
       fetchJobs();
     } else {
       toast.error(t('errorAction'));
