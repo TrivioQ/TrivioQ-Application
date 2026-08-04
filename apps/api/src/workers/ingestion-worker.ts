@@ -20,10 +20,15 @@
  *  - On startup, recoverOnStartup() flushes pending sync then re-triggers PROCESSING jobs.
  */
 
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load root .env when running locally (no-op in Docker where vars are already injected)
+dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
+
 import express from 'express';
 import { prisma, ProcessType, IngestionStatus } from '@trivioq/database';
 import fs from 'fs';
-import path from 'path';
 import { PDFDocument } from 'pdf-lib';
 import { pdfToImage } from '../ai-question-ingestion/utils/pdf-to-image';
 import { IngestionOrchestrator } from '../ai-question-ingestion/orchestrator';

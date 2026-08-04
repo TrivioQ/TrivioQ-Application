@@ -5,6 +5,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "ts-node-dev src/index.ts",
+    "dev:ingestion-worker": "WORKER_INGESTION_PORT=3014 INGESTION_DIR=ingestion ts-node-dev src/workers/ingestion-worker.ts",
     "start": "node dist/index.js",
     "start:cron": "node dist/cron.js",
     "start:scheduler": "node dist/workers/scheduler.js",

@@ -195,7 +195,8 @@ services:
     volumes:
       # Firebase service account injected at runtime — never baked into the image
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
-      - trivioq_ingestion_data:/app/ingestion
+      # Bind-mount so the host and local dev worker can share the same ingestion files
+      - ${INGESTION_HOST_DIR:-./ingestion}:/app/ingestion
     networks:
       - trivioq-network
     depends_on:
@@ -350,6 +351,13 @@ services:
   # Worker: Ingestion Processor (Fire-and-Forget, standalone HTTP server)
   # Runs as its own Express server on port 3014 (internal only).
   # Receives triggers from the API container via HTTP POST /internal/run.
+  #
+  # LOCAL DEV: To run this worker on your host machine instead of Docker:
+  #   1. In .env.docker, uncomment: WORKER_INGESTION_URL=http://host.docker.internal:3014
+  #   2. In docker-compose.yml, comment out this entire worker-ingestion service block
+  #      (or add `profiles: ["worker"]` to exclude it from default `up`).
+  #   3. Run locally: pnpm --filter api dev:ingestion-worker
+  #   4. Redeploy the api service only: docker compose up -d --no-deps api
   # -------------------------------------------------------------------------
   worker-ingestion:
     image: trivioq-api:latest
@@ -365,7 +373,7 @@ services:
       WORKER_INGESTION_PORT: 3014
     volumes:
       - ${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}:/secrets/firebase-service-account.json:ro
-      - trivioq_ingestion_data:/app/ingestion
+      - ${INGESTION_HOST_DIR:-./ingestion}:/app/ingestion
     networks:
       - trivioq-network
     depends_on:
