@@ -60,7 +60,7 @@ export interface OrchestratorConfig {
 }
 
 export interface IngestionProcess {
-  run(options?: { reuploadOnly?: boolean }, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void>;
+  run(options?: { reuploadOnly?: boolean; signal?: AbortSignal }, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void>;
 }
 
 /**

@@ -43,7 +43,7 @@ export class NvidiaProvider extends BaseAIProvider {
     return this.model.toLowerCase().includes('deepseek');
   }
 
-  protected async call(prompt: string, images: ImageInput[] = [], options?: { temperature?: number }): Promise<string> {
+  protected async call(prompt: string, images: ImageInput[] = [], options?: { temperature?: number; signal?: AbortSignal }): Promise<string> {
     const isDeepSeekModel = this.isDeepSeek();
     const payload = {
       model: this.model,
@@ -65,6 +65,7 @@ export class NvidiaProvider extends BaseAIProvider {
         Accept: 'application/json',
       },
       body: JSON.stringify(payload),
+      signal: options?.signal,
     });
 
     if (response.status === 429 || (response.status >= 500 && response.status < 600)) {

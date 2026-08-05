@@ -15,7 +15,7 @@ export class LocalProvider extends BaseAIProvider {
     this.baseUrl = process.env.LOCAL_LLM_URL || 'http://localhost:3713/v1/analyze-page';
   }
 
-  protected async call(prompt: string, images: ImageInput[] = [], options?: { temperature?: number }): Promise<string> {
+  protected async call(prompt: string, images: ImageInput[] = [], options?: { temperature?: number; signal?: AbortSignal }): Promise<string> {
     const formData = new FormData();
     formData.append('prompt', prompt);
     if (options?.temperature !== undefined) {
@@ -50,6 +50,7 @@ export class LocalProvider extends BaseAIProvider {
           accept: 'application/json',
         },
         body: formData,
+        signal: options?.signal,
       });
 
       if (!response.ok) {

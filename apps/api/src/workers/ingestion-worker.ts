@@ -379,7 +379,7 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
       );
     };
 
-    await orchestrator.run(undefined, onProgress);
+    await orchestrator.run({ signal }, onProgress);
 
     // ── Job completed — write final status ────────────────────────────────────
     const finalState = new IngestionState(bookId, dataDir).initOrLoad();

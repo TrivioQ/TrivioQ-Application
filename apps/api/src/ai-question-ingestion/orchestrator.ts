@@ -23,7 +23,7 @@ export class IngestionOrchestrator {
     }
   }
 
-  async run(options?: { reuploadOnly?: boolean }, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
+  async run(options?: { reuploadOnly?: boolean; signal?: AbortSignal }, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     return this.process.run(options, onProgress);
   }
 }

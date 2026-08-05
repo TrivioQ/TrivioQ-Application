@@ -84,7 +84,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     this.lastCallTime = Date.now();
   }
 
-  async run(options?: { reuploadOnly?: boolean }, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
+  async run(options?: { reuploadOnly?: boolean; signal?: AbortSignal }, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     this.state.initOrLoad();
     console.log(`[QuestionExtraction] Starting ingestion for ${this.imagePaths.length} images`);
     console.log(`[QuestionExtraction] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
@@ -113,12 +113,12 @@ export class QuestionExtractionProcess implements IngestionProcess {
           this.state.updateStatus(q.id, 'READY_FOR_UPLOAD');
         }
       }
-      await this.uploadPhase(onProgress);
+      await this.uploadPhase(options?.signal, onProgress);
     } else {
-      await this.runScoutPhase(onProgress);
-      await this.runExtractionPhase(onProgress);
-      await this.runEnhancementPhase(onProgress);
-      await this.uploadPhase(onProgress);
+      await this.runScoutPhase(options?.signal, onProgress);
+      await this.runExtractionPhase(options?.signal, onProgress);
+      await this.runEnhancementPhase(options?.signal, onProgress);
+      await this.uploadPhase(options?.signal, onProgress);
     }
 
     console.log('[QuestionExtraction] Ingestion complete');
@@ -126,7 +126,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   // ── Phase 1: Scout ────────────────────────────────────────────────────────
 
-  private async runScoutPhase(onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
+  private async runScoutPhase(signal?: AbortSignal, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const startIndex = stateData.lastProcessedImageIndex + 1;
     const temperature = this.config.temperatures?.scout;
@@ -149,7 +149,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
         let classification: ImageType;
         try {
           const classificationPrompt = buildClassificationPrompt(this.classificationSpecialInstruction);
-          const res = await this.scoutProvider.classifyImage(image, classificationPrompt, { temperature });
+          const res = await this.scoutProvider.classifyImage(image, classificationPrompt, { temperature, signal });
           classification = res.classification;
         } finally {
           this.recordCallTime();
@@ -174,7 +174,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   // ── Phase 2: Extraction ───────────────────────────────────────────────────
 
-  private async runExtractionPhase(onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
+  private async runExtractionPhase(signal?: AbortSignal, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const imageClassifications = (stateData.metadata?.imageClassifications as Record<string, ImageType>) ?? {};
     const temperature = this.config.temperatures?.extraction;
@@ -210,7 +210,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
           console.log(`[Extraction] Extracting keys from ${keyPagePath}...`);
           let extracted;
           try {
-            extracted = await this.extractionProvider.extractFromImages([image], KEY_EXTRACTION_PROMPT, { temperature });
+            extracted = await this.extractionProvider.extractFromImages([image], KEY_EXTRACTION_PROMPT, { temperature, signal });
           } finally {
             this.recordCallTime();
           }
@@ -345,7 +345,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
         let extracted;
         try {
           // Pass the (possibly enriched) prompt through via the extraction provider
-          extracted = await this.extractionProvider.extractFromImages(imagesB64, extractionPrompt, { temperature });
+          extracted = await this.extractionProvider.extractFromImages(imagesB64, extractionPrompt, { temperature, signal });
         } finally {
           this.recordCallTime();
         }
@@ -553,7 +553,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   // ── Phase 3: Enhancement ──────────────────────────────────────────────────
 
-  private async runEnhancementPhase(onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
+  private async runEnhancementPhase(signal?: AbortSignal, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const questionsToEnhance = stateData.questions.filter((q) => q.status === 'READY_FOR_ENHANCEMENT');
     const temperature = this.config.temperatures?.enhancement;
@@ -578,7 +578,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
             console.log(`[Enhancement] Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
             let enhanced;
             try {
-              enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature });
+              enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal });
             } finally {
               this.recordCallTime();
             }
@@ -625,7 +625,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   // ── Phase 4: Upload ───────────────────────────────────────────────────────
 
-  private async uploadPhase(onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
+  private async uploadPhase(signal?: AbortSignal, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const readyQuestions = stateData.questions.filter((q) => q.status === 'READY_FOR_UPLOAD');
 

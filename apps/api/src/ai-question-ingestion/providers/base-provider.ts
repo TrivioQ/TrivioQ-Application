@@ -36,7 +36,7 @@ export abstract class BaseAIProvider {
    * **raw** text response.  Markdown fences, trimming and JSON parsing
    * are handled by the base class.
    */
-  protected abstract call(prompt: string, images?: ImageInput[], options?: { temperature?: number }): Promise<string>;
+  protected abstract call(prompt: string, images?: ImageInput[], options?: { temperature?: number; signal?: AbortSignal }): Promise<string>;
 
   // ---------------------------------------------------------------------------
   // Shared helpers
@@ -138,7 +138,7 @@ export abstract class BaseAIProvider {
     throw new Error(`[${this.constructor.name}] Unreachable code reached in retry loop`);
   }
 
-  private async callWithRetry<T>(prompt: string, images: ImageInput[], op: string, options?: { temperature?: number }): Promise<T> {
+  private async callWithRetry<T>(prompt: string, images: ImageInput[], op: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<T> {
     const maxAttempts = 3;
     let lastError: any;
 
@@ -161,29 +161,29 @@ export abstract class BaseAIProvider {
     throw lastError;
   }
 
-  async classifyImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number }): Promise<ClassificationResult> {
+  async classifyImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<ClassificationResult> {
     return this.callWithRetry<ClassificationResult>(promptOverride ?? SCOUT_PROMPT, [image], 'classifyImage', options);
   }
 
-  async extractFromImages(images: ImageInput[], promptOverride?: string, options?: { temperature?: number }): Promise<ExtractionResult> {
+  async extractFromImages(images: ImageInput[], promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<ExtractionResult> {
     return this.callWithRetry<ExtractionResult>(promptOverride ?? EXTRACTION_PROMPT, images, 'extractFromImages', options);
   }
 
-  async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string, options?: { temperature?: number }): Promise<EnhancementResult> {
+  async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<EnhancementResult> {
     const prompt = `${promptOverride ?? ENHANCEMENT_PROMPT}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}`;
     return this.callWithRetry<EnhancementResult>(prompt, [], 'enhanceQuestion', options);
   }
 
-  async summarizeImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number }): Promise<SummarizationResult> {
+  async summarizeImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<SummarizationResult> {
     return this.callWithRetry<SummarizationResult>(promptOverride ?? SUMMARIZE_IMAGE_PROMPT, [image], 'summarizeImage', options);
   }
 
-  async extractFromText(text: string, promptOverride?: string, options?: { temperature?: number }): Promise<ExtractionResult> {
+  async extractFromText(text: string, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<ExtractionResult> {
     const prompt = `${promptOverride ?? QUIZ_GENERATION_FROM_TEXT_PROMPT}\n\n## Content to use for Generation\n\n${text}`;
     return this.callWithRetry<ExtractionResult>(prompt, [], 'extractFromText', options);
   }
 
-  async validateQuestion(questionText: string, choices: unknown[], hint: string | null, explanation: string | null, promptOverride?: string, options?: { temperature?: number }): Promise<ValidationResult> {
+  async validateQuestion(questionText: string, choices: unknown[], hint: string | null, explanation: string | null, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<ValidationResult> {
     const prompt = `${promptOverride}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}\nHint: ${hint ?? 'N/A'}\nExplanation: ${explanation ?? 'N/A'}`;
     return this.callWithRetry<ValidationResult>(prompt, [], 'validateQuestion', options);
   }

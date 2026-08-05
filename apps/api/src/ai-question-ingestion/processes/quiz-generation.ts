@@ -75,7 +75,7 @@ export class QuizGenerationProcess implements IngestionProcess {
     return { base64: buffer.toString('base64'), mimeType };
   }
 
-  async run(options?: { reuploadOnly?: boolean }, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
+  async run(options?: { reuploadOnly?: boolean; signal?: AbortSignal }, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     this.state.initOrLoad();
     console.log(`[QuizGeneration] Starting ingestion for ${this.imagePaths.length} images`);
     console.log(`[QuizGeneration] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
@@ -98,17 +98,17 @@ export class QuizGenerationProcess implements IngestionProcess {
           this.state.updateStatus(q.id, 'READY_FOR_UPLOAD');
         }
       }
-      await this.uploadPhase(onProgress);
+      await this.uploadPhase(options?.signal, onProgress);
     } else {
-      await this.generationPhase(onProgress);
-      await this.enhancementPhase(onProgress);
-      await this.uploadPhase(onProgress);
+      await this.generationPhase(options?.signal, onProgress);
+      await this.enhancementPhase(options?.signal, onProgress);
+      await this.uploadPhase(options?.signal, onProgress);
     }
 
     console.log('[QuizGeneration] Ingestion complete');
   }
 
-  private async generationPhase(onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
+  private async generationPhase(signal?: AbortSignal, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const startIndex = this.state.getLastProcessedExtractionBatchIndex() + 1;
     const summarizationTemp = this.config.temperatures?.summarization;
     const generationTemp = this.config.temperatures?.generation;
@@ -134,7 +134,7 @@ export class QuizGenerationProcess implements IngestionProcess {
 
         let summarization;
         try {
-          summarization = await this.summarizationProvider.summarizeImage(image, summarizationPrompt, { temperature: summarizationTemp });
+          summarization = await this.summarizationProvider.summarizeImage(image, summarizationPrompt, { temperature: summarizationTemp, signal });
         } finally {
           this.recordCallTime();
         }
@@ -148,7 +148,7 @@ export class QuizGenerationProcess implements IngestionProcess {
         let generated;
         try {
           const summaryText = summarization.summary.join('\n- ');
-          generated = await this.generationProvider.extractFromText(summaryText, generationPrompt, { temperature: generationTemp });
+          generated = await this.generationProvider.extractFromText(summaryText, generationPrompt, { temperature: generationTemp, signal });
         } finally {
           this.recordCallTime();
         }
@@ -196,7 +196,7 @@ export class QuizGenerationProcess implements IngestionProcess {
     }
   }
 
-  private async enhancementPhase(onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
+  private async enhancementPhase(signal?: AbortSignal, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const questionsToEnhance = stateData.questions.filter((q) => q.status === 'READY_FOR_ENHANCEMENT');
 
@@ -221,7 +221,7 @@ export class QuizGenerationProcess implements IngestionProcess {
             console.log(`[Enhancement] Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
             let enhanced;
             try {
-              enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature });
+              enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal });
             } finally {
               this.recordCallTime();
             }
@@ -265,7 +265,7 @@ export class QuizGenerationProcess implements IngestionProcess {
     }
   }
 
-  private async uploadPhase(onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
+  private async uploadPhase(signal?: AbortSignal, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const readyQuestions = stateData.questions.filter((q) => q.status === 'READY_FOR_UPLOAD');
 

@@ -37,7 +37,7 @@ export class GoogleProvider extends BaseAIProvider {
     }
   }
 
-  protected async call(prompt: string, images: ImageInput[] = [], options?: { temperature?: number }): Promise<string> {
+  protected async call(prompt: string, images: ImageInput[] = [], options?: { temperature?: number; signal?: AbortSignal }): Promise<string> {
     const parts: any[] = [{ text: prompt }];
     for (const img of images) {
       parts.push({
@@ -50,7 +50,7 @@ export class GoogleProvider extends BaseAIProvider {
 
     console.log(`[GoogleProvider] Calling model: ${this.model}`);
 
-    const response = await this.generateContentWithRetry({
+    const generatePromise = this.generateContentWithRetry({
       model: this.model,
       contents: [{ role: 'user', parts }],
       config: {
@@ -58,6 +58,17 @@ export class GoogleProvider extends BaseAIProvider {
         ...(options?.temperature !== undefined && { temperature: options.temperature }),
       },
     });
+
+    let response;
+    if (options?.signal) {
+      const abortPromise = new Promise<never>((_, reject) => {
+        if (options.signal!.aborted) reject(new Error('Aborted'));
+        options.signal!.addEventListener('abort', () => reject(new Error('Aborted')));
+      });
+      response = await Promise.race([generatePromise, abortPromise]);
+    } else {
+      response = await generatePromise;
+    }
 
     if (!response.text) {
       throw new Error('[GoogleProvider] call: empty response');

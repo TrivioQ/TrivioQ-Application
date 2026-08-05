@@ -22,7 +22,7 @@ export class DeepseekProvider extends BaseAIProvider {
     this.apiKey = apiKey ?? process.env.DEEPSEEK_API_KEY ?? '';
   }
 
-  protected async call(prompt: string, images: ImageInput[] = [], options?: { temperature?: number }): Promise<string> {
+  protected async call(prompt: string, images: ImageInput[] = [], options?: { temperature?: number; signal?: AbortSignal }): Promise<string> {
     await this.enforceRateLimit(1500);
 
     const payload = {
@@ -48,6 +48,7 @@ export class DeepseekProvider extends BaseAIProvider {
         Accept: 'application/json',
       },
       body: JSON.stringify(payload),
+      signal: options?.signal,
     });
 
     if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
