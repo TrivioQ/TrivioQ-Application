@@ -3,7 +3,6 @@ import path from 'path';
 import { fromPath } from 'pdf2pic';
 import { PDFDocument } from 'pdf-lib';
 import type { Options as Pdf2PicOptions } from 'pdf2pic/dist/types/options';
-import { detectAndCorrectOrientation } from './detect-and-correct-orientation';
 
 export interface PdfToImageOptions {
   /** @default "jpeg" */
@@ -35,7 +34,11 @@ export interface PdfToImageOptions {
    * pages whose text is rotated 90°/180°/270° and corrects them in-place
    * before they enter the AI pipeline.
    *
-   * @default true
+   * NOTE: Disabled by default. Modern vision models (Gemini, Nvidia, etc.) handle
+   * rotated images natively. Tesseract OSD gives unreliable results on image-heavy
+   * pages (low confidence), causing more harm than good.
+   *
+   * @default false
    */
   autoOrient?: boolean;
 }
@@ -63,7 +66,7 @@ export async function pdfToImage(pdfPath: string, outputDir: string, options: Pd
     fs.mkdirSync(resolvedOutput, { recursive: true });
   }
 
-  const { format = 'jpeg', density = 100, width, height, preserveAspectRatio = true, fromPage, toPage, autoOrient = true } = options;
+  const { format = 'jpeg', density = 100, width, height, preserveAspectRatio = true, fromPage, toPage, autoOrient = false } = options;
   const baseFilename = path.basename(resolvedPdf, path.extname(resolvedPdf));
 
   // Load the original PDF document to slice it into manageable chunks.
@@ -124,10 +127,10 @@ export async function pdfToImage(pdfPath: string, outputDir: string, options: Pd
 
         fs.renameSync(res.path, finalPath);
 
-        // Detect and correct sideways pages whose PDF rotation metadata is 0.
-        // Tesseract OSD (PSM 0) analyses text pixels to find the dominant angle;
-        // sharp rotates the image in-place when a non-zero angle is detected.
+        // autoOrient is disabled by default — modern vision models handle rotated images natively.
+        // Enable via PdfToImageOptions if you specifically need Tesseract OSD pre-rotation.
         if (autoOrient) {
+          const { detectAndCorrectOrientation } = await import('./detect-and-correct-orientation');
           try {
             await detectAndCorrectOrientation(finalPath);
           } catch (err) {

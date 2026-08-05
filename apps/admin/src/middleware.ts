@@ -6,7 +6,7 @@ const intlMiddleware = createMiddleware({
   defaultLocale: 'en',
 });
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   // Fix Cloudflare Tunnel missing X-Forwarded-Port header to prevent Next.js from appending :3012
   req.headers.set('x-forwarded-port', '443');
 

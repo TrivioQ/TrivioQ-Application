@@ -352,7 +352,7 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
       const stateData = new IngestionState(bookId, dataDir).initOrLoad();
       const questionsExtracted = stateData.questions.length;
       const questionsUploaded = stateData.questions.filter((q) => q.status === 'UPLOADED').length;
-      const currentPage = stateData.lastProcessedImageIndex + 1;
+      const currentPage = Math.max(stateData.lastProcessedImageIndex, stateData.lastProcessedExtractionBatchIndex ?? -1) + 1;
 
       // Release lock if we reached UPLOAD phase so the next job can start processing
       if (phase === 'UPLOAD' && currentLockHolder === jobId) {
@@ -500,7 +500,7 @@ setInterval(async () => {
           lastHeartbeatAt: new Date(),
           questionsExtracted: stateData.questions.length,
           questionsUploaded: stateData.questions.filter((q) => q.status === 'UPLOADED').length,
-          currentPage: stateData.lastProcessedImageIndex + 1,
+          currentPage: Math.max(stateData.lastProcessedImageIndex, stateData.lastProcessedExtractionBatchIndex ?? -1) + 1,
         },
       });
     } catch {

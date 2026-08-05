@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
-import { Play, AlertTriangle, Copy, Check, Square, FileJson, Download } from 'lucide-react';
+import { Play, AlertTriangle, Copy, Check, Square, FileJson, Download, Trash } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,6 +57,7 @@ function statusVariant(status: string): 'destructive' | 'default' | 'secondary' 
 export function JobDetail({ jobId }: { jobId: string }) {
   const t = useTranslations('system.ingestion');
   const confirm = useConfirm();
+  const router = useRouter();
 
   const [job, setJob] = useState<IngestionJob | null>(null);
   const [loading, setLoading] = useState(true);
@@ -140,6 +142,7 @@ export function JobDetail({ jobId }: { jobId: string }) {
       message: t('confirmations.pauseMessage', { fallback: 'Are you sure you want to pause this job?' }),
       confirmLabel: t('confirmations.pauseConfirm', { fallback: 'Pause' }),
       cancelLabel: t('confirmations.cancel'),
+      isDestructive: true,
     });
     if (!ok) return;
 
@@ -150,6 +153,28 @@ export function JobDetail({ jobId }: { jobId: string }) {
     if (res.ok) {
       toast.success(t('pauseSuccess', { fallback: 'Job paused' }));
       fetchJob();
+    } else {
+      toast.error(t('errorAction'));
+    }
+  };
+  const deleteJob = async () => {
+    if (!job) return;
+    const ok = await confirm({
+      title: t('confirmations.deleteTitle', { fallback: 'Delete Job' }),
+      message: t('confirmations.deleteMessage', { fallback: 'Are you sure you want to delete this job?' }),
+      confirmLabel: t('confirmations.deleteConfirm', { fallback: 'Delete' }),
+      cancelLabel: t('confirmations.cancel'),
+      isDestructive: true,
+    });
+    if (!ok) return;
+
+    const res = await fetch(`/api/v1/admin/ingestion/jobs/${job.id}`, {
+      method: 'DELETE',
+    });
+
+    if (res.ok) {
+      toast.success(t('deleteSuccess', { fallback: 'Job deleted' }));
+      router.push('/ingestion');
     } else {
       toast.error(t('errorAction'));
     }
@@ -424,19 +449,25 @@ export function JobDetail({ jobId }: { jobId: string }) {
               </Button>
             )}
 
-            {/* Artifact actions (disabled if job hasn't started or no artifact exists yet) */}
-            {job.status !== 'QUEUED' && (
-              <div className="flex items-center gap-2 ml-auto">
-                <Button variant="outline" render={<Link href={`/ingestion/${job.id}/artifact`} target="_blank" />}>
-                  <FileJson className="mr-2 h-4 w-4" />
-                  {t('viewArtifact', { fallback: 'View Artifact' })}
-                </Button>
-                <Button variant="outline" render={<a href={`/api/v1/admin/ingestion/jobs/${job.id}/artifact?download=true`} download={`job-${job.id}-state.json`} />}>
-                  <Download className="mr-2 h-4 w-4" />
-                  {t('downloadArtifact', { fallback: 'Download Artifact' })}
-                </Button>
-              </div>
-            )}
+            {/* Artifact actions and delete */}
+            <div className="flex items-center gap-2 ml-auto flex-wrap justify-end w-full sm:w-auto">
+              {job.status !== 'QUEUED' && (
+                <>
+                  <Button variant="outline" render={<Link href={`/ingestion/${job.id}/artifact`} target="_blank" />}>
+                    <FileJson className="mr-2 h-4 w-4" />
+                    {t('viewArtifact', { fallback: 'View Artifact' })}
+                  </Button>
+                  <Button variant="outline" render={<a href={`/api/v1/admin/ingestion/jobs/${job.id}/artifact?download=true`} download={`job-${job.id}-state.json`} />}>
+                    <Download className="mr-2 h-4 w-4" />
+                    {t('downloadArtifact', { fallback: 'Download Artifact' })}
+                  </Button>
+                </>
+              )}
+              <Button variant="destructive" onClick={deleteJob}>
+                <Trash className="mr-2 h-4 w-4" />
+                {t('confirmations.deleteConfirm', { fallback: 'Delete' })}
+              </Button>
+            </div>
           </div>
         </CardFooter>
       </Card>

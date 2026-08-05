@@ -186,6 +186,7 @@ export class QuizGenerationProcess implements IngestionProcess {
         this.state.setLastProcessedExtractionBatchIndex(i);
         console.log(`[Generation] Generated ${questions.length} questions from image ${i + 1}`);
       } catch (error) {
+        if (signal?.aborted) throw error;
         console.error(`[Generation] Error processing image ${imagePath}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'generation',
@@ -248,6 +249,7 @@ export class QuizGenerationProcess implements IngestionProcess {
               },
             };
           } catch (error) {
+            if (signal?.aborted) throw error;
             console.error(`[Enhancement] Error processing question ${question.id}:`, error);
             reportError(error instanceof Error ? error : new Error(String(error)), {
               phase: 'enhancement',

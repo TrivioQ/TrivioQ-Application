@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Play, Trash2, Eye, AlertTriangle } from 'lucide-react';
+import { Play, Trash, Eye, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -252,8 +252,8 @@ export function IngestionDashboard() {
               </DropdownMenu>
             ) : null}
 
-            <Button variant="outline" size="sm" onClick={() => deleteJob(job)} className="flex-1" title={t('deleteJob')}>
-              <Trash2 className="w-3 h-3 mr-2 text-destructive" />
+            <Button variant="destructive" size="sm" onClick={() => deleteJob(job)} className="flex-1" title={t('deleteJob')}>
+              <Trash className="w-3 h-3 mr-2" />
               {t('deleteJob')}
             </Button>
           </CardFooter>

@@ -125,6 +125,10 @@ export abstract class BaseAIProvider {
           continue;
         }
 
+        if (error?.name === 'AbortError' || error?.message?.includes('aborted') || (typeof DOMException !== 'undefined' && error instanceof DOMException && error.name === 'AbortError')) {
+          throw error;
+        }
+
         // Generic error (network timeout, etc.)
         if (attempt === maxRetries) {
           console.error(`[${this.constructor.name}] Max retries exhausted. Error: ${error instanceof Error ? error.message : error}`);

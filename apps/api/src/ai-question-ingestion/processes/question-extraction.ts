@@ -161,6 +161,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
         console.log(`[Scout] Image ${i + 1} classified as ${classification} [${i + 1}/${this.imagePaths.length}]`);
       } catch (error) {
+        if (signal?.aborted) throw error;
         console.error(`[Scout] Error processing image ${imagePath}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'scout',
@@ -233,6 +234,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
           this.state.updateMetadata({ ...existingMeta, answerKeys: existingAKs, processedKeyPages: updatedProcessedKeyPages });
         } catch (error) {
+          if (signal?.aborted) throw error;
           console.error(`[Extraction] Error extracting keys from ${keyPagePath}:`, error);
         }
       }
@@ -392,7 +394,8 @@ export class QuestionExtractionProcess implements IngestionProcess {
         this.state.setLastProcessedExtractionBatchIndex(i);
         console.log(`[Extraction] Completed batch ${i + 1} of ${groups.length}`);
       } catch (error) {
-        console.error(`[Extraction] Error processing batch ${i + 1}:`, error);
+        if (signal?.aborted) throw error;
+        console.error(`[Extraction] Error processing batch starting at image ${group[0]}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'extraction',
           batchIndex: i,
@@ -606,6 +609,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
               },
             };
           } catch (error) {
+            if (signal?.aborted) throw error;
             console.error(`[Enhancement] Error processing question ${question.id}:`, error);
             reportError(error instanceof Error ? error : new Error(String(error)), {
               phase: 'enhancement',

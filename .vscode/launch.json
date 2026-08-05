@@ -59,6 +59,19 @@
       "type": "expo",
       "request": "attach",
       "projectRoot": "${workspaceFolder}/apps/mobile"
+    },
+    {
+      "name": "Debug Ingestion Worker",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/api",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["run", "dev:ingestion-worker"],
+      "env": {
+        "NODE_OPTIONS": "--inspect"
+      },
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal"
     }
   ],
   "compounds": [
@@ -81,6 +94,10 @@
     {
       "name": "Debug (API + Mobile)",
       "configurations": ["Debug API", "Debug Mobile App (Expo)"]
+    },
+    {
+      "name": "Debug (API + Admin + Ingestion)",
+      "configurations": ["Debug API", "Debug Admin (Server)", "Debug Ingestion Worker"]
     }
   ]
 }

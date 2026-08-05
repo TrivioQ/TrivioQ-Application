@@ -29,28 +29,21 @@ export interface OrientationCorrectionResult {
  *   rotated. Default: 40.
  * @returns Metadata about what correction, if any, was applied.
  */
-export async function detectAndCorrectOrientation(imagePath: string, confidenceThreshold = 40): Promise<OrientationCorrectionResult> {
+export async function detectAndCorrectOrientation(imagePath: string, confidenceThreshold = parseFloat(process.env.OSD_CONFIDENCE_THRESHOLD ?? '1.5')): Promise<OrientationCorrectionResult> {
   // Run Tesseract in OSD-only mode (PSM 0) — analyses text pixels to find the
   // dominant text angle. This is much faster than a full OCR pass.
-  // We use the low-level createWorker API so we can pass the PSM config
-  // cleanly without hitting the 3-arg limit of the recognize() shorthand.
-
-  const psmOsd = (Tesseract.PSM as any).OSD_ONLY;
-  const worker = await Tesseract.createWorker('eng', undefined, { logger: () => {} }, {
-    tessedit_pageseg_mode: psmOsd,
-  } as Parameters<typeof Tesseract.createWorker>[3]);
-  let data: Tesseract.RecognizeResult['data'];
+  // Note: OSD in Tesseract v5 requires the 'osd' language data and the Legacy engine (OEM 0).
+  const worker = await Tesseract.createWorker('osd', 0, { logger: () => {} });
+  let data: Tesseract.DetectData;
   try {
-    ({ data } = await worker.recognize(imagePath));
+    const result = await worker.detect(imagePath);
+    data = result.data;
   } finally {
     await worker.terminate();
   }
 
-  // tesseract.js exposes these on the raw data object
-
-  const raw = data as any;
-  const degree: number = raw.orientation_degrees ?? 0;
-  const confidence: number = raw.orientation_confidence ?? 0;
+  const degree: number = data.orientation_degrees ?? 0;
+  const confidence: number = data.orientation_confidence ?? 0;
 
   const noCorrection: OrientationCorrectionResult = { rotationApplied: 0, confidence, corrected: false };
 
