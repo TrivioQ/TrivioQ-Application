@@ -11,6 +11,7 @@ export { GoogleProvider } from './google-provider';
 export { NvidiaProvider } from './nvidia-provider';
 export { DeepseekProvider } from './deepseek-provider';
 export { LocalProvider } from './local-provider';
+export { OmnirouterProvider } from './omnirouter-provider';
 export type { AIProvider, ClassificationResult, EnhancementResult, ExtractionResult, ExtractedAnswerKey, ExtractedChoice, ExtractedQuestion, ImageInput } from './ai-provider';
 
 import type { AIProvider } from './ai-provider';
@@ -18,10 +19,11 @@ import { GoogleProvider } from './google-provider';
 import { NvidiaProvider } from './nvidia-provider';
 import { DeepseekProvider } from './deepseek-provider';
 import { LocalProvider } from './local-provider';
+import { OmnirouterProvider } from './omnirouter-provider';
 
 // Union of all supported provider names.
 // Add your new provider name here when extending.
-export type AIProviderName = 'google' | 'nvidia' | 'deepseek' | 'local';
+export type AIProviderName = 'google' | 'nvidia' | 'deepseek' | 'local' | 'omnirouter';
 
 /**
  * Instantiates the requested AI provider.
@@ -31,6 +33,8 @@ export type AIProviderName = 'google' | 'nvidia' | 'deepseek' | 'local';
  */
 export function createProvider(name: AIProviderName = 'google', model?: string): AIProvider {
   switch (name) {
+    case 'omnirouter':
+      return new OmnirouterProvider(model);
     case 'deepseek':
       return new DeepseekProvider(model);
     case 'nvidia':

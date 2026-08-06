@@ -181,7 +181,7 @@ export function UploadJobForm() {
             {getActivePhases(formData.processType).map((phase) => {
               const providerSetting = settings.find(s => s.key === `ingestion_${phase}_provider`);
               const providerName = providerSetting ? providerSetting.value : 'unknown';
-              const displayProvider = ['google', 'nvidia', 'deepseek', 'local'].includes(providerName) 
+              const displayProvider = ['google', 'nvidia', 'deepseek', 'local', 'omnirouter'].includes(providerName)
                 ? tApp(`providers.${providerName}` as any) 
                 : providerName === 'unknown' ? t('unknownProvider') : providerName;
               const phaseSettings = settings.filter(s => s.key.startsWith(`ingestion_${phase}_`) && s.key !== `ingestion_${phase}_provider`);
