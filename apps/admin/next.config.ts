@@ -13,8 +13,12 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(withNextIntl(nextConfig), {
-  sourcemaps: {
-    deleteSourcemapsAfterUpload: true,
-  },
-});
+const isDev = process.env.NODE_ENV === 'development';
+
+export default isDev 
+  ? withNextIntl(nextConfig)
+  : withSentryConfig(withNextIntl(nextConfig), {
+      sourcemaps: {
+        deleteSourcemapsAfterUpload: true,
+      },
+    });

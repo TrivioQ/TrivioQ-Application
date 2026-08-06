@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "dotenv -e ../../.env -- next dev --port 3012",
+    "dev": "NODE_OPTIONS='--max-old-space-size=4096' dotenv -e ../../.env -- next dev --turbo --port 3012",
     "build": "dotenv -e ../../.env -- next build",
     "start": "next start --port 3012",
     "lint": "eslint"

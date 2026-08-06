@@ -132,7 +132,13 @@ async function syncProgressToDB(jobId: string, data: Record<string, unknown>, re
       }
       pendingSyncStore.delete(jobId); // clear any previously saved pending entry
       return;
-    } catch {
+    } catch (e: any) {
+      if (e.code === 'P2025') {
+        console.warn(`[ProgressSync] Job ${jobId} not found in DB (likely deleted). Aborting sync.`);
+        pendingSyncStore.delete(jobId);
+        runningJobs.get(jobId)?.abortController.abort();
+        return;
+      }
       if (attempt === retries) {
         console.error(`[ProgressSync] Gave up after ${retries} attempts for job ${jobId}. Saving to pending sync.`);
         pendingSyncStore.set(jobId, data);
@@ -440,8 +446,13 @@ async function recoverOnStartup(): Promise<void> {
         await prisma.ingestionJob.update({ where: { id: jobId }, data });
         pendingSyncStore.delete(jobId);
         console.log(`[Startup] Flushed pending sync for job ${jobId}`);
-      } catch (err) {
-        console.error(`[Startup] Could not flush pending sync for ${jobId}:`, err);
+      } catch (err: any) {
+        if (err.code === 'P2025') {
+          console.warn(`[Startup] Job ${jobId} not found in DB. Discarding pending sync.`);
+          pendingSyncStore.delete(jobId);
+        } else {
+          console.error(`[Startup] Could not flush pending sync for ${jobId}:`, err);
+        }
       }
     }
   }
@@ -515,7 +526,11 @@ setInterval(async () => {
       await prisma.ingestionJob.update({ where: { id: jobId }, data });
       pendingSyncStore.delete(jobId);
       console.log(`[Watchdog] Flushed pending sync for job ${jobId}`);
-    } catch {
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        console.warn(`[Watchdog] Job ${jobId} not found in DB. Discarding pending sync.`);
+        pendingSyncStore.delete(jobId);
+      }
       // DB still down — try next interval
     }
   }
