@@ -12,6 +12,7 @@ import { useConfirm } from '@/components/ui/confirm-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { WorkflowLogs } from './workflow-logs';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -87,23 +88,26 @@ export function JobDetail({ jobId }: { jobId: string }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    
+    const terminal = job?.status === 'COMPLETED' || job?.status === 'FAILED' || job?.status === 'PAUSED';
+
     // Wrap the initial fetch in an async function to avoid synchronous setState warning
     void (async () => {
       await fetchJob(controller.signal);
     })();
 
-    // Poll every 5 s while job is active; stop when terminal status reached
-    const intervalId = setInterval(() => {
-      if (job?.status === 'COMPLETED' || job?.status === 'FAILED') return;
-      void (async () => {
-        await fetchJob();
-      })();
-    }, 5000);
+    // Poll every 5 s while job is active; stop entirely when terminal status reached.
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    if (!terminal) {
+      intervalId = setInterval(() => {
+        void (async () => {
+          await fetchJob(controller.signal);
+        })();
+      }, 5000);
+    }
 
     return () => {
       controller.abort();
-      clearInterval(intervalId);
+      if (intervalId) clearInterval(intervalId);
     };
   }, [fetchJob, job?.status]);
 
@@ -367,6 +371,9 @@ export function JobDetail({ jobId }: { jobId: string }) {
               </div>
             </div>
           )}
+
+          {/* Live workflow logs (GitLab-style terminal, streamed via SSE) */}
+          <WorkflowLogs jobId={job.id} status={job.status} />
 
           {/* Completed summary */}
           {job.status === 'COMPLETED' && (

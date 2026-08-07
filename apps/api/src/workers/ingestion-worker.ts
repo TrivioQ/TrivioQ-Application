@@ -35,6 +35,7 @@ import { IngestionOrchestrator } from '../ai-question-ingestion/orchestrator';
 import { IngestionState } from '../ai-question-ingestion/utils/state-manager';
 import type { ManifestJson } from '../ai-question-ingestion/processes/process.interface';
 import { getSetting, getSettingNumber } from '../utils/settings';
+import { WorkflowLogger } from '../utils/workflow-logger';
 import type { AIProviderName } from '../ai-question-ingestion/providers';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -50,6 +51,7 @@ interface RunningJobContext {
   dataDir: string;
   abortController: AbortController;
   heartbeatTimer: ReturnType<typeof setInterval>;
+  logger: WorkflowLogger;
 }
 
 const runningJobs = new Map<string, RunningJobContext>();
@@ -185,6 +187,8 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
   const pdfPath = dbJob.storagePath;
   const dataDir = path.join(path.dirname(pdfPath), 'data');
   const pagesDir = path.join(dataDir, 'pages');
+  const logger = new WorkflowLogger(path.join(dataDir, 'workflow.log'));
+  logger.info('SYSTEM', `Job ${jobId} STARTED${forcePhase && forcePhase !== 'none' ? ` (forcePhase=${forcePhase})` : ''}`);
 
   // Setup abort controller for cancellation
   const abortController = new AbortController();
@@ -196,7 +200,7 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
     await syncProgressToDB(jobId, { lastHeartbeatAt: new Date() }, 2, true);
   }, 30_000);
 
-  runningJobs.set(jobId, { bookId, dataDir, abortController, heartbeatTimer });
+  runningJobs.set(jobId, { bookId, dataDir, abortController, heartbeatTimer, logger });
 
   try {
     if (!fs.existsSync(dataDir)) {
@@ -207,7 +211,8 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
     if (forcePhase && forcePhase !== 'none') {
       const state = new IngestionState(bookId, dataDir);
       state.resetToPhase(forcePhase as 'SCOUT' | 'EXTRACTION' | 'ENHANCEMENT' | 'UPLOAD');
-      console.log(`[IngestionWorker] Reset state for job ${jobId} to phase ${forcePhase}`);
+      logger.truncate();
+      logger.info('SYSTEM', `Reset state to phase ${forcePhase}`);
     }
 
     const manifestData = ((dbJob.manifestData as unknown as ManifestJson) || {}) as Partial<ManifestJson>;
@@ -221,6 +226,7 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
     const end = pages?.to ?? pdfPageCount;
     const expectedPages = end - start + 1;
     const totalPages = expectedPages;
+    logger.info('PDF', `Loaded ${pdfPageCount} pages, processing range ${start}-${end}`);
 
     // Persist total pages for UI display
     await syncProgressToDB(jobId, { totalPages }, 3);
@@ -231,11 +237,11 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
     if (fs.existsSync(pagesDir)) {
       const existingFiles = fs.readdirSync(pagesDir).filter((f) => f.endsWith('.jpeg') || f.endsWith('.jpg') || f.endsWith('.png'));
       if (existingFiles.length === expectedPages && expectedPages > 0) {
-        console.log(`[IngestionWorker] Found ${expectedPages} existing images, skipping PDF conversion.`);
+        logger.info('PDF', `Using ${expectedPages} existing images — skipping conversion`);
         needConversion = false;
         imagePaths = existingFiles.map((f) => path.join(pagesDir, f)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
       } else {
-        console.log(`[IngestionWorker] Image count mismatch (expected ${expectedPages}, found ${existingFiles.length}). Re-converting.`);
+        logger.info('PDF', `Image count mismatch (expected ${expectedPages}, found ${existingFiles.length}) — re-converting`);
         fs.rmSync(pagesDir, { recursive: true, force: true });
         fs.mkdirSync(pagesDir, { recursive: true });
       }
@@ -244,8 +250,9 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
     }
 
     if (needConversion) {
-      console.log(`[IngestionWorker] Converting PDF to images for job ${jobId}...`);
+      logger.info('PDF', `Converting PDF to images for job ${jobId}...`);
       imagePaths = await pdfToImage(pdfPath, pagesDir, { fromPage: pages?.from, toPage: pages?.to });
+      logger.info('PDF', `Conversion done — ${imagePaths.length} images`);
     }
 
     if (imagePaths.length === 0) {
@@ -345,9 +352,22 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
       summarizationSpecialInstruction: manifestData.summarizationSpecialInstruction,
     });
 
+    logger.info('SYSTEM', `Orchestrator built: ${pTypeStr}`);
+
     // ── onProgress: sync state.json → DB on every batch ──────────────────────
+    let lastPhase: string | null = null;
+    let lastPhaseTotal = 0;
     const onProgress = async (phase: string, current: number, total: number): Promise<void> => {
       if (signal.aborted) throw new Error(`Job ${jobId} was cancelled.`);
+
+      // Phase-transition lines (GitLab-style separators)
+      if (phase !== lastPhase) {
+        if (lastPhase !== null) logger.info(lastPhase, `Phase DONE — ${lastPhaseTotal} items`);
+        logger.info(phase, `Phase STARTED — ${total} items`);
+        lastPhase = phase;
+      }
+      lastPhaseTotal = total;
+      logger.info(phase, `${current}/${total}`);
 
       const phaseProgress = total > 0 ? current / total : 0;
       const offset = PHASE_OFFSETS[processKey]?.[phase] ?? 0;
@@ -362,7 +382,7 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
 
       // Release lock if we reached UPLOAD phase so the next job can start processing
       if (phase === 'UPLOAD' && currentLockHolder === jobId) {
-        console.log(`[IngestionWorker] Job ${jobId} reached UPLOAD phase. Releasing lock for next job.`);
+        logger.info('UPLOAD', 'Reached UPLOAD phase — releasing queue lock for next job');
         currentLockHolder = null;
         processNextJob();
       }
@@ -385,7 +405,9 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
       );
     };
 
+    logger.info('SYSTEM', 'Starting orchestrator run');
     await orchestrator.run({ signal }, onProgress);
+    if (lastPhase !== null) logger.info(lastPhase, `Phase DONE — ${lastPhaseTotal} items`);
 
     // ── Job completed — write final status ────────────────────────────────────
     const finalState = new IngestionState(bookId, dataDir).initOrLoad();
@@ -408,14 +430,15 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
       10, // More retries for the final status write
     );
 
-    console.log(`[IngestionWorker] Job ${jobId} completed. Extracted: ${totalExtracted}, Uploaded: ${totalUploaded}`);
+    logger.info('COMPLETED', `Job completed. Extracted: ${totalExtracted}, Uploaded: ${totalUploaded}`);
   } catch (error: unknown) {
     if (signal.aborted) {
-      console.log(`[IngestionWorker] Job ${jobId} was cancelled.`);
+      logger.warn('SYSTEM', `Job ${jobId} cancelled by user`);
       await syncProgressToDB(jobId, { status: IngestionStatus.QUEUED }, 5);
     } else {
       const err = error instanceof Error ? error : new Error(String(error));
-      console.error(`[IngestionWorker] Job ${jobId} failed:`, err);
+      logger.error('FAILED', `Job failed: ${err.message}`);
+      logger.error('FAILED', err.stack ?? err.message);
       await syncProgressToDB(
         jobId,
         {
@@ -428,6 +451,7 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
   } finally {
     clearInterval(heartbeatTimer);
     runningJobs.delete(jobId);
+    logger.close();
   }
 }
 

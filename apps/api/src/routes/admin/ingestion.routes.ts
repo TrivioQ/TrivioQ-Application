@@ -6,6 +6,10 @@ import path from 'path';
 
 const router = Router();
 
+// ── SSE connection cap (per job) ──────────────────────────────────────────────
+const MAX_SSE_PER_JOB = 8;
+const sseConnections = new Map<string, Set<Response>>();
+
 // ── Worker URL ────────────────────────────────────────────────────────────────
 // The ingestion worker runs as a separate container with its own HTTP server.
 // Calls are internal (container-to-container) and never exposed to the internet.
@@ -227,6 +231,202 @@ router.get('/jobs/:id/artifact', async (req: Request, res: Response) => {
     console.error('Error fetching artifact:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+/**
+ * @route   GET /api/v1/admin/ingestion/jobs/:id/logs
+ * @desc    Stream the job's workflow.log as Server-Sent Events (text/event-stream)
+ * @access  Private (Admin Only)
+ */
+router.get('/jobs/:id/logs', async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  // Resolve log path from DB — same pattern as the artifact endpoint; never
+  // accept a user-supplied filename (path-injection safe).
+  let storagePath: string | null = null;
+  try {
+    const job = await prisma.ingestionJob.findUnique({
+      where: { id },
+      select: { storagePath: true, status: true },
+    });
+    if (!job || !job.storagePath) {
+      return res.status(404).json({ error: 'Job not found or has no storage path' });
+    }
+    storagePath = job.storagePath;
+  } catch (error: any) {
+    console.error('Error setting up ingestion log stream:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  // Connection cap
+  const conns = sseConnections.get(id) ?? new Set<Response>();
+  if (conns.size >= MAX_SSE_PER_JOB) {
+    return res.status(503).json({ error: 'Too many concurrent log streams for this job' });
+  }
+  conns.add(res);
+  sseConnections.set(id, conns);
+
+  const dataDir = path.join(path.dirname(storagePath), 'data');
+  const logPath = path.join(dataDir, 'workflow.log');
+  const REPLAY_TAIL_CAP = 256 * 1024;
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  let closed = false;
+  let fd: number | null = null;
+  let offset = 0;
+  let inode: number | null = null;
+  let lastSize = 0;
+  let waitingEmitted = false;
+
+  const sse = (event: string | null, data: unknown) => {
+    const payload = event ? `event: ${event}\n` : '';
+    res.write(`${payload}data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  const poll = () => {
+    if (closed) return;
+    try {
+      if (!fs.existsSync(logPath)) {
+        if (!waitingEmitted) {
+          sse('status', { status: 'waiting', message: 'Log file not yet created' });
+          waitingEmitted = true;
+        }
+        return;
+      }
+      waitingEmitted = false;
+      const stat = fs.statSync(logPath);
+
+      // Rotation detection (inode changed) — reopen from 0.
+      if (inode !== null && stat.ino !== inode) {
+        if (fd !== null) {
+          try {
+            fs.closeSync(fd);
+          } catch {}
+        }
+        fd = fs.openSync(logPath, 'r');
+        offset = 0;
+        inode = stat.ino;
+        lastSize = 0;
+        sse('rotated', { reason: 'inode' });
+      } else if (fd === null) {
+        fd = fs.openSync(logPath, 'r');
+        inode = stat.ino;
+        offset = 0;
+        lastSize = 0;
+      }
+
+      // Tail-cap the initial replay to the last 256 KB (whole-line aligned).
+      if (offset === 0 && stat.size > REPLAY_TAIL_CAP) {
+        offset = stat.size - REPLAY_TAIL_CAP;
+        const headBuf = Buffer.alloc(512);
+        const n = fs.readSync(fd, headBuf, 0, 512, offset);
+        const nlIdx = headBuf.slice(0, n).indexOf(0x0a);
+        if (nlIdx >= 0) offset += nlIdx + 1;
+        sse('truncated', { skipped: true });
+      }
+
+      if (stat.size > lastSize) {
+        const len = stat.size - offset;
+        if (len > 0) {
+          const buf = Buffer.alloc(len);
+          fs.readSync(fd, buf, 0, len, offset);
+          offset = stat.size;
+          for (const line of buf.toString('utf8').split('\n')) {
+            if (!line.trim()) continue;
+            res.write(`data: ${line}\n\n`); // JSONL: one line = one event
+          }
+        }
+        lastSize = stat.size;
+      } else if (stat.size < lastSize) {
+        // Truncated (retry rotated to .1). Reset.
+        offset = 0;
+        lastSize = stat.size;
+        sse('rotated', { reason: 'truncate' });
+      }
+    } catch (err) {
+      console.error('[SSE logs] poll error:', err);
+    }
+  };
+
+  // fs.watch is an optimization; the 1s interval is the source of truth (fs.watch
+  // drops events on some Docker/macOS bind mounts).
+  let watcher: fs.FSWatcher | null = null;
+  const attachWatcher = () => {
+    try {
+      watcher = fs.watch(logPath, () => void poll());
+      watcher.on('error', () => {
+        watcher = null;
+      });
+    } catch {
+      watcher = null;
+    }
+  };
+  if (fs.existsSync(logPath)) attachWatcher();
+
+  const interval = setInterval(() => void poll(), 1000);
+  const keepAlive = setInterval(() => {
+    if (!closed) res.write(':\n\n');
+  }, 15000);
+
+  // Done detection — independent 5s DB poll (decoupled from file ticks).
+  const dbPoll = setInterval(async () => {
+    if (closed) return;
+    try {
+      const job = await prisma.ingestionJob.findUnique({ where: { id }, select: { status: true } });
+      if (!job) {
+        sse('done', { status: 'DELETED' });
+        cleanup();
+        return;
+      }
+      if (job.status === IngestionStatus.COMPLETED || job.status === IngestionStatus.FAILED || job.status === IngestionStatus.PAUSED) {
+        sse('done', { status: job.status });
+        cleanup();
+      }
+    } catch (err: any) {
+      if (err?.code === 'P2025') {
+        sse('done', { status: 'DELETED' });
+        cleanup();
+      }
+    }
+  }, 5000);
+
+  // Re-attach watcher once the file exists (if it didn't at connect time).
+  const watcherAttach = setInterval(() => {
+    if (watcher || closed) return;
+    if (fs.existsSync(logPath)) attachWatcher();
+  }, 2000);
+
+  // Initial flush — resolves the file and emits the initial tail snapshot before
+  // the DB poll gets a chance to fire a terminal `done` event.
+  void poll();
+
+  function cleanup() {
+    if (closed) return;
+    closed = true;
+    watcher?.close();
+    clearInterval(interval);
+    clearInterval(keepAlive);
+    clearInterval(dbPoll);
+    clearInterval(watcherAttach);
+    if (fd !== null) {
+      try {
+        fs.closeSync(fd);
+      } catch {}
+    }
+    const set = sseConnections.get(id);
+    if (set) {
+      set.delete(res);
+      if (set.size === 0) sseConnections.delete(id);
+    }
+    res.end();
+  }
+
+  req.on('close', cleanup);
 });
 
 /**
