@@ -81,7 +81,8 @@ export function JobDetail({ jobId }: { jobId: string }) {
         if (!signal?.aborted) setLoading(false);
       }
     },
-    [jobId, t],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [jobId],
   );
 
   useEffect(() => {
@@ -453,11 +454,11 @@ export function JobDetail({ jobId }: { jobId: string }) {
             <div className="flex items-center gap-2 ml-auto flex-wrap justify-end w-full sm:w-auto">
               {job.status !== 'QUEUED' && (
                 <>
-                  <Button variant="outline" render={<Link href={`/ingestion/${job.id}/artifact`} target="_blank" />}>
+                  <Button variant="outline" nativeButton={false} render={<Link href={`/ingestion/${job.id}/artifact`} target="_blank" />}>
                     <FileJson className="mr-2 h-4 w-4" />
                     {t('viewArtifact', { fallback: 'View Artifact' })}
                   </Button>
-                  <Button variant="outline" render={<a href={`/api/v1/admin/ingestion/jobs/${job.id}/artifact?download=true`} download={`job-${job.id}-state.json`} />}>
+                  <Button variant="outline" nativeButton={false} render={<a href={`/api/v1/admin/ingestion/jobs/${job.id}/artifact?download=true`} download={`job-${job.id}-state.json`} />}>
                     <Download className="mr-2 h-4 w-4" />
                     {t('downloadArtifact', { fallback: 'Download Artifact' })}
                   </Button>

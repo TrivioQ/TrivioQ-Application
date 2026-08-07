@@ -59,7 +59,8 @@ export function CronJobList() {
       controller.abort();
       clearInterval(intervalId);
     };
-  }, [fetchJobs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const toggleJobStatus = async (job: CronJob) => {
     if (job.isActive) {

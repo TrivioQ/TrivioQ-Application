@@ -35,20 +35,14 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path?: s
       body,
     });
 
-    if (!response.ok) {
-      // Return error string or object
-      const errorText = await response.text();
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { error: errorText };
-      }
-      return NextResponse.json(errorData, { status: response.status });
-    }
+    // Stream the response directly to avoid memory leaks from parsing large payloads
+    const proxyResponse = new NextResponse(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
 
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
+    return proxyResponse;
   } catch (error) {
     console.error('Error proxying cron job request:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

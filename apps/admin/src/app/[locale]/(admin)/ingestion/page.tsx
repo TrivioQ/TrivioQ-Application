@@ -23,10 +23,10 @@ export default function IngestionPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" render={<Link href="/app-settings" />}>
+          <Button variant="outline" nativeButton={false} render={<Link href="/app-settings" />}>
             {t('settings')}
           </Button>
-          <Button render={<Link href="/ingestion/new" />}>
+          <Button nativeButton={false} render={<Link href="/ingestion/new" />}>
             <Plus className="mr-2 h-4 w-4" />
             {t('newJob')}
           </Button>

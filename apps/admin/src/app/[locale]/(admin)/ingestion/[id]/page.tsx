@@ -24,7 +24,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" render={<Link href="/ingestion" />}>
+          <Button variant="outline" nativeButton={false} render={<Link href="/ingestion" />}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             {t('back')}
           </Button>

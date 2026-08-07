@@ -70,7 +70,8 @@ export function IngestionDashboard() {
       controller.abort();
       clearInterval(intervalId);
     };
-  }, [fetchJobs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const deleteJob = async (job: IngestionJob) => {
     const ok = await confirm({
@@ -219,7 +220,7 @@ export function IngestionDashboard() {
           </CardContent>
 
           <CardFooter className="pt-0 flex flex-wrap gap-2 border-t mt-4 p-4">
-            <Button variant="default" size="sm" className="flex-1" render={<Link href={`/ingestion/${job.id}`} />}>
+            <Button variant="default" size="sm" className="flex-1" nativeButton={false} render={<Link href={`/ingestion/${job.id}`} />}>
               <Eye className="w-3 h-3 mr-2" />
               {t('viewDetails')}
             </Button>

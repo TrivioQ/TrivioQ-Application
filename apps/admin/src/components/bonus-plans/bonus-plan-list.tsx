@@ -78,7 +78,8 @@ export function BonusPlanList({ refreshKey, onEdit, onRefresh }: BonusPlanListPr
     return () => {
       cancelled = true;
     };
-  }, [refreshKey, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   const handleDelete = async (plan: BonusPlan) => {
     const confirmed = await confirm({

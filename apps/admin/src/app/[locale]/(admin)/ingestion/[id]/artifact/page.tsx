@@ -43,7 +43,8 @@ export default function ArtifactViewPage() {
     };
 
     fetchArtifact();
-  }, [id, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   return (
     <div className="container mx-auto py-8">

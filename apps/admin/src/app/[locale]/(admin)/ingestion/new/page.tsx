@@ -23,7 +23,7 @@ export default function NewIngestionJobPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" render={<Link href="/ingestion" />}>
+          <Button variant="outline" nativeButton={false} render={<Link href="/ingestion" />}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
