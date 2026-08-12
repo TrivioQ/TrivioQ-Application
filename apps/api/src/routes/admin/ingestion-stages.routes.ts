@@ -14,9 +14,7 @@ function serializeStage(s: any) {
           id: s.model.id,
           displayName: s.model.displayName,
           modelName: s.model.modelName,
-          provider: s.model.provider
-            ? { id: s.model.provider.id, name: s.model.provider.name, displayName: s.model.provider.displayName, protocol: s.model.provider.protocol }
-            : null,
+          provider: s.model.provider ? { id: s.model.provider.id, name: s.model.provider.name, displayName: s.model.provider.displayName, protocol: s.model.provider.protocol } : null,
         }
       : null,
     modelId: s.modelId,
@@ -70,6 +68,11 @@ router.put('/:stage', async (req: Request, res: Response) => {
       }
     }
 
+    // Fetch the existing record BEFORE the upsert so we can invalidate the OLD model's
+    // cached provider instance. The new modelId is not yet in the cache, so only
+    // invalidating it (as before) was a no-op — the stale old model stayed cached for 60s.
+    const existingStage = await prisma.ingestionStageConfig.findUnique({ where: { stage } });
+
     const upserted = await prisma.ingestionStageConfig.upsert({
       where: { stage },
       update: {
@@ -94,8 +97,12 @@ router.put('/:stage', async (req: Request, res: Response) => {
       include: { model: { include: { provider: true } } },
     });
 
-    // If this stage previously pointed at a different model, the old model's
-    // cached provider instance may still carry stale connection config.
+    // Invalidate the OLD model (the one that was cached) so the next job picks up
+    // the new configuration immediately instead of serving a stale 60s cache hit.
+    if (existingStage?.modelId && existingStage.modelId !== modelId) {
+      invalidateProviderCache(existingStage.modelId);
+    }
+    // Also invalidate the new modelId in case it was previously cached under a different config.
     if (modelId) invalidateProviderCache(modelId);
 
     return res.status(200).json({ success: true, data: serializeStage(upserted) });

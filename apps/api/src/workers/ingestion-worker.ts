@@ -33,7 +33,7 @@ import { PDFDocument } from 'pdf-lib';
 import { pdfToImage } from '../ai-question-ingestion/utils/pdf-to-image';
 import { IngestionOrchestrator } from '../ai-question-ingestion/orchestrator';
 import { IngestionState } from '../ai-question-ingestion/utils/state-manager';
-import type { ManifestJson, OrchestratorConfig } from '../ai-question-ingestion/processes/process.interface';
+import type { ManifestJson } from '../ai-question-ingestion/processes/process.interface';
 import { WorkflowLogger } from '../utils/workflow-logger';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -153,11 +153,13 @@ async function syncProgressToDB(jobId: string, data: Record<string, unknown>, re
 
 const PHASE_OFFSETS: Record<string, Record<string, number>> = {
   QUESTION_EXTRACTION: { SCOUT: 0, EXTRACTION: 20, ENHANCEMENT: 60, UPLOAD: 90 },
-  QUIZ_GENERATION: { EXTRACTION: 0, ENHANCEMENT: 60, UPLOAD: 90 },
+  // GENERATION covers both the summarization + generation step in one phase
+  QUIZ_GENERATION: { GENERATION: 0, ENHANCEMENT: 60, UPLOAD: 90 },
 };
 const PHASE_WIDTHS: Record<string, Record<string, number>> = {
   QUESTION_EXTRACTION: { SCOUT: 20, EXTRACTION: 40, ENHANCEMENT: 30, UPLOAD: 10 },
-  QUIZ_GENERATION: { EXTRACTION: 60, ENHANCEMENT: 30, UPLOAD: 10 },
+  // GENERATION covers both the summarization + generation step in one phase
+  QUIZ_GENERATION: { GENERATION: 60, ENHANCEMENT: 30, UPLOAD: 10 },
 };
 
 // ── Core job runner ───────────────────────────────────────────────────────────
@@ -216,6 +218,41 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
     const manifestData = ((dbJob.manifestData as unknown as ManifestJson) || {}) as Partial<ManifestJson>;
     const { pages } = manifestData;
 
+    // ── Pre-flight: validate stage configs BEFORE reading/converting the PDF ──
+    // This gives a fast, clear error rather than wasting minutes on PDF work.
+    const pTypeStr = dbJob.processType === ProcessType.QUIZ_GENERATION ? 'quiz-generation' : 'question-extraction';
+    const processKey = dbJob.processType === ProcessType.QUIZ_GENERATION ? 'QUIZ_GENERATION' : 'QUESTION_EXTRACTION';
+
+    const stageConfigRows = await prisma.ingestionStageConfig.findMany({
+      where: { isActive: true },
+    });
+    const stages = new Map(stageConfigRows.map((s) => [s.stage, s]));
+
+    const stageOf = (name: 'scout' | 'extraction' | 'enhancement' | 'summarization' | 'generation') => {
+      const row = stages.get(name);
+      if (!row) {
+        throw new Error(`[ingestion-worker] IngestionStageConfig for "${name}" is missing or inactive. Configure it in the admin portal.`);
+      }
+      if (!row.modelId) {
+        throw new Error(`[ingestion-worker] IngestionStageConfig "${name}" has no modelId assigned.`);
+      }
+      return row;
+    };
+
+    // Eagerly validate all required stages for this process type.
+    // QUESTION_EXTRACTION needs scout + extraction + enhancement.
+    // QUIZ_GENERATION needs summarization + generation + enhancement.
+    if (dbJob.processType === ProcessType.QUIZ_GENERATION) {
+      stageOf('summarization');
+      stageOf('generation');
+      stageOf('enhancement');
+    } else {
+      stageOf('scout');
+      stageOf('extraction');
+      stageOf('enhancement');
+    }
+    logger.info('SYSTEM', 'Pre-flight stage config check passed');
+
     // ── Determine total pages & image conversion ──────────────────────────────
     const pdfBytes = fs.readFileSync(pdfPath);
     const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
@@ -258,26 +295,6 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
     }
 
     // ── Build orchestrator ────────────────────────────────────────────────────
-    const pTypeStr = dbJob.processType === ProcessType.QUIZ_GENERATION ? 'quiz-generation' : 'question-extraction';
-    const processKey = dbJob.processType === ProcessType.QUIZ_GENERATION ? 'QUIZ_GENERATION' : 'QUESTION_EXTRACTION';
-
-    // Read all 5 stage configs in one query (DB-driven; replaces 21 getSetting calls).
-    const stageConfigRows = await prisma.ingestionStageConfig.findMany({
-      where: { isActive: true },
-    });
-    const stages = new Map(stageConfigRows.map((s) => [s.stage, s]));
-
-    const stageOf = (name: 'scout' | 'extraction' | 'enhancement' | 'summarization' | 'generation') => {
-      const row = stages.get(name);
-      if (!row) {
-        throw new Error(`[ingestion-worker] IngestionStageConfig for "${name}" is missing or inactive. Configure it in the admin portal.`);
-      }
-      if (!row.modelId) {
-        throw new Error(`[ingestion-worker] IngestionStageConfig "${name}" has no modelId assigned.`);
-      }
-      return row;
-    };
-
     const orchestrator = new IngestionOrchestrator(bookId, imagePaths, {
       outputDir: dataDir,
       processType: manifestData.processType ?? pTypeStr,
@@ -318,6 +335,10 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
     // ── onProgress: sync state.json → DB on every batch ──────────────────────
     let lastPhase: string | null = null;
     let lastPhaseTotal = 0;
+    // lockReleased guards against onProgress firing the release more than once.
+    // Without it, a second UPLOAD progress call where currentLockHolder has already
+    // been set to null by the next job would redundantly call processNextJob().
+    let lockReleased = false;
     const onProgress = async (phase: string, current: number, total: number): Promise<void> => {
       if (signal.aborted) throw new Error(`Job ${jobId} was cancelled.`);
 
@@ -341,8 +362,10 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
       const questionsUploaded = stateData.questions.filter((q) => q.status === 'UPLOADED').length;
       const currentPage = Math.max(stateData.lastProcessedImageIndex, stateData.lastProcessedExtractionBatchIndex ?? -1) + 1;
 
-      // Release lock if we reached UPLOAD phase so the next job can start processing
-      if (phase === 'UPLOAD' && currentLockHolder === jobId) {
+      // Release lock exactly once when we reach UPLOAD so the next queued job
+      // can start its processing phases concurrently with this job's uploads.
+      if (phase === 'UPLOAD' && !lockReleased && currentLockHolder === jobId) {
+        lockReleased = true;
         logger.info('UPLOAD', 'Reached UPLOAD phase — releasing queue lock for next job');
         currentLockHolder = null;
         processNextJob();
@@ -448,6 +471,10 @@ async function recoverOnStartup(): Promise<void> {
     where: { status: IngestionStatus.PROCESSING },
   });
 
+  // Collect stalled IDs into a Set so step 3 can explicitly exclude them,
+  // making the dedup logic order-independent and immune to race between steps.
+  const stalledIds = new Set<string>();
+
   if (stalledJobs.length > 0) {
     console.log(`[Startup] Found ${stalledJobs.length} stalled PROCESSING job(s). Re-triggering...`);
     for (const job of stalledJobs) {
@@ -456,23 +483,26 @@ async function recoverOnStartup(): Promise<void> {
         where: { id: job.id },
         data: { status: IngestionStatus.QUEUED },
       });
+      stalledIds.add(job.id);
       // Queue the job instead of fire-and-forget
       jobQueue.push({ jobId: job.id });
     }
   }
 
-  // 3. Re-queue any jobs that were already QUEUED
+  // 3. Re-queue any jobs that were already QUEUED — explicitly exclude stalled
+  //    jobs we just reset so they are never added a second time.
   const queuedJobs = await prisma.ingestionJob.findMany({
-    where: { status: IngestionStatus.QUEUED },
+    where: {
+      status: IngestionStatus.QUEUED,
+      ...(stalledIds.size > 0 && { id: { notIn: [...stalledIds] } }),
+    },
     orderBy: { createdAt: 'asc' },
   });
 
   if (queuedJobs.length > 0) {
     console.log(`[Startup] Found ${queuedJobs.length} QUEUED job(s). Adding to queue...`);
     for (const job of queuedJobs) {
-      if (!jobQueue.some((j) => j.jobId === job.id)) {
-        jobQueue.push({ jobId: job.id });
-      }
+      jobQueue.push({ jobId: job.id });
     }
   }
 
@@ -526,9 +556,14 @@ setInterval(async () => {
 const app = express();
 app.use(express.json());
 
-/** Liveness probe */
+/** Liveness probe — includes queue depth and lock holder for ops visibility */
 app.get('/health', (_req, res) => {
-  res.json({ ok: true, runningJobs: runningJobs.size });
+  res.json({
+    ok: true,
+    runningJobs: runningJobs.size,
+    queuedJobs: jobQueue.length,
+    lockHolder: currentLockHolder,
+  });
 });
 
 /** Trigger a new ingestion job (fire-and-forget) */

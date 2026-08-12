@@ -1,6 +1,6 @@
 import { prisma, decrypt, type AIModel } from '@trivioq/database';
 import { GenericAIProvider } from './generic-provider';
-import type { AIProvider, AIProviderProtocol } from '@trivioq/database';
+import type { AIProvider } from '@trivioq/database';
 import type { ProviderConnection } from './adapters/connection';
 import type { AIProvider as IAIProvider } from './ai-provider';
 
@@ -39,11 +39,7 @@ function toConnection(model: AIModel & { provider: AIProvider }): ProviderConnec
     try {
       apiKey = decrypt(provider.apiKeyCipher);
     } catch (e) {
-      throw new Error(
-        `[provider-registry] Failed to decrypt API key for provider "${provider.displayName}" ` +
-          `(id=${provider.id}): ${e instanceof Error ? e.message : e}. ` +
-          'Check ENCRYPTION_MASTER_KEY and re-enter the key in the admin portal.',
-      );
+      throw new Error(`[provider-registry] Failed to decrypt API key for provider "${provider.displayName}" ` + `(id=${provider.id}): ${e instanceof Error ? e.message : e}. ` + 'Check ENCRYPTION_MASTER_KEY and re-enter the key in the admin portal.');
     }
   }
 
@@ -68,7 +64,14 @@ function toConnection(model: AIModel & { provider: AIProvider }): ProviderConnec
  * Throws if the model/provider is inactive, the key cannot be decrypted, or the
  * protocol has no implemented adapter (e.g. anthropic).
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function resolveProvider(modelId: string, _signal?: AbortSignal): Promise<IAIProvider> {
+  // Fail fast with a clear message rather than querying the DB with an empty string
+  // and getting the confusing "No active AIModel found for id=" error.
+  if (!modelId || modelId.trim() === '') {
+    throw new Error('[provider-registry] modelId is required and cannot be empty. Check that the IngestionStageConfig has a modelId assigned.');
+  }
+
   const hit = cache.get(modelId);
   if (hit && hit.expiresAt > Date.now()) {
     return hit.provider;
@@ -86,13 +89,7 @@ export async function resolveProvider(modelId: string, _signal?: AbortSignal): P
     throw new Error(`[provider-registry] AIModel "${model.displayName}" (id=${modelId}) is inactive.`);
   }
   if (!model.provider.isActive) {
-    throw new Error(
-      `[provider-registry] Provider "${model.provider.displayName}" for model "${model.displayName}" is inactive.`,
-    );
-  }
-  const protocol: AIProviderProtocol = model.provider.protocol;
-  if (protocol === 'anthropic') {
-    throw new Error(`[provider-registry] Anthropic adapter is not implemented (provider "${model.provider.displayName}").`);
+    throw new Error(`[provider-registry] Provider "${model.provider.displayName}" for model "${model.displayName}" is inactive.`);
   }
 
   const connection = toConnection(model as AIModel & { provider: AIProvider });

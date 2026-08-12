@@ -72,15 +72,9 @@ export class QuizGenerationProcess implements IngestionProcess {
     this.state.initOrLoad();
 
     // Resolve providers from the registry (async — DB + key decryption).
-    this.summarizationProvider = await resolveProvider(
-      this.config.modelOverrides?.summarization ?? this.config.stageModelIds?.summarization ?? '',
-    );
-    this.generationProvider = await resolveProvider(
-      this.config.modelOverrides?.generation ?? this.config.stageModelIds?.generation ?? '',
-    );
-    this.enhancementProvider = await resolveProvider(
-      this.config.modelOverrides?.enhancement ?? this.config.stageModelIds?.enhancement ?? '',
-    );
+    this.summarizationProvider = await resolveProvider(this.config.modelOverrides?.summarization ?? this.config.stageModelIds?.summarization ?? '');
+    this.generationProvider = await resolveProvider(this.config.modelOverrides?.generation ?? this.config.stageModelIds?.generation ?? '');
+    this.enhancementProvider = await resolveProvider(this.config.modelOverrides?.enhancement ?? this.config.stageModelIds?.enhancement ?? '');
 
     console.log(`[QuizGeneration] Starting ingestion for ${this.imagePaths.length} images`);
     console.log(`[QuizGeneration] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
@@ -122,7 +116,9 @@ export class QuizGenerationProcess implements IngestionProcess {
     console.log(`[Generation] Stage Config — Provider: ${this.generationProvider!.constructor.name}, Model: ${this.generationProvider!.model}, Temperature: ${generationTemp ?? 'default'}, Delay: ${this.callDelayMs.generation}ms`);
 
     for (let i = startIndex; i < this.imagePaths.length; i++) {
-      await onProgress?.('EXTRACTION', i + 1, this.imagePaths.length);
+      // Report progress under 'GENERATION' (not 'EXTRACTION') so the DB currentPhase
+      // field and Admin UI correctly show the quiz generation step.
+      await onProgress?.('GENERATION', i + 1, this.imagePaths.length);
       const imagePath = this.imagePaths[i];
 
       try {
@@ -223,7 +219,11 @@ export class QuizGenerationProcess implements IngestionProcess {
         chunk.map(async (question, chunkIdx) => {
           const idx = i + chunkIdx;
           try {
-            await this.delayIfNeeded('enhancement');
+            // delayIfNeeded is intentionally omitted here: Promise.all runs calls
+            // concurrently, so a shared lastCallTime would be read/written by all
+            // parallel invocations simultaneously — making the delay unreliable.
+            // Rate limiting is handled correctly at the provider level via
+            // GenericAIProvider.enforceRateLimit(minCallIntervalMs).
             console.log(`[Enhancement] Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
             let enhanced;
             try {

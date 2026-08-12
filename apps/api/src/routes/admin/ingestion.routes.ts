@@ -45,6 +45,8 @@ async function cancelWorkerJob(jobId: string): Promise<void> {
 const ingestionRoot = () => path.resolve(process.cwd(), process.env.INGESTION_DIR ?? 'ingestion');
 const multerTempDir = () => path.join(ingestionRoot(), '.tmp');
 
+const MAX_PDF_SIZE_BYTES = 512 * 1024 * 1024; // 512 MB
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb) => {
@@ -58,6 +60,14 @@ const upload = multer({
       cb(null, `upload_${Date.now()}_${Math.random().toString(36).slice(2)}`);
     },
   }),
+  limits: { fileSize: MAX_PDF_SIZE_BYTES },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype !== 'application/pdf') {
+      cb(new Error('Only PDF files are accepted.'));
+    } else {
+      cb(null, true);
+    }
+  },
 });
 
 /**
@@ -161,6 +171,14 @@ router.post('/jobs', upload.single('pdf'), async (req: Request, res: Response) =
 
     return res.status(201).json({ success: true, data: { id: bookId } });
   } catch (error: any) {
+    // Return a descriptive 400 for upload-level violations (file too large, wrong type)
+    // instead of leaking a generic 500.
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: `File too large. Maximum allowed size is ${MAX_PDF_SIZE_BYTES / 1024 / 1024} MB.` });
+    }
+    if (error.message === 'Only PDF files are accepted.') {
+      return res.status(400).json({ error: error.message });
+    }
     console.error('Error creating ingestion job:', error);
     if (req.file && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);

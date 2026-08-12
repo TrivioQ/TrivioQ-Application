@@ -81,15 +81,9 @@ export class QuestionExtractionProcess implements IngestionProcess {
     // Resolve providers from the registry (async — DB + key decryption). Done
     // here, in run(), rather than in the sync constructor so the registry's
     // 60s cache is hit and the constructor stays side-effect-free.
-    this.scoutProvider = await resolveProvider(
-      this.config.modelOverrides?.scout ?? this.config.stageModelIds?.scout ?? '',
-    );
-    this.extractionProvider = await resolveProvider(
-      this.config.modelOverrides?.extraction ?? this.config.stageModelIds?.extraction ?? '',
-    );
-    this.enhancementProvider = await resolveProvider(
-      this.config.modelOverrides?.enhancement ?? this.config.stageModelIds?.enhancement ?? '',
-    );
+    this.scoutProvider = await resolveProvider(this.config.modelOverrides?.scout ?? this.config.stageModelIds?.scout ?? '');
+    this.extractionProvider = await resolveProvider(this.config.modelOverrides?.extraction ?? this.config.stageModelIds?.extraction ?? '');
+    this.enhancementProvider = await resolveProvider(this.config.modelOverrides?.enhancement ?? this.config.stageModelIds?.enhancement ?? '');
 
     console.log(`[QuestionExtraction] Starting ingestion for ${this.imagePaths.length} images`);
     console.log(`[QuestionExtraction] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
@@ -582,7 +576,11 @@ export class QuestionExtractionProcess implements IngestionProcess {
         chunk.map(async (question, chunkIdx) => {
           const idx = i + chunkIdx;
           try {
-            await this.delayIfNeeded('enhancement');
+            // delayIfNeeded is intentionally omitted here: Promise.all runs calls
+            // concurrently, so a shared lastCallTime would be read/written by all
+            // parallel invocations simultaneously — making the delay unreliable.
+            // Rate limiting is handled correctly at the provider level via
+            // GenericAIProvider.enforceRateLimit(minCallIntervalMs).
             console.log(`[Enhancement] Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
             let enhanced;
             try {

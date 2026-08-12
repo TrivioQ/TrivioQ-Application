@@ -45,14 +45,26 @@ export class IngestionState {
 
   private writeState(state: IngestionStateData): void {
     state.updatedAt = new Date().toISOString();
-    fs.writeFileSync(this.stateFilePath, JSON.stringify(state, null, 2));
+    // Atomic write: write to .tmp first, then rename so a mid-write SIGKILL
+    // cannot leave a partially-written (corrupt) state file behind.
+    const tmpPath = `${this.stateFilePath}.tmp`;
+    fs.writeFileSync(tmpPath, JSON.stringify(state, null, 2));
+    fs.renameSync(tmpPath, this.stateFilePath);
   }
 
   initOrLoad(): IngestionStateData {
     if (fs.existsSync(this.stateFilePath)) {
       const raw = fs.readFileSync(this.stateFilePath, 'utf-8');
-      const parsed = JSON.parse(raw) as IngestionStateData;
-      return parsed;
+      try {
+        return JSON.parse(raw) as IngestionStateData;
+      } catch {
+        // Corrupt file (partial write from a prior SIGKILL). Reset to defaults so
+        // the job can restart from scratch rather than getting permanently stuck.
+        console.error(`[StateManager] Corrupt state file at ${this.stateFilePath} — resetting to defaults.`);
+        const state = defaultStateData(this.bookId);
+        this.writeState(state);
+        return state;
+      }
     }
 
     const state = defaultStateData(this.bookId);
