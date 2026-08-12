@@ -5,7 +5,8 @@ import { checkPendingDuplicate } from '../../utils/check-pending-duplicate';
 import { shuffleArray } from '../../utils/shuffle';
 import { reportError } from '../../utils/error-reporter';
 import fs from 'fs';
-import { createProvider, type AIProvider } from '../providers';
+import type { AIProvider } from '../providers';
+import { resolveProvider } from '../providers/registry';
 import { buildQuizGenerationFromTextPrompt, buildSummarizeImagePrompt, buildEnhancementPrompt } from '../prompts';
 import { sanitiseDifficulty, sanitiseAgeRating } from '../utils/sanitise';
 import { OrchestratorConfig, IngestionProcess } from './process.interface';
@@ -14,9 +15,9 @@ const DEFAULT_CALL_DELAY = 10;
 
 export class QuizGenerationProcess implements IngestionProcess {
   private readonly state: IngestionState;
-  private readonly summarizationProvider: AIProvider;
-  private readonly generationProvider: AIProvider;
-  private readonly enhancementProvider: AIProvider;
+  private summarizationProvider?: AIProvider;
+  private generationProvider?: AIProvider;
+  private enhancementProvider?: AIProvider;
   private readonly summarizationSpecialInstruction?: string;
   private readonly generationSpecialInstruction?: string;
   private readonly enhancementSpecialInstruction?: string;
@@ -28,14 +29,6 @@ export class QuizGenerationProcess implements IngestionProcess {
     private readonly config: OrchestratorConfig,
   ) {
     this.state = new IngestionState(bookId, config.outputDir);
-
-    const summarizationModel = config.models?.summarization;
-    const generationModel = config.models?.generation;
-    const enhancementModel = config.models?.enhancement;
-
-    this.summarizationProvider = createProvider(config.providers?.summarization ?? 'google', summarizationModel);
-    this.generationProvider = createProvider(config.providers?.generation ?? 'google', generationModel);
-    this.enhancementProvider = createProvider(config.providers?.enhancement ?? 'google', enhancementModel);
 
     this.summarizationSpecialInstruction = config.summarizationSpecialInstruction;
     // Using extraction instruction as the generation instruction for backward compatibility / ease of use
@@ -77,9 +70,21 @@ export class QuizGenerationProcess implements IngestionProcess {
 
   async run(options?: { reuploadOnly?: boolean; signal?: AbortSignal }, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     this.state.initOrLoad();
+
+    // Resolve providers from the registry (async — DB + key decryption).
+    this.summarizationProvider = await resolveProvider(
+      this.config.modelOverrides?.summarization ?? this.config.stageModelIds?.summarization ?? '',
+    );
+    this.generationProvider = await resolveProvider(
+      this.config.modelOverrides?.generation ?? this.config.stageModelIds?.generation ?? '',
+    );
+    this.enhancementProvider = await resolveProvider(
+      this.config.modelOverrides?.enhancement ?? this.config.stageModelIds?.enhancement ?? '',
+    );
+
     console.log(`[QuizGeneration] Starting ingestion for ${this.imagePaths.length} images`);
     console.log(`[QuizGeneration] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
-    console.log(`[QuizGeneration] Providers — generation: ${this.generationProvider.constructor.name}, enhancement: ${this.enhancementProvider.constructor.name}`);
+    console.log(`[QuizGeneration] Providers — generation: ${this.generationProvider!.model}, enhancement: ${this.enhancementProvider!.model}`);
 
     this.availableCategories = await prisma.category.findMany({
       select: { slug: true, name: true },
@@ -114,7 +119,7 @@ export class QuizGenerationProcess implements IngestionProcess {
     const generationTemp = this.config.temperatures?.generation;
 
     console.log(`[Generation] Starting from image ${startIndex + 1} of ${this.imagePaths.length}`);
-    console.log(`[Generation] Stage Config — Provider: ${this.generationProvider.constructor.name}, Model: ${this.generationProvider.model}, Temperature: ${generationTemp ?? 'default'}, Delay: ${this.callDelayMs.generation}ms`);
+    console.log(`[Generation] Stage Config — Provider: ${this.generationProvider!.constructor.name}, Model: ${this.generationProvider!.model}, Temperature: ${generationTemp ?? 'default'}, Delay: ${this.callDelayMs.generation}ms`);
 
     for (let i = startIndex; i < this.imagePaths.length; i++) {
       await onProgress?.('EXTRACTION', i + 1, this.imagePaths.length);
@@ -134,7 +139,7 @@ export class QuizGenerationProcess implements IngestionProcess {
 
         let summarization;
         try {
-          summarization = await this.summarizationProvider.summarizeImage(image, summarizationPrompt, { temperature: summarizationTemp, signal });
+          summarization = await this.summarizationProvider!.summarizeImage(image, summarizationPrompt, { temperature: summarizationTemp, signal });
         } finally {
           this.recordCallTime();
         }
@@ -148,7 +153,7 @@ export class QuizGenerationProcess implements IngestionProcess {
         let generated;
         try {
           const summaryText = summarization.summary.join('\n- ');
-          generated = await this.generationProvider.extractFromText(summaryText, generationPrompt, { temperature: generationTemp, signal });
+          generated = await this.generationProvider!.extractFromText(summaryText, generationPrompt, { temperature: generationTemp, signal });
         } finally {
           this.recordCallTime();
         }
@@ -202,7 +207,7 @@ export class QuizGenerationProcess implements IngestionProcess {
     const questionsToEnhance = stateData.questions.filter((q) => q.status === 'READY_FOR_ENHANCEMENT');
 
     const temperature = this.config.temperatures?.enhancement;
-    console.log(`[Enhancement] Stage Config — Provider: ${this.enhancementProvider.constructor.name}, Model: ${this.enhancementProvider.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.enhancement}ms`);
+    console.log(`[Enhancement] Stage Config — Provider: ${this.enhancementProvider!.constructor.name}, Model: ${this.enhancementProvider!.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.enhancement}ms`);
 
     console.log(`[Enhancement] Enhancing ${questionsToEnhance.length} questions`);
 
@@ -222,7 +227,7 @@ export class QuizGenerationProcess implements IngestionProcess {
             console.log(`[Enhancement] Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
             let enhanced;
             try {
-              enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal });
+              enhanced = await this.enhancementProvider!.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal });
             } finally {
               this.recordCallTime();
             }

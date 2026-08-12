@@ -57,17 +57,7 @@ function SettingRow({ setting }: { setting: Setting }) {
         {editing ? (
           <div className="flex flex-wrap items-center gap-2">
             {setting.key.endsWith('_provider') ? (
-              <select
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                className="w-full sm:w-32 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="google">{t('providers.google')}</option>
-                <option value="nvidia">{t('providers.nvidia')}</option>
-                <option value="deepseek">{t('providers.deepseek')}</option>
-                <option value="local">{t('providers.local')}</option>
-                <option value="omnirouter">{t('providers.omnirouter')}</option>
-              </select>
+              <input type="text" value={draft} onChange={(e) => setDraft(e.target.value)} className="w-full sm:w-48 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
             ) : (
               <input type={setting.dataType === 'number' ? 'number' : 'text'} value={draft} onChange={(e) => setDraft(e.target.value)} className="w-full sm:w-32 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
             )}

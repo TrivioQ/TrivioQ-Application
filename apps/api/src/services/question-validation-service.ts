@@ -7,36 +7,50 @@
  * - PASS  → status: 'AI-APPROVED', aiFeedback: summary
  * - FAIL  → status: 'AI-REJECTED',  aiFeedback: summary
  *
- * Uses the same provider / model / delay / temperature env vars as the
- * ingestion enhancement phase:
- *   INGESTION_ENHANCEMENT_PROVIDER  (default: 'google')
- *   INGESTION_ENHANCEMENT_MODEL
- *   INGESTION_ENHANCEMENT_CALL_DELAY_SEC  (default: 3)
- *   INGESTION_ENHANCEMENT_TEMPERATURE     (default: 0.7)
+ * Reads its AI model + delay + temperature from the `enhancement`
+ * IngestionStageConfig (the same row the ingestion enhancement phase uses),
+ * so admin edits in the portal flow through to the validator with no env vars.
  */
 
-import { prisma } from '@trivioq/database';
-import { createProvider, type AIProviderName } from '../ai-question-ingestion/providers';
+import { prisma, type IngestionStageConfig } from '@trivioq/database';
+import { resolveProvider } from '../ai-question-ingestion/providers/registry';
 import { buildValidationPrompt } from '../ai-question-ingestion/prompts';
 import { reportError } from '../utils/error-reporter';
+import type { AIProvider } from '../ai-question-ingestion/providers';
 
-// ── Config ────────────────────────────────────────────────────────────────────
+interface ValidationConfig {
+  stage: IngestionStageConfig;
+  callDelayMs: number;
+  concurrency: number;
+}
 
-function resolveConfig() {
-  const providerName = (process.env.INGESTION_ENHANCEMENT_PROVIDER ?? 'google') as AIProviderName;
-  const model = process.env.INGESTION_ENHANCEMENT_MODEL;
-  const callDelayMs = Math.max(0, parseFloat(process.env.INGESTION_ENHANCEMENT_CALL_DELAY_SEC ?? '3') * 1000);
-  const concurrency = Math.max(1, parseInt(process.env.INGESTION_ENHANCEMENT_CONCURRENCY ?? '10', 10));
-  return { providerName, model, callDelayMs, concurrency };
+async function resolveConfig(): Promise<ValidationConfig> {
+  const stage = await prisma.ingestionStageConfig.findUnique({
+    where: { stage: 'enhancement' },
+  });
+  if (!stage || !stage.isActive) {
+    throw new Error(
+      '[question-validation] IngestionStageConfig "enhancement" is missing or inactive. Configure it in the admin portal.',
+    );
+  }
+  if (!stage.modelId) {
+    throw new Error(
+      '[question-validation] IngestionStageConfig "enhancement" has no modelId assigned. Assign a model in the admin portal.',
+    );
+  }
+  // Reuse the same model/delay/temperature as enhancement; concurrency defaults to 10.
+  const callDelayMs = Math.max(0, stage.callDelaySec * 1000);
+  const concurrency = Math.max(1, stage.concurrency ?? 10);
+  return { stage, callDelayMs, concurrency };
 }
 
 // ── Main entry point ──────────────────────────────────────────────────────────
 
 export async function runQuestionValidation(signal?: AbortSignal): Promise<void> {
-  const { providerName, model, callDelayMs, concurrency } = resolveConfig();
-  const provider = createProvider(providerName, model);
+  const { stage, callDelayMs, concurrency } = await resolveConfig();
+  const provider: AIProvider = await resolveProvider(stage.modelId, signal);
 
-  console.log(`[question-validation] Starting — provider: ${providerName}, model: ${model ?? 'default'}, delay: ${callDelayMs}ms`);
+  console.log(`[question-validation] Starting — model: ${stage.modelId}, delay: ${callDelayMs}ms`);
 
   let passed = 0;
   let failed = 0;
@@ -81,7 +95,7 @@ export async function runQuestionValidation(signal?: AbortSignal): Promise<void>
 
           try {
             const choices = Array.isArray(question.suggestedChoices) ? question.suggestedChoices : [];
-            const result = await provider.validateQuestion(question.suggestedText, choices, question.hint, question.explanation, buildValidationPrompt(question.ageRating));
+            const result = await provider.validateQuestion(question.suggestedText, choices, question.hint, question.explanation, buildValidationPrompt(question.ageRating), { temperature: stage.temperature, signal });
 
             if (result.overallPassed) {
               await prisma.pendingQuestion.update({

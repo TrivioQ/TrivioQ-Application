@@ -1,5 +1,3 @@
-import type { AIProviderName } from '../providers';
-
 export interface OrchestratorConfig {
   outputDir: string;
   processType: string;
@@ -7,30 +5,25 @@ export interface OrchestratorConfig {
   /** One or more category slugs. Multiple slugs create one PendingQuestion row per slug. */
   categorySlugs?: string[];
   /**
-   * Per-phase provider overrides.
+   * Default modelId per phase (read from IngestionStageConfig). The process
+   * resolves an AIProvider instance for each via resolveProvider().
    */
-  providers?: {
-    /** Provider for image classification (Scout phase). */
-    scout?: AIProviderName;
-    /** Provider for question extraction (Extraction phase). */
-    extraction?: AIProviderName;
-    /** Provider for question enhancement + difficulty (Enhancement phase). */
-    enhancement?: AIProviderName;
-    /** Provider for question generation (Generation phase). */
-    generation?: AIProviderName;
-    /** Provider for summarizing image content (Summarization phase). */
-    summarization?: AIProviderName;
-  };
-  models?: {
-    /** Model override for image classification (Scout phase). */
+  stageModelIds?: {
     scout?: string;
-    /** Model override for question extraction (Extraction phase). */
     extraction?: string;
-    /** Model override for question enhancement + difficulty (Enhancement phase). */
     enhancement?: string;
-    /** Model override for question generation (Generation phase). */
     generation?: string;
-    /** Model override for summarizing image content (Summarization phase). */
+    summarization?: string;
+  };
+  /**
+   * Per-job modelId overrides (from the ingestion job's manifestData), keyed
+   * by phase. When present, overrides the stageModelId for that phase.
+   */
+  modelOverrides?: {
+    scout?: string;
+    extraction?: string;
+    enhancement?: string;
+    generation?: string;
     summarization?: string;
   };
   callDelays?: {
@@ -99,14 +92,15 @@ export interface ManifestJson {
   summarizationSpecialInstruction?: string;
 
   /**
-   * Per-phase AI provider overrides for this book.
+   * Per-phase AI model overrides for this book (modelId strings). When present,
+   * the worker uses these modelIds instead of the stage default.
    */
-  providers?: {
-    scout?: AIProviderName;
-    extraction?: AIProviderName;
-    enhancement?: AIProviderName;
-    generation?: AIProviderName;
-    summarization?: AIProviderName;
+  modelOverrides?: {
+    scout?: string;
+    extraction?: string;
+    enhancement?: string;
+    generation?: string;
+    summarization?: string;
   };
 
   /**

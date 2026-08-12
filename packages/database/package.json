@@ -12,9 +12,10 @@
     "seed-mock-data": "dotenv -e ../../.env -- ts-node scripts/seed-mock-data.ts",
     "seed-legal": "dotenv -e ../../.env -- ts-node scripts/seed-legal.ts",
     "seed-settings": "dotenv -e ../../.env -- ts-node scripts/seed-settings.ts",
+    "seed-ai-providers": "dotenv -e ../../.env -- ts-node scripts/seed-ai-providers.ts",
     "seed-categories": "dotenv -e ../../.env -- ts-node scripts/seed-categories.ts",
     "seed-notifications": "dotenv -e ../../.env -- ts-node scripts/seed-notifications.ts",
-    "seed-server": "pnpm db-push && pnpm seed-legal && pnpm seed-settings && pnpm seed-notifications && pnpm seed-categories",
+    "seed-server": "pnpm db-push && pnpm seed-legal && pnpm seed-settings && pnpm seed-ai-providers && pnpm seed-notifications && pnpm seed-categories",
     "debug": "dotenv -e ../../.env -- prisma studio"
   },
   "dependencies": {

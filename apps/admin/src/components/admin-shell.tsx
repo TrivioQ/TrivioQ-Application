@@ -21,6 +21,8 @@ import {
   X,
   ShieldAlert,
   FileText,
+  Boxes,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { logoutAction } from '@/app/actions/auth-actions';
 import { useTranslations } from 'next-intl';
@@ -37,6 +39,9 @@ const NAV_ITEMS: { href: string; icon: React.ElementType; labelKey: string; exac
   { href: '/notifications', icon: Bell, labelKey: 'sidebar.notifications' },
   { href: '/bonus-plans', icon: Trophy, labelKey: 'sidebar.bonusPlans' },
   { href: '/app-settings', icon: Settings, labelKey: 'sidebar.appSettings' },
+  { href: '/ai-providers', icon: Cpu, labelKey: 'sidebar.aiProviders' },
+  { href: '/ai-models', icon: Boxes, labelKey: 'sidebar.aiModels' },
+  { href: '/ingestion-settings', icon: SlidersHorizontal, labelKey: 'sidebar.ingestionSettings' },
   { href: '/subscription-history', icon: ClockIcon, labelKey: 'sidebar.subscriptionHistory' },
   { href: '/cron-jobs', icon: Cpu, labelKey: 'sidebar.cronJobs' },
   { href: '/audit-logs', icon: ShieldAlert, labelKey: 'sidebar.auditLogs' },

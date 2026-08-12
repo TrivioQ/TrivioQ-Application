@@ -7,10 +7,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { AppSelect } from '@/components/ui/app-select';
+import { AppSelect, type AppSelectOption } from '@/components/ui/app-select';
 import { Card, CardContent } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
-import { getSettings } from '@/app/actions/setting-actions';
+
+interface StageConfig {
+  stage: string;
+  modelId: string | null;
+  model: { id: string; displayName: string; modelName: string; provider: { displayName: string } | null } | null;
+}
+
+interface ModelRef {
+  id: string;
+  displayName: string;
+  modelName: string;
+  provider: { displayName: string } | null;
+}
 
 export function UploadJobForm() {
   const router = useRouter();
@@ -18,23 +30,35 @@ export function UploadJobForm() {
   const tApp = useTranslations('appSettings');
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [settings, setSettings] = useState<any[]>([]);
+  const [stages, setStages] = useState<StageConfig[]>([]);
+  const [models, setModels] = useState<ModelRef[]>([]);
 
   useEffect(() => {
-    getSettings({ pageSize: 1000 }).then(res => {
-      if (res.success && res.data) {
-        setSettings(res.data);
-      }
+    // Load stage configs (for default-model display) and the model list
+    // (for the per-phase override dropdowns).
+    Promise.all([
+      fetch('/api/v1/admin/ingestion-stages').then(r => r.json()),
+      fetch('/api/v1/admin/ai-models').then(r => r.json()),
+    ]).then(([stagesRes, modelsRes]) => {
+      if (stagesRes.success) setStages(stagesRes.data);
+      if (modelsRes.success) setModels(modelsRes.data);
+    }).catch(() => {
+      // best-effort; form still usable without overrides
     });
   }, []);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Record<string, string>>({
     processType: 'question-extraction',
     topic: '',
     pagesFrom: '',
     pagesTo: '',
     extractionSpecialInstruction: '',
-    enhancementSpecialInstruction: ''
+    enhancementSpecialInstruction: '',
+    scoutModelId: '',
+    extractionModelId: '',
+    enhancementModelId: '',
+    generationModelId: '',
+    summarizationModelId: '',
   });
 
   const getActivePhases = (processType: string) => {
@@ -43,6 +67,11 @@ export function UploadJobForm() {
     }
     return ['scout', 'extraction', 'enhancement'];
   };
+
+  const modelOptions: AppSelectOption[] = models.map(m => ({
+    value: m.id,
+    label: `${m.provider?.displayName ?? 'unknown'} → ${m.displayName}`,
+  }));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -179,35 +208,31 @@ export function UploadJobForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {getActivePhases(formData.processType).map((phase) => {
-              const providerSetting = settings.find(s => s.key === `ingestion_${phase}_provider`);
-              const providerName = providerSetting ? providerSetting.value : 'unknown';
-              const displayProvider = ['google', 'nvidia', 'deepseek', 'local', 'omnirouter'].includes(providerName)
-                ? tApp(`providers.${providerName}` as any) 
-                : providerName === 'unknown' ? t('unknownProvider') : providerName;
-              const phaseSettings = settings.filter(s => s.key.startsWith(`ingestion_${phase}_`) && s.key !== `ingestion_${phase}_provider`);
-              
+              const stageConfig = stages.find(s => s.stage === phase);
+              const defaultModel = stageConfig?.model;
+              const overrideKey = `${phase}ModelId`;
               return (
                 <div key={phase} className="space-y-2">
                   <Label className="text-base font-semibold">
                     {phase === 'enhancement' ? t('enhancementPhaseOnly') : tApp(`phases.${phase}` as any)}
                   </Label>
-                  <div className="text-sm font-medium text-muted-foreground mb-2">
-                    {t('providerLabel')} {displayProvider}
+                  <div className="text-xs text-muted-foreground bg-muted p-2 rounded-md">
+                    <div className="flex justify-between gap-2">
+                      <span className="font-medium">{t('defaultLabel')}</span>
+                      <span className="text-right truncate" title={defaultModel ? `${defaultModel.provider?.displayName ?? ''} / ${defaultModel.modelName}` : t('noDefaultModel')}>
+                        {defaultModel ? `${defaultModel.provider?.displayName ?? ''} → ${defaultModel.displayName}` : t('noDefaultModel')}
+                      </span>
+                    </div>
                   </div>
-                  {phaseSettings.length > 0 ? (
-                    <div className="text-xs text-muted-foreground bg-muted p-2 rounded-md space-y-1">
-                      {phaseSettings.map(s => (
-                        <div key={s.key} className="flex justify-between items-center gap-2 overflow-hidden">
-                          <span className="font-medium truncate min-w-0 flex-shrink-0" title={s.label || s.key}>{s.label || s.key.replace(`ingestion_${phase}_`, '')}:</span>
-                          <span className="truncate min-w-0 text-right text-foreground" title={s.value}>{s.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-xs text-muted-foreground bg-muted p-2 rounded-md italic">
-                      {t('noAdditionalSettings')}
-                    </div>
-                  )}
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">{t('overrideModel')}</Label>
+                    <AppSelect
+                      options={modelOptions}
+                      value={formData[overrideKey] ?? ''}
+                      onValueChange={(v) => handleSelect(overrideKey, String(v))}
+                      placeholder={t('useDefault')}
+                    />
+                  </div>
                 </div>
               );
             })}

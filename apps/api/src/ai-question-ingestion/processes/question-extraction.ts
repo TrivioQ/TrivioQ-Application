@@ -5,7 +5,8 @@ import { checkPendingDuplicate } from '../../utils/check-pending-duplicate';
 import { shuffleArray } from '../../utils/shuffle';
 import { reportError } from '../../utils/error-reporter';
 import fs from 'fs';
-import { createProvider, type AIProvider } from '../providers';
+import type { AIProvider } from '../providers';
+import { resolveProvider } from '../providers/registry';
 import { buildExtractionPrompt, buildEnhancementPrompt, KEY_EXTRACTION_PROMPT, buildClassificationPrompt } from '../prompts';
 import { sanitiseDifficulty, sanitiseAgeRating } from '../utils/sanitise';
 
@@ -27,11 +28,11 @@ import { OrchestratorConfig, IngestionProcess } from './process.interface';
 export class QuestionExtractionProcess implements IngestionProcess {
   private readonly state: IngestionState;
   /** Provider used in Phase 1 — image classification. */
-  private readonly scoutProvider: AIProvider;
+  private scoutProvider?: AIProvider;
   /** Provider used in Phase 2 — question extraction. */
-  private readonly extractionProvider: AIProvider;
+  private extractionProvider?: AIProvider;
   /** Provider used in Phase 3 — question enhancement + difficulty inference. */
-  private readonly enhancementProvider: AIProvider;
+  private enhancementProvider?: AIProvider;
   private readonly extractionSpecialInstruction?: string;
   private readonly enhancementSpecialInstruction?: string;
   private readonly classificationSpecialInstruction?: string;
@@ -43,16 +44,6 @@ export class QuestionExtractionProcess implements IngestionProcess {
     private readonly config: OrchestratorConfig,
   ) {
     this.state = new IngestionState(bookId, config.outputDir);
-
-    const scoutModel = config.models?.scout;
-    const extractionModel = config.models?.extraction;
-    const enhancementModel = config.models?.enhancement;
-
-    this.scoutProvider = createProvider(config.providers?.scout ?? 'google', scoutModel);
-
-    this.extractionProvider = createProvider(config.providers?.extraction ?? 'google', extractionModel);
-
-    this.enhancementProvider = createProvider(config.providers?.enhancement ?? 'google', enhancementModel);
 
     this.extractionSpecialInstruction = config.extractionSpecialInstruction;
     this.enhancementSpecialInstruction = config.enhancementSpecialInstruction;
@@ -86,9 +77,23 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
   async run(options?: { reuploadOnly?: boolean; signal?: AbortSignal }, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     this.state.initOrLoad();
+
+    // Resolve providers from the registry (async — DB + key decryption). Done
+    // here, in run(), rather than in the sync constructor so the registry's
+    // 60s cache is hit and the constructor stays side-effect-free.
+    this.scoutProvider = await resolveProvider(
+      this.config.modelOverrides?.scout ?? this.config.stageModelIds?.scout ?? '',
+    );
+    this.extractionProvider = await resolveProvider(
+      this.config.modelOverrides?.extraction ?? this.config.stageModelIds?.extraction ?? '',
+    );
+    this.enhancementProvider = await resolveProvider(
+      this.config.modelOverrides?.enhancement ?? this.config.stageModelIds?.enhancement ?? '',
+    );
+
     console.log(`[QuestionExtraction] Starting ingestion for ${this.imagePaths.length} images`);
     console.log(`[QuestionExtraction] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
-    console.log(`[QuestionExtraction] Providers — scout: ${this.scoutProvider.constructor.name}, extraction: ${this.extractionProvider.constructor.name}, enhancement: ${this.enhancementProvider.constructor.name}`);
+    console.log(`[QuestionExtraction] Providers — scout: ${this.scoutProvider!.model}, extraction: ${this.extractionProvider!.model}, enhancement: ${this.enhancementProvider!.model}`);
     if (this.extractionSpecialInstruction || this.enhancementSpecialInstruction || this.classificationSpecialInstruction) {
       const ei = this.extractionSpecialInstruction?.slice(0, 80);
       const hi = this.enhancementSpecialInstruction?.slice(0, 80);
@@ -132,7 +137,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     const temperature = this.config.temperatures?.scout;
 
     console.log(`[Scout] Starting from image ${startIndex + 1}`);
-    console.log(`[Scout] Stage Config — Provider: ${this.scoutProvider.constructor.name}, Model: ${this.scoutProvider.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.scout}ms`);
+    console.log(`[Scout] Stage Config — Provider: ${this.scoutProvider!.constructor.name}, Model: ${this.scoutProvider!.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.scout}ms`);
 
     for (let i = startIndex; i < this.imagePaths.length; i++) {
       await onProgress?.('SCOUT', i + 1, this.imagePaths.length);
@@ -149,7 +154,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
         let classification: ImageType;
         try {
           const classificationPrompt = buildClassificationPrompt(this.classificationSpecialInstruction);
-          const res = await this.scoutProvider.classifyImage(image, classificationPrompt, { temperature, signal });
+          const res = await this.scoutProvider!.classifyImage(image, classificationPrompt, { temperature, signal });
           classification = res.classification;
         } finally {
           this.recordCallTime();
@@ -211,7 +216,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
           console.log(`[Extraction] Extracting keys from ${keyPagePath}...`);
           let extracted;
           try {
-            extracted = await this.extractionProvider.extractFromImages([image], KEY_EXTRACTION_PROMPT, { temperature, signal });
+            extracted = await this.extractionProvider!.extractFromImages([image], KEY_EXTRACTION_PROMPT, { temperature, signal });
           } finally {
             this.recordCallTime();
           }
@@ -251,7 +256,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
       return;
     }
 
-    console.log(`[Extraction] Stage Config — Provider: ${this.extractionProvider.constructor.name}, Model: ${this.extractionProvider.model}, Temperature: ${temperature ?? 'default'}, Batch Size: ${batchSize}, Delay: ${this.callDelayMs.extraction}ms`);
+    console.log(`[Extraction] Stage Config — Provider: ${this.extractionProvider!.constructor.name}, Model: ${this.extractionProvider!.model}, Temperature: ${temperature ?? 'default'}, Batch Size: ${batchSize}, Delay: ${this.callDelayMs.extraction}ms`);
 
     // Chunking logic based on QUESTIONS_WITH_KEYS
     const chunks: string[][] = [];
@@ -347,7 +352,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
         let extracted;
         try {
           // Pass the (possibly enriched) prompt through via the extraction provider
-          extracted = await this.extractionProvider.extractFromImages(imagesB64, extractionPrompt, { temperature, signal });
+          extracted = await this.extractionProvider!.extractFromImages(imagesB64, extractionPrompt, { temperature, signal });
         } finally {
           this.recordCallTime();
         }
@@ -562,7 +567,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     const temperature = this.config.temperatures?.enhancement;
     const concurrency = this.config.enhancementConcurrency ?? 10;
 
-    console.log(`[Enhancement] Stage Config — Provider: ${this.enhancementProvider.constructor.name}, Model: ${this.enhancementProvider.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.enhancement}ms`);
+    console.log(`[Enhancement] Stage Config — Provider: ${this.enhancementProvider!.constructor.name}, Model: ${this.enhancementProvider!.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.enhancement}ms`);
 
     console.log(`[Enhancement] Enhancing ${questionsToEnhance.length} questions`);
 
@@ -581,7 +586,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
             console.log(`[Enhancement] Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
             let enhanced;
             try {
-              enhanced = await this.enhancementProvider.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal });
+              enhanced = await this.enhancementProvider!.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal });
             } finally {
               this.recordCallTime();
             }

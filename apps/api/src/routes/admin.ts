@@ -5,6 +5,9 @@ import { requireAdmin } from '../middleware/require-admin';
 import { cronJobsRouter } from './admin/cron-jobs';
 import { ingestionRouter } from './admin/ingestion.routes';
 import { settingsRouter } from './admin/settings.routes';
+import { aiProvidersRouter } from './admin/ai-providers.routes';
+import { aiModelsRouter } from './admin/ai-models.routes';
+import { ingestionStagesRouter } from './admin/ingestion-stages.routes';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -50,6 +53,11 @@ router.use('/ingestion', ingestionRouter);
 
 // Admin Settings routes
 router.use('/settings', settingsRouter);
+
+// Admin AI provider / model / stage-config management
+router.use('/ai-providers', aiProvidersRouter);
+router.use('/ai-models', aiModelsRouter);
+router.use('/ingestion-stages', ingestionStagesRouter);
 
 /**
  * @route   GET /api/v1/admin/users/:id/friendships

@@ -33,10 +33,8 @@ import { PDFDocument } from 'pdf-lib';
 import { pdfToImage } from '../ai-question-ingestion/utils/pdf-to-image';
 import { IngestionOrchestrator } from '../ai-question-ingestion/orchestrator';
 import { IngestionState } from '../ai-question-ingestion/utils/state-manager';
-import type { ManifestJson } from '../ai-question-ingestion/processes/process.interface';
-import { getSetting, getSettingNumber } from '../utils/settings';
+import type { ManifestJson, OrchestratorConfig } from '../ai-question-ingestion/processes/process.interface';
 import { WorkflowLogger } from '../utils/workflow-logger';
-import type { AIProviderName } from '../ai-question-ingestion/providers';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -263,89 +261,52 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
     const pTypeStr = dbJob.processType === ProcessType.QUIZ_GENERATION ? 'quiz-generation' : 'question-extraction';
     const processKey = dbJob.processType === ProcessType.QUIZ_GENERATION ? 'QUIZ_GENERATION' : 'QUESTION_EXTRACTION';
 
-    const [
-      scoutProvider,
-      extractionProvider,
-      enhancementProvider,
-      summarizationProvider,
-      generationProvider,
-      scoutModel,
-      extractionModel,
-      enhancementModel,
-      summarizationModel,
-      generationModel,
-      scoutDelay,
-      extractionDelay,
-      enhancementDelay,
-      summarizationDelay,
-      generationDelay,
-      scoutTemp,
-      extractionTemp,
-      enhancementTemp,
-      summarizationTemp,
-      generationTemp,
-      extractionBatchSize,
-      enhancementConcurrency,
-    ] = await Promise.all([
-      getSetting('ingestion_scout_provider', 'google') as Promise<AIProviderName>,
-      getSetting('ingestion_extraction_provider', 'google') as Promise<AIProviderName>,
-      getSetting('ingestion_enhancement_provider', 'google') as Promise<AIProviderName>,
-      getSetting('ingestion_summarization_provider', 'google') as Promise<AIProviderName>,
-      getSetting('ingestion_generation_provider', 'google') as Promise<AIProviderName>,
-      getSetting('ingestion_scout_model', 'gemini-1.5-flash'),
-      getSetting('ingestion_extraction_model', 'gemini-1.5-pro'),
-      getSetting('ingestion_enhancement_model', 'gemini-1.5-pro'),
-      getSetting('ingestion_summarization_model', 'gemini-1.5-flash'),
-      getSetting('ingestion_generation_model', 'gemini-1.5-pro'),
-      getSettingNumber('ingestion_scout_call_delay_sec', 10),
-      getSettingNumber('ingestion_extraction_call_delay_sec', 10),
-      getSettingNumber('ingestion_enhancement_call_delay_sec', 10),
-      getSettingNumber('ingestion_summarization_call_delay_sec', 10),
-      getSettingNumber('ingestion_generation_call_delay_sec', 10),
-      getSettingNumber('ingestion_scout_temperature', 0.2),
-      getSettingNumber('ingestion_extraction_temperature', 0.2),
-      getSettingNumber('ingestion_enhancement_temperature', 0.7),
-      getSettingNumber('ingestion_summarization_temperature', 0.2),
-      getSettingNumber('ingestion_generation_temperature', 0.7),
-      getSettingNumber('ingestion_extraction_batch_size', 1),
-      getSettingNumber('ingestion_enhancement_concurrency', 10),
-    ]);
+    // Read all 5 stage configs in one query (DB-driven; replaces 21 getSetting calls).
+    const stageConfigRows = await prisma.ingestionStageConfig.findMany({
+      where: { isActive: true },
+    });
+    const stages = new Map(stageConfigRows.map((s) => [s.stage, s]));
+
+    const stageOf = (name: 'scout' | 'extraction' | 'enhancement' | 'summarization' | 'generation') => {
+      const row = stages.get(name);
+      if (!row) {
+        throw new Error(`[ingestion-worker] IngestionStageConfig for "${name}" is missing or inactive. Configure it in the admin portal.`);
+      }
+      if (!row.modelId) {
+        throw new Error(`[ingestion-worker] IngestionStageConfig "${name}" has no modelId assigned.`);
+      }
+      return row;
+    };
 
     const orchestrator = new IngestionOrchestrator(bookId, imagePaths, {
       outputDir: dataDir,
       processType: manifestData.processType ?? pTypeStr,
       topic: manifestData.topic ?? '',
       categorySlugs: manifestData.categorySlugs ?? [],
-      providers: {
-        scout: manifestData.providers?.scout ?? scoutProvider,
-        extraction: manifestData.providers?.extraction ?? extractionProvider,
-        enhancement: manifestData.providers?.enhancement ?? enhancementProvider,
-        summarization: manifestData.providers?.summarization ?? summarizationProvider,
-        generation: manifestData.providers?.generation ?? generationProvider,
+      stageModelIds: {
+        scout: stageOf('scout').modelId ?? undefined,
+        extraction: stageOf('extraction').modelId ?? undefined,
+        enhancement: stageOf('enhancement').modelId ?? undefined,
+        summarization: stageOf('summarization').modelId ?? undefined,
+        generation: stageOf('generation').modelId ?? undefined,
       },
-      models: {
-        scout: scoutModel,
-        extraction: extractionModel,
-        enhancement: enhancementModel,
-        summarization: summarizationModel,
-        generation: generationModel,
-      },
+      modelOverrides: manifestData.modelOverrides,
       callDelays: {
-        scout: scoutDelay,
-        extraction: extractionDelay,
-        enhancement: enhancementDelay,
-        summarization: summarizationDelay,
-        generation: generationDelay,
+        scout: stageOf('scout').callDelaySec,
+        extraction: stageOf('extraction').callDelaySec,
+        enhancement: stageOf('enhancement').callDelaySec,
+        summarization: stageOf('summarization').callDelaySec,
+        generation: stageOf('generation').callDelaySec,
       },
       temperatures: {
-        scout: scoutTemp,
-        extraction: extractionTemp,
-        enhancement: enhancementTemp,
-        summarization: summarizationTemp,
-        generation: generationTemp,
+        scout: stageOf('scout').temperature,
+        extraction: stageOf('extraction').temperature,
+        enhancement: stageOf('enhancement').temperature,
+        summarization: stageOf('summarization').temperature,
+        generation: stageOf('generation').temperature,
       },
-      extractionBatchSize,
-      enhancementConcurrency,
+      extractionBatchSize: stageOf('extraction').batchSize ?? undefined,
+      enhancementConcurrency: stageOf('enhancement').concurrency ?? undefined,
       extractionSpecialInstruction: manifestData.extractionSpecialInstruction,
       enhancementSpecialInstruction: manifestData.enhancementSpecialInstruction,
       classificationSpecialInstruction: manifestData.classificationSpecialInstruction,

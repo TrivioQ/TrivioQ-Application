@@ -92,7 +92,7 @@ router.post('/jobs', upload.single('pdf'), async (req: Request, res: Response) =
       return res.status(400).json({ error: 'PDF file is required' });
     }
 
-    const { processType, topic, categorySlugs, extractionSpecialInstruction, enhancementSpecialInstruction, classificationSpecialInstruction, summarizationSpecialInstruction, pagesFrom, pagesTo, scoutProvider, extractionProvider, enhancementProvider, generationProvider, summarizationProvider } = req.body;
+    const { processType, topic, categorySlugs, extractionSpecialInstruction, enhancementSpecialInstruction, classificationSpecialInstruction, summarizationSpecialInstruction, pagesFrom, pagesTo, scoutModelId, extractionModelId, enhancementModelId, generationModelId, summarizationModelId } = req.body;
 
     const parsedCategorySlugs = categorySlugs ? JSON.parse(categorySlugs) : undefined;
 
@@ -104,12 +104,12 @@ router.post('/jobs', upload.single('pdf'), async (req: Request, res: Response) =
       };
     }
 
-    const providers: Record<string, string> = {};
-    if (scoutProvider) providers.scout = scoutProvider;
-    if (extractionProvider) providers.extraction = extractionProvider;
-    if (enhancementProvider) providers.enhancement = enhancementProvider;
-    if (generationProvider) providers.generation = generationProvider;
-    if (summarizationProvider) providers.summarization = summarizationProvider;
+    const modelOverrides: Record<string, string> = {};
+    if (scoutModelId) modelOverrides.scout = scoutModelId;
+    if (extractionModelId) modelOverrides.extraction = extractionModelId;
+    if (enhancementModelId) modelOverrides.enhancement = enhancementModelId;
+    if (generationModelId) modelOverrides.generation = generationModelId;
+    if (summarizationModelId) modelOverrides.summarization = summarizationModelId;
 
     const manifestData = {
       processType,
@@ -120,7 +120,7 @@ router.post('/jobs', upload.single('pdf'), async (req: Request, res: Response) =
       classificationSpecialInstruction,
       summarizationSpecialInstruction,
       pages,
-      ...(Object.keys(providers).length > 0 && { providers }),
+      ...(Object.keys(modelOverrides).length > 0 && { modelOverrides }),
     };
 
     const dbProcessType = processType === 'quiz-generation' ? ProcessType.QUIZ_GENERATION : ProcessType.QUESTION_EXTRACTION;

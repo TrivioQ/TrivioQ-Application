@@ -540,3 +540,65 @@ model IngestionJob {
   @@index([status, createdAt(sort: Desc)])
 }
 
+// ── AI provider / model registry ────────────────────────────────────────────
+// DB-driven provider + model configuration, editable from the admin portal.
+// Replaces the hard-coded createProvider() switch and the ingestion_* Setting rows.
+
+enum AIProviderProtocol {
+  openai      // OpenAI-compatible chat-completions (OpenAI, NVIDIA NIM, DeepSeek, Omnirouter, etc.)
+  anthropic   // Anthropic Messages API (stub adapter only)
+  gemini      // Google GenAI native SDK (inlineData vision, safety settings)
+  local_form  // Multipart FormData local endpoint (json.text response shape)
+}
+
+model AIProvider {
+  id               String             @id @default(uuid())
+  name             String             @unique // slug: 'google','nvidia', ...
+  displayName      String // shown in admin UI + used in worker logs
+  description      String?
+  protocol         AIProviderProtocol
+  baseUrl          String?
+  apiKeyCipher     String? // base64(iv || ciphertext || tag); null means optional/no auth
+  defaultHeaders   Json? // extra auth headers, org-id, etc. merged at call time
+  minCallIntervalMs Int   @default(0) // provider-account-level pacing floor (was enforceRateLimit)
+  isActive         Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  models           AIModel[]
+}
+
+model AIModel {
+  id                 String      @id @default(uuid())
+  provider           AIProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  providerId         String
+  displayName        String
+  description        String?
+  modelName          String // literal sent in the request payload, e.g. 'moonshotai/kimi-k2.6'
+  contextWindow     Int?
+  maxOutputTokens    Int?
+  supportsVision     Boolean     @default(true)
+  supportsJsonMode  Boolean     @default(true) // local-form endpoints reject response_format
+  defaultTemperature Float       @default(0.2)
+  extraParams        Json? // per-model knobs, e.g. {"chat_template_kwargs":{"thinking":false}}
+  isActive           Boolean     @default(true)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  stages IngestionStageConfig[]
+  @@unique([providerId, modelName])
+  @@index([providerId])
+}
+
+model IngestionStageConfig {
+  stage              String   @id // 'scout'|'extraction'|'enhancement'|'summarization'|'generation'
+  model              AIModel? @relation(fields: [modelId], references: [id])
+  modelId            String?
+  temperature        Float    @default(0.2)
+  callDelaySec       Int      @default(10) // per-stage inter-call delay
+  batchSize          Int? // extraction only
+  concurrency        Int? // enhancement only
+  specialInstruction String?
+  isActive           Boolean  @default(true)
+  updatedAt          DateTime @updatedAt
+}
+
