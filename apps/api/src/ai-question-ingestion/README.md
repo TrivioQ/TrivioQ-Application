@@ -1,83 +1,99 @@
-# TrivioQ Ingestion Guide
+# TrivioQ AI Ingestion — Developer Guide
 
-This folder contains the books and documents queued for the AI-powered trivia question ingestion pipeline.
-
-## Directory Structure
-
-To ingest a new book or document:
-
-1. Create a sub-folder under this `ingestion/` directory (e.g., `sample-book/`).
-2. Place your source PDF file inside that sub-folder. (Only one PDF per folder is processed; if multiple are present, only the first is selected).
-3. Place an `manifest.json` file inside that sub-folder.
-
-Your sub-folder structure should look like this:
-
-```
-ingestion/
-└── sample-book/
-    ├── manifest.json
-    └── your-book-file.pdf
-```
+This document explains how the ingestion pipeline works, how to configure it, and how to run it.
 
 ---
 
-## Instructions Configuration (`manifest.json`)
+## Architecture
 
-Each book folder requires an `manifest.json` file to define metadata and optional per-phase AI instructions. Here is a full configuration example:
+The ingestion system is a standalone Express HTTP server (`trivioq-worker-ingestion`, port 3014) isolated from the main API. It runs as a separate Docker container and is triggered by the main API via internal HTTP calls — not via BullMQ or Redis.
 
-```json
-{
-  "bookId": "sample-trivia-book",
-  "topic": "Indian History",
-  "categorySlugs": ["history", "geography"],
-  "extractionSpecialInstruction": "Extract only standard multiple choice questions with 4 choices. Ignore introductory and summary text. Strip any competitive exam year markers (e.g. [1995], [2020-I]) from the end of questions.",
-  "enhancementSpecialInstruction": "This book contains Indian competitive exam questions. Prioritise accuracy and historical context in hints and explanations."
-}
+```
+Admin UI → POST /api/v1/admin/ingestion/jobs → ingestion.routes.ts
+                                                   ↓ POST /internal/run
+                                           trivioq-worker-ingestion (port 3014)
+                                                   ↓
+                                           IngestionOrchestrator
+                                                   ↓
+                       ┌───────────────────────────┴────────────────────────┐
+                       │                                                     │
+              QuestionExtractionProcess                          QuizGenerationProcess
+        Scout → Extraction → Enhancement → Upload         Generation → Enhancement → Upload
 ```
 
-### Fields Description
-
-| Field                           | Type       | Required | Description                                                                                                                                                                                                                   |
-| :------------------------------ | :--------- | :------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bookId`                        | `string`   | **Yes**  | A unique, URL-friendly slug/identifier for this book (e.g. `world-history-vol1`). Used as the prefix for state management files.                                                                                              |
-| `topic`                         | `string`   | No       | The fallback topic name. If omitted, the topic is auto-detected by the AI during enhancement, falling back to `"General"` if undetected.                                                                                      |
-| `categorySlugs`                 | `string[]` | No       | An array of category slugs. If omitted, all available categories are fetched from the database and the AI selects the 1–2 most relevant ones.                                                                                 |
-| `extractionSpecialInstruction`  | `string`   | No       | Free-text instruction prepended to the **extraction** prompt only. Use this to control what gets extracted — e.g. focus on specific question types, strip unwanted markers, or ignore certain pages.                          |
-| `enhancementSpecialInstruction` | `string`   | No       | Free-text instruction prepended to the **enhancement** prompt only. Use this to tailor hint/explanation style, fact-check context, or domain-specific guidance.                                                               |
+State is persisted to `{jobId}_state.json` on a Docker volume so jobs resume from their last checkpoint after a container restart.
 
 ---
 
-## How to Run Ingestion
+## Running Ingestion
 
-Ingestion is no longer run via CLI scripts. The entire process is now managed via the **Admin Portal**:
+Ingestion is managed entirely via the **Admin Portal**:
 
-1. Upload the PDF and `manifest.json` in the **Books** section of the Admin UI.
-2. The system creates an `IngestionJob` in the database.
-3. The `ingestion-worker` automatically picks up the job from the `pdf-ingestion` BullMQ queue.
-4. You can track the progress of the ingestion phases (Scout, Extraction, Enhancement, Summarization, Generation) in real-time on the Admin UI.
+1. Navigate to **Ingestion → Jobs** in the Admin UI.
+2. Select a **Process Type** (`question-extraction` or `quiz-generation`), fill in topic, categories, and any special instructions.
+3. Upload the source PDF and click **Start**.
+4. The system creates an `IngestionJob` record, transfers the file to the Docker volume, and triggers the worker.
+5. Track real-time progress (phase, current page, questions found) and stream logs live in the Admin UI.
 
 ---
 
-## Configuration Settings
+## Job Configuration (`manifestData`)
 
-AI ingestion parameters are now managed globally in the database via the **Admin Portal** UI instead of `.env` files.
+When creating a job, the following fields are stored in `IngestionJob.manifestData`:
 
-### Providers & Models
+| Field                               | Type                     | Description                                                                                               |
+| :---------------------------------- | :----------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `processType`                       | `string`                 | `"question-extraction"` or `"quiz-generation"`                                                            |
+| `topic`                             | `string`                 | Fallback topic name used if AI cannot infer one                                                           |
+| `categorySlugs`                     | `string[]`               | Category slugs to assign; if omitted the AI selects 1–2 from all available                               |
+| `extractionSpecialInstruction`      | `string`                 | Extra instruction prepended to the extraction prompt                                                      |
+| `enhancementSpecialInstruction`     | `string`                 | Extra instruction prepended to the enhancement prompt                                                     |
+| `classificationSpecialInstruction`  | `string`                 | Extra instruction prepended to the scout/classification prompt                                            |
+| `summarizationSpecialInstruction`   | `string`                 | Extra instruction prepended to the summarization prompt (quiz-generation only)                            |
+| `pages`                             | `{ from?, to? }`         | Optional page range (1-indexed, inclusive) to restrict processing                                         |
+| `modelOverrides`                    | `Record<string, string>` | Per-stage modelId overrides (keys: `scout`, `extraction`, `enhancement`, `summarization`, `generation`)   |
 
-You can configure the AI Provider and Model for each specific phase:
-- **Providers Supported**: Google (Gemini), Nvidia, DeepSeek.
-- **Models**: Configurable per phase (e.g. `gemini-1.5-pro` for extraction, `gemini-1.5-flash` for summarization).
-- **Fallback Behavior**: If a specific phase provider/model is not set, the system will use the default values configured during database seeding.
+---
 
-### Tuning
+## Configuration — AI Providers, Models & Stage Configs
 
-The following tuning parameters can be adjusted from the **App Settings** section in the Admin UI:
+AI ingestion parameters are stored in three database tables managed via the **Admin Portal → AI Config**:
 
-| Setting                                | Description                                                                              |
-| :------------------------------------- | :--------------------------------------------------------------------------------------- |
-| `ingestion_extraction_batch_size`      | Number of page images sent to the AI in a single extraction call.                        |
-| `ingestion_*_call_delay_sec`           | Seconds to wait between AI calls for a specific phase (rate limiting).                   |
-| `ingestion_*_temperature`              | Temperature for a specific phase (e.g., lower for extraction, higher for enhancement).   |
-| `ingestion_enhancement_concurrency`    | Number of questions to enhance in parallel.                                              |
+| Table                  | What it stores                                                                                   |
+| :--------------------- | :------------------------------------------------------------------------------------------------|
+| `AIProvider`           | Provider account: protocol, base URL, encrypted API key, pacing floor (`minCallIntervalMs`)      |
+| `AIModel`              | Model row: modelName (sent in the API request), vision/JSON mode flags, default temperature      |
+| `IngestionStageConfig` | Per-stage assignment: which model, temperature, call delay, batch size, concurrency              |
 
-> **Note**: The base API keys (e.g. `GEMINI_API_KEY`, `NVIDIA_API_KEY`, `DEEPSEEK_API_KEY`) still reside securely in `apps/api/.env` and are not exposed in the database or UI.
+### Stages
+
+| Stage           | Process type(s)     | Controls                                       |
+| :-------------- | :------------------ | :--------------------------------------------- |
+| `scout`         | question-extraction | Page classification (QUESTIONS / OTHER)         |
+| `extraction`    | question-extraction | Question + answer-key extraction                |
+| `enhancement`   | both                | Hint, explanation, quality score, difficulty    |
+| `summarization` | quiz-generation     | Page summarization before generation            |
+| `generation`    | quiz-generation     | Question generation from summaries              |
+
+### Stage tuning parameters
+
+| Parameter      | Default     | Description                                             |
+| :------------- | :---------- | :------------------------------------------------------ |
+| `temperature`  | `0.2`       | LLM temperature for this stage                          |
+| `callDelaySec` | `10`        | Seconds to wait between sequential AI calls             |
+| `batchSize`    | `null`      | Pages per extraction batch (extraction stage only)      |
+| `concurrency`  | `null → 10` | Parallel questions per enhancement batch                |
+
+> **Note:** All of the above replaced the retired `ingestion_*` Setting rows. If you see keys like `ingestion_scout_provider` or `ingestion_extraction_batch_size` in an old DB, they are safe to delete — they are no longer read.
+
+---
+
+## Seeding
+
+After running the `add_ai_provider_model_stageconfig` migration, seed the AI tables:
+
+```bash
+pnpm --filter @trivioq/database seed:ai-providers
+```
+
+This upserts the 5 default providers, their models, and all 5 stage configs. Re-running is safe (idempotent). API keys are read from env vars at seed time — if an env var is not set, the existing cipher in the DB is preserved.

@@ -1,7 +1,7 @@
 /**
  * Seeds the AIProvider / AIModel / IngestionStageConfig tables so the system
- * reproduces today's exact runtime the moment the migration lands — no code
- * deploy needed, no admin clicks required.
+ * is ready to run ingestion the moment the migration lands — no manual admin
+ * clicks required.
  *
  * Reads current env-var API keys (GEMINI_API_KEY, NVIDIA_API_KEY, etc.),
  * encrypts them with crypto.encrypt (requires ENCRYPTION_MASTER_KEY), and
@@ -21,8 +21,8 @@ function encryptedKey(envVar: string): string | null {
   return encrypt(key);
 }
 
-// ── Provider definitions (reproduces today's 5 hard-coded providers) ──────────
-// minCallIntervalMs mirrors the old enforceRateLimit() calls:
+// ── Provider definitions ──────────────────────────────────────────────────────
+// minCallIntervalMs: provider-account-level pacing floor in ms.
 //   google=4000, deepseek=1500, others=0
 const PROVIDERS = [
   {
@@ -73,31 +73,29 @@ const PROVIDERS = [
 ];
 
 // ── Model definitions ─────────────────────────────────────────────────────────
-// modelName is the literal string sent in the request payload, matching the
-// old FALLBACK_MODEL / seed-settings values. The DeepSeek-on-NVIDIA thinking
-// quirk (nvidia-provider.ts `this.model.includes('deepseek')`) is captured
-// explicitly in extraParams on the kimki model rows that need it.
+// modelName is the literal string sent in the API request payload.
 const MODELS = [
-  // scout: nvidia / mistral-small
+  // [0] scout: nvidia / mistral-small
   { providerName: 'nvidia', displayName: 'Mistral Small 4', modelName: 'mistralai/mistral-small-4-119b-2603', supportsVision: true, supportsJsonMode: true, defaultTemperature: 0.2 },
-  // extraction: nvidia / kimi-k2.6 — needs the thinking:false quirk? No — that's deepseek-on-nvidia. Kimi runs native.
+  // [1] extraction: nvidia / kimi-k2.6
   { providerName: 'nvidia', displayName: 'Kimi K2.6', modelName: 'moonshotai/kimi-k2.6', supportsVision: true, supportsJsonMode: true, defaultTemperature: 0.2 },
-  // enhancement: deepseek / deepseek-v4-flash
+  // [2] enhancement: deepseek / deepseek-v4-flash
   { providerName: 'deepseek', displayName: 'DeepSeek V4 Flash', modelName: 'deepseek-v4-flash', supportsVision: false, supportsJsonMode: true, defaultTemperature: 0.7 },
-  // summarization: nvidia / llama-3.2-90b-vision
+  // [3] summarization: nvidia / llama-3.2-90b-vision
   { providerName: 'nvidia', displayName: 'Llama 3.2 90B Vision', modelName: 'meta/llama-3.2-90b-vision-instruct', supportsVision: true, supportsJsonMode: true, defaultTemperature: 0.5 },
-  // generation: deepseek / deepseek-v4-flash (same model as enhancement, separate row)
+  // [4] generation: deepseek / deepseek-v4-flash (separate row from enhancement)
   { providerName: 'deepseek', displayName: 'DeepSeek V4 Flash (Generation)', modelName: 'deepseek-v4-flash', supportsVision: false, supportsJsonMode: true, defaultTemperature: 0.7 },
 ];
 
-// ── Stage config definitions (mirrors the retired ingestion_* settings) ───────
-// callDelaySec / temperature reproduce the old seed-settings values; batch/concurrency come from there too.
+// ── Stage config definitions ──────────────────────────────────────────────────
+// These replace the retired ingestion_* Setting rows.
+// modelIndex maps to the MODELS array above (0-indexed).
 const STAGES = [
-  { stage: 'scout', providerName: 'nvidia', modelIndex: 0, temperature: 0.2, callDelaySec: 15, batchSize: null, concurrency: null },
-  { stage: 'extraction', providerName: 'nvidia', modelIndex: 1, temperature: 0.2, callDelaySec: 15, batchSize: 2, concurrency: null },
-  { stage: 'enhancement', providerName: 'deepseek', modelIndex: 2, temperature: 0.7, callDelaySec: 0, batchSize: null, concurrency: 10 },
-  { stage: 'summarization', providerName: 'nvidia', modelIndex: 3, temperature: 0.5, callDelaySec: 15, batchSize: null, concurrency: null },
-  { stage: 'generation', providerName: 'deepseek', modelIndex: 4, temperature: 0.7, callDelaySec: 0, batchSize: null, concurrency: null },
+  { stage: 'scout', modelIndex: 0, temperature: 0.2, callDelaySec: 15, batchSize: null, concurrency: null },
+  { stage: 'extraction', modelIndex: 1, temperature: 0.2, callDelaySec: 15, batchSize: 2, concurrency: null },
+  { stage: 'enhancement', modelIndex: 2, temperature: 0.7, callDelaySec: 0, batchSize: null, concurrency: 10 },
+  { stage: 'summarization', modelIndex: 3, temperature: 0.5, callDelaySec: 15, batchSize: null, concurrency: null },
+  { stage: 'generation', modelIndex: 4, temperature: 0.7, callDelaySec: 0, batchSize: null, concurrency: null },
 ];
 
 async function main() {
@@ -129,7 +127,7 @@ async function main() {
       },
     });
     providerIdByName.set(p.name, created.id);
-    console.log(`✅ Provider: ${p.name} (${p.protocol}) — key ${p.apiKeyCipher ? 'set' : 'absent'}`);
+    console.log(`  ✅ Provider: ${p.displayName} (${p.protocol}) — key ${p.apiKeyCipher ? 'set' : 'absent'}`);
   }
 
   // 2. Models
@@ -159,15 +157,16 @@ async function main() {
       },
     });
     modelIdByIndex.set(i, created.id);
-    console.log(`✅ Model: ${m.providerName} → ${m.displayName} (${m.modelName})`);
+    console.log(`  ✅ Model [${i}]: ${m.providerName} → ${m.displayName}`);
   }
 
   // 3. Stage configs
   for (const s of STAGES) {
     const modelId = modelIdByIndex.get(s.modelIndex);
     if (!modelId) {
-      throw new Error(`Model not found for stage "${s.stage}"`);
+      throw new Error(`Model not found for stage "${s.stage}" (modelIndex=${s.modelIndex})`);
     }
+    const model = MODELS[s.modelIndex];
     await prisma.ingestionStageConfig.upsert({
       where: { stage: s.stage },
       update: {
@@ -188,8 +187,8 @@ async function main() {
         isActive: true,
       },
     });
-    providerIdByName.get(s.providerName); // just to exercise the var
-    console.log(`✅ Stage: ${s.stage} → model index ${s.modelIndex} (temp=${s.temperature}, delay=${s.callDelaySec}s)`);
+    const extras = [s.batchSize ? `batch=${s.batchSize}` : null, s.concurrency ? `concurrency=${s.concurrency}` : null].filter(Boolean).join(', ');
+    console.log(`  ✅ Stage: ${s.stage} → ${model.displayName} (temp=${s.temperature}, delay=${s.callDelaySec}s${extras ? `, ${extras}` : ''})`);
   }
 
   console.log('✨ AI provider/model/stage seeding complete.');

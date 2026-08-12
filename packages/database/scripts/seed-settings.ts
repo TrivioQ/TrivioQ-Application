@@ -51,8 +51,6 @@ const settings = [
     dataType: 'number',
     label: 'Seconds to answer a Hard question after revealing it',
   },
-  // NOTE: ingestion_* keys are retired — AI provider/model/stage config now
-  // lives in AIProvider / AIModel / IngestionStageConfig. See scripts/seed-ai-providers.ts.
 ];
 
 async function main() {
