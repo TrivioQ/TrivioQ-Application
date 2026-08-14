@@ -69,15 +69,20 @@ export function JobDetail({ jobId }: { jobId: string }) {
   // ── Fetch job data ──────────────────────────────────────────────────────────
 
   const fetchJob = useCallback(
-    async (signal?: AbortSignal) => {
+    async (signal?: AbortSignal): Promise<IngestionJob | null> => {
       try {
         const res = await fetch(`/api/v1/admin/ingestion/jobs/${jobId}`, { signal });
         if (!res.ok) throw new Error('Failed to load job');
         const data = await res.json();
-        if (!signal?.aborted) setJob(data.data);
+        if (!signal?.aborted) {
+          setJob(data.data);
+          return data.data as IngestionJob;
+        }
+        return null;
       } catch (err: any) {
-        if (err.name === 'AbortError') return;
+        if (err.name === 'AbortError') return null;
         if (!signal?.aborted) setError(t('loadError'));
+        return null;
       } finally {
         if (!signal?.aborted) setLoading(false);
       }
@@ -88,28 +93,29 @@ export function JobDetail({ jobId }: { jobId: string }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    const terminal = job?.status === 'COMPLETED' || job?.status === 'FAILED' || job?.status === 'PAUSED';
-
-    // Wrap the initial fetch in an async function to avoid synchronous setState warning
-    void (async () => {
-      await fetchJob(controller.signal);
-    })();
-
-    // Poll every 5 s while job is active; stop entirely when terminal status reached.
+    const TERMINAL_STATUSES = new Set(['COMPLETED', 'FAILED', 'PAUSED']);
     let intervalId: ReturnType<typeof setInterval> | null = null;
-    if (!terminal) {
-      intervalId = setInterval(() => {
-        void (async () => {
-          await fetchJob(controller.signal);
-        })();
-      }, 5000);
-    }
+
+    const poll = async () => {
+      const freshJob = await fetchJob(controller.signal);
+      // Self-terminate once the job reaches a terminal state — no stale state check needed
+      if (freshJob && TERMINAL_STATUSES.has(freshJob.status) && intervalId !== null) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+
+    // Initial fetch
+    void poll();
+
+    // Poll every 5 s; the interval self-clears when a terminal status is received
+    intervalId = setInterval(() => void poll(), 5000);
 
     return () => {
       controller.abort();
-      if (intervalId) clearInterval(intervalId);
+      if (intervalId !== null) clearInterval(intervalId);
     };
-  }, [fetchJob, job?.status]);
+  }, [fetchJob]);
 
   // ── Actions ─────────────────────────────────────────────────────────────────
 

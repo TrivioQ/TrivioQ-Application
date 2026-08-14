@@ -59,13 +59,30 @@ export class QuestionExtractionProcess implements IngestionProcess {
   private availableCategories: { slug: string; name: string }[] = [];
   private lastCallTime = 0;
 
+  private logInfo(phase: string, message: string): void {
+    if (this.config.logger) {
+      this.config.logger.info(phase.toUpperCase(), message);
+    } else {
+      console.log(`[${phase}] ${message}`);
+    }
+  }
+
+  private logError(phase: string, message: string, error?: any): void {
+    if (this.config.logger) {
+      this.config.logger.error(phase.toUpperCase(), message);
+      if (error) this.config.logger.error(phase.toUpperCase(), String(error));
+    } else {
+      console.error(`[${phase}] ${message}`, error || '');
+    }
+  }
+
   private async delayIfNeeded(phase: 'scout' | 'extraction' | 'enhancement'): Promise<void> {
     if (this.lastCallTime > 0) {
       const elapsed = Date.now() - this.lastCallTime;
       const delay = this.callDelayMs[phase] - elapsed;
       if (delay > 0) {
         const prefix = phase.charAt(0).toUpperCase() + phase.slice(1);
-        console.log(`[${prefix}] Delaying ${Math.ceil(delay / 1000)} seconds to rate-limit AI calls...`);
+        this.logInfo(prefix, `Delaying ${Math.ceil(delay / 1000)} seconds to rate-limit AI calls...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -85,27 +102,27 @@ export class QuestionExtractionProcess implements IngestionProcess {
     this.extractionProvider = await resolveProvider(this.config.modelOverrides?.extraction ?? this.config.stageModelIds?.extraction ?? '');
     this.enhancementProvider = await resolveProvider(this.config.modelOverrides?.enhancement ?? this.config.stageModelIds?.enhancement ?? '');
 
-    console.log(`[QuestionExtraction] Starting ingestion for ${this.imagePaths.length} images`);
-    console.log(`[QuestionExtraction] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
-    console.log(`[QuestionExtraction] Providers — scout: ${this.scoutProvider!.model}, extraction: ${this.extractionProvider!.model}, enhancement: ${this.enhancementProvider!.model}`);
+    this.logInfo('QuestionExtraction', `Starting ingestion for ${this.imagePaths.length} images`);
+    this.logInfo('QuestionExtraction', `Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
+    this.logInfo('QuestionExtraction', `Providers — scout: ${this.scoutProvider!.model}, extraction: ${this.extractionProvider!.model}, enhancement: ${this.enhancementProvider!.model}`);
     if (this.extractionSpecialInstruction || this.enhancementSpecialInstruction || this.classificationSpecialInstruction) {
       const ei = this.extractionSpecialInstruction?.slice(0, 80);
       const hi = this.enhancementSpecialInstruction?.slice(0, 80);
       const ci = this.classificationSpecialInstruction?.slice(0, 80);
-      console.log(`[QuestionExtraction] Special instructions — classification: ${ci ?? 'none'}, extraction: ${ei ?? 'none'}, enhancement: ${hi ?? 'none'}`);
+      this.logInfo('QuestionExtraction', `Special instructions — classification: ${ci ?? 'none'}, extraction: ${ei ?? 'none'}, enhancement: ${hi ?? 'none'}`);
     }
 
     this.availableCategories = await prisma.category.findMany({
       select: { slug: true, name: true },
     });
-    console.log(`[QuestionExtraction] Fetched ${this.availableCategories.length} categories from DB`);
+    this.logInfo('QuestionExtraction', `Fetched ${this.availableCategories.length} categories from DB`);
 
     if (this.availableCategories.length === 0) {
       throw new Error('No categories found in the database. Please run the database seeder first (`pnpm --filter @trivioq/database seed-categories`).');
     }
 
     if (options?.reuploadOnly) {
-      console.log('[QuestionExtraction] Reupload mode: preparing questions for upload...');
+      this.logInfo('QuestionExtraction', 'Reupload mode: preparing questions for upload...');
       const stateData = this.state.initOrLoad();
       for (const q of stateData.questions) {
         if (q.status === 'UPLOADED' || q.status === 'READY_FOR_UPLOAD') {
@@ -119,8 +136,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
       await this.runEnhancementPhase(options?.signal, onProgress);
       await this.uploadPhase(options?.signal, onProgress);
     }
-
-    console.log('[QuestionExtraction] Ingestion complete');
+    this.logInfo('QuestionExtraction', 'Ingestion complete');
   }
 
   // ── Phase 1: Scout ────────────────────────────────────────────────────────
@@ -130,8 +146,8 @@ export class QuestionExtractionProcess implements IngestionProcess {
     const startIndex = stateData.lastProcessedImageIndex + 1;
     const temperature = this.config.temperatures?.scout;
 
-    console.log(`[Scout] Starting from image ${startIndex + 1}`);
-    console.log(`[Scout] Stage Config — Provider: ${this.scoutProvider!.constructor.name}, Model: ${this.scoutProvider!.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.scout}ms`);
+    this.logInfo('Scout', `Starting from image ${startIndex + 1}`);
+    this.logInfo('Scout', `Stage Config — Provider: ${this.scoutProvider!.constructor.name}, Model: ${this.scoutProvider!.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.scout}ms`);
 
     for (let i = startIndex; i < this.imagePaths.length; i++) {
       await onProgress?.('SCOUT', i + 1, this.imagePaths.length);
@@ -144,7 +160,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
         const imageClassifications = (existingMeta.imageClassifications as Record<string, ImageType>) ?? {};
 
         await this.delayIfNeeded('scout');
-        console.log(`[Scout] Classifying image ${i + 1}...`);
+        this.logInfo('Scout', `Classifying image ${i + 1}...`);
         let classification: ImageType;
         try {
           const classificationPrompt = buildClassificationPrompt(this.classificationSpecialInstruction);
@@ -158,10 +174,10 @@ export class QuestionExtractionProcess implements IngestionProcess {
         this.state.updateMetadata({ ...existingMeta, imageClassifications });
         this.state.setLastProcessedImageIndex(i);
 
-        console.log(`[Scout] Image ${i + 1} classified as ${classification} [${i + 1}/${this.imagePaths.length}]`);
+        this.logInfo('Scout', `Image ${i + 1} classified as ${classification} [${i + 1}/${this.imagePaths.length}]`);
       } catch (error) {
         if (signal?.aborted) throw error;
-        console.error(`[Scout] Error processing image ${imagePath}:`, error);
+        this.logError('Scout', `Error processing image ${imagePath}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'scout',
           imageIndex: i,
@@ -187,7 +203,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     }
 
     if (keyPages.length > 0) {
-      console.log(`[Extraction] Pass 1: Extracting answer keys from ${keyPages.length} boundary pages...`);
+      this.logInfo('Extraction', `Pass 1: Extracting answer keys from ${keyPages.length} boundary pages...`);
       for (const keyPagePath of keyPages) {
         try {
           const stateDataMeta = (this.state.initOrLoad().metadata as Record<string, unknown>) ?? {};
@@ -200,14 +216,14 @@ export class QuestionExtractionProcess implements IngestionProcess {
           const alreadyExtracted = existingAKsInitial.some((ak: any) => ak.pageNumber === pageNum);
 
           if (processedKeyPages.includes(keyPagePath) || alreadyExtracted) {
-            console.log(`[Extraction] Skipping already extracted key page ${keyPagePath}`);
+            this.logInfo('Extraction', `Skipping already extracted key page ${keyPagePath}`);
             continue;
           }
 
           const image = this.imageToBase64(keyPagePath);
           await this.delayIfNeeded('extraction');
 
-          console.log(`[Extraction] Extracting keys from ${keyPagePath}...`);
+          this.logInfo('Extraction', `Extracting keys from ${keyPagePath}...`);
           let extracted;
           try {
             extracted = await this.extractionProvider!.extractFromImages([image], KEY_EXTRACTION_PROMPT, { temperature, signal });
@@ -223,7 +239,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
               const isDupe = existingAKs.some((ak: any) => JSON.stringify(ak.answers) === newKeyStr);
               if (!isDupe) existingAKs.push(newAk);
             }
-            console.log(`[Extraction] Saved answer keys from ${keyPagePath}`);
+            this.logInfo('Extraction', `Saved answer keys from ${keyPagePath}`);
           }
 
           const updatedProcessedKeyPages = (existingMeta.processedKeyPages as string[]) ?? [];
@@ -234,7 +250,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
           this.state.updateMetadata({ ...existingMeta, answerKeys: existingAKs, processedKeyPages: updatedProcessedKeyPages });
         } catch (error) {
           if (signal?.aborted) throw error;
-          console.error(`[Extraction] Error extracting keys from ${keyPagePath}:`, error);
+          this.logError('Extraction', `Error extracting keys from ${keyPagePath}:`, error);
         }
       }
     }
@@ -246,11 +262,11 @@ export class QuestionExtractionProcess implements IngestionProcess {
     }
 
     if (relevantImages.length === 0) {
-      console.log('[Extraction] No relevant images found for questions');
+      this.logInfo('Extraction', 'No relevant images found for questions');
       return;
     }
 
-    console.log(`[Extraction] Stage Config — Provider: ${this.extractionProvider!.constructor.name}, Model: ${this.extractionProvider!.model}, Temperature: ${temperature ?? 'default'}, Batch Size: ${batchSize}, Delay: ${this.callDelayMs.extraction}ms`);
+    this.logInfo('Extraction', `Stage Config — Provider: ${this.extractionProvider!.constructor.name}, Model: ${this.extractionProvider!.model}, Temperature: ${temperature ?? 'default'}, Batch Size: ${batchSize}, Delay: ${this.callDelayMs.extraction}ms`);
 
     // Chunking logic based on QUESTIONS_WITH_KEYS
     const chunks: string[][] = [];
@@ -321,7 +337,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     const startIndex = this.state.getLastProcessedExtractionBatchIndex() + 1;
 
     if (startIndex > 0 && startIndex < groups.length) {
-      console.log(`[Extraction] Resuming from batch ${startIndex + 1} of ${groups.length}`);
+      this.logInfo('Extraction', `Resuming from batch ${startIndex + 1} of ${groups.length}`);
     }
 
     for (let i = startIndex; i < groups.length; i++) {
@@ -332,7 +348,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
         const imageIndices = group.map((p) => this.imagePaths.indexOf(p) + 1).join(', ');
 
         await this.delayIfNeeded('extraction');
-        console.log(`[Extraction] Extracting questions from image(s) ${imageIndices}, batch ${i + 1} of ${groups.length}...`);
+        this.logInfo('Extraction', `Extracting questions from image(s) ${imageIndices}, batch ${i + 1} of ${groups.length}...`);
 
         const pageNumbers = group
           .map((img) => {
@@ -391,10 +407,10 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
         // Mark this batch as completed
         this.state.setLastProcessedExtractionBatchIndex(i);
-        console.log(`[Extraction] Completed batch ${i + 1} of ${groups.length}`);
+        this.logInfo('Extraction', `Completed batch ${i + 1} of ${groups.length}`);
       } catch (error) {
         if (signal?.aborted) throw error;
-        console.error(`[Extraction] Error processing batch starting at image ${group[0]}:`, error);
+        this.logError('Extraction', `Error processing batch starting at image ${group[0]}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'extraction',
           batchIndex: i,
@@ -561,9 +577,9 @@ export class QuestionExtractionProcess implements IngestionProcess {
     const temperature = this.config.temperatures?.enhancement;
     const concurrency = this.config.enhancementConcurrency ?? 10;
 
-    console.log(`[Enhancement] Stage Config — Provider: ${this.enhancementProvider!.constructor.name}, Model: ${this.enhancementProvider!.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.enhancement}ms`);
+    this.logInfo('Enhancement', `Stage Config — Provider: ${this.enhancementProvider!.constructor.name}, Model: ${this.enhancementProvider!.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.enhancement}ms`);
 
-    console.log(`[Enhancement] Enhancing ${questionsToEnhance.length} questions`);
+    this.logInfo('Enhancement', `Enhancing ${questionsToEnhance.length} questions`);
 
     // Build the prompt once — optionally prefixed with the book's special instruction, injecting available categories
     const enhancementPrompt = buildEnhancementPrompt(this.availableCategories, this.enhancementSpecialInstruction);
@@ -581,7 +597,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
             // parallel invocations simultaneously — making the delay unreliable.
             // Rate limiting is handled correctly at the provider level via
             // GenericAIProvider.enforceRateLimit(minCallIntervalMs).
-            console.log(`[Enhancement] Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
+            this.logInfo('Enhancement', `Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
             let enhanced;
             try {
               enhanced = await this.enhancementProvider!.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal });
@@ -589,7 +605,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
               this.recordCallTime();
             }
 
-            console.log(`[Enhancement] Enhanced ${question.id} — difficulty: ${enhanced.difficulty}`);
+            this.logInfo('Enhancement', `Enhanced ${question.id} — difficulty: ${enhanced.difficulty}`);
 
             return {
               ...question,
@@ -613,7 +629,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
             };
           } catch (error) {
             if (signal?.aborted) throw error;
-            console.error(`[Enhancement] Error processing question ${question.id}:`, error);
+            this.logError('Enhancement', `Error processing question ${question.id}:`, error);
             reportError(error instanceof Error ? error : new Error(String(error)), {
               phase: 'enhancement',
               questionId: question.id,
@@ -636,7 +652,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
     const stateData = this.state.initOrLoad();
     const readyQuestions = stateData.questions.filter((q) => q.status === 'READY_FOR_UPLOAD');
 
-    console.log(`[Upload] Uploading ${readyQuestions.length} questions`);
+    this.logInfo('Upload', `Uploading ${readyQuestions.length} questions`);
     if (readyQuestions.length === 0) return;
 
     for (let i = 0; i < readyQuestions.length; i++) {
@@ -648,7 +664,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
         // itself (e.g. publisher, glossary count) and have no standalone trivia
         // value. Mark as uploaded so they are never retried, but skip DB write.
         if (q.metadata?.isSelfReferential === true) {
-          console.log(`[Upload] Skipping self-referential question ${q.id} — not meaningful outside source document`);
+          this.logInfo('Upload', `Skipping self-referential question ${q.id} — not meaningful outside source document`);
           this.state.updateStatus(q.id, 'UPLOADED');
           continue;
         }
@@ -664,7 +680,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
           // Handle any existing status ('PENDING', 'AI-APPROVED', 'AI-REJECTED', 'APPROVED', 'REJECTED', 'PENDING-DUPLICATE')
           if (newScore > existingScore) {
-            console.log(`[Upload] Replacing ${existing.status} record ${existing.id} (score ${existingScore}) with higher-scored version (score ${newScore})`);
+            this.logInfo('Upload', `Replacing ${existing.status} record ${existing.id} (score ${existingScore}) with higher-scored version (score ${newScore})`);
 
             await prisma.pendingQuestion.update({
               where: { id: existing.id },
@@ -683,7 +699,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
               },
             });
           } else {
-            console.log(`[Upload] Skipping — existing ${existing.status} record ${existing.id} has equal or higher score (${existingScore} >= ${newScore})`);
+            this.logInfo('Upload', `Skipping — existing ${existing.status} record ${existing.id} has equal or higher score (${existingScore} >= ${newScore})`);
           }
 
           this.state.updateStatus(q.id, 'UPLOADED');
@@ -705,7 +721,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
           const liveQuestionId = liveRows[0]?.id ?? null;
 
           // Case B — Insert a PENDING-DUPLICATE row pointing to the live question
-          console.log(`[Upload] Inserting PENDING-DUPLICATE for live question ${liveQuestionId ?? 'unknown'} (new score: ${newScore})`);
+          this.logInfo('Upload', `Inserting PENDING-DUPLICATE for live question ${liveQuestionId ?? 'unknown'} (new score: ${newScore})`);
 
           await prisma.pendingQuestion.create({
             data: {
@@ -743,12 +759,12 @@ export class QuestionExtractionProcess implements IngestionProcess {
             } as any,
           });
 
-          console.log(`[Upload] Inserted new PENDING question (score: ${newScore})`);
+          this.logInfo('Upload', `Inserted new PENDING question (score: ${newScore})`);
         }
 
         this.state.updateStatus(q.id, 'UPLOADED');
       } catch (error) {
-        console.error(`[Upload] Error uploading question ${q.id}:`, error);
+        this.logError('Upload', `Error uploading question ${q.id}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'upload',
           questionId: q.id,

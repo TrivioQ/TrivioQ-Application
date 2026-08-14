@@ -14,12 +14,7 @@ import type { ProviderConnection } from './connection';
  * account-level pacing floor (minCallIntervalMs) is applied by GenericAIProvider
  * before this is invoked — not here.
  */
-export async function callGemini(
-  conn: ProviderConnection,
-  prompt: string,
-  images: ImageInput[] = [],
-  options?: { temperature?: number; signal?: AbortSignal },
-): Promise<string> {
+export async function callGemini(conn: ProviderConnection, prompt: string, images: ImageInput[] = [], options?: { temperature?: number; signal?: AbortSignal }): Promise<string> {
   if (!conn.apiKey) {
     throw new ApiFatalError(`Provider "${conn.displayName}" has no API key configured.`);
   }
@@ -81,12 +76,7 @@ export async function callGemini(
  * matching the legacy GoogleProvider.generateContentWithRetry error mapping.
  * (The retry pacing itself is owned by BaseAIProvider.executeApiCallWithRetry.)
  */
-export async function callGeminiWithRetryMapping(
-  conn: ProviderConnection,
-  prompt: string,
-  images: ImageInput[] = [],
-  options?: { temperature?: number; signal?: AbortSignal },
-): Promise<string> {
+export async function callGeminiWithRetryMapping(conn: ProviderConnection, prompt: string, images: ImageInput[] = [], options?: { temperature?: number; signal?: AbortSignal }): Promise<string> {
   try {
     return await callGemini(conn, prompt, images, options);
   } catch (error: any) {
@@ -97,7 +87,9 @@ export async function callGeminiWithRetryMapping(
       throw error;
     }
     const status: number | undefined = error?.status;
-    if (status === 429 || (status !== undefined && status >= 500 && status < 600)) {
+    const isOverloaded = error?.message?.toLowerCase().includes('overloaded') || error?.message?.toLowerCase().includes('too many requests');
+
+    if (status === 429 || isOverloaded || (status !== undefined && status >= 500 && status < 600)) {
       let retryAfterMs: number | undefined;
       const match = error?.message?.match(/retry in (\d+(\.\d+)?)s/i);
       if (match) {

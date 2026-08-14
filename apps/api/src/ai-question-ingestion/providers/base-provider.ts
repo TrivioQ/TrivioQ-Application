@@ -59,13 +59,19 @@ export abstract class BaseAIProvider {
     return text;
   }
 
+  private rateLimitQueue: Promise<void> = Promise.resolve();
+
   protected async enforceRateLimit(minDelayMs: number): Promise<void> {
-    const now = Date.now();
-    const elapsed = now - this.lastCallTime;
-    if (elapsed < minDelayMs) {
-      await new Promise((r) => setTimeout(r, minDelayMs - elapsed));
-    }
-    this.lastCallTime = Date.now();
+    const nextPromise = this.rateLimitQueue.then(async () => {
+      const now = Date.now();
+      const elapsed = now - this.lastCallTime;
+      if (elapsed < minDelayMs) {
+        await new Promise((r) => setTimeout(r, minDelayMs - elapsed));
+      }
+      this.lastCallTime = Date.now();
+    });
+    this.rateLimitQueue = nextPromise;
+    await nextPromise;
   }
 
   private parseJson<T>(raw: string, op: string): T {

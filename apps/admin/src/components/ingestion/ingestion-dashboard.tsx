@@ -57,21 +57,30 @@ export function IngestionDashboard() {
     }
   }, [t]);
 
+  const hasActiveJobs = jobs.some((job) => job.status === 'PROCESSING' || job.status === 'QUEUED');
+
+  // Initial load
   useEffect(() => {
     const controller = new AbortController();
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchJobs(controller.signal);
+    void fetchJobs(controller.signal);
+    return () => controller.abort();
+  }, [fetchJobs]);
 
+  // Conditional polling only if there are active jobs
+  useEffect(() => {
+    if (!hasActiveJobs) return;
+    
+    const controller = new AbortController();
     const intervalId = setInterval(() => {
-      fetchJobs();
-    }, 5000); // refresh every 5s for progress
+      fetchJobs(controller.signal);
+    }, 5000);
 
     return () => {
       controller.abort();
       clearInterval(intervalId);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [hasActiveJobs, fetchJobs]);
 
   const deleteJob = async (job: IngestionJob) => {
     const ok = await confirm({

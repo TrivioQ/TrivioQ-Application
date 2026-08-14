@@ -45,13 +45,30 @@ export class QuizGenerationProcess implements IngestionProcess {
   private availableCategories: { slug: string; name: string }[] = [];
   private lastCallTime = 0;
 
+  private logInfo(phase: string, message: string): void {
+    if (this.config.logger) {
+      this.config.logger.info(phase.toUpperCase(), message);
+    } else {
+      console.log(`[${phase}] ${message}`);
+    }
+  }
+
+  private logError(phase: string, message: string, error?: any): void {
+    if (this.config.logger) {
+      this.config.logger.error(phase.toUpperCase(), message);
+      if (error) this.config.logger.error(phase.toUpperCase(), String(error));
+    } else {
+      console.error(`[${phase}] ${message}`, error || '');
+    }
+  }
+
   private async delayIfNeeded(phase: 'summarization' | 'generation' | 'enhancement'): Promise<void> {
     if (this.lastCallTime > 0) {
       const elapsed = Date.now() - this.lastCallTime;
       const delay = this.callDelayMs[phase] - elapsed;
       if (delay > 0) {
-        const prefix = phase === 'summarization' || phase === 'generation' ? 'Generation' : 'Enhancement';
-        console.log(`[${prefix}] Delaying ${Math.ceil(delay / 1000)} seconds to rate-limit AI calls...`);
+        const prefix = phase.charAt(0).toUpperCase() + phase.slice(1);
+        this.logInfo(prefix, `Delaying ${Math.ceil(delay / 1000)} seconds to rate-limit AI calls...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -76,21 +93,21 @@ export class QuizGenerationProcess implements IngestionProcess {
     this.generationProvider = await resolveProvider(this.config.modelOverrides?.generation ?? this.config.stageModelIds?.generation ?? '');
     this.enhancementProvider = await resolveProvider(this.config.modelOverrides?.enhancement ?? this.config.stageModelIds?.enhancement ?? '');
 
-    console.log(`[QuizGeneration] Starting ingestion for ${this.imagePaths.length} images`);
-    console.log(`[QuizGeneration] Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
-    console.log(`[QuizGeneration] Providers — generation: ${this.generationProvider!.model}, enhancement: ${this.enhancementProvider!.model}`);
+    this.logInfo('QuizGeneration', `Starting ingestion for ${this.imagePaths.length} images`);
+    this.logInfo('QuizGeneration', `Categories: ${(this.config.categorySlugs ?? []).join(', ')}`);
+    this.logInfo('QuizGeneration', `Providers — generation: ${this.generationProvider!.model}, enhancement: ${this.enhancementProvider!.model}`);
 
     this.availableCategories = await prisma.category.findMany({
       select: { slug: true, name: true },
     });
-    console.log(`[QuizGeneration] Fetched ${this.availableCategories.length} categories from DB`);
+    this.logInfo('QuizGeneration', `Fetched ${this.availableCategories.length} categories from DB`);
 
     if (this.availableCategories.length === 0) {
       throw new Error('No categories found in the database. Please run the database seeder first (`pnpm --filter @trivioq/database seed-categories`).');
     }
 
     if (options?.reuploadOnly) {
-      console.log('[QuizGeneration] Reupload mode: preparing questions for upload...');
+      this.logInfo('QuizGeneration', 'Reupload mode: preparing questions for upload...');
       const stateData = this.state.initOrLoad();
       for (const q of stateData.questions) {
         if (q.status === 'UPLOADED' || q.status === 'READY_FOR_UPLOAD') {
@@ -104,7 +121,7 @@ export class QuizGenerationProcess implements IngestionProcess {
       await this.uploadPhase(options?.signal, onProgress);
     }
 
-    console.log('[QuizGeneration] Ingestion complete');
+    this.logInfo('QuizGeneration', 'Ingestion complete');
   }
 
   private async generationPhase(signal?: AbortSignal, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
@@ -112,8 +129,8 @@ export class QuizGenerationProcess implements IngestionProcess {
     const summarizationTemp = this.config.temperatures?.summarization;
     const generationTemp = this.config.temperatures?.generation;
 
-    console.log(`[Generation] Starting from image ${startIndex + 1} of ${this.imagePaths.length}`);
-    console.log(`[Generation] Stage Config — Provider: ${this.generationProvider!.constructor.name}, Model: ${this.generationProvider!.model}, Temperature: ${generationTemp ?? 'default'}, Delay: ${this.callDelayMs.generation}ms`);
+    this.logInfo('Generation', `Starting from image ${startIndex + 1} of ${this.imagePaths.length}`);
+    this.logInfo('Generation', `Stage Config — Provider: ${this.generationProvider!.constructor.name}, Model: ${this.generationProvider!.model}, Temperature: ${generationTemp ?? 'default'}, Delay: ${this.callDelayMs.generation}ms`);
 
     for (let i = startIndex; i < this.imagePaths.length; i++) {
       // Report progress under 'GENERATION' (not 'EXTRACTION') so the DB currentPhase
@@ -130,7 +147,7 @@ export class QuizGenerationProcess implements IngestionProcess {
 
         // Summarization Step
         await this.delayIfNeeded('summarization');
-        console.log(`[Generation] Summarizing image ${i + 1}/${this.imagePaths.length}...`);
+        this.logInfo('Generation', `Summarizing image ${i + 1}/${this.imagePaths.length}...`);
         const summarizationPrompt = buildSummarizeImagePrompt(this.summarizationSpecialInstruction);
 
         let summarization;
@@ -142,7 +159,7 @@ export class QuizGenerationProcess implements IngestionProcess {
 
         // Generation Step
         await this.delayIfNeeded('generation');
-        console.log(`[Generation] Generating quiz questions from summary ${i + 1}...`);
+        this.logInfo('Generation', `Generating quiz questions from summary ${i + 1}...`);
 
         const generationPrompt = buildQuizGenerationFromTextPrompt(this.generationSpecialInstruction, pageNumber);
 
@@ -185,10 +202,10 @@ export class QuizGenerationProcess implements IngestionProcess {
         }
 
         this.state.setLastProcessedExtractionBatchIndex(i);
-        console.log(`[Generation] Generated ${questions.length} questions from image ${i + 1}`);
+        this.logInfo('Generation', `Generated ${questions.length} questions from image ${i + 1}`);
       } catch (error) {
         if (signal?.aborted) throw error;
-        console.error(`[Generation] Error processing image ${imagePath}:`, error);
+        this.logError('Generation', `Error processing image ${imagePath}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'generation',
           imageIndex: i,
@@ -203,9 +220,9 @@ export class QuizGenerationProcess implements IngestionProcess {
     const questionsToEnhance = stateData.questions.filter((q) => q.status === 'READY_FOR_ENHANCEMENT');
 
     const temperature = this.config.temperatures?.enhancement;
-    console.log(`[Enhancement] Stage Config — Provider: ${this.enhancementProvider!.constructor.name}, Model: ${this.enhancementProvider!.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.enhancement}ms`);
+    this.logInfo('Enhancement', `Stage Config — Provider: ${this.enhancementProvider!.constructor.name}, Model: ${this.enhancementProvider!.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.enhancement}ms`);
 
-    console.log(`[Enhancement] Enhancing ${questionsToEnhance.length} questions`);
+    this.logInfo('Enhancement', `Enhancing ${questionsToEnhance.length} questions`);
 
     const enhancementPrompt = buildEnhancementPrompt(this.availableCategories, this.enhancementSpecialInstruction);
 
@@ -224,7 +241,7 @@ export class QuizGenerationProcess implements IngestionProcess {
             // parallel invocations simultaneously — making the delay unreliable.
             // Rate limiting is handled correctly at the provider level via
             // GenericAIProvider.enforceRateLimit(minCallIntervalMs).
-            console.log(`[Enhancement] Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
+            this.logInfo('Enhancement', `Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
             let enhanced;
             try {
               enhanced = await this.enhancementProvider!.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal });
@@ -232,7 +249,7 @@ export class QuizGenerationProcess implements IngestionProcess {
               this.recordCallTime();
             }
 
-            console.log(`[Enhancement] Enhanced ${question.id} — difficulty: ${enhanced.difficulty}`);
+            this.logInfo('Enhancement', `Enhanced ${question.id} — difficulty: ${enhanced.difficulty}`);
 
             return {
               ...question,
@@ -255,7 +272,7 @@ export class QuizGenerationProcess implements IngestionProcess {
             };
           } catch (error) {
             if (signal?.aborted) throw error;
-            console.error(`[Enhancement] Error processing question ${question.id}:`, error);
+            this.logError('Enhancement', `Error processing question ${question.id}:`, error);
             reportError(error instanceof Error ? error : new Error(String(error)), {
               phase: 'enhancement',
               questionId: question.id,
@@ -276,20 +293,20 @@ export class QuizGenerationProcess implements IngestionProcess {
     const stateData = this.state.initOrLoad();
     const readyQuestions = stateData.questions.filter((q) => q.status === 'READY_FOR_UPLOAD');
 
-    console.log(`[Upload] Uploading ${readyQuestions.length} questions`);
+    this.logInfo('Upload', `Uploading ${readyQuestions.length} questions`);
     if (readyQuestions.length === 0) return;
 
     for (let i = 0; i < readyQuestions.length; i++) {
       await onProgress?.('UPLOAD', i + 1, readyQuestions.length);
       const q = readyQuestions[i];
       try {
-        console.log(`[Upload] Uploading question ${q.id} [${i + 1}/${readyQuestions.length}]...`);
+        this.logInfo('Upload', `Uploading question ${q.id} [${i + 1}/${readyQuestions.length}]...`);
         // ── Self-referential guard ────────────────────────────────────────────
         // Questions flagged as self-referential are about the source document
         // itself (e.g. publisher, glossary count) and have no standalone trivia
         // value. Mark as uploaded so they are never retried, but skip DB write.
         if (q.metadata?.isSelfReferential === true) {
-          console.log(`[Upload] Skipping self-referential question ${q.id} — not meaningful outside source document`);
+          this.logInfo('Upload', `Skipping self-referential question ${q.id} — not meaningful outside source document`);
           this.state.updateStatus(q.id, 'UPLOADED');
           continue;
         }
@@ -304,7 +321,7 @@ export class QuizGenerationProcess implements IngestionProcess {
 
           // Handle any existing status ('PENDING', 'AI-APPROVED', 'AI-REJECTED', 'APPROVED', 'REJECTED', 'PENDING-DUPLICATE')
           if (newScore > existingScore) {
-            console.log(`[Upload] Replacing ${existing.status} record ${existing.id} (score ${existingScore}) with higher-scored version (score ${newScore})`);
+            this.logInfo('Upload', `Replacing ${existing.status} record ${existing.id} (score ${existingScore}) with higher-scored version (score ${newScore})`);
             await prisma.pendingQuestion.update({
               where: { id: existing.id },
               data: {
@@ -322,7 +339,7 @@ export class QuizGenerationProcess implements IngestionProcess {
               },
             });
           } else {
-            console.log(`[Upload] Skipping — existing ${existing.status} record ${existing.id} has equal or higher score (${existingScore} >= ${newScore})`);
+            this.logInfo('Upload', `Skipping — existing ${existing.status} record ${existing.id} has equal or higher score (${existingScore} >= ${newScore})`);
           }
           this.state.updateStatus(q.id, 'UPLOADED');
           continue;
@@ -340,7 +357,7 @@ export class QuizGenerationProcess implements IngestionProcess {
           `;
           const liveQuestionId = liveRows[0]?.id ?? null;
 
-          console.log(`[Upload] Inserting PENDING-DUPLICATE for live question ${liveQuestionId ?? 'unknown'} (new score: ${newScore})`);
+          this.logInfo('Upload', `Inserting PENDING-DUPLICATE for live question ${liveQuestionId ?? 'unknown'} (new score: ${newScore})`);
 
           await prisma.pendingQuestion.create({
             data: {
@@ -377,12 +394,12 @@ export class QuizGenerationProcess implements IngestionProcess {
             } as any,
           });
 
-          console.log(`[Upload] Inserted new PENDING question (score: ${newScore})`);
+          this.logInfo('Upload', `Inserted new PENDING question (score: ${newScore})`);
         }
 
         this.state.updateStatus(q.id, 'UPLOADED');
       } catch (error) {
-        console.error(`[Upload] Error uploading question ${q.id}:`, error);
+        this.logError('Upload', `Error uploading question ${q.id}:`, error);
         reportError(error instanceof Error ? error : new Error(String(error)), {
           phase: 'upload',
           questionId: q.id,

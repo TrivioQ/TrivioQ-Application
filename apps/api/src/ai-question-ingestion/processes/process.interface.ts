@@ -50,6 +50,15 @@ export interface OrchestratorConfig {
   classificationSpecialInstruction?: string;
   /** Optional free-text instruction for the summarization phase. */
   summarizationSpecialInstruction?: string;
+  /**
+   * Optional logger to receive detailed workflow logs from the ingestion process,
+   * making them visible in the UI via the SSE stream instead of just the worker's stdout.
+   */
+  logger?: {
+    info: (phase: string, message: string) => void;
+    warn: (phase: string, message: string) => void;
+    error: (phase: string, message: string) => void;
+  };
 }
 
 export interface IngestionProcess {

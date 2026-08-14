@@ -328,6 +328,7 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
       enhancementSpecialInstruction: manifestData.enhancementSpecialInstruction,
       classificationSpecialInstruction: manifestData.classificationSpecialInstruction,
       summarizationSpecialInstruction: manifestData.summarizationSpecialInstruction,
+      logger,
     });
 
     logger.info('SYSTEM', `Orchestrator built: ${pTypeStr}`);

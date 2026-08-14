@@ -29,38 +29,50 @@ export function CronJobList() {
 
   const [logsJobId, setLogsJobId] = useState<string | null>(null);
 
-  const fetchJobs = useCallback(async (signal?: AbortSignal) => {
-    try {
-      const res = await fetch('/api/v1/admin/cron-jobs', { signal });
-      if (!res.ok) throw new Error('Failed to load cron jobs');
-      const data: CronJob[] = await res.json();
-      
-      if (!signal?.aborted) {
-        setJobs(data);
-      }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
-      if (!signal?.aborted) setError(t('loadError'));
-    } finally {
-      if (!signal?.aborted) setLoading(false);
-    }
-  }, [t]);
+  // Pure fetcher — returns data, never touches state directly.
+  // This avoids the "setState inside effect" lint warning.
+  const loadJobs = useCallback(async (signal?: AbortSignal): Promise<CronJob[] | null> => {
+    const res = await fetch('/api/v1/admin/cron-jobs', { signal });
+    if (!res.ok) throw new Error('Failed to load cron jobs');
+    return res.json() as Promise<CronJob[]>;
+  }, []);
 
+  // Convenience helper used by action handlers (toggle / trigger / terminate).
+  const refreshJobs = useCallback(async () => {
+    try {
+      const data = await loadJobs();
+      if (data) setJobs(data);
+    } catch {
+      // Silently ignore refresh errors — the user already saw a toast.
+    }
+  }, [loadJobs]);
+
+  const hasExecuting = jobs.some((j) => j.isExecuting);
+
+  // Initial load — state updates happen inside the async callback after
+  // the await, so they are never synchronous within the effect body.
   useEffect(() => {
     const controller = new AbortController();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchJobs(controller.signal);
+    (async () => {
+      try {
+        const data = await loadJobs(controller.signal);
+        if (data && !controller.signal.aborted) setJobs(data);
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        if (!controller.signal.aborted) setError(t('loadError'));
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    })();
+    return () => controller.abort();
+  }, [loadJobs, t]);
 
-    const intervalId = setInterval(() => {
-      fetchJobs();
-    }, 5000);
-
-    return () => {
-      controller.abort();
-      clearInterval(intervalId);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Conditional polling — only while at least one job is actively executing
+  useEffect(() => {
+    if (!hasExecuting) return;
+    const intervalId = setInterval(() => void refreshJobs(), 5000);
+    return () => clearInterval(intervalId);
+  }, [hasExecuting, refreshJobs]);
 
   const toggleJobStatus = async (job: CronJob) => {
     if (job.isActive) {
@@ -77,7 +89,7 @@ export function CronJobList() {
     const res = await fetch(`/api/v1/admin/cron-jobs/${job.id}/toggle`, { method: 'POST' });
     if (res.ok) {
       toast.success(t('successToggle'));
-      fetchJobs();
+      void refreshJobs();
     } else {
       toast.error(t('errorAction'));
     }
@@ -95,7 +107,7 @@ export function CronJobList() {
     const res = await fetch(`/api/v1/admin/cron-jobs/${job.id}/trigger`, { method: 'POST' });
     if (res.ok) {
       toast.success(t('successTrigger'));
-      fetchJobs();
+      void refreshJobs();
     } else {
       toast.error(t('errorAction'));
     }
@@ -114,7 +126,7 @@ export function CronJobList() {
     const res = await fetch(`/api/v1/admin/cron-jobs/${job.id}/terminate`, { method: 'POST' });
     if (res.ok) {
       toast.success(t('successTerminate'));
-      fetchJobs();
+      void refreshJobs();
     } else {
       toast.error(t('errorAction'));
     }

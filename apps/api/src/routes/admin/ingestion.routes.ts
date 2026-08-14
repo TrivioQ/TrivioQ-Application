@@ -402,6 +402,11 @@ router.get('/jobs/:id/logs', async (req: Request, res: Response) => {
         return;
       }
       if (job.status === IngestionStatus.COMPLETED || job.status === IngestionStatus.FAILED || job.status === IngestionStatus.PAUSED) {
+        // Drain any final log lines written just before the job reached a
+        // terminal state before closing the stream.  Without this, the 5 s DB
+        // poll can fire and close the connection while the 1 s file poll still
+        // has unread bytes, causing the last batch of log entries to be lost.
+        poll();
         sse('done', { status: job.status });
         cleanup();
       }
