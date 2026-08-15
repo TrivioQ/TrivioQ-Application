@@ -267,28 +267,15 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
     await syncProgressToDB(jobId, { totalPages }, 3);
 
     let imagePaths: string[] = [];
-    let needConversion = true;
 
     if (fs.existsSync(pagesDir)) {
-      const existingFiles = fs.readdirSync(pagesDir).filter((f) => f.endsWith('.jpeg') || f.endsWith('.jpg') || f.endsWith('.png'));
-      if (existingFiles.length === expectedPages && expectedPages > 0) {
-        logger.info('PDF', `Using ${expectedPages} existing images — skipping conversion`);
-        needConversion = false;
-        imagePaths = existingFiles.map((f) => path.join(pagesDir, f)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-      } else {
-        logger.info('PDF', `Image count mismatch (expected ${expectedPages}, found ${existingFiles.length}) — re-converting`);
-        fs.rmSync(pagesDir, { recursive: true, force: true });
-        fs.mkdirSync(pagesDir, { recursive: true });
-      }
-    } else {
-      fs.mkdirSync(pagesDir, { recursive: true });
+      fs.rmSync(pagesDir, { recursive: true, force: true });
     }
+    fs.mkdirSync(pagesDir, { recursive: true });
 
-    if (needConversion) {
-      logger.info('PDF', `Converting PDF to images for job ${jobId}...`);
-      imagePaths = await pdfToImage(pdfPath, pagesDir, { fromPage: pages?.from, toPage: pages?.to });
-      logger.info('PDF', `Conversion done — ${imagePaths.length} images`);
-    }
+    logger.info('PDF', `Converting PDF to images for job ${jobId}...`);
+    imagePaths = await pdfToImage(pdfPath, pagesDir, { fromPage: pages?.from, toPage: pages?.to });
+    logger.info('PDF', `Conversion done — ${imagePaths.length} images`);
 
     if (imagePaths.length === 0) {
       throw new Error('PDF produced no images.');
