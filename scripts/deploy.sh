@@ -131,14 +131,14 @@ cd_to_project() {
 
 ensure_main_and_pull() {
   cd_to_project
-  # local current_branch
-  # current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-  # if [[ "${current_branch}" != "main" ]]; then
-  #   info "Not on the 'main' branch (current branch is '${current_branch}'). Switching to main..."
-  #   git checkout main || die "Failed to switch to main branch."
-  # fi
-  # info "Pulling latest changes from main branch..."
-  # git pull origin main || die "Failed to pull latest changes from main branch."
+  local current_branch
+  current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  if [[ "${current_branch}" != "main" ]]; then
+    info "Not on the 'main' branch (current branch is '${current_branch}'). Switching to main..."
+    git checkout main || die "Failed to switch to main branch."
+  fi
+  info "Pulling latest changes from main branch..."
+  git pull origin main || die "Failed to pull latest changes from main branch."
 }
 
 # ---------------------------------------------------------------------------
