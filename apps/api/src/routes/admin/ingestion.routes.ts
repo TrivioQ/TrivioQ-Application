@@ -156,18 +156,22 @@ router.post('/jobs', upload.single('pdf'), async (req: Request, res: Response) =
     }
 
     const targetPdfPath = path.join(bookDir, req.file.originalname);
-    fs.renameSync(req.file.path, targetPdfPath);
+    // Use async FS calls so these operations don't block the event loop
+    // while moving potentially large PDF files.
+    await fs.promises.rename(req.file.path, targetPdfPath);
 
     // Save manifest file for local debugging
-    fs.writeFileSync(path.join(bookDir, 'manifest.json'), JSON.stringify({ bookId, ...manifestData }, null, 2));
+    await fs.promises.writeFile(path.join(bookDir, 'manifest.json'), JSON.stringify({ bookId, ...manifestData }, null, 2));
 
     await prisma.ingestionJob.update({
       where: { id: bookId },
       data: { storagePath: targetPdfPath },
     });
 
-    // Trigger the worker — fire-and-forget via HTTP
-    await triggerWorkerJob(bookId);
+    // Trigger the worker as a genuine fire-and-forget — respond to the browser
+    // immediately after the DB record is committed. The worker runs async and
+    // the frontend polls job status via the ingestion dashboard.
+    triggerWorkerJob(bookId).catch((err) => console.error(`[ingestion] Failed to trigger worker for job ${bookId}:`, err));
 
     return res.status(201).json({ success: true, data: { id: bookId } });
   } catch (error: any) {

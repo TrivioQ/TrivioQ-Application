@@ -37,9 +37,14 @@ export function createProxyHandler(
         if (token) headers.set('authorization', `Bearer ${token}`);
       }
 
+      // Stream the body directly to avoid buffering large multipart payloads
+      // (e.g. PDF uploads) in the proxy heap. Using arrayBuffer() would
+      // materialise the entire file twice — once here and once in Express —
+      // effectively doubling the upload time for large files. Passing
+      // request.body (a ReadableStream) lets bytes flow straight through.
       const body =
         request.method !== 'GET' && request.method !== 'HEAD'
-          ? await request.arrayBuffer()
+          ? request.body
           : undefined;
 
       const response = await fetch(backendUrl, {
@@ -49,7 +54,12 @@ export function createProxyHandler(
         // Prevent Node.js from buffering the response body before returning.
         // Critical for SSE: without this the entire stream is held in the heap.
         cache: 'no-store',
-      });
+        // `duplex: 'half'` is required by Node 18+ undici when the request body
+        // is a ReadableStream (streaming uploads). It is not part of the standard
+        // browser RequestInit type, so we cast through `unknown` to satisfy TS
+        // while preserving the correct runtime behaviour.
+        ...(body ? { duplex: 'half' } : {}),
+      } as unknown as RequestInit);
 
       const contentType = response.headers.get('content-type') ?? '';
 

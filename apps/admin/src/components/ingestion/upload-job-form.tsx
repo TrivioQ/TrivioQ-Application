@@ -29,6 +29,7 @@ export function UploadJobForm() {
   const t = useTranslations('system.ingestion.form');
   const tApp = useTranslations('appSettings');
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [stages, setStages] = useState<StageConfig[]>([]);
   const [models, setModels] = useState<ModelRef[]>([]);
@@ -82,6 +83,40 @@ export function UploadJobForm() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  /**
+   * Upload via XHR so we get real upload-progress events.
+   * fetch() does not expose upload progress; XHR's xhr.upload.onprogress does.
+   */
+  const uploadWithProgress = (data: FormData): Promise<{ id: string }> =>
+    new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/v1/admin/ingestion/jobs');
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          setUploadProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(JSON.parse(xhr.responseText).data);
+        } else {
+          const message = (() => {
+            try {
+              return JSON.parse(xhr.responseText)?.error ?? t('createError');
+            } catch {
+              return t('createError');
+            }
+          })();
+          reject(new Error(message));
+        }
+      });
+
+      xhr.addEventListener('error', () => reject(new Error(t('createError'))));
+      xhr.send(data);
+    });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
@@ -90,6 +125,7 @@ export function UploadJobForm() {
     }
 
     setLoading(true);
+    setUploadProgress(0);
     try {
       const data = new FormData();
       data.append('pdf', file);
@@ -100,23 +136,17 @@ export function UploadJobForm() {
         }
       });
 
-      const res = await fetch('/api/v1/admin/ingestion/jobs', {
-        method: 'POST',
-        body: data,
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to create job');
-      }
+      await uploadWithProgress(data);
 
       toast.success(t('createSuccess'));
       router.push('/ingestion');
       router.refresh();
     } catch (err: any) {
       console.error(err);
-      toast.error(t('createError'));
+      toast.error(err?.message ?? t('createError'));
     } finally {
       setLoading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -240,13 +270,30 @@ export function UploadJobForm() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" type="button" onClick={() => router.back()}>{t('cancel')}</Button>
-        <Button type="submit" disabled={loading || !file}>
-          {loading ? t('uploading') : t('startJob')}
-        </Button>
+      <div className="flex flex-col gap-3">
+        {uploadProgress !== null && (
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{t('uploading')}</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            {/* Pure-CSS progress bar — no extra dependency required */}
+            <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-200"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" type="button" onClick={() => router.back()}>{t('cancel')}</Button>
+          <Button type="submit" disabled={loading || !file}>
+            {loading ? t('uploading') : t('startJob')}
+          </Button>
+        </div>
       </div>
     </form>
   );
 }
-
