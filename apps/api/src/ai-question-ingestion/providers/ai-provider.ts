@@ -87,7 +87,7 @@ export interface AIProvider {
    * @param promptOverride - Optional full prompt to use instead of the default
    *   SCOUT_PROMPT (e.g. with a book-level special instruction prepended).
    */
-  classifyImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<ClassificationResult>;
+  classifyImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } }): Promise<ClassificationResult>;
 
   /**
    * Extract trivia questions and answer keys from one or more page images.
@@ -95,7 +95,7 @@ export interface AIProvider {
    * @param promptOverride - Optional full prompt to use instead of the default
    *   EXTRACTION_PROMPT (e.g. with a book-level special instruction prepended).
    */
-  extractFromImages(images: ImageInput[], promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<ExtractionResult>;
+  extractFromImages(images: ImageInput[], promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } }): Promise<ExtractionResult>;
 
   /**
    * Generate a hint, explanation, quality score, and difficulty for a question.
@@ -103,26 +103,33 @@ export interface AIProvider {
    * @param promptOverride - Optional full prompt to use instead of the default
    *   ENHANCEMENT_PROMPT (e.g. with a book-level special instruction prepended).
    */
-  enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<EnhancementResult>;
+  enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } }): Promise<EnhancementResult>;
 
   /**
    * Summarize an image.
    *
    * @param promptOverride - Optional full prompt to use instead of the default SUMMARIZE_IMAGE_PROMPT.
    */
-  summarizeImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<SummarizationResult>;
+  summarizeImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } }): Promise<SummarizationResult>;
 
   /**
    * Extract trivia questions and answer keys from text.
    *
    * @param promptOverride - Optional full prompt to use.
    */
-  extractFromText(text: string, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<ExtractionResult>;
+  extractFromText(text: string, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } }): Promise<ExtractionResult>;
 
   /**
    * Validate a pending question including its hint and explanation.
    *
    * @param promptOverride - Optional full prompt to use instead of the default VALIDATION_PROMPT.
    */
-  validateQuestion(questionText: string, choices: unknown[], hint: string | null, explanation: string | null, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<ValidationResult>;
+  validateQuestion(
+    questionText: string,
+    choices: unknown[],
+    hint: string | null,
+    explanation: string | null,
+    promptOverride?: string,
+    options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } },
+  ): Promise<ValidationResult>;
 }

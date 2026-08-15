@@ -152,7 +152,7 @@ export class QuizGenerationProcess implements IngestionProcess {
 
         let summarization;
         try {
-          summarization = await this.summarizationProvider!.summarizeImage(image, summarizationPrompt, { temperature: summarizationTemp, signal });
+          summarization = await this.summarizationProvider!.summarizeImage(image, summarizationPrompt, { temperature: summarizationTemp, signal, logger: this.config.logger, loggingPhase: 'GENERATION' });
         } finally {
           this.recordCallTime();
         }
@@ -166,7 +166,7 @@ export class QuizGenerationProcess implements IngestionProcess {
         let generated;
         try {
           const summaryText = summarization.summary.join('\n- ');
-          generated = await this.generationProvider!.extractFromText(summaryText, generationPrompt, { temperature: generationTemp, signal });
+          generated = await this.generationProvider!.extractFromText(summaryText, generationPrompt, { temperature: generationTemp, signal, logger: this.config.logger, loggingPhase: 'GENERATION' });
         } finally {
           this.recordCallTime();
         }
@@ -244,7 +244,7 @@ export class QuizGenerationProcess implements IngestionProcess {
             this.logInfo('Enhancement', `Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
             let enhanced;
             try {
-              enhanced = await this.enhancementProvider!.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal });
+              enhanced = await this.enhancementProvider!.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal, logger: this.config.logger, loggingPhase: 'ENHANCEMENT' });
             } finally {
               this.recordCallTime();
             }

@@ -164,7 +164,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
         let classification: ImageType;
         try {
           const classificationPrompt = buildClassificationPrompt(this.classificationSpecialInstruction);
-          const res = await this.scoutProvider!.classifyImage(image, classificationPrompt, { temperature, signal });
+          const res = await this.scoutProvider!.classifyImage(image, classificationPrompt, { temperature, signal, logger: this.config.logger, loggingPhase: 'SCOUT' });
           classification = res.classification;
         } finally {
           this.recordCallTime();
@@ -226,7 +226,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
           this.logInfo('Extraction', `Extracting keys from ${keyPagePath}...`);
           let extracted;
           try {
-            extracted = await this.extractionProvider!.extractFromImages([image], KEY_EXTRACTION_PROMPT, { temperature, signal });
+            extracted = await this.extractionProvider!.extractFromImages([image], KEY_EXTRACTION_PROMPT, { temperature, signal, logger: this.config.logger, loggingPhase: 'EXTRACTION' });
           } finally {
             this.recordCallTime();
           }
@@ -362,7 +362,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
         let extracted;
         try {
           // Pass the (possibly enriched) prompt through via the extraction provider
-          extracted = await this.extractionProvider!.extractFromImages(imagesB64, extractionPrompt, { temperature, signal });
+          extracted = await this.extractionProvider!.extractFromImages(imagesB64, extractionPrompt, { temperature, signal, logger: this.config.logger, loggingPhase: 'EXTRACTION' });
         } finally {
           this.recordCallTime();
         }
@@ -600,7 +600,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
             this.logInfo('Enhancement', `Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
             let enhanced;
             try {
-              enhanced = await this.enhancementProvider!.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal });
+              enhanced = await this.enhancementProvider!.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal, logger: this.config.logger, loggingPhase: 'ENHANCEMENT' });
             } finally {
               this.recordCallTime();
             }

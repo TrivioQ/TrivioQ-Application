@@ -103,29 +103,32 @@ export abstract class BaseAIProvider {
   // AIProvider implementation
   // ---------------------------------------------------------------------------
 
-  protected async executeApiCallWithRetry<T>(apiCall: () => Promise<T>): Promise<T> {
+  protected async executeApiCallWithRetry<T>(apiCall: () => Promise<T>, options?: { loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } }): Promise<T> {
     const maxRetries = 8;
     let delay = 60000;
+    const phase = options?.loggingPhase ?? this.constructor.name;
+    const logError = (msg: string) => (options?.logger ? options.logger.error(phase, msg) : console.error(`[${phase}] ${msg}`));
+    const logWarn = (msg: string) => (options?.logger ? options.logger.warn(phase, msg) : console.warn(`[${phase}] ${msg}`));
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await apiCall();
       } catch (error: any) {
         if (error instanceof ApiFatalError) {
-          console.error(`[${this.constructor.name}] FATAL: Unrecoverable error. Error: ${error.message}`);
+          logError(`FATAL: Unrecoverable error. Error: ${error.message}`);
           throw new Error(`Fatal API error (${this.constructor.name}): ${error.message}`);
         }
 
         if (error instanceof ApiRateLimitError) {
           if (attempt === maxRetries) {
-            console.error(`[${this.constructor.name}] Max retries exhausted. HTTP ${error.status}: ${error.message}`);
+            logError(`Max retries exhausted. HTTP ${error.status}: ${error.message}`);
             throw new Error(`Max retries exhausted (${this.constructor.name}): HTTP ${error.status}`);
           }
           let retryDelay = delay;
           if (error.retryAfterMs) {
             retryDelay = Math.max(retryDelay, error.retryAfterMs);
           }
-          console.warn(`[${this.constructor.name}] HTTP ${error.status} (Attempt ${attempt}/${maxRetries}). Retrying in ${retryDelay}ms...`);
+          logWarn(`HTTP ${error.status} (Attempt ${attempt}/${maxRetries}). Retrying in ${retryDelay}ms...`);
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
           delay = Math.max(delay * 2, retryDelay);
           continue;
@@ -137,10 +140,10 @@ export abstract class BaseAIProvider {
 
         // Generic error (network timeout, etc.)
         if (attempt === maxRetries) {
-          console.error(`[${this.constructor.name}] Max retries exhausted. Error: ${error instanceof Error ? error.message : error}`);
+          logError(`Max retries exhausted. Error: ${error instanceof Error ? error.message : error}`);
           throw new Error(`Max retries exhausted (${this.constructor.name}): ${error instanceof Error ? error.message : error}`);
         }
-        console.warn(`[${this.constructor.name}] Error (Attempt ${attempt}/${maxRetries}): ${error instanceof Error ? error.message : error}. Retrying in ${delay}ms...`);
+        logWarn(`Error (Attempt ${attempt}/${maxRetries}): ${error instanceof Error ? error.message : error}. Retrying in ${delay}ms...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
         delay *= 2;
       }
@@ -148,17 +151,19 @@ export abstract class BaseAIProvider {
     throw new Error(`[${this.constructor.name}] Unreachable code reached in retry loop`);
   }
 
-  private async callWithRetry<T>(prompt: string, images: ImageInput[], op: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<T> {
+  private async callWithRetry<T>(prompt: string, images: ImageInput[], op: string, options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } }): Promise<T> {
     const maxAttempts = 3;
     let lastError: any;
+    const phase = options?.loggingPhase ?? this.constructor.name;
+    const logWarn = (msg: string) => (options?.logger ? options.logger.warn(phase, msg) : console.warn(`[${phase}] ${msg}`));
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        const text = await this.executeApiCallWithRetry(() => this.call(prompt, images, options));
+        const text = await this.executeApiCallWithRetry(() => this.call(prompt, images, options), options);
         return this.parseJson<T>(text, op);
       } catch (e: any) {
         if (e instanceof SyntaxError || e.name === 'SyntaxError') {
-          console.warn(`[${this.constructor.name}] ${op} attempt ${attempt} failed with SyntaxError. Retrying...`);
+          logWarn(`${op} attempt ${attempt} failed with SyntaxError. Retrying...`);
           lastError = e;
           if (attempt < maxAttempts) {
             await new Promise((r) => setTimeout(r, 2000));
@@ -171,29 +176,36 @@ export abstract class BaseAIProvider {
     throw lastError;
   }
 
-  async classifyImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<ClassificationResult> {
+  async classifyImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } }): Promise<ClassificationResult> {
     return this.callWithRetry<ClassificationResult>(promptOverride ?? SCOUT_PROMPT, [image], 'classifyImage', options);
   }
 
-  async extractFromImages(images: ImageInput[], promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<ExtractionResult> {
+  async extractFromImages(images: ImageInput[], promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } }): Promise<ExtractionResult> {
     return this.callWithRetry<ExtractionResult>(promptOverride ?? EXTRACTION_PROMPT, images, 'extractFromImages', options);
   }
 
-  async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<EnhancementResult> {
+  async enhanceQuestion(questionText: string, choices: unknown[], promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } }): Promise<EnhancementResult> {
     const prompt = `${promptOverride ?? ENHANCEMENT_PROMPT}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}`;
     return this.callWithRetry<EnhancementResult>(prompt, [], 'enhanceQuestion', options);
   }
 
-  async summarizeImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<SummarizationResult> {
+  async summarizeImage(image: ImageInput, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } }): Promise<SummarizationResult> {
     return this.callWithRetry<SummarizationResult>(promptOverride ?? SUMMARIZE_IMAGE_PROMPT, [image], 'summarizeImage', options);
   }
 
-  async extractFromText(text: string, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<ExtractionResult> {
+  async extractFromText(text: string, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } }): Promise<ExtractionResult> {
     const prompt = `${promptOverride ?? QUIZ_GENERATION_FROM_TEXT_PROMPT}\n\n## Content to use for Generation\n\n${text}`;
     return this.callWithRetry<ExtractionResult>(prompt, [], 'extractFromText', options);
   }
 
-  async validateQuestion(questionText: string, choices: unknown[], hint: string | null, explanation: string | null, promptOverride?: string, options?: { temperature?: number; signal?: AbortSignal }): Promise<ValidationResult> {
+  async validateQuestion(
+    questionText: string,
+    choices: unknown[],
+    hint: string | null,
+    explanation: string | null,
+    promptOverride?: string,
+    options?: { temperature?: number; signal?: AbortSignal; loggingPhase?: string; logger?: { info: (phase: string, message: string) => void; warn: (phase: string, message: string) => void; error: (phase: string, message: string) => void } },
+  ): Promise<ValidationResult> {
     const prompt = `${promptOverride}\n\nQuestion: ${questionText}\nChoices: ${JSON.stringify(choices)}\nHint: ${hint ?? 'N/A'}\nExplanation: ${explanation ?? 'N/A'}`;
     return this.callWithRetry<ValidationResult>(prompt, [], 'validateQuestion', options);
   }
