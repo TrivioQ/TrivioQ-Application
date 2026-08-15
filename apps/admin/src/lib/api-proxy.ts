@@ -18,7 +18,7 @@ export function createProxyHandler(
     context: { params: Promise<{ path?: string[] }> },
   ): Promise<NextResponse> {
     try {
-      const params = await context.params;
+      const params = (await context?.params) || {};
       const pathString = (params.path ?? []).join('/');
       const url = new URL(request.url);
 
