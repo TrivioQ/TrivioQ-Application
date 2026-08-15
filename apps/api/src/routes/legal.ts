@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '@trivioq/database';
-import { requireAuth } from '../middleware/firebase-auth';
+import { requireSession } from '../middleware/firebase-auth';
 import { requireAdmin } from '../middleware/require-admin';
 
 const router = express.Router();
@@ -21,7 +21,7 @@ router.get('/:slug', async (req: Request, res: Response) => {
 });
 
 // PUT /api/v1/legal/:slug — admin only
-router.put('/:slug', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+router.put('/:slug', requireSession, requireAdmin, async (req: Request, res: Response) => {
   const { slug } = req.params;
   const parsed = UpdateLegalSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });

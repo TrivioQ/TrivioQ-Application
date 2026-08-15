@@ -4,8 +4,8 @@ import { Queue } from 'bullmq';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { ExpressAdapter } from '@bull-board/express';
-import * as admin from 'firebase-admin';
 import { prisma } from '@trivioq/database';
+import { verifyAnyToken } from '../middleware/firebase-auth';
 
 const router = Router();
 
@@ -48,7 +48,7 @@ async function requireAdminAuth(req: Request, res: Response, next: NextFunction)
   }
 
   try {
-    const decoded = await admin.auth().verifyIdToken(token);
+    const decoded = await verifyAnyToken(token);
     const firebaseUid = decoded.uid;
 
     const user = await prisma.user.findUnique({ where: { firebaseUid } });
@@ -65,7 +65,7 @@ async function requireAdminAuth(req: Request, res: Response, next: NextFunction)
     (req as any).user = user;
     next();
   } catch (error: any) {
-    if (error.code === 'auth/id-token-expired') {
+    if (error.code === 'auth/id-token-expired' || error.code === 'auth/session-cookie-expired') {
       return res.status(401).json({
         error: 'Unauthorized: Session expired',
         code: 'auth/id-token-expired',

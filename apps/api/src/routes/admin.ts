@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@trivioq/database';
-import { verifyFirebaseToken } from '../middleware/firebase-auth';
+import { verifyAnyFirebaseToken } from '../middleware/firebase-auth';
 import { requireAdmin } from '../middleware/require-admin';
 import { cronJobsRouter } from './admin/cron-jobs';
 import { ingestionRouter } from './admin/ingestion.routes';
@@ -13,7 +13,7 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // Apply both middlewares to all routes in this router
-router.use(verifyFirebaseToken);
+router.use(verifyAnyFirebaseToken);
 router.use(requireAdmin);
 
 /**

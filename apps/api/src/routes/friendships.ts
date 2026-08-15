@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '@trivioq/database';
-import { requireAuth } from '../middleware/firebase-auth';
+import { requireSession } from '../middleware/firebase-auth';
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ const RespondSchema = z.object({
 
 // GET /api/friendships
 // List all friends, pending incoming requests, and pending outgoing requests
-router.get('/', requireAuth, async (req: Request, res: Response) => {
+router.get('/', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
 
@@ -54,7 +54,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
 
 // POST /api/friendships/request
 // Send a friend request
-router.post('/request', requireAuth, async (req: Request, res: Response) => {
+router.post('/request', requireSession, async (req: Request, res: Response) => {
   try {
     const { addresseeId } = RequestSchema.parse(req.body);
     const userId = (req as any).userId;
@@ -100,7 +100,7 @@ router.post('/request', requireAuth, async (req: Request, res: Response) => {
 
 // POST /api/friendships/accept
 // Accept a friend request
-router.post('/accept', requireAuth, async (req: Request, res: Response) => {
+router.post('/accept', requireSession, async (req: Request, res: Response) => {
   try {
     const { requestId } = RespondSchema.parse(req.body);
     const userId = (req as any).userId;
@@ -136,7 +136,7 @@ router.post('/accept', requireAuth, async (req: Request, res: Response) => {
 
 // POST /api/friendships/decline
 // Decline a friend request
-router.post('/decline', requireAuth, async (req: Request, res: Response) => {
+router.post('/decline', requireSession, async (req: Request, res: Response) => {
   try {
     const { requestId } = RespondSchema.parse(req.body);
     const userId = (req as any).userId;
@@ -166,7 +166,7 @@ router.post('/decline', requireAuth, async (req: Request, res: Response) => {
 
 // POST /api/friendships/block
 // Block a user
-router.post('/block', requireAuth, async (req: Request, res: Response) => {
+router.post('/block', requireSession, async (req: Request, res: Response) => {
   try {
     const { userIdToBlock } = z.object({ userIdToBlock: z.string().uuid() }).parse(req.body);
     const userId = (req as any).userId;
@@ -216,7 +216,7 @@ router.post('/block', requireAuth, async (req: Request, res: Response) => {
 
 // DELETE /api/friendships/remove/:id
 // Remove an existing friend
-router.delete('/remove/:id', requireAuth, async (req: Request, res: Response) => {
+router.delete('/remove/:id', requireSession, async (req: Request, res: Response) => {
   try {
     const friendshipId = req.params.id;
     const userId = (req as any).userId;

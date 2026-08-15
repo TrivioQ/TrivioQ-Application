@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '@trivioq/database';
-import { requireAuth } from '../middleware/firebase-auth';
+import { requireSession } from '../middleware/firebase-auth';
 import { scheduleRemainingDropsForUser, executeImmediateDropForUser } from '../services/drop-orchestrator';
 
 const router = express.Router();
@@ -17,7 +17,7 @@ const OnboardingCompleteSchema = z.object({
 
 const TRIAL_DAYS = 7;
 
-router.post('/complete', requireAuth, async (req: Request, res: Response) => {
+router.post('/complete', requireSession, async (req: Request, res: Response) => {
   try {
     const parsed = OnboardingCompleteSchema.safeParse(req.body);
     if (!parsed.success) {

@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '@trivioq/database';
-import { requireAuth } from '../middleware/firebase-auth';
+import { requireSession } from '../middleware/firebase-auth';
 import { requireAdmin } from '../middleware/require-admin';
 
 const router = express.Router();
@@ -45,7 +45,7 @@ router.get('/', async (req: Request, res: Response) => {
  * GET /api/v1/faqs/admin
  * Returns all FAQs (including inactive) for management
  */
-router.get('/admin', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+router.get('/admin', requireSession, requireAdmin, async (req: Request, res: Response) => {
   try {
     const faqs = await prisma.fAQ.findMany({
       orderBy: { order: 'asc' },
@@ -60,7 +60,7 @@ router.get('/admin', requireAuth, requireAdmin, async (req: Request, res: Respon
  * POST /api/v1/faqs
  * Create a new FAQ
  */
-router.post('/', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+router.post('/', requireSession, requireAdmin, async (req: Request, res: Response) => {
   try {
     const data = FAQSchema.parse(req.body);
     const faq = await prisma.fAQ.create({ data });
@@ -77,7 +77,7 @@ router.post('/', requireAuth, requireAdmin, async (req: Request, res: Response) 
  * PATCH /api/v1/faqs/:id
  * Update an existing FAQ
  */
-router.patch('/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+router.patch('/:id', requireSession, requireAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     const data = FAQSchema.partial().parse(req.body);
@@ -98,7 +98,7 @@ router.patch('/:id', requireAuth, requireAdmin, async (req: Request, res: Respon
  * DELETE /api/v1/faqs/:id
  * Remove an FAQ
  */
-router.delete('/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+router.delete('/:id', requireSession, requireAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     await prisma.fAQ.delete({ where: { id } });

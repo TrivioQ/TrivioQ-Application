@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '@trivioq/database';
 import { QuestionDropPayload } from '@trivioq/shared-types';
-import { requireAuth } from '../middleware/firebase-auth';
+import { requireSession } from '../middleware/firebase-auth';
 import { DIFFICULTY_POINTS, deductUserScores, upsertUserScores } from '../utils/scoring';
 import { getSettingNumber } from '../utils/settings';
 
@@ -14,7 +14,7 @@ async function getAnswerTimerSeconds(difficulty: string): Promise<number> {
   return getSettingNumber(key, defaults[difficulty] ?? 60);
 }
 
-router.get('/active', requireAuth, async (req: Request, res: Response) => {
+router.get('/active', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const now = new Date();
@@ -67,7 +67,7 @@ router.get('/active', requireAuth, async (req: Request, res: Response) => {
 // Called when user clicks "Reveal Question". Sets a per-difficulty answer deadline
 // that persists across page refreshes. Idempotent — returns the existing deadline
 // if already set.
-router.post('/:dropId/reveal-question', requireAuth, async (req: Request, res: Response) => {
+router.post('/:dropId/reveal-question', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const { dropId } = req.params;
@@ -109,7 +109,7 @@ router.post('/:dropId/reveal-question', requireAuth, async (req: Request, res: R
   }
 });
 
-router.post('/:dropId/hint', requireAuth, async (req: Request, res: Response) => {
+router.post('/:dropId/hint', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const { dropId } = req.params;
@@ -157,7 +157,7 @@ router.post('/:dropId/hint', requireAuth, async (req: Request, res: Response) =>
   }
 });
 
-router.post('/:dropId/reveal-answer', requireAuth, async (req: Request, res: Response) => {
+router.post('/:dropId/reveal-answer', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const { dropId } = req.params;
@@ -200,7 +200,7 @@ router.post('/:dropId/reveal-answer', requireAuth, async (req: Request, res: Res
   }
 });
 
-router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) => {
+router.post('/:dropId/submit', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const { dropId } = req.params;
@@ -286,7 +286,7 @@ router.post('/:dropId/submit', requireAuth, async (req: Request, res: Response) 
   }
 });
 
-router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
+router.post('/on-demand', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
 

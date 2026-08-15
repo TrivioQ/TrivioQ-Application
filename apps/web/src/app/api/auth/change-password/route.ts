@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { env } from 'env';
 
 const FIREBASE_LOGIN_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword';
-const FIREBASE_UPDATE_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:update';
 
 export async function POST(req: NextRequest) {
-  const idToken = req.cookies.get('tq_auth')?.value;
-  if (!idToken) {
+  const sessionToken = req.cookies.get('tq_auth')?.value;
+  if (!sessionToken) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
@@ -17,38 +16,49 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Missing password fields' }, { status: 400 });
     }
 
-    // 1. Get the current user's email first
-    const meRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${env.FIREBASE_API_KEY}`, {
-      method: 'POST',
-      body: JSON.stringify({ idToken }),
+    // 1. Look up the user's email from the backend (session cookie as Bearer).
+    const meRes = await fetch(new URL('/v1/users/me', env.API_URL).toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${sessionToken}`,
+      },
     });
-    const meData = await meRes.json();
-    const email = meData.users?.[0]?.email;
 
+    if (!meRes.ok) {
+      return NextResponse.json({ message: 'Could not find user email' }, { status: 400 });
+    }
+
+    const me = await meRes.json();
+    const email = me?.email;
     if (!email) {
       return NextResponse.json({ message: 'Could not find user email' }, { status: 400 });
     }
 
-    // 2. Re-authenticate (verify old password)
+    // 2. Re-authenticate (verify old password) server-side against Firebase.
     const verifyRes = await fetch(`${FIREBASE_LOGIN_URL}?key=${env.FIREBASE_API_KEY}`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password: oldPassword, returnSecureToken: true }),
     });
 
     if (!verifyRes.ok) {
-      // const errorData = await verifyRes.json();
       return NextResponse.json({ message: 'Incorrect current password' }, { status: 400 });
     }
 
-    // 3. Update password
-    const updateRes = await fetch(`${FIREBASE_UPDATE_URL}?key=${env.FIREBASE_API_KEY}`, {
+    // 3. Update the password via the backend (Admin SDK) using the session cookie.
+    const updateRes = await fetch(new URL('/v1/auth/change-password', env.API_URL).toString(), {
       method: 'POST',
-      body: JSON.stringify({ idToken, password: newPassword, returnSecureToken: true }),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${sessionToken}`,
+      },
+      body: JSON.stringify({ newPassword }),
     });
 
     if (!updateRes.ok) {
-      const errorData = await updateRes.json();
-      return NextResponse.json({ message: errorData.error?.message || 'Failed to update password' }, { status: 400 });
+      const errorData = await updateRes.json().catch(() => ({}));
+      return NextResponse.json({ message: errorData.error || 'Failed to update password' }, { status: updateRes.status });
     }
 
     return NextResponse.json({ message: 'Password updated successfully' });

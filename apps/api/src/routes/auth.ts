@@ -1,10 +1,18 @@
 import express, { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
 import { prisma } from '@trivioq/database';
-import { verifyFirebaseToken } from '../middleware/firebase-auth';
+import { verifyFirebaseToken, requireSession } from '../middleware/firebase-auth';
 import { getSetting } from '../utils/settings';
+import { env } from '../config/env';
 
 const router = express.Router();
+
+/** Mint a long-lived Firebase session cookie from a fresh ID token. */
+async function mintSessionCookie(req: Request): Promise<string> {
+  const authHeader = req.headers.authorization;
+  const idToken = typeof authHeader === 'string' && authHeader.startsWith('Bearer ') ? authHeader.split('Bearer ')[1] : '';
+  return admin.auth().createSessionCookie(idToken, { expiresIn: env.SESSION_COOKIE_MAX_AGE_MS });
+}
 
 router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) => {
   try {
@@ -33,7 +41,14 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
         where: { firebaseUid },
         data: { lastLogin: now },
       });
-      return res.json(user);
+
+      try {
+        const sessionCookie = await mintSessionCookie(req);
+        return res.json({ ...user, sessionCookie });
+      } catch (err) {
+        console.error('[/sync] Failed to mint session cookie:', err);
+        return res.status(403).json({ error: 'SESSION_MINT_FAILED' });
+      }
     }
 
     // ── Brand new user — validate and persist with username + displayName ─────
@@ -156,7 +171,13 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
       });
     }
 
-    res.json(user);
+    try {
+      const sessionCookie = await mintSessionCookie(req);
+      res.json({ ...user, sessionCookie });
+    } catch (err) {
+      console.error('[/sync] Failed to mint session cookie:', err);
+      res.status(403).json({ error: 'SESSION_MINT_FAILED' });
+    }
   } catch (error) {
     console.error('Failed to sync user with Firebase Auth:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -215,6 +236,27 @@ router.post('/reactivate', verifyFirebaseToken, async (req: Request, res: Respon
   } catch (error) {
     console.error('Failed to reactivate user account:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/change-password', requireSession, async (req: Request, res: Response) => {
+  try {
+    const firebaseUid = (req as any).firebaseUid;
+    const { newPassword } = req.body ?? {};
+
+    if (!firebaseUid) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
+      return res.status(400).json({ error: 'New password must be at least 8 characters.' });
+    }
+
+    await admin.auth().updateUser(firebaseUid, { password: newPassword });
+    res.json({ message: 'Password updated successfully' });
+  } catch (error: any) {
+    console.error('[/change-password] Failed to update password:', error);
+    res.status(500).json({ error: error.message || 'Internal server error' });
   }
 });
 

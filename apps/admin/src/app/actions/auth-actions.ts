@@ -47,6 +47,8 @@ export async function loginAction(prevState: unknown, formData: FormData) {
   }
 
   const apiUrl = env.API_URL;
+  // Populated inside the try below with the session cookie minted by the backend.
+  let sessionToken: string | undefined;
   try {
     console.log('[loginAction] Sending sync request to backend API:', `${apiUrl}/v1/auth/sync`);
     const upstream = await fetch(`${apiUrl}/v1/auth/sync`, {
@@ -71,14 +73,23 @@ export async function loginAction(prevState: unknown, formData: FormData) {
       console.warn('[loginAction] Access denied - user is not ADMIN:', user);
       return { error: 'Access denied. Administrator privileges required.' };
     }
+
+    // The backend mints a long-lived (14-day) Firebase session cookie and
+    // returns it alongside the user. Store THAT (not the 1-hour idToken) in
+    // the httpOnly cookie so "keep me logged in" persists past the 1-hour mark.
+    sessionToken = user.sessionCookie;
   } catch (err: unknown) {
     console.error('[loginAction] Backend check failed:', err);
     const errorMessage = err instanceof Error ? err.message : String(err);
     return { error: errorMessage || 'An unexpected error occurred' };
   }
 
+  if (!sessionToken || sessionToken === 'SESSION_MINT_FAILED') {
+    return { error: 'Authentication service unavailable.' };
+  }
+
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, idToken, {
+  cookieStore.set(COOKIE_NAME, sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     path: '/',

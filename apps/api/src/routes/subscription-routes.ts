@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import * as admin from 'firebase-admin';
 import { prisma } from '@trivioq/database';
-import { requireAuth } from '../middleware/firebase-auth';
+import { requireSession } from '../middleware/firebase-auth';
 import { addDays, endOfDay } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
@@ -14,7 +14,7 @@ function resolveTimezone(preferences: unknown): string {
 
 // ── GET /subscriptions/status ─────────────────────────────────────────────────
 // Returns the caller's subscription state, vault expiry, and token balance.
-router.get('/status', requireAuth, async (req: Request, res: Response) => {
+router.get('/status', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
 
@@ -67,7 +67,7 @@ const ActivateVaultSchema = z.object({
   daysToActivate: z.number().int().min(1),
 });
 
-router.post('/activate-vault', requireAuth, async (req: Request, res: Response) => {
+router.post('/activate-vault', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
 

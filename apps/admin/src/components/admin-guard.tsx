@@ -6,20 +6,20 @@ const COOKIE_NAME = 'tq_auth';
 
 export async function AdminGuard({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
-  const idToken = cookieStore.get(COOKIE_NAME)?.value;
+  const sessionToken = cookieStore.get(COOKIE_NAME)?.value;
 
-  if (!idToken) {
+  if (!sessionToken) {
     redirect('/login');
   }
 
   try {
-    const upstream = await fetch(new URL('/v1/auth/sync', env.API_URL).toString(), {
-      method: 'POST',
+    // Verify the session cookie via the backend /v1/users/me endpoint, which
+    // runs under the dual-mode (session-cookie-aware) requireSession middleware.
+    const upstream = await fetch(new URL('/v1/users/me', env.API_URL).toString(), {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${idToken}`,
+        Authorization: `Bearer ${sessionToken}`,
       },
-      body: JSON.stringify({}),
     });
 
     if (!upstream.ok) {

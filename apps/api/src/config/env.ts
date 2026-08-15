@@ -23,6 +23,8 @@ const envSchema = z.object({
       return val;
     }),
   SENTRY_DSN: z.string().optional(),
+  // Lifetime of Firebase session cookies minted at login (default: 14 days).
+  SESSION_COOKIE_MAX_AGE_MS: z.coerce.number().default(14 * 24 * 60 * 60 * 1000),
 });
 
 // Parse and validate process.env

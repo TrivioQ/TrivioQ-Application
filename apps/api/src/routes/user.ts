@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '@trivioq/database';
 import { UserPreferences } from '@trivioq/shared-types';
-import { requireAuth } from '../middleware/firebase-auth';
+import { requireSession } from '../middleware/firebase-auth';
 
 const router = express.Router();
 
@@ -34,7 +34,7 @@ const UserPreferencesSchema = z.object({
   targetDropsPerWeek: z.number().min(1).max(100).default(35),
 });
 
-router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
+router.put('/preferences', requireSession, async (req: Request, res: Response) => {
   try {
     // Parse the full body (includes activeWindowStart/End for DB column writes)
     const raw = UserPreferencesSchema.parse(req.body);
@@ -89,7 +89,7 @@ router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-router.get('/me', requireAuth, async (req: Request, res: Response) => {
+router.get('/me', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const user = await prisma.user.findUnique({
@@ -125,7 +125,7 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
 
 // GET /v1/users/me/score-history?period=weekly|monthly
 // Returns the last 12 months of score periods for the authenticated user.
-router.get('/me/score-history', requireAuth, async (req: Request, res: Response) => {
+router.get('/me/score-history', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const period = (req.query.period as string) || 'weekly';
@@ -166,7 +166,7 @@ router.get('/me/score-history', requireAuth, async (req: Request, res: Response)
 
 // GET /v1/users/me/recent-drops
 // Returns the last 10 answered drops for the authenticated user.
-router.get('/me/recent-drops', requireAuth, async (req: Request, res: Response) => {
+router.get('/me/recent-drops', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
 

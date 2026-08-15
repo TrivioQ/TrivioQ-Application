@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '@trivioq/database';
-import { requireAuth } from '../middleware/firebase-auth';
+import { requireSession } from '../middleware/firebase-auth';
 import { getWeekStart, getMonthStart, OVERALL_PERIOD_START } from '../utils/scoring';
 
 const router = express.Router();
@@ -55,7 +55,7 @@ router.get('/global', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/friends', requireAuth, async (req: Request, res: Response) => {
+router.get('/friends', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const period = (req.query.period as string) || 'alltime';

@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { requireAuth } from '../middleware/firebase-auth';
+import { requireSession } from '../middleware/firebase-auth';
 import { requireAdmin } from '../middleware/require-admin';
 import { notificationService } from '../services/notification-service';
 import { NotificationType, NotificationAudience, NotificationChannel } from '@prisma/client';
@@ -77,17 +77,7 @@ router.get('/templates', requireAdmin, async (req: Request, res: Response) => {
  */
 router.post('/', requireAdmin, async (req: Request, res: Response) => {
   try {
-    const {
-      type,
-      audience,
-      title,
-      body,
-      data,
-      channels,
-      targetUserIds,
-      targetCriteria,
-      scheduledAt,
-    } = req.body;
+    const { type, audience, title, body, data, channels, targetUserIds, targetCriteria, scheduledAt } = req.body;
 
     if (!type || !audience || !title || !body || !channels) {
       return res.status(400).json({
@@ -121,16 +111,7 @@ router.post('/', requireAdmin, async (req: Request, res: Response) => {
  */
 router.post('/from-template', requireAdmin, async (req: Request, res: Response) => {
   try {
-    const {
-      templateId,
-      audience,
-      variables,
-      data,
-      channels,
-      targetUserIds,
-      targetCriteria,
-      scheduledAt,
-    } = req.body;
+    const { templateId, audience, variables, data, channels, targetUserIds, targetCriteria, scheduledAt } = req.body;
 
     if (!templateId || !audience || !variables) {
       return res.status(400).json({
@@ -332,14 +313,10 @@ router.put('/templates/:id', requireAdmin, async (req: Request, res: Response) =
  * GET /api/v1/notifications/inbox
  * Get user's notification inbox
  */
-router.get('/inbox', requireAuth, async (req: Request, res: Response) => {
+router.get('/inbox', requireSession, async (req: Request, res: Response) => {
   try {
     const { limit = '50', offset = '0' } = req.query;
-    const result = await notificationService.getInbox(
-      (req as any).userId,
-      parseInt(limit as string),
-      parseInt(offset as string)
-    );
+    const result = await notificationService.getInbox((req as any).userId, parseInt(limit as string), parseInt(offset as string));
     res.json(result);
   } catch (error: any) {
     console.error('Error getting inbox:', error);
@@ -351,7 +328,7 @@ router.get('/inbox', requireAuth, async (req: Request, res: Response) => {
  * POST /api/v1/notifications/:id/read
  * Mark a notification as read
  */
-router.post('/:id/read', requireAuth, async (req: Request, res: Response) => {
+router.post('/:id/read', requireSession, async (req: Request, res: Response) => {
   try {
     // Verify the notification belongs to the user
     const userNotification = await (global as any).prisma.userNotification.findFirst({
@@ -377,7 +354,7 @@ router.post('/:id/read', requireAuth, async (req: Request, res: Response) => {
  * POST /api/v1/notifications/read-all
  * Mark all notifications as read
  */
-router.post('/read-all', requireAuth, async (req: Request, res: Response) => {
+router.post('/read-all', requireSession, async (req: Request, res: Response) => {
   try {
     await notificationService.markAllAsRead((req as any).userId);
     res.json({ message: 'All notifications marked as read' });
@@ -391,7 +368,7 @@ router.post('/read-all', requireAuth, async (req: Request, res: Response) => {
  * GET /api/v1/notifications/preferences
  * Get user's notification preferences
  */
-router.get('/preferences', requireAuth, async (req: Request, res: Response) => {
+router.get('/preferences', requireSession, async (req: Request, res: Response) => {
   try {
     const preferences = await notificationService.getPreferences((req as any).userId);
     res.json({ preferences });
@@ -405,7 +382,7 @@ router.get('/preferences', requireAuth, async (req: Request, res: Response) => {
  * PUT /api/v1/notifications/preferences
  * Update user's notification preferences
  */
-router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
+router.put('/preferences', requireSession, async (req: Request, res: Response) => {
   try {
     const preferences = await notificationService.updatePreferences((req as any).userId, req.body);
     res.json({ preferences });
@@ -419,7 +396,7 @@ router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
  * POST /api/v1/notifications/webpush/subscribe
  * Subscribe to web push notifications
  */
-router.post('/webpush/subscribe', requireAuth, async (req: Request, res: Response) => {
+router.post('/webpush/subscribe', requireSession, async (req: Request, res: Response) => {
   try {
     const { endpoint, p256dh, auth, browser } = req.body;
 
@@ -447,7 +424,7 @@ router.post('/webpush/subscribe', requireAuth, async (req: Request, res: Respons
  * DELETE /api/v1/notifications/webpush/subscribe
  * Unsubscribe from web push notifications
  */
-router.delete('/webpush/subscribe', requireAuth, async (req: Request, res: Response) => {
+router.delete('/webpush/subscribe', requireSession, async (req: Request, res: Response) => {
   try {
     const { endpoint } = req.body;
 

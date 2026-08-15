@@ -106,6 +106,15 @@ export async function syncAndRespond(idToken: string, extraData: Record<string, 
 
     const data = await upstream.json();
 
+    // The backend mints a long-lived (14-day) Firebase session cookie and
+    // returns it alongside the user. We store THAT in the httpOnly cookie
+    // instead of the short-lived (1-hour) idToken — this is what makes
+    // "keep me logged in" actually persist past the 1-hour mark.
+    const sessionCookie = (data as { sessionCookie?: string }).sessionCookie;
+    if (!sessionCookie || sessionCookie === 'SESSION_MINT_FAILED') {
+      return NextResponse.json({ message: 'Authentication service unavailable' }, { status: 503 });
+    }
+
     const response = NextResponse.json(data, { status: 200 });
 
     // Use secure cookies only when the app is served over HTTPS.
@@ -123,7 +132,7 @@ export async function syncAndRespond(idToken: string, extraData: Record<string, 
       ...(keepMeLoggedIn ? { maxAge: COOKIE_MAX_AGE_14_DAYS } : {}),
     };
 
-    response.cookies.set(COOKIE_NAME, idToken, cookieBase);
+    response.cookies.set(COOKIE_NAME, sessionCookie, cookieBase);
 
     return response;
   } catch (err) {

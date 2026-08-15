@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '@trivioq/database';
-import { requireAuth } from '../middleware/firebase-auth';
+import { requireSession } from '../middleware/firebase-auth';
 import { DIFFICULTY_POINTS, upsertUserScores } from '../utils/scoring';
 import { UserPreferences } from '@trivioq/shared-types';
 import { startOfDay } from 'date-fns';
@@ -13,7 +13,7 @@ const router = express.Router();
 // ── PATCH /drops/:id/view ─────────────────────────────────────────────────────
 // Called by the mobile client the moment a drop card is rendered on screen.
 // Marks the drop as seen so the spaced-repetition engine can track it.
-router.patch('/:id/view', requireAuth, async (req: Request, res: Response) => {
+router.patch('/:id/view', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const { id } = req.params;
@@ -50,7 +50,7 @@ const AnswerBodySchema = z.object({
   selectedChoice: z.string().min(1),
 });
 
-router.patch('/:id/answer', requireAuth, async (req: Request, res: Response) => {
+router.patch('/:id/answer', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const { id } = req.params;
@@ -143,7 +143,7 @@ router.patch('/:id/answer', requireAuth, async (req: Request, res: Response) => 
 // Lets an entitled user instantly pull a fresh question outside the scheduler.
 // Entitlement: active subscription OR a valid on-demand vault.
 // Rate limit: shared 50-drop daily cap (same bucket as scheduled drops).
-router.post('/on-demand', requireAuth, async (req: Request, res: Response) => {
+router.post('/on-demand', requireSession, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const now = new Date();

@@ -75,3 +75,4 @@ firebase-service-account.json
 
 # Artifacts
 apps/api/ingestion
+/ingestion
