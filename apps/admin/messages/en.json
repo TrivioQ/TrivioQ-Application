@@ -1026,6 +1026,8 @@
         "cancel": "Cancel",
         "startJob": "Start Job",
         "uploading": "Uploading...",
+        "uploadingChunks": "Uploading part {current} of {total}...",
+        "assembling": "Assembling file...",
         "selectPdfError": "Please select a PDF file",
         "createSuccess": "Job created successfully",
         "createError": "Error creating job",

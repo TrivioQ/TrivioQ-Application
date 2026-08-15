@@ -83,39 +83,86 @@ export function UploadJobForm() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  /** Chunk size: 50 MB — well under Cloudflare's 100 MB inbound limit. */
+  const CHUNK_SIZE = 50 * 1024 * 1024;
+
   /**
-   * Upload via XHR so we get real upload-progress events.
-   * fetch() does not expose upload progress; XHR's xhr.upload.onprogress does.
+   * Upload the file in ≤90 MB chunks to bypass Cloudflare's 100 MB upload cap.
+   *
+   * Flow:
+   *   1. Slice the file into chunks.
+   *   2. POST each chunk to /upload-chunk (multipart).
+   *   3. POST JSON to /jobs/finalize — the API assembles the parts and creates the job.
+   *
+   * Progress is tracked cumulatively across all chunks and mapped to the
+   * existing [0–100] upload progress bar.
    */
-  const uploadWithProgress = (data: FormData): Promise<{ id: string }> =>
-    new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/v1/admin/ingestion/jobs');
+  const uploadInChunks = async (file: File, formFields: Record<string, string>): Promise<{ id: string }> => {
+    const uploadId = crypto.randomUUID();
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    let bytesUploaded = 0;
 
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          setUploadProgress(Math.round((e.loaded / e.total) * 100));
-        }
+    for (let index = 0; index < totalChunks; index++) {
+      const start = index * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, file.size);
+      const chunk = file.slice(start, end);
+
+      await new Promise<void>((resolve, reject) => {
+        const data = new FormData();
+        data.append('chunk', chunk);
+        data.append('uploadId', uploadId);
+        data.append('chunkIndex', String(index));
+        data.append('totalChunks', String(totalChunks));
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/v1/admin/ingestion/upload-chunk');
+
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const chunkUploaded = bytesUploaded + e.loaded;
+            setUploadProgress(Math.round((chunkUploaded / file.size) * 100));
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            bytesUploaded += chunk.size;
+            setUploadProgress(Math.round((bytesUploaded / file.size) * 100));
+            resolve();
+          } else {
+            const message = (() => {
+              try { return JSON.parse(xhr.responseText)?.error ?? t('createError'); }
+              catch { return t('createError'); }
+            })();
+            reject(new Error(message));
+          }
+        });
+
+        xhr.addEventListener('error', () => reject(new Error(t('createError'))));
+        xhr.send(data);
       });
+    }
 
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(JSON.parse(xhr.responseText).data);
-        } else {
-          const message = (() => {
-            try {
-              return JSON.parse(xhr.responseText)?.error ?? t('createError');
-            } catch {
-              return t('createError');
-            }
-          })();
-          reject(new Error(message));
-        }
-      });
-
-      xhr.addEventListener('error', () => reject(new Error(t('createError'))));
-      xhr.send(data);
+    // All chunks uploaded — ask the API to assemble and create the job
+    const finalizeRes = await fetch('/api/v1/admin/ingestion/jobs/finalize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        uploadId,
+        originalName: file.name,
+        totalChunks: String(totalChunks),
+        ...formFields,
+      }),
     });
+
+    if (!finalizeRes.ok) {
+      const body = await finalizeRes.json().catch(() => ({}));
+      throw new Error(body?.error ?? t('createError'));
+    }
+
+    const result = await finalizeRes.json();
+    return result.data as { id: string };
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,16 +174,12 @@ export function UploadJobForm() {
     setLoading(true);
     setUploadProgress(0);
     try {
-      const data = new FormData();
-      data.append('pdf', file);
+      // Collect non-empty form fields to pass to the finalize endpoint
+      const formFields = Object.fromEntries(
+        Object.entries(formData).filter(([, v]) => Boolean(v)),
+      );
 
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value) {
-          data.append(key, value);
-        }
-      });
-
-      await uploadWithProgress(data);
+      await uploadInChunks(file, formFields);
 
       toast.success(t('createSuccess'));
       router.push('/ingestion');

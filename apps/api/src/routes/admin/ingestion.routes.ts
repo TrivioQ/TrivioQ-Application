@@ -3,6 +3,7 @@ import { prisma, ProcessType, IngestionStatus } from '@trivioq/database';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
+import { randomUUID } from 'crypto';
 
 const router = Router();
 
@@ -70,6 +71,207 @@ const upload = multer({
   },
 });
 
+// ── Multer for individual chunks (no MIME filter — we validate on finalize) ──
+const chunkUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      // Written to the same ingestion volume so the finalize rename is atomic
+      const tmpDir = multerTempDir();
+      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+      cb(null, tmpDir);
+    },
+    filename: (_req, _file, cb) => {
+      cb(null, `chunk_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    },
+  }),
+  limits: { fileSize: MAX_PDF_SIZE_BYTES },
+});
+
+// ── Helper shared by the full-upload and finalize routes ─────────────────────
+async function createJobFromFile(filePath: string, originalName: string, fileSize: number, body: Record<string, string | undefined>, adminId: string | undefined): Promise<string> {
+  const { processType, topic, categorySlugs, extractionSpecialInstruction, enhancementSpecialInstruction, classificationSpecialInstruction, summarizationSpecialInstruction, pagesFrom, pagesTo, scoutModelId, extractionModelId, enhancementModelId, generationModelId, summarizationModelId } = body;
+
+  const parsedCategorySlugs = categorySlugs ? JSON.parse(categorySlugs) : undefined;
+
+  let pages: { from?: number; to?: number } | undefined;
+  if (pagesFrom || pagesTo) {
+    pages = {
+      ...(pagesFrom && { from: parseInt(pagesFrom, 10) }),
+      ...(pagesTo && { to: parseInt(pagesTo, 10) }),
+    };
+  }
+
+  const modelOverrides: Record<string, string> = {};
+  if (scoutModelId) modelOverrides.scout = scoutModelId;
+  if (extractionModelId) modelOverrides.extraction = extractionModelId;
+  if (enhancementModelId) modelOverrides.enhancement = enhancementModelId;
+  if (generationModelId) modelOverrides.generation = generationModelId;
+  if (summarizationModelId) modelOverrides.summarization = summarizationModelId;
+
+  const manifestData = {
+    processType,
+    topic,
+    categorySlugs: parsedCategorySlugs,
+    extractionSpecialInstruction,
+    enhancementSpecialInstruction,
+    classificationSpecialInstruction,
+    summarizationSpecialInstruction,
+    pages,
+    ...(Object.keys(modelOverrides).length > 0 && { modelOverrides }),
+  };
+
+  const dbProcessType = processType === 'quiz-generation' ? ProcessType.QUIZ_GENERATION : ProcessType.QUESTION_EXTRACTION;
+
+  const newJob = await prisma.ingestionJob.create({
+    data: {
+      processType: dbProcessType,
+      status: IngestionStatus.QUEUED,
+      fileName: originalName,
+      fileSize,
+      storagePath: '', // updated below once directory is known
+      manifestData,
+      adminId,
+    },
+  });
+
+  const bookId = newJob.id;
+  const bookDir = path.join(ingestionRoot(), bookId);
+  if (!fs.existsSync(bookDir)) fs.mkdirSync(bookDir, { recursive: true });
+
+  const targetPdfPath = path.join(bookDir, originalName);
+  // Use async FS calls so these operations don't block the event loop
+  // while moving potentially large PDF files.
+  await fs.promises.rename(filePath, targetPdfPath);
+  await fs.promises.writeFile(path.join(bookDir, 'manifest.json'), JSON.stringify({ bookId, ...manifestData }, null, 2));
+
+  await prisma.ingestionJob.update({
+    where: { id: bookId },
+    data: { storagePath: targetPdfPath },
+  });
+
+  return bookId;
+}
+
+/**
+ * @route   POST /api/v1/admin/ingestion/upload-chunk
+ * @desc    Receive a single chunk of a large file upload. Chunks are stored in
+ *          a temporary directory keyed by `uploadId`. After all chunks are
+ *          uploaded the client calls POST /jobs/finalize to assemble them.
+ * @access  Private (Admin Only)
+ */
+router.post('/upload-chunk', chunkUpload.single('chunk'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No chunk data received' });
+    }
+
+    const { uploadId, chunkIndex, totalChunks } = req.body as Record<string, string>;
+
+    if (!uploadId || chunkIndex === undefined || !totalChunks) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: 'uploadId, chunkIndex, and totalChunks are required' });
+    }
+
+    // Validate that the uploadId is a safe UUID-format identifier
+    if (!/^[0-9a-f-]{36}$/.test(uploadId)) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: 'Invalid uploadId format' });
+    }
+
+    const chunksDir = path.join(multerTempDir(), `chunks_${uploadId}`);
+    if (!fs.existsSync(chunksDir)) fs.mkdirSync(chunksDir, { recursive: true });
+
+    const chunkDest = path.join(chunksDir, `chunk_${String(chunkIndex).padStart(6, '0')}`);
+    await fs.promises.rename(req.file.path, chunkDest);
+
+    return res.status(200).json({ success: true, chunkIndex });
+  } catch (error: any) {
+    console.error('Error receiving upload chunk:', error);
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @route   POST /api/v1/admin/ingestion/jobs/finalize
+ * @desc    Assemble pre-uploaded chunks into a complete PDF and create the
+ *          ingestion job. Body is JSON (not multipart).
+ * @access  Private (Admin Only)
+ */
+router.post('/jobs/finalize', async (req: Request, res: Response) => {
+  const { uploadId, originalName, totalChunks, ...jobFields } = req.body as Record<string, string>;
+  const chunksDir = path.join(multerTempDir(), `chunks_${uploadId}`);
+  let assembledPath: string | undefined;
+
+  try {
+    if (!uploadId || !originalName || !totalChunks) {
+      return res.status(400).json({ error: 'uploadId, originalName, and totalChunks are required' });
+    }
+
+    if (!/^[0-9a-f-]{36}$/.test(uploadId)) {
+      return res.status(400).json({ error: 'Invalid uploadId format' });
+    }
+
+    const total = parseInt(totalChunks, 10);
+    if (isNaN(total) || total < 1) {
+      return res.status(400).json({ error: 'Invalid totalChunks value' });
+    }
+
+    if (!fs.existsSync(chunksDir)) {
+      return res.status(400).json({ error: 'No chunks found for the given uploadId' });
+    }
+
+    // Verify all chunks are present before assembling
+    for (let i = 0; i < total; i++) {
+      const chunkPath = path.join(chunksDir, `chunk_${String(i).padStart(6, '0')}`);
+      if (!fs.existsSync(chunkPath)) {
+        return res.status(400).json({ error: `Missing chunk ${i}` });
+      }
+    }
+
+    // Assemble chunks sequentially into a single temp file
+    assembledPath = path.join(multerTempDir(), `assembled_${randomUUID()}`);
+    const writeStream = fs.createWriteStream(assembledPath);
+    for (let i = 0; i < total; i++) {
+      const chunkPath = path.join(chunksDir, `chunk_${String(i).padStart(6, '0')}`);
+      await new Promise<void>((resolve, reject) => {
+        const readStream = fs.createReadStream(chunkPath);
+        readStream.pipe(writeStream, { end: false });
+        readStream.on('end', resolve);
+        readStream.on('error', reject);
+      });
+    }
+    writeStream.end();
+    await new Promise<void>((resolve, reject) => {
+      writeStream.on('finish', resolve);
+      writeStream.on('error', reject);
+    });
+
+    const { size: fileSize } = await fs.promises.stat(assembledPath);
+
+    if (fileSize > MAX_PDF_SIZE_BYTES) {
+      return res.status(400).json({
+        error: `Assembled file too large. Maximum allowed size is ${MAX_PDF_SIZE_BYTES / 1024 / 1024} MB.`,
+      });
+    }
+
+    const bookId = await createJobFromFile(assembledPath, originalName, fileSize, jobFields, (req as any).user?.id);
+    assembledPath = undefined; // ownership transferred — do not delete in finally
+
+    // Clean up chunk directory now that assembly succeeded
+    fs.rmSync(chunksDir, { recursive: true, force: true });
+
+    triggerWorkerJob(bookId).catch((err) => console.error(`[ingestion] Failed to trigger worker for job ${bookId}:`, err));
+
+    return res.status(201).json({ success: true, data: { id: bookId } });
+  } catch (error: any) {
+    console.error('Error finalizing chunked upload:', error);
+    if (assembledPath && fs.existsSync(assembledPath)) fs.unlinkSync(assembledPath);
+    if (fs.existsSync(chunksDir)) fs.rmSync(chunksDir, { recursive: true, force: true });
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 /**
  * @route   GET /api/v1/admin/ingestion/jobs
  * @desc    Get all ingestion jobs with their status and progress
@@ -102,71 +304,7 @@ router.post('/jobs', upload.single('pdf'), async (req: Request, res: Response) =
       return res.status(400).json({ error: 'PDF file is required' });
     }
 
-    const { processType, topic, categorySlugs, extractionSpecialInstruction, enhancementSpecialInstruction, classificationSpecialInstruction, summarizationSpecialInstruction, pagesFrom, pagesTo, scoutModelId, extractionModelId, enhancementModelId, generationModelId, summarizationModelId } = req.body;
-
-    const parsedCategorySlugs = categorySlugs ? JSON.parse(categorySlugs) : undefined;
-
-    let pages;
-    if (pagesFrom || pagesTo) {
-      pages = {
-        ...(pagesFrom && { from: parseInt(pagesFrom, 10) }),
-        ...(pagesTo && { to: parseInt(pagesTo, 10) }),
-      };
-    }
-
-    const modelOverrides: Record<string, string> = {};
-    if (scoutModelId) modelOverrides.scout = scoutModelId;
-    if (extractionModelId) modelOverrides.extraction = extractionModelId;
-    if (enhancementModelId) modelOverrides.enhancement = enhancementModelId;
-    if (generationModelId) modelOverrides.generation = generationModelId;
-    if (summarizationModelId) modelOverrides.summarization = summarizationModelId;
-
-    const manifestData = {
-      processType,
-      topic,
-      categorySlugs: parsedCategorySlugs,
-      extractionSpecialInstruction,
-      enhancementSpecialInstruction,
-      classificationSpecialInstruction,
-      summarizationSpecialInstruction,
-      pages,
-      ...(Object.keys(modelOverrides).length > 0 && { modelOverrides }),
-    };
-
-    const dbProcessType = processType === 'quiz-generation' ? ProcessType.QUIZ_GENERATION : ProcessType.QUESTION_EXTRACTION;
-
-    // Create the DB record first to obtain the UUID that becomes the bookId/directory name
-    const newJob = await prisma.ingestionJob.create({
-      data: {
-        processType: dbProcessType,
-        status: IngestionStatus.QUEUED,
-        fileName: req.file.originalname,
-        fileSize: req.file.size,
-        storagePath: '', // updated below once directory is known
-        manifestData,
-        adminId: (req as any).user?.id,
-      },
-    });
-
-    const bookId = newJob.id;
-    const bookDir = path.join(ingestionRoot(), bookId);
-
-    if (!fs.existsSync(bookDir)) {
-      fs.mkdirSync(bookDir, { recursive: true });
-    }
-
-    const targetPdfPath = path.join(bookDir, req.file.originalname);
-    // Use async FS calls so these operations don't block the event loop
-    // while moving potentially large PDF files.
-    await fs.promises.rename(req.file.path, targetPdfPath);
-
-    // Save manifest file for local debugging
-    await fs.promises.writeFile(path.join(bookDir, 'manifest.json'), JSON.stringify({ bookId, ...manifestData }, null, 2));
-
-    await prisma.ingestionJob.update({
-      where: { id: bookId },
-      data: { storagePath: targetPdfPath },
-    });
+    const bookId = await createJobFromFile(req.file.path, req.file.originalname, req.file.size, req.body, (req as any).user?.id);
 
     // Trigger the worker as a genuine fire-and-forget — respond to the browser
     // immediately after the DB record is committed. The worker runs async and
