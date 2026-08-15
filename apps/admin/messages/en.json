@@ -123,7 +123,13 @@
       "close": "Close sidebar",
       "aiProviders": "AI Providers",
       "aiModels": "AI Models",
-      "ingestionSettings": "Ingestion Settings"
+      "ingestionSettings": "Ingestion Settings",
+      "groups": {
+        "content": "Content Management",
+        "engagement": "User Engagement",
+        "ai": "AI & Automation",
+        "system": "System Settings"
+      }
     }
   },
   "users": {
@@ -923,6 +929,7 @@
       "loadError": "Failed to load jobs.",
       "errorAction": "Action failed.",
       "deleteJob": "Delete Job",
+      "deleteSuccess": "Job deleted",
       "retryJob": "Retrigger",
       "viewDetails": "View Details",
       "status": "Status",
@@ -967,6 +974,12 @@
       },
       "errorPanel": {
         "title": "Error Details"
+      },
+      "statusValues": {
+        "QUEUED": "Queued",
+        "PROCESSING": "Processing",
+        "COMPLETED": "Completed",
+        "FAILED": "Failed"
       },
       "phases": {
         "none": "No Reset (Resume)",

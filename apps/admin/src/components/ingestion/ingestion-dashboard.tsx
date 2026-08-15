@@ -94,7 +94,7 @@ export function IngestionDashboard() {
 
     const res = await fetch(`/api/v1/admin/ingestion/jobs/${job.id}`, { method: 'DELETE' });
     if (res.ok) {
-      toast.success('Job deleted');
+      toast.success(t('deleteSuccess'));
       fetchJobs();
     } else {
       toast.error(t('errorAction'));
@@ -174,11 +174,11 @@ export function IngestionDashboard() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                     </span>
-                    {job.status}
+                    {t(`statusValues.${job.status}` as any) || job.status}
                   </Badge>
                 ) : (
                   <Badge variant={job.status === 'FAILED' ? 'destructive' : job.status === 'COMPLETED' ? 'default' : 'secondary'}>
-                    {job.status}
+                    {t(`statusValues.${job.status}` as any) || job.status}
                   </Badge>
                 )}
               </div>

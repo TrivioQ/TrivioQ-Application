@@ -23,29 +23,54 @@ import {
   FileText,
   Boxes,
   SlidersHorizontal,
+  ChevronDown,
 } from 'lucide-react';
 import { logoutAction } from '@/app/actions/auth-actions';
 import { useTranslations } from 'next-intl';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { cn } from '@/lib/utils';
 
-const NAV_ITEMS: { href: string; icon: React.ElementType; labelKey: string; exact?: boolean }[] = [
+type NavItem = { href: string; icon: React.ElementType; labelKey: string; exact?: boolean };
+type NavGroup = { groupKey: string; items: NavItem[] };
+type NavElement = NavItem | NavGroup;
+
+const NAV_ITEMS: NavElement[] = [
   { href: '/', icon: LayoutDashboard, labelKey: 'sidebar.dashboard', exact: true },
   { href: '/users', icon: Users, labelKey: 'sidebar.users' },
-  { href: '/questions/review', icon: EyeIcon, labelKey: 'sidebar.reviewQuestions' },
-  { href: '/questions', icon: HelpCircle, labelKey: 'sidebar.questions' },
-  { href: '/categories', icon: Tags, labelKey: 'sidebar.categories' },
-  { href: '/faqs', icon: MessageSquareQuote, labelKey: 'sidebar.faqs' },
-  { href: '/notifications', icon: Bell, labelKey: 'sidebar.notifications' },
-  { href: '/bonus-plans', icon: Trophy, labelKey: 'sidebar.bonusPlans' },
-  { href: '/app-settings', icon: Settings, labelKey: 'sidebar.appSettings' },
-  { href: '/ai-providers', icon: Cpu, labelKey: 'sidebar.aiProviders' },
-  { href: '/ai-models', icon: Boxes, labelKey: 'sidebar.aiModels' },
-  { href: '/ingestion-settings', icon: SlidersHorizontal, labelKey: 'sidebar.ingestionSettings' },
-  { href: '/subscription-history', icon: ClockIcon, labelKey: 'sidebar.subscriptionHistory' },
-  { href: '/cron-jobs', icon: Cpu, labelKey: 'sidebar.cronJobs' },
-  { href: '/audit-logs', icon: ShieldAlert, labelKey: 'sidebar.auditLogs' },
-  { href: '/ingestion', icon: FileText, labelKey: 'sidebar.ingestion' }
+  {
+    groupKey: 'sidebar.groups.content',
+    items: [
+      { href: '/questions/review', icon: EyeIcon, labelKey: 'sidebar.reviewQuestions' },
+      { href: '/questions', icon: HelpCircle, labelKey: 'sidebar.questions' },
+      { href: '/categories', icon: Tags, labelKey: 'sidebar.categories' },
+      { href: '/faqs', icon: MessageSquareQuote, labelKey: 'sidebar.faqs' },
+    ],
+  },
+  {
+    groupKey: 'sidebar.groups.engagement',
+    items: [
+      { href: '/notifications', icon: Bell, labelKey: 'sidebar.notifications' },
+      { href: '/bonus-plans', icon: Trophy, labelKey: 'sidebar.bonusPlans' },
+      { href: '/subscription-history', icon: ClockIcon, labelKey: 'sidebar.subscriptionHistory' },
+    ],
+  },
+  {
+    groupKey: 'sidebar.groups.ai',
+    items: [
+      { href: '/ai-providers', icon: Cpu, labelKey: 'sidebar.aiProviders' },
+      { href: '/ai-models', icon: Boxes, labelKey: 'sidebar.aiModels' },
+      { href: '/ingestion-settings', icon: SlidersHorizontal, labelKey: 'sidebar.ingestionSettings' },
+      { href: '/ingestion', icon: FileText, labelKey: 'sidebar.ingestion' },
+    ],
+  },
+  {
+    groupKey: 'sidebar.groups.system',
+    items: [
+      { href: '/app-settings', icon: Settings, labelKey: 'sidebar.appSettings' },
+      { href: '/cron-jobs', icon: Cpu, labelKey: 'sidebar.cronJobs' },
+      { href: '/audit-logs', icon: ShieldAlert, labelKey: 'sidebar.auditLogs' },
+    ],
+  },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -91,6 +116,42 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     return stripped === href || stripped.startsWith(`${href}/`);
   }
 
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    NAV_ITEMS.forEach((navElement) => {
+      if ('groupKey' in navElement) {
+        if (navElement.items.some((item) => isActive(item.href, item.exact))) {
+          initial[navElement.groupKey] = true;
+        }
+      }
+    });
+    return initial;
+  });
+
+  const [prevPathname, setPrevPathname] = useState(pathname);
+
+  // Auto-expand groups when pathname changes (adjusting state during render)
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    
+    const newExpanded: Record<string, boolean> = { ...expandedGroups };
+    let changed = false;
+
+    NAV_ITEMS.forEach((navElement) => {
+      if ('groupKey' in navElement) {
+        const isGroupActive = navElement.items.some((item) => isActive(item.href, item.exact));
+        if (isGroupActive && !newExpanded[navElement.groupKey]) {
+          newExpanded[navElement.groupKey] = true;
+          changed = true;
+        }
+      }
+    });
+
+    if (changed) {
+      setExpandedGroups(newExpanded);
+    }
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-bg text-foreground">
       {/* Tablet/mobile overlay */}
@@ -134,7 +195,82 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
         {/* Navigation */}
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map(({ href, icon: Icon, labelKey, exact }) => {
+          {NAV_ITEMS.map((navElement) => {
+            if ('groupKey' in navElement) {
+              const group = navElement;
+              const isExpanded = expandedGroups[group.groupKey];
+              const isGroupActive = group.items.some((item) => isActive(item.href, item.exact));
+
+              return (
+                <div key={group.groupKey} className="flex flex-col gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedGroups((prev) => ({
+                        ...prev,
+                        [group.groupKey]: !prev[group.groupKey],
+                      }))
+                    }
+                    className={cn(
+                      'flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full text-left',
+                      isGroupActive
+                        ? 'text-sidebar-foreground'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+                    )}
+                  >
+                    <span className="font-semibold uppercase tracking-wider text-[11px] text-sidebar-foreground/50">
+                      {t(group.groupKey as Parameters<typeof t>[0])}
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      className={cn(
+                        'transition-transform duration-200 text-sidebar-foreground/50',
+                        isExpanded ? 'rotate-180' : ''
+                      )}
+                    />
+                  </button>
+                  <div
+                    className={cn(
+                      'overflow-hidden transition-all duration-200 ease-in-out',
+                      isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                    )}
+                  >
+                    <div className="flex flex-col gap-0.5 mt-0.5 pl-2 border-l-2 border-sidebar-border/50 ml-3">
+                      {group.items.map(({ href, icon: Icon, labelKey, exact }) => {
+                        const active = isActive(href, exact);
+                        return (
+                          <Link
+                            key={href}
+                            href={href}
+                            onClick={closeSidebar}
+                            className={cn(
+                              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                              active
+                                ? 'bg-sidebar-primary/10 text-sidebar-primary'
+                                : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground',
+                            )}
+                          >
+                            <Icon
+                              size={18}
+                              className={cn(
+                                'shrink-0 transition-colors',
+                                active ? 'text-sidebar-primary' : 'text-sidebar-foreground/50',
+                              )}
+                            />
+                            <span>{t(labelKey as Parameters<typeof t>[0])}</span>
+                            {active && (
+                              <span className="ml-auto w-1 h-4 rounded-full bg-sidebar-primary opacity-80" />
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            const { href, icon: Icon, labelKey, exact } = navElement;
             const active = isActive(href, exact);
             return (
               <Link
