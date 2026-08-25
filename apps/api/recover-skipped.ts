@@ -17,7 +17,7 @@ async function main() {
   let recoveredCount = 0;
 
   for (const job of jobs) {
-    const stateFile = path.join(INGESTION_DIR, job.id, 'data', 'state.json');
+    const stateFile = path.join(INGESTION_DIR, job.id, 'data', `${job.id}_state.json`);
     if (!fs.existsSync(stateFile)) continue;
 
     try {
