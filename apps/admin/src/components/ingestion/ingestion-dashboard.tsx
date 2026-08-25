@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Play, Trash, Eye, AlertTriangle } from 'lucide-react';
+import { Play, Trash, AlertTriangle, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -149,10 +149,24 @@ export function IngestionDashboard() {
         <Card key={job.id} className="bg-background shadow-sm flex flex-col">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between gap-4 min-w-0">
-              <div className="space-y-1.5 min-w-0">
-                <CardTitle className="text-base font-semibold truncate" title={job.fileName}>
-                  {job.fileName}
-                </CardTitle>
+              <div className="space-y-1.5 min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <CardTitle className="text-base font-semibold truncate hover:underline" title={job.fileName}>
+                    <Link href={`/ingestion/${job.id}`} className="truncate">
+                      {job.fileName}
+                    </Link>
+                  </CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 shrink-0 text-muted-foreground hover:text-foreground"
+                    nativeButton={false}
+                    render={<Link href={`/ingestion/${job.id}`} />}
+                    title={t('viewDetails')}
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </div>
                 <div className="flex flex-col gap-1.5 items-start">
                   <CardDescription className="text-xs font-mono bg-muted inline-block px-2 py-0.5 rounded">
                     {job.processType === 'QUIZ_GENERATION' ? t('form.quizGeneration') : job.processType === 'QUESTION_EXTRACTION' ? t('form.questionExtraction') : job.processType}
@@ -228,13 +242,9 @@ export function IngestionDashboard() {
             </div>
           </CardContent>
 
+          {job.status !== 'PROCESSING' && (
           <CardFooter className="pt-0 flex flex-wrap gap-2 border-t mt-4 p-4">
-            <Button variant="default" size="sm" className="flex-1" nativeButton={false} render={<Link href={`/ingestion/${job.id}`} />}>
-              <Eye className="w-3 h-3 mr-2" />
-              {t('viewDetails')}
-            </Button>
-            
-            {job.status === 'FAILED' || job.status === 'COMPLETED' ? (
+            {(job.status === 'FAILED' || job.status === 'COMPLETED') && (
               <DropdownMenu>
                 <DropdownMenuTrigger render={<Button variant="outline" size="sm" className="flex-1" />}>
                   <Play className="w-3 h-3 mr-2" />
@@ -260,13 +270,16 @@ export function IngestionDashboard() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : null}
+            )}
 
-            <Button variant="destructive" size="sm" onClick={() => deleteJob(job)} className="flex-1" title={t('deleteJob')}>
-              <Trash className="w-3 h-3 mr-2" />
-              {t('deleteJob')}
-            </Button>
+            {job.status !== 'PROCESSING' && (
+              <Button variant="destructive" size="sm" onClick={() => deleteJob(job)} className="flex-1" title={t('deleteJob')}>
+                <Trash className="w-3 h-3 mr-2" />
+                {t('deleteJob')}
+              </Button>
+            )}
           </CardFooter>
+        )}
         </Card>
       ))}
     </div>

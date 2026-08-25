@@ -425,41 +425,49 @@ export function JobDetail({ jobId }: { jobId: string }) {
 
         {/* Actions footer */}
         <CardFooter className="flex flex-col sm:flex-row items-center gap-4 bg-muted/50 p-4 border-t">
-          <div className="flex items-center gap-4 w-full sm:w-auto">
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<Button />}>
-                <Play className="mr-2 h-4 w-4" />
-                {job.status === 'PROCESSING' 
-                  ? t('confirmations.retriggerConfirm', { fallback: 'Retrigger' }) 
-                  : job.status === 'PAUSED' 
-                    ? t('confirmations.resumeConfirm', { fallback: 'Resume' })
-                    : t('confirmations.retryConfirm')}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => retryJob('none')}>
-                  {t('phases.none')}
-                </DropdownMenuItem>
-                {job.processType !== 'QUIZ_GENERATION' && (
-                  <DropdownMenuItem onClick={() => retryJob('SCOUT')}>
-                    {t('phases.scout')}
+          <div className="flex items-center gap-4 w-full sm:w-auto flex-wrap">
+            {/* Retry — only for FAILED / COMPLETED */}
+            {(job.status === 'FAILED' || job.status === 'COMPLETED') && (
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button />}>
+                  <Play className="mr-2 h-4 w-4" />
+                  {t('confirmations.retryConfirm')}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => retryJob('none')}>
+                    {t('phases.none')}
                   </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={() => retryJob('EXTRACTION')}>
-                  {t('phases.extraction')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => retryJob('ENHANCEMENT')}>
-                  {t('phases.enhancement')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => retryJob('UPLOAD')}>
-                  {t('phases.upload')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {job.processType !== 'QUIZ_GENERATION' && (
+                    <DropdownMenuItem onClick={() => retryJob('SCOUT')}>
+                      {t('phases.scout')}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => retryJob('EXTRACTION')}>
+                    {t('phases.extraction')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => retryJob('ENHANCEMENT')}>
+                    {t('phases.enhancement')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => retryJob('UPLOAD')}>
+                    {t('phases.upload')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
+            {/* Pause — only while actively processing */}
             {job.status === 'PROCESSING' && (
               <Button onClick={pauseJob} variant="secondary">
                 <Square className="mr-2 h-4 w-4" />
                 {t('confirmations.pauseConfirm', { fallback: 'Pause' })}
+              </Button>
+            )}
+
+            {/* Resume — only when paused */}
+            {job.status === 'PAUSED' && (
+              <Button onClick={() => retryJob('none')} variant="default">
+                <Play className="mr-2 h-4 w-4" />
+                {t('confirmations.resumeConfirm', { fallback: 'Resume' })}
               </Button>
             )}
 
@@ -477,13 +485,16 @@ export function JobDetail({ jobId }: { jobId: string }) {
                   </Button>
                 </>
               )}
-              <Button variant="destructive" onClick={deleteJob}>
-                <Trash className="mr-2 h-4 w-4" />
-                {t('confirmations.deleteConfirm', { fallback: 'Delete' })}
-              </Button>
+              {job.status !== 'PROCESSING' && (
+                <Button variant="destructive" onClick={deleteJob}>
+                  <Trash className="mr-2 h-4 w-4" />
+                  {t('confirmations.deleteConfirm', { fallback: 'Delete' })}
+                </Button>
+              )}
             </div>
           </div>
         </CardFooter>
+
       </Card>
     </div>
   );

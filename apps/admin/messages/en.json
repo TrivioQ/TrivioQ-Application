@@ -979,7 +979,8 @@
         "QUEUED": "Queued",
         "PROCESSING": "Processing",
         "COMPLETED": "Completed",
-        "FAILED": "Failed"
+        "FAILED": "Failed",
+        "PAUSED": "Paused"
       },
       "phases": {
         "none": "No Reset (Resume)",
