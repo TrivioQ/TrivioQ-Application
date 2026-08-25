@@ -145,6 +145,21 @@ export class QuizGenerationProcess implements IngestionProcess {
         const match = imagePath.match(/page\.(\d+)\./);
         const pageNumber = match ? parseInt(match[1], 10) : i + 1;
 
+        const stateData = this.state.initOrLoad();
+        const existingMeta = (stateData.metadata as Record<string, unknown>) ?? {};
+        const processedPages = (existingMeta.processedPages as number[]) ?? [];
+        const hasLegacyQuestions = stateData.questions.some((q) => q.metadata?.pageNumber === pageNumber);
+
+        if (processedPages.includes(pageNumber) || hasLegacyQuestions) {
+          this.logInfo('Generation', `Skipping image ${i + 1} (page ${pageNumber}) — already processed successfully.`);
+          this.state.setLastProcessedExtractionBatchIndex(i);
+          if (!processedPages.includes(pageNumber)) {
+            processedPages.push(pageNumber);
+            this.state.updateMetadata({ ...existingMeta, processedPages });
+          }
+          continue;
+        }
+
         // Summarization Step
         await this.delayIfNeeded('summarization');
         this.logInfo('Generation', `Summarizing image ${i + 1}/${this.imagePaths.length}...`);
@@ -201,6 +216,8 @@ export class QuizGenerationProcess implements IngestionProcess {
           this.state.upsertQuestion(question);
         }
 
+        processedPages.push(pageNumber);
+        this.state.updateMetadata({ ...existingMeta, processedPages });
         this.state.setLastProcessedExtractionBatchIndex(i);
         this.logInfo('Generation', `Generated ${questions.length} questions from image ${i + 1}`);
       } catch (error) {
@@ -211,6 +228,7 @@ export class QuizGenerationProcess implements IngestionProcess {
           imageIndex: i,
           imagePath,
         });
+        throw error;
       }
     }
   }
@@ -277,7 +295,7 @@ export class QuizGenerationProcess implements IngestionProcess {
               phase: 'enhancement',
               questionId: question.id,
             });
-            return null;
+            throw error;
           }
         }),
       );
@@ -404,6 +422,7 @@ export class QuizGenerationProcess implements IngestionProcess {
           phase: 'upload',
           questionId: q.id,
         });
+        throw error;
       }
     }
   }

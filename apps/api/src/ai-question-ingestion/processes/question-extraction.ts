@@ -159,6 +159,12 @@ export class QuestionExtractionProcess implements IngestionProcess {
         const existingMeta = (stateData.metadata as Record<string, unknown>) ?? {};
         const imageClassifications = (existingMeta.imageClassifications as Record<string, ImageType>) ?? {};
 
+        if (imageClassifications[imagePath]) {
+          this.logInfo('Scout', `Skipping image ${i + 1} — already classified as ${imageClassifications[imagePath]}.`);
+          this.state.setLastProcessedImageIndex(i);
+          continue;
+        }
+
         await this.delayIfNeeded('scout');
         this.logInfo('Scout', `Classifying image ${i + 1}...`);
         let classification: ImageType;
@@ -183,7 +189,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
           imageIndex: i,
           imagePath,
         });
-        // Continue — fault tolerant
+        throw error;
       }
     }
   }
@@ -251,6 +257,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
         } catch (error) {
           if (signal?.aborted) throw error;
           this.logError('Extraction', `Error extracting keys from ${keyPagePath}:`, error);
+          throw error;
         }
       }
     }
@@ -344,11 +351,9 @@ export class QuestionExtractionProcess implements IngestionProcess {
       await onProgress?.('EXTRACTION', i + 1, groups.length);
       const { images: group, spatialInstructions, answerKeyRef, hasUnderneathKeys } = groups[i];
       try {
-        const imagesB64 = group.map((img) => this.imageToBase64(img));
-        const imageIndices = group.map((p) => this.imagePaths.indexOf(p) + 1).join(', ');
-
-        await this.delayIfNeeded('extraction');
-        this.logInfo('Extraction', `Extracting questions from image(s) ${imageIndices}, batch ${i + 1} of ${groups.length}...`);
+        const stateData = this.state.initOrLoad();
+        const existingMeta = (stateData.metadata as Record<string, unknown>) ?? {};
+        const processedExtractionBatches = (existingMeta.processedExtractionBatches as number[]) ?? [];
 
         const pageNumbers = group
           .map((img) => {
@@ -356,6 +361,25 @@ export class QuestionExtractionProcess implements IngestionProcess {
             return m ? parseInt(m[1], 10) : null;
           })
           .filter((n): n is number => n !== null);
+
+        // Legacy support: if all pages in the batch have at least one extracted question, consider it processed
+        const hasLegacyQuestions = pageNumbers.length > 0 && pageNumbers.every((pageNum) => stateData.questions.some((q) => q.metadata?.pageNumber === pageNum));
+
+        if (processedExtractionBatches.includes(i) || hasLegacyQuestions) {
+          this.logInfo('Extraction', `Skipping batch ${i + 1} of ${groups.length} — already processed successfully.`);
+          this.state.setLastProcessedExtractionBatchIndex(i);
+          if (!processedExtractionBatches.includes(i)) {
+            processedExtractionBatches.push(i);
+            this.state.updateMetadata({ ...existingMeta, processedExtractionBatches });
+          }
+          continue;
+        }
+
+        const imagesB64 = group.map((img) => this.imageToBase64(img));
+        const imageIndices = group.map((p) => this.imagePaths.indexOf(p) + 1).join(', ');
+
+        await this.delayIfNeeded('extraction');
+        this.logInfo('Extraction', `Extracting questions from image(s) ${imageIndices}, batch ${i + 1} of ${groups.length}...`);
 
         const extractionPrompt = buildExtractionPrompt(spatialInstructions, this.extractionSpecialInstruction, pageNumbers);
 
@@ -406,6 +430,8 @@ export class QuestionExtractionProcess implements IngestionProcess {
         this.reconcileAnswerKeys();
 
         // Mark this batch as completed
+        processedExtractionBatches.push(i);
+        this.state.updateMetadata({ ...existingMeta, processedExtractionBatches });
         this.state.setLastProcessedExtractionBatchIndex(i);
         this.logInfo('Extraction', `Completed batch ${i + 1} of ${groups.length}`);
       } catch (error) {
@@ -416,6 +442,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
           batchIndex: i,
           images: group,
         });
+        throw error;
       }
     }
 
@@ -634,7 +661,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
               phase: 'enhancement',
               questionId: question.id,
             });
-            return null;
+            throw error;
           }
         }),
       );
@@ -769,6 +796,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
           phase: 'upload',
           questionId: q.id,
         });
+        throw error;
       }
     }
   }
