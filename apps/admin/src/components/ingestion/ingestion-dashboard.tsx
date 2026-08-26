@@ -150,23 +150,11 @@ export function IngestionDashboard() {
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between gap-4 min-w-0">
               <div className="space-y-1.5 min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <CardTitle className="text-base font-semibold truncate hover:underline" title={job.fileName}>
-                    <Link href={`/ingestion/${job.id}`} className="truncate">
-                      {job.fileName}
-                    </Link>
-                  </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 shrink-0 text-muted-foreground hover:text-foreground"
-                    nativeButton={false}
-                    render={<Link href={`/ingestion/${job.id}`} />}
-                    title={t('viewDetails')}
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
-                </div>
+                <CardTitle className="text-base font-semibold truncate hover:underline" title={job.fileName}>
+                  <Link href={`/ingestion/${job.id}`} className="truncate">
+                    {job.fileName}
+                  </Link>
+                </CardTitle>
                 <div className="flex flex-col gap-1.5 items-start">
                   <CardDescription className="text-xs font-mono bg-muted inline-block px-2 py-0.5 rounded">
                     {job.processType === 'QUIZ_GENERATION' ? t('form.quizGeneration') : job.processType === 'QUESTION_EXTRACTION' ? t('form.questionExtraction') : job.processType}
@@ -195,6 +183,16 @@ export function IngestionDashboard() {
                     {t(`statusValues.${job.status}` as any) || job.status}
                   </Badge>
                 )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
+                  nativeButton={false}
+                  render={<Link href={`/ingestion/${job.id}`} target="_blank" />}
+                  title={t('viewDetails')}
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </Button>
               </div>
             </div>
           </CardHeader>

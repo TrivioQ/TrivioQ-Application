@@ -14,15 +14,9 @@ import type { ProviderConnection } from './connection';
 
 // A 1x1 valid base64 PNG — the local endpoint strictly requires a file, so this
 // is the fallback when a phase calls with no image (e.g. text-only enhancement).
-const DUMMY_IMAGE_BASE64 =
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+const DUMMY_IMAGE_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
-export async function callLocalForm(
-  conn: ProviderConnection,
-  prompt: string,
-  images: ImageInput[] = [],
-  options?: { temperature?: number; signal?: AbortSignal },
-): Promise<string> {
+export async function callLocalForm(conn: ProviderConnection, prompt: string, images: ImageInput[] = [], options?: { temperature?: number; signal?: AbortSignal }): Promise<string> {
   const formData = new FormData();
   formData.append('prompt', prompt);
   formData.append('temperature', (options?.temperature ?? 0).toString());
@@ -35,9 +29,7 @@ export async function callLocalForm(
     base64Data = images[0].base64;
     mimeType = images[0].mimeType || 'image/jpeg';
     if (images.length > 1) {
-      console.warn(
-        `[${conn.displayName}] Received ${images.length} images, but the local endpoint supports only 1. Using the first image.`,
-      );
+      console.warn(`[${conn.displayName}] Received ${images.length} images, but the local endpoint supports only 1. Using the first image.`);
     }
   }
 

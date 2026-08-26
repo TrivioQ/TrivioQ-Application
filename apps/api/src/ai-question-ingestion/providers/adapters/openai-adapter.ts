@@ -28,17 +28,9 @@ export function buildOpenAIContent(prompt: string, images: ImageInput[] = []): s
   return parts;
 }
 
-export async function callOpenAI(
-  conn: ProviderConnection,
-  prompt: string,
-  images: ImageInput[] = [],
-  options?: { temperature?: number; signal?: AbortSignal },
-): Promise<string> {
+export async function callOpenAI(conn: ProviderConnection, prompt: string, images: ImageInput[] = [], options?: { temperature?: number; signal?: AbortSignal }): Promise<string> {
   if (!conn.supportsVision && images.length > 0) {
-    throw new ApiFatalError(
-      `Provider "${conn.displayName}" does not support image inputs. ` +
-        'Configure a vision-capable provider/model for scout, extraction, or summarization phases.',
-    );
+    throw new ApiFatalError(`Provider "${conn.displayName}" does not support image inputs. ` + 'Configure a vision-capable provider/model for scout, extraction, or summarization phases.');
   }
 
   const body: Record<string, unknown> = {

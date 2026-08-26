@@ -5,13 +5,4 @@
 // This module remains as the type-only entry point for the AIProvider contract
 // and its result shape types, re-exported from ai-provider.ts.
 
-export type {
-  AIProvider,
-  ClassificationResult,
-  EnhancementResult,
-  ExtractionResult,
-  ExtractedAnswerKey,
-  ExtractedChoice,
-  ExtractedQuestion,
-  ImageInput,
-} from './ai-provider';
+export type { AIProvider, ClassificationResult, EnhancementResult, ExtractionResult, ExtractedAnswerKey, ExtractedChoice, ExtractedQuestion, ImageInput } from './ai-provider';

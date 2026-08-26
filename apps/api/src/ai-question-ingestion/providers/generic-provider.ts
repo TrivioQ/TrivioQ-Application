@@ -32,11 +32,7 @@ export class GenericAIProvider extends BaseAIProvider {
     Object.defineProperty(this, 'name', { value: conn.displayName, configurable: true });
   }
 
-  protected async call(
-    prompt: string,
-    images: ImageInput[] = [],
-    options?: { temperature?: number; signal?: AbortSignal },
-  ): Promise<string> {
+  protected async call(prompt: string, images: ImageInput[] = [], options?: { temperature?: number; signal?: AbortSignal }): Promise<string> {
     if (this.conn.minCallIntervalMs > 0) {
       await this.enforceRateLimit(this.conn.minCallIntervalMs);
     }
