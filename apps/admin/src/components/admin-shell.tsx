@@ -218,7 +218,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                         : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                     )}
                   >
-                    <span className="font-semibold uppercase tracking-wider text-[11px] text-sidebar-foreground/50">
+                    <span className="font-semibold uppercase tracking-wider text-xs text-sidebar-foreground/60">
                       {t(group.groupKey as Parameters<typeof t>[0])}
                     </span>
                     <ChevronDown
@@ -244,7 +244,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                             href={href}
                             onClick={closeSidebar}
                             className={cn(
-                              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-colors',
                               active
                                 ? 'bg-sidebar-primary/10 text-sidebar-primary'
                                 : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground',
@@ -304,7 +304,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="p-3 border-t border-sidebar-border shrink-0 space-y-1">
           {/* Theme switcher row */}
           <div className="flex items-center justify-between px-3 py-2 rounded-lg">
-            <span className="text-xs font-medium text-sidebar-foreground/50 uppercase tracking-wider">
+            <span className="text-xs font-medium text-sidebar-foreground/60 uppercase tracking-wider">
               {t('theme')}
             </span>
             <ThemeSwitcher />
