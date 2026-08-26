@@ -228,7 +228,7 @@ export function WorkflowLogs({ jobId, status }: { jobId: string; status: string 
             size="sm"
             variant="outline"
             onClick={jumpToBottom}
-            className="absolute bottom-2 right-2 h-8 gap-1 bg-zinc-900"
+            className="absolute bottom-2 right-2 h-8 gap-1 bg-zinc-900 text-zinc-50 hover:bg-zinc-800 hover:text-zinc-50 border-zinc-800"
           >
             <ArrowDown className="h-3.5 w-3.5" />
             {t('jumpToBottom')}
