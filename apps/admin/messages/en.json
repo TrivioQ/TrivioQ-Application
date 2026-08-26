@@ -975,6 +975,18 @@
       "errorPanel": {
         "title": "Error Details"
       },
+      "workflowLogs": {
+        "title": "Workflow Logs",
+        "live": "live",
+        "reconnecting": "reconnecting…",
+        "streamEnded": "stream ended: {terminal}",
+        "waiting": "Waiting for log output…",
+        "jumpToBottom": "Jump to bottom",
+        "showingMaxLines": "Showing last {max} lines (older lines evicted from view)",
+        "linesCount": "{count} lines",
+        "earlierTruncated": "… earlier logs truncated (tail shown) …",
+        "logRotated": "… log rotated (job retried) …"
+      },
       "statusValues": {
         "QUEUED": "Queued",
         "PROCESSING": "Processing",

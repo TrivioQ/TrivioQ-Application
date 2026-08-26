@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from 'next-intl';
 
 interface WorkflowLogEntry {
   ts: string;
@@ -42,6 +43,7 @@ function fmtTs(ts: string): string {
 }
 
 export function WorkflowLogs({ jobId, status }: { jobId: string; status: string }) {
+  const t = useTranslations('system.ingestion.workflowLogs');
   const [lines, setLines] = useState<Line[]>([]);
   const [stick, setStick] = useState(true);
   const [reconnecting, setReconnecting] = useState(false);
@@ -49,6 +51,12 @@ export function WorkflowLogs({ jobId, status }: { jobId: string; status: string 
     status === 'COMPLETED' || status === 'FAILED' || status === 'PAUSED' ? status : null,
   );
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'instant') => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior });
+  }, []);
 
   const appendLine = useCallback((entry: Line) => {
     setLines((prev) => {
@@ -72,6 +80,7 @@ export function WorkflowLogs({ jobId, status }: { jobId: string; status: string 
       if (reset) return;
       reset = true;
       setLines([]);
+      setStick(true);
       setReconnecting(false);
       setTerminal(null);
     };
@@ -91,10 +100,10 @@ export function WorkflowLogs({ jobId, status }: { jobId: string; status: string 
         // ignore malformed line
       }
     };
-    es.addEventListener('truncated', () => appendDivider('… earlier logs truncated (tail shown) …'));
+    es.addEventListener('truncated', () => appendDivider(t('earlierTruncated')));
     es.addEventListener('rotated', () => {
       setLines([]);
-      appendDivider('… log rotated (job retried) …');
+      appendDivider(t('logRotated'));
     });
     es.addEventListener('done', (e: MessageEvent) => {
       try {
@@ -103,19 +112,34 @@ export function WorkflowLogs({ jobId, status }: { jobId: string; status: string 
         setTerminal('ENDED');
       }
       es.close();
+      if (stick) {
+        scrollToBottom('instant');
+      }
     });
     es.onerror = () => {
       setReconnecting(true);
     };
 
     return () => es.close();
-  }, [jobId, appendLine, appendDivider]);
+  }, [jobId, appendLine, appendDivider, t, stick, scrollToBottom]);
 
-  // Auto-scroll to bottom when stick is true and new lines arrive.
+  // Synchronous DOM layout scroll to bottom whenever stick is true and lines update
+  useLayoutEffect(() => {
+    if (stick) {
+      scrollToBottom('instant');
+    }
+  }, [lines, stick, scrollToBottom]);
+
+  // Post-render/RAF scroll to guarantee scrolling on load / async layout
   useEffect(() => {
-    const el = containerRef.current;
-    if (el && stick) el.scrollTop = el.scrollHeight;
-  }, [lines, stick]);
+    if (stick) {
+      scrollToBottom('instant');
+      const raf = requestAnimationFrame(() => {
+        if (stick) scrollToBottom('instant');
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [lines, stick, scrollToBottom]);
 
   const onScroll = useCallback(() => {
     const el = containerRef.current;
@@ -124,11 +148,9 @@ export function WorkflowLogs({ jobId, status }: { jobId: string; status: string 
   }, []);
 
   const jumpToBottom = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
     setStick(true);
-  }, []);
+    scrollToBottom('smooth');
+  }, [scrollToBottom]);
 
   // Precompute, for each line, whether it should render a phase-separator header.
   // Computed outside the JSX to avoid render-time mutation of a loop variable.
@@ -150,13 +172,13 @@ export function WorkflowLogs({ jobId, status }: { jobId: string; status: string 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">Workflow logs</span>
+        <span className="text-sm font-medium text-muted-foreground">{t('title')}</span>
         <span className="text-xs text-muted-foreground">
           {reconnecting
-            ? 'reconnecting…'
+            ? t('reconnecting')
             : terminal
-              ? `stream ended: ${terminal}`
-              : 'live'}
+              ? t('streamEnded', { terminal })
+              : t('live')}
         </span>
       </div>
       <div className="relative">
@@ -166,7 +188,7 @@ export function WorkflowLogs({ jobId, status }: { jobId: string; status: string 
           className="h-[500px] w-full overflow-y-auto overflow-x-auto rounded-md border border-border bg-zinc-950 p-3 font-mono text-xs leading-relaxed text-zinc-100"
         >
           {lines.length === 0 && !reconnecting && (
-            <div className="text-zinc-500">Waiting for log output…</div>
+            <div className="text-zinc-500">{t('waiting')}</div>
           )}
           {lines.map((l, i) => {
             if (isDivider(l)) {
@@ -209,15 +231,16 @@ export function WorkflowLogs({ jobId, status }: { jobId: string; status: string 
             className="absolute bottom-2 right-2 h-8 gap-1 bg-zinc-900"
           >
             <ArrowDown className="h-3.5 w-3.5" />
-            Jump to bottom
+            {t('jumpToBottom')}
           </Button>
         )}
       </div>
       <div className="text-xs text-muted-foreground">
         {lines.length >= MAX_LINES
-          ? `Showing last ${MAX_LINES} lines (older lines evicted from view)`
-          : `${lines.length} lines`}
+          ? t('showingMaxLines', { max: MAX_LINES })
+          : t('linesCount', { count: lines.length })}
       </div>
     </div>
   );
 }
+
