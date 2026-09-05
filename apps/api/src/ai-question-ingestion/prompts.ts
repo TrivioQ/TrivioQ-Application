@@ -239,12 +239,13 @@ Return a JSON object with this exact schema:
   "isSelfReferential": false
 }`;
 
-export const SUMMARIZE_IMAGE_PROMPT = `You are an expert encyclopedic fact extractor. Your task is to read the provided page image and extract every discrete, standalone educational fact it contains.
+export const SUMMARIZE_IMAGE_PROMPT = `You are an expert encyclopedic fact extractor. Your task is to read the provided page image and extract a maximum of the 15 most important, discrete, standalone educational facts it contains.
 
 ## CRITICAL — Page Orientation
 Some pages in this corpus were physically scanned or printed sideways or upside-down, so text and figures may appear rotated (0°, 90°, 180°, or 270°) within an otherwise upright page. Before extracting anything, mentally rotate the page into the orientation in which the text reads normally and naturally left-to-right, then read ALL content (body text, captions, labels on diagrams, keys on maps, values in charts) from that reoriented perspective. Treat rotated diagrams, charts, and maps the same way — their labels and legends carry facts just like body text. Do not skip a page solely because its content appears sideways.
 
 ## CRITICAL RULES
+- LIMIT EXHAUSTION: For highly complex maps, charts, or dense pages, do NOT attempt to extract every minor label or detail. Limit yourself to the 15 most prominent, high-level educational takeaways.
 - Each bullet must be a self-contained, standalone factual statement (e.g., "The cheetah can reach speeds of up to 120 km/h" not "The image shows a cheetah").
 - Prioritize specific, precise, and quiz-worthy facts: scientific names, numerical statistics, record-breakers, unique adaptations, life-cycle details, classifications, habitats, and behaviors.
 - Explicitly extract ALL numeric data: counts, sizes, speeds, weights, temperatures, percentages, depths, dates, and durations.
