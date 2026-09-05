@@ -187,7 +187,7 @@ Assess the question independently and assign a difficulty level with the average
 
 ## Topic and Categories
 - \`topic\`: A **specific** subject string describing the precise concept or entity the question is about (e.g., "Cheetah Locomotion", "Vertebrate Classification", "Earth's Ecosystems"). Do NOT use generic topics like "Animals" or "Science" — those belong in categories.
-- \`categorySlugs\`: 1–3 slugs chosen ONLY from the [AVAILABLE CATEGORIES] list below. You MUST NOT invent, hallucinate, or use any category slugs that are not exactly as they appear in the provided list. Choose the most relevant ones.
+- \`categorySlugs\`: 1–3 slugs chosen **STRICTLY AND ONLY** from the [AVAILABLE CATEGORIES] list below. **CRITICAL:** Do NOT invent, hallucinate, or use ANY category slugs that are not explicitly provided in the list. If you cannot find a perfect match, choose the closest available slug from the list.
 
 **CRITICAL — Category boundary rules (apply these BEFORE assigning any slug):**
 - \`"life-sciences-medicine"\` MUST ONLY be used for questions specifically about **human** health, the human body, human anatomy, or medicine/medical treatments. Do NOT use it for animal biology, zoology, animal anatomy, animal classification, ecology, or evolutionary biology — use \`"animals-wildlife"\` or \`"environmental-earth-sciences"\` for those instead.
