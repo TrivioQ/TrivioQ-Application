@@ -138,97 +138,107 @@ export class QuizGenerationProcess implements IngestionProcess {
       await onProgress?.('GENERATION', i + 1, this.imagePaths.length);
       const imagePath = this.imagePaths[i];
 
-      try {
-        const image = this.imageToBase64(imagePath);
+      let attempt = 0;
+      const maxRetries = 3;
 
-        // Extract page number from path if possible
-        const match = imagePath.match(/page\.(\d+)\./);
-        const pageNumber = match ? parseInt(match[1], 10) : i + 1;
+      while (attempt < maxRetries) {
+        try {
+          const image = this.imageToBase64(imagePath);
 
-        const stateData = this.state.initOrLoad();
-        const existingMeta = (stateData.metadata as Record<string, unknown>) ?? {};
-        const processedPages = (existingMeta.processedPages as number[]) ?? [];
-        const hasLegacyQuestions = stateData.questions.some((q) => q.metadata?.pageNumber === pageNumber);
+          // Extract page number from path if possible
+          const match = imagePath.match(/page\.(\d+)\./);
+          const pageNumber = match ? parseInt(match[1], 10) : i + 1;
 
-        if (processedPages.includes(pageNumber) || hasLegacyQuestions) {
-          this.logInfo('Generation', `Skipping image ${i + 1} (page ${pageNumber}) — already processed successfully.`);
-          this.state.setLastProcessedExtractionBatchIndex(i);
-          if (!processedPages.includes(pageNumber)) {
-            processedPages.push(pageNumber);
-            this.state.updateMetadata({ ...existingMeta, processedPages });
+          const stateData = this.state.initOrLoad();
+          const existingMeta = (stateData.metadata as Record<string, unknown>) ?? {};
+          const processedPages = (existingMeta.processedPages as number[]) ?? [];
+          const hasLegacyQuestions = stateData.questions.some((q) => q.metadata?.pageNumber === pageNumber);
+
+          if (processedPages.includes(pageNumber) || hasLegacyQuestions) {
+            this.logInfo('Generation', `Skipping image ${i + 1} (page ${pageNumber}) — already processed successfully.`);
+            this.state.setLastProcessedExtractionBatchIndex(i);
+            if (!processedPages.includes(pageNumber)) {
+              processedPages.push(pageNumber);
+              this.state.updateMetadata({ ...existingMeta, processedPages });
+            }
+            break;
           }
-          continue;
+
+          // Summarization Step
+          await this.delayIfNeeded('summarization');
+          this.logInfo('Generation', `Summarizing image ${i + 1}/${this.imagePaths.length}...`);
+          const summarizationPrompt = buildSummarizeImagePrompt(this.summarizationSpecialInstruction);
+
+          let summarization;
+          try {
+            summarization = await this.summarizationProvider!.summarizeImage(image, summarizationPrompt, { temperature: summarizationTemp, signal, logger: this.config.logger, loggingPhase: 'GENERATION' });
+          } finally {
+            this.recordCallTime();
+          }
+
+          // Generation Step
+          await this.delayIfNeeded('generation');
+          this.logInfo('Generation', `Generating quiz questions from summary ${i + 1}...`);
+
+          const generationPrompt = buildQuizGenerationFromTextPrompt(this.generationSpecialInstruction, pageNumber);
+
+          let generated;
+          try {
+            const summaryText = summarization.summary.join('\n- ');
+            generated = await this.generationProvider!.extractFromText(summaryText, generationPrompt, { temperature: generationTemp, signal, logger: this.config.logger, loggingPhase: 'GENERATION' });
+          } finally {
+            this.recordCallTime();
+          }
+
+          const questions = generated.questions || [];
+          for (let qIdx = 0; qIdx < questions.length; qIdx++) {
+            const gq = questions[qIdx];
+
+            // Ensure a unique ID
+            const qNum = gq.originalQuestionNumber ?? gq.id?.replace(/^gen_p\d+_/, '') ?? String(qIdx + 1);
+            const uniqueId = `gen_p${pageNumber}_${qNum}`;
+
+            const question: Question = {
+              id: uniqueId,
+              text: gq.text?.trim() ? gq.text : '[Question text missing in generation]',
+              // Quiz generation guarantees choices and the correct answer
+              status: 'READY_FOR_ENHANCEMENT',
+              // Assign the derived answer from choice marked as correct
+              answer: String.fromCharCode(
+                65 +
+                  Math.max(
+                    0,
+                    gq.choices.findIndex((c) => c.isCorrect),
+                  ),
+              ).toLowerCase(),
+              metadata: {
+                choices: gq.choices,
+                pageNumber: pageNumber,
+                originalQuestionNumber: gq.originalQuestionNumber,
+              },
+            };
+            this.state.upsertQuestion(question);
+          }
+
+          processedPages.push(pageNumber);
+          this.state.updateMetadata({ ...existingMeta, processedPages });
+          this.state.setLastProcessedExtractionBatchIndex(i);
+          this.logInfo('Generation', `Generated ${questions.length} questions from image ${i + 1}`);
+
+          break; // Break loop on success
+        } catch (error) {
+          attempt++;
+          if (signal?.aborted || attempt >= maxRetries) {
+            this.logError('Generation', `Error processing image ${imagePath} after ${attempt} attempts:`, error);
+            reportError(error instanceof Error ? error : new Error(String(error)), {
+              phase: 'generation',
+              imageIndex: i,
+              imagePath,
+            });
+            throw error;
+          }
+          this.logError('Generation', `Error processing image ${imagePath}, retrying (${attempt}/${maxRetries})...`, error);
         }
-
-        // Summarization Step
-        await this.delayIfNeeded('summarization');
-        this.logInfo('Generation', `Summarizing image ${i + 1}/${this.imagePaths.length}...`);
-        const summarizationPrompt = buildSummarizeImagePrompt(this.summarizationSpecialInstruction);
-
-        let summarization;
-        try {
-          summarization = await this.summarizationProvider!.summarizeImage(image, summarizationPrompt, { temperature: summarizationTemp, signal, logger: this.config.logger, loggingPhase: 'GENERATION' });
-        } finally {
-          this.recordCallTime();
-        }
-
-        // Generation Step
-        await this.delayIfNeeded('generation');
-        this.logInfo('Generation', `Generating quiz questions from summary ${i + 1}...`);
-
-        const generationPrompt = buildQuizGenerationFromTextPrompt(this.generationSpecialInstruction, pageNumber);
-
-        let generated;
-        try {
-          const summaryText = summarization.summary.join('\n- ');
-          generated = await this.generationProvider!.extractFromText(summaryText, generationPrompt, { temperature: generationTemp, signal, logger: this.config.logger, loggingPhase: 'GENERATION' });
-        } finally {
-          this.recordCallTime();
-        }
-
-        const questions = generated.questions || [];
-        for (let qIdx = 0; qIdx < questions.length; qIdx++) {
-          const gq = questions[qIdx];
-
-          // Ensure a unique ID
-          const qNum = gq.originalQuestionNumber ?? gq.id.replace(/^gen_p\d+_/, '') ?? String(qIdx + 1);
-          const uniqueId = `gen_p${pageNumber}_${qNum}`;
-
-          const question: Question = {
-            id: uniqueId,
-            text: gq.text?.trim() ? gq.text : '[Question text missing in generation]',
-            // Quiz generation guarantees choices and the correct answer
-            status: 'READY_FOR_ENHANCEMENT',
-            // Assign the derived answer from choice marked as correct
-            answer: String.fromCharCode(
-              65 +
-                Math.max(
-                  0,
-                  gq.choices.findIndex((c) => c.isCorrect),
-                ),
-            ).toLowerCase(),
-            metadata: {
-              choices: gq.choices,
-              pageNumber: pageNumber,
-              originalQuestionNumber: gq.originalQuestionNumber,
-            },
-          };
-          this.state.upsertQuestion(question);
-        }
-
-        processedPages.push(pageNumber);
-        this.state.updateMetadata({ ...existingMeta, processedPages });
-        this.state.setLastProcessedExtractionBatchIndex(i);
-        this.logInfo('Generation', `Generated ${questions.length} questions from image ${i + 1}`);
-      } catch (error) {
-        if (signal?.aborted) throw error;
-        this.logError('Generation', `Error processing image ${imagePath}:`, error);
-        reportError(error instanceof Error ? error : new Error(String(error)), {
-          phase: 'generation',
-          imageIndex: i,
-          imagePath,
-        });
-        throw error;
       }
     }
   }
@@ -253,50 +263,59 @@ export class QuizGenerationProcess implements IngestionProcess {
       const processedChunk = await Promise.all(
         chunk.map(async (question, chunkIdx) => {
           const idx = i + chunkIdx;
-          try {
-            // delayIfNeeded is intentionally omitted here: Promise.all runs calls
-            // concurrently, so a shared lastCallTime would be read/written by all
-            // parallel invocations simultaneously — making the delay unreliable.
-            // Rate limiting is handled correctly at the provider level via
-            // GenericAIProvider.enforceRateLimit(minCallIntervalMs).
-            this.logInfo('Enhancement', `Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}]...`);
-            let enhanced;
+          let attempt = 0;
+          const maxRetries = 3;
+
+          while (attempt < maxRetries) {
             try {
-              enhanced = await this.enhancementProvider!.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal, logger: this.config.logger, loggingPhase: 'ENHANCEMENT' });
-            } finally {
-              this.recordCallTime();
+              // delayIfNeeded is intentionally omitted here: Promise.all runs calls
+              // concurrently, so a shared lastCallTime would be read/written by all
+              // parallel invocations simultaneously — making the delay unreliable.
+              // Rate limiting is handled correctly at the provider level via
+              // GenericAIProvider.enforceRateLimit(minCallIntervalMs).
+              this.logInfo('Enhancement', `Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}] (Attempt ${attempt + 1}/${maxRetries})...`);
+              let enhanced;
+              try {
+                enhanced = await this.enhancementProvider!.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal, logger: this.config.logger, loggingPhase: 'ENHANCEMENT' });
+              } finally {
+                this.recordCallTime();
+              }
+
+              this.logInfo('Enhancement', `Enhanced ${question.id} — difficulty: ${enhanced.difficulty}`);
+
+              return {
+                ...question,
+                status: 'READY_FOR_UPLOAD' as const,
+                metadata: {
+                  ...question.metadata,
+                  hint: enhanced.hint,
+                  explanation: enhanced.explanation,
+                  aiQualityScore: enhanced.aiQualityScore,
+                  topic: enhanced.topic,
+                  categorySlugs: enhanced.categorySlugs,
+                  difficulty: sanitiseDifficulty(enhanced.difficulty),
+                  // Store the AI-inferred age rating; sanitised before upload
+                  ageRating: sanitiseAgeRating(enhanced.ageRating),
+                  isFactuallyCorrect: enhanced.isFactuallyCorrect,
+                  factCheckRationale: enhanced.factCheckRationale,
+                  // Flag questions that are only meaningful in the context of the source document
+                  isSelfReferential: enhanced.isSelfReferential,
+                },
+              };
+            } catch (error) {
+              attempt++;
+              if (signal?.aborted || attempt >= maxRetries) {
+                this.logError('Enhancement', `Error processing question ${question.id} after ${attempt} attempts:`, error);
+                reportError(error instanceof Error ? error : new Error(String(error)), {
+                  phase: 'enhancement',
+                  questionId: question.id,
+                });
+                throw error;
+              }
+              this.logError('Enhancement', `Error processing question ${question.id}, retrying (${attempt}/${maxRetries})...`, error);
             }
-
-            this.logInfo('Enhancement', `Enhanced ${question.id} — difficulty: ${enhanced.difficulty}`);
-
-            return {
-              ...question,
-              status: 'READY_FOR_UPLOAD' as const,
-              metadata: {
-                ...question.metadata,
-                hint: enhanced.hint,
-                explanation: enhanced.explanation,
-                aiQualityScore: enhanced.aiQualityScore,
-                topic: enhanced.topic,
-                categorySlugs: enhanced.categorySlugs,
-                difficulty: sanitiseDifficulty(enhanced.difficulty),
-                // Store the AI-inferred age rating; sanitised before upload
-                ageRating: sanitiseAgeRating(enhanced.ageRating),
-                isFactuallyCorrect: enhanced.isFactuallyCorrect,
-                factCheckRationale: enhanced.factCheckRationale,
-                // Flag questions that are only meaningful in the context of the source document
-                isSelfReferential: enhanced.isSelfReferential,
-              },
-            };
-          } catch (error) {
-            if (signal?.aborted) throw error;
-            this.logError('Enhancement', `Error processing question ${question.id}:`, error);
-            reportError(error instanceof Error ? error : new Error(String(error)), {
-              phase: 'enhancement',
-              questionId: question.id,
-            });
-            throw error;
           }
+          return null; // Should not be reached due to throw above, but required for type checking
         }),
       );
 
