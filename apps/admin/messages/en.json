@@ -1107,7 +1107,7 @@
       "terminate": "Terminate Active Run",
       "terminating": "Terminating...",
       "triggering": "Triggering...",
-      "viewLogs": "View Logs",
+      "viewHistory": "View History",
       "statusValues": {
         "active": "Active",
         "paused": "Paused",

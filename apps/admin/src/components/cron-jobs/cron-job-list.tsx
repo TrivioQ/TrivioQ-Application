@@ -220,7 +220,7 @@ export function CronJobList() {
               )}
               <Button variant="ghost" size="sm" onClick={() => setLogsJobId(job.id)} className="flex-1">
                 <FileText className="w-3 h-3 mr-2" />
-                {t('viewLogs')}
+                {t('viewHistory')}
               </Button>
             </CardFooter>
           </Card>

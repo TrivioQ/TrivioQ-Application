@@ -246,18 +246,21 @@ export class QuizGenerationProcess implements IngestionProcess {
   private async enhancementPhase(signal?: AbortSignal, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const questionsToEnhance = stateData.questions.filter((q) => q.status === 'READY_FOR_ENHANCEMENT');
+    const alreadyEnhancedCount = stateData.questions.filter((q) => q.status === 'READY_FOR_UPLOAD' || q.status === 'UPLOADED').length;
+    const totalToEnhance = questionsToEnhance.length + alreadyEnhancedCount;
 
     const temperature = this.config.temperatures?.enhancement;
     this.logInfo('Enhancement', `Stage Config — Provider: ${this.enhancementProvider!.constructor.name}, Model: ${this.enhancementProvider!.model}, Temperature: ${temperature ?? 'default'}, Delay: ${this.callDelayMs.enhancement}ms`);
 
-    this.logInfo('Enhancement', `Enhancing ${questionsToEnhance.length} questions`);
+    this.logInfo('Enhancement', `Enhancing ${questionsToEnhance.length} remaining questions (of ${totalToEnhance} total)`);
 
     const enhancementPrompt = buildEnhancementPrompt(this.availableCategories, this.enhancementSpecialInstruction);
 
     const concurrency = this.config.enhancementConcurrency ?? 10;
 
     for (let i = 0; i < questionsToEnhance.length; i += concurrency) {
-      await onProgress?.('ENHANCEMENT', Math.min(i + concurrency, questionsToEnhance.length), questionsToEnhance.length);
+      const absoluteCurrent = alreadyEnhancedCount + Math.min(i + concurrency, questionsToEnhance.length);
+      await onProgress?.('ENHANCEMENT', absoluteCurrent, totalToEnhance);
       const chunk = questionsToEnhance.slice(i, i + concurrency);
 
       const processedChunk = await Promise.all(
@@ -273,7 +276,8 @@ export class QuizGenerationProcess implements IngestionProcess {
               // parallel invocations simultaneously — making the delay unreliable.
               // Rate limiting is handled correctly at the provider level via
               // GenericAIProvider.enforceRateLimit(minCallIntervalMs).
-              this.logInfo('Enhancement', `Enhancing question ${question.id} [${idx + 1}/${questionsToEnhance.length}] (Attempt ${attempt + 1}/${maxRetries})...`);
+              const absoluteIdx = alreadyEnhancedCount + idx;
+              this.logInfo('Enhancement', `Enhancing question ${question.id} [${absoluteIdx + 1}/${totalToEnhance}] (Attempt ${attempt + 1}/${maxRetries})...`);
               let enhanced;
               try {
                 enhanced = await this.enhancementProvider!.enhanceQuestion(question.text, (question.metadata?.choices as unknown[]) ?? [], enhancementPrompt, { temperature, signal, logger: this.config.logger, loggingPhase: 'ENHANCEMENT' });
@@ -329,15 +333,18 @@ export class QuizGenerationProcess implements IngestionProcess {
   private async uploadPhase(signal?: AbortSignal, onProgress?: (phase: string, current: number, total: number) => Promise<void> | void): Promise<void> {
     const stateData = this.state.initOrLoad();
     const readyQuestions = stateData.questions.filter((q) => q.status === 'READY_FOR_UPLOAD');
+    const alreadyUploadedCount = stateData.questions.filter((q) => q.status === 'UPLOADED').length;
+    const totalToUpload = readyQuestions.length + alreadyUploadedCount;
 
-    this.logInfo('Upload', `Uploading ${readyQuestions.length} questions`);
+    this.logInfo('Upload', `Uploading ${readyQuestions.length} remaining questions (of ${totalToUpload} total)`);
     if (readyQuestions.length === 0) return;
 
     for (let i = 0; i < readyQuestions.length; i++) {
-      await onProgress?.('UPLOAD', i + 1, readyQuestions.length);
+      const absoluteCurrent = alreadyUploadedCount + i + 1;
+      await onProgress?.('UPLOAD', absoluteCurrent, totalToUpload);
       const q = readyQuestions[i];
       try {
-        this.logInfo('Upload', `Uploading question ${q.id} [${i + 1}/${readyQuestions.length}]...`);
+        this.logInfo('Upload', `Uploading question ${q.id} [${absoluteCurrent}/${totalToUpload}]...`);
         // ── Self-referential guard ────────────────────────────────────────────
         // Questions flagged as self-referential are about the source document
         // itself (e.g. publisher, glossary count) and have no standalone trivia
