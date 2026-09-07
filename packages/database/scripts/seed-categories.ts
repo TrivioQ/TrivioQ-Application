@@ -26,7 +26,7 @@ const categories = [
   },
   {
     name: 'Indian Art & Culture',
-    slug: 'indian-culture',
+    slug: 'indian-art-culture',
     description: 'Trivia covering Indian classical dances, music, folklore, major festivals, heritage sites, and architecture.',
   },
   {
