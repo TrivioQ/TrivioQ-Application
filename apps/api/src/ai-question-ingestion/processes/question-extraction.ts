@@ -613,6 +613,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
 
     // Build the prompt once — optionally prefixed with the book's special instruction, injecting available categories
     const enhancementPrompt = buildEnhancementPrompt(this.availableCategories, this.enhancementSpecialInstruction);
+    const validCategorySlugs = new Set(this.availableCategories.map((c) => c.slug));
 
     for (let i = 0; i < questionsToEnhance.length; i += concurrency) {
       const absoluteCurrent = alreadyEnhancedCount + Math.min(i + concurrency, questionsToEnhance.length);
@@ -648,7 +649,7 @@ export class QuestionExtractionProcess implements IngestionProcess {
                 explanation: enhanced.explanation,
                 aiQualityScore: enhanced.aiQualityScore,
                 topic: enhanced.topic,
-                categorySlugs: enhanced.categorySlugs,
+                categorySlugs: enhanced.categorySlugs.filter((slug: string) => validCategorySlugs.has(slug)),
                 // Store the AI-inferred difficulty; sanitised before upload
                 difficulty: sanitiseDifficulty(enhanced.difficulty),
                 // Store the AI-inferred age rating; sanitised before upload

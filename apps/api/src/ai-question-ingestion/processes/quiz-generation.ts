@@ -255,6 +255,7 @@ export class QuizGenerationProcess implements IngestionProcess {
     this.logInfo('Enhancement', `Enhancing ${questionsToEnhance.length} remaining questions (of ${totalToEnhance} total)`);
 
     const enhancementPrompt = buildEnhancementPrompt(this.availableCategories, this.enhancementSpecialInstruction);
+    const validCategorySlugs = new Set(this.availableCategories.map((c) => c.slug));
 
     const concurrency = this.config.enhancementConcurrency ?? 10;
 
@@ -296,7 +297,7 @@ export class QuizGenerationProcess implements IngestionProcess {
                   explanation: enhanced.explanation,
                   aiQualityScore: enhanced.aiQualityScore,
                   topic: enhanced.topic,
-                  categorySlugs: enhanced.categorySlugs,
+                  categorySlugs: enhanced.categorySlugs.filter((slug: string) => validCategorySlugs.has(slug)),
                   difficulty: sanitiseDifficulty(enhanced.difficulty),
                   // Store the AI-inferred age rating; sanitised before upload
                   ageRating: sanitiseAgeRating(enhanced.ageRating),
