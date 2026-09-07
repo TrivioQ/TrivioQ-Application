@@ -34,6 +34,8 @@ import { pdfToImage } from '../ai-question-ingestion/utils/pdf-to-image';
 import { IngestionOrchestrator } from '../ai-question-ingestion/orchestrator';
 import { IngestionState } from '../ai-question-ingestion/utils/state-manager';
 import type { ManifestJson } from '../ai-question-ingestion/processes/process.interface';
+import { pinoLogger } from '../utils/logger';
+import { reportError } from '../utils/error-reporter';
 import { WorkflowLogger } from '../utils/workflow-logger';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -72,7 +74,7 @@ function processNextJob() {
   currentLockHolder = nextJob.jobId;
   runJob(nextJob.jobId, nextJob.forcePhase)
     .catch((err) => {
-      console.error(`[IngestionWorker] Unhandled error in runJob(${nextJob.jobId}):`, err);
+      reportError(err as Error, { context: `[IngestionWorker] Unhandled error in runJob(${nextJob.jobId})` });
     })
     .finally(() => {
       // If this job still holds the lock (e.g. it failed or never reached UPLOAD phase), release it.
@@ -92,7 +94,7 @@ const pendingSyncStore = {
       file[jobId] = { data, savedAt: new Date().toISOString() };
       fs.writeFileSync(PENDING_SYNC_PATH, JSON.stringify(file, null, 2));
     } catch (e) {
-      console.error('[PendingSync] Failed to write pending sync file:', e);
+      reportError(e as Error, { context: '[PendingSync] Failed to write pending sync file' });
     }
   },
 
@@ -103,7 +105,7 @@ const pendingSyncStore = {
       delete file[jobId];
       fs.writeFileSync(PENDING_SYNC_PATH, JSON.stringify(file, null, 2));
     } catch (e) {
-      console.error('[PendingSync] Failed to delete entry from pending sync file:', e);
+      reportError(e as Error, { context: '[PendingSync] Failed to delete entry from pending sync file' });
     }
   },
 
@@ -134,13 +136,13 @@ async function syncProgressToDB(jobId: string, data: Record<string, unknown>, re
       return;
     } catch (e: any) {
       if (e.code === 'P2025') {
-        console.warn(`[ProgressSync] Job ${jobId} not found in DB (likely deleted). Aborting sync.`);
+        pinoLogger.warn(`[ProgressSync] Job ${jobId} not found in DB (likely deleted). Aborting sync.`);
         pendingSyncStore.delete(jobId);
         runningJobs.get(jobId)?.abortController.abort();
         return;
       }
       if (attempt === retries) {
-        console.error(`[ProgressSync] Gave up after ${retries} attempts for job ${jobId}. Saving to pending sync.`);
+        reportError(e as Error, { context: `[ProgressSync] Gave up after ${retries} attempts for job ${jobId}. Saving to pending sync.` });
         pendingSyncStore.set(jobId, data);
         return;
       }
@@ -168,12 +170,12 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
   const dbJob = await prisma.ingestionJob.findUnique({ where: { id: jobId } });
 
   if (!dbJob) {
-    console.error(`[IngestionWorker] Job ${jobId} not found in database.`);
+    pinoLogger.error(`[IngestionWorker] Job ${jobId} not found in database.`);
     return;
   }
 
   if (dbJob.status === IngestionStatus.PAUSED || dbJob.status === IngestionStatus.COMPLETED) {
-    console.log(`[IngestionWorker] Job ${jobId} is ${dbJob.status}, skipping.`);
+    pinoLogger.info(`[IngestionWorker] Job ${jobId} is ${dbJob.status}, skipping.`);
     return;
   }
 
@@ -430,24 +432,24 @@ async function runJob(jobId: string, forcePhase?: string): Promise<void> {
 // ── Startup recovery ──────────────────────────────────────────────────────────
 
 async function recoverOnStartup(): Promise<void> {
-  console.log('[Startup] Beginning recovery scan...');
+  pinoLogger.info('[Startup] Beginning recovery scan...');
 
   // 1. Flush any pending sync entries first (final statuses written to disk when DB was down)
   const pending = pendingSyncStore.getAll();
   const pendingEntries = Object.entries(pending);
   if (pendingEntries.length > 0) {
-    console.log(`[Startup] Flushing ${pendingEntries.length} pending sync entries...`);
+    pinoLogger.info(`[Startup] Flushing ${pendingEntries.length} pending sync entries...`);
     for (const [jobId, { data }] of pendingEntries) {
       try {
         await prisma.ingestionJob.update({ where: { id: jobId }, data });
         pendingSyncStore.delete(jobId);
-        console.log(`[Startup] Flushed pending sync for job ${jobId}`);
+        pinoLogger.info(`[Startup] Flushed pending sync for job ${jobId}`);
       } catch (err: any) {
         if (err.code === 'P2025') {
-          console.warn(`[Startup] Job ${jobId} not found in DB. Discarding pending sync.`);
+          pinoLogger.warn(`[Startup] Job ${jobId} not found in DB. Discarding pending sync.`);
           pendingSyncStore.delete(jobId);
         } else {
-          console.error(`[Startup] Could not flush pending sync for ${jobId}:`, err);
+          reportError(err as Error, { context: `[Startup] Could not flush pending sync for ${jobId}` });
         }
       }
     }
@@ -464,7 +466,7 @@ async function recoverOnStartup(): Promise<void> {
   const stalledIds = new Set<string>();
 
   if (stalledJobs.length > 0) {
-    console.log(`[Startup] Found ${stalledJobs.length} stalled PROCESSING job(s). Re-triggering...`);
+    pinoLogger.info(`[Startup] Found ${stalledJobs.length} stalled PROCESSING job(s). Re-triggering...`);
     for (const job of stalledJobs) {
       // Reset to QUEUED, then re-trigger (will read state.json checkpoint)
       await prisma.ingestionJob.update({
@@ -488,7 +490,7 @@ async function recoverOnStartup(): Promise<void> {
   });
 
   if (queuedJobs.length > 0) {
-    console.log(`[Startup] Found ${queuedJobs.length} QUEUED job(s). Adding to queue...`);
+    pinoLogger.info(`[Startup] Found ${queuedJobs.length} QUEUED job(s). Adding to queue...`);
     for (const job of queuedJobs) {
       jobQueue.push({ jobId: job.id });
     }
@@ -498,7 +500,7 @@ async function recoverOnStartup(): Promise<void> {
     processNextJob();
   }
 
-  console.log('[Startup] Recovery scan complete.');
+  pinoLogger.info('[Startup] Recovery scan complete.');
 }
 
 // ── Watchdog interval (60 s) ──────────────────────────────────────────────────
@@ -528,14 +530,48 @@ setInterval(async () => {
     try {
       await prisma.ingestionJob.update({ where: { id: jobId }, data });
       pendingSyncStore.delete(jobId);
-      console.log(`[Watchdog] Flushed pending sync for job ${jobId}`);
+      pinoLogger.info(`[Watchdog] Flushed pending sync for job ${jobId}`);
     } catch (err: any) {
       if (err.code === 'P2025') {
-        console.warn(`[Watchdog] Job ${jobId} not found in DB. Discarding pending sync.`);
+        pinoLogger.warn(`[Watchdog] Job ${jobId} not found in DB. Discarding pending sync.`);
         pendingSyncStore.delete(jobId);
       }
       // DB still down — try next interval
     }
+  }
+
+  // 3. Detect and recover stalled jobs (PROCESSING but no heartbeat for 5+ minutes)
+  try {
+    const staleThreshold = new Date(Date.now() - 5 * 60 * 1000);
+    const stalledJobs = await prisma.ingestionJob.findMany({
+      where: {
+        status: IngestionStatus.PROCESSING,
+        lastHeartbeatAt: { lt: staleThreshold },
+      },
+    });
+
+    if (stalledJobs.length > 0) {
+      pinoLogger.info(`[Watchdog] Found ${stalledJobs.length} stalled job(s). Resetting to QUEUED...`);
+      for (const job of stalledJobs) {
+        // Ensure it's not actually running in this worker instance with a failed DB connection blocking heartbeats
+        if (runningJobs.has(job.id)) {
+          pinoLogger.warn(`[Watchdog] Job ${job.id} is marked as stalled but is still in runningJobs map. Skipping recovery.`);
+          continue;
+        }
+
+        await prisma.ingestionJob.update({
+          where: { id: job.id },
+          data: { status: IngestionStatus.QUEUED },
+        });
+
+        if (!jobQueue.some((j) => j.jobId === job.id)) {
+          jobQueue.push({ jobId: job.id });
+        }
+      }
+      processNextJob();
+    }
+  } catch (err) {
+    reportError(err as Error, { context: '[Watchdog] Error during stalled jobs recovery check' });
   }
 }, 60_000);
 
@@ -562,11 +598,11 @@ app.post('/internal/run', (req, res) => {
   }
 
   if (runningJobs.has(jobId) || jobQueue.some((j) => j.jobId === jobId)) {
-    console.log(`[IngestionWorker] Job ${jobId} is already running or queued, ignoring duplicate trigger.`);
+    pinoLogger.info(`[IngestionWorker] Job ${jobId} is already running or queued, ignoring duplicate trigger.`);
     return res.status(409).json({ error: 'Job is already running or queued' });
   }
 
-  console.log(`[IngestionWorker] Received trigger for job ${jobId}${forcePhase ? ` (forcePhase=${forcePhase})` : ''}`);
+  pinoLogger.info(`[IngestionWorker] Received trigger for job ${jobId}${forcePhase ? ` (forcePhase=${forcePhase})` : ''}`);
 
   jobQueue.push({ jobId, forcePhase });
   processNextJob();
@@ -587,14 +623,14 @@ app.post('/internal/cancel', (req, res) => {
   }
 
   ctx.abortController.abort();
-  console.log(`[IngestionWorker] Cancelled job ${jobId}`);
+  pinoLogger.info(`[IngestionWorker] Cancelled job ${jobId}`);
   return res.status(200).json({ ok: true });
 });
 
 // ── Start server ──────────────────────────────────────────────────────────────
 
 app.listen(PORT, async () => {
-  console.log(`[IngestionWorker] HTTP server listening on port ${PORT}`);
+  pinoLogger.info(`[IngestionWorker] HTTP server listening on port ${PORT}`);
 
   // Wait briefly for DB connection to stabilise (especially on container startup ordering)
   await new Promise((r) => setTimeout(r, 3000));
@@ -603,6 +639,6 @@ app.listen(PORT, async () => {
     await prisma.$connect();
     await recoverOnStartup();
   } catch (err) {
-    console.error('[IngestionWorker] DB connection failed on startup — recovery skipped:', err);
+    reportError(err as Error, { context: '[IngestionWorker] DB connection failed on startup — recovery skipped' });
   }
 });
