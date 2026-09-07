@@ -1,6 +1,8 @@
 import * as cron from 'node-cron';
 import cronParser from 'cron-parser';
 import { prisma } from '@trivioq/database';
+import { pinoLogger } from '../utils/logger';
+import { reportError } from '../utils/error-reporter';
 
 export type CronJobHandler = (signal: AbortSignal) => Promise<void>;
 
@@ -30,14 +32,32 @@ class CronManagerService {
       task: null,
       activeExecution: null,
     });
-    console.log(`[CronManager] Registered job: ${name} (${expression})`);
+    pinoLogger.info(`[CronManager] Registered job: ${name} (${expression})`);
   }
 
   /**
    * Syncs registered jobs with the DB and schedules active ones.
    */
   async initialize() {
-    console.log(`[CronManager] Initializing ${this.jobs.size} jobs...`);
+    pinoLogger.info(`[CronManager] Initializing ${this.jobs.size} jobs...`);
+
+    // Clean up any stale RUNNING executions from previous processes that were interrupted
+    try {
+      const updated = await prisma.cronJobExecution.updateMany({
+        where: { result: 'RUNNING' },
+        data: {
+          result: 'FAILED',
+          endedAt: new Date(),
+          errorLogs: 'Interrupted by server restart or deployment',
+        },
+      });
+      if (updated.count > 0) {
+        pinoLogger.info(`[CronManager] Cleaned up ${updated.count} stale RUNNING execution(s).`);
+      }
+    } catch (err) {
+      reportError(err as Error, { context: '[CronManager] Error cleaning up stale executions' });
+    }
+
     for (const [name, job] of this.jobs.entries()) {
       // Upsert to DB to ensure it exists
       let dbJob = await prisma.cronJob.findUnique({ where: { name } });
@@ -76,9 +96,9 @@ class CronManagerService {
     }
 
     job.task = cron.schedule(job.expression, () => {
-      this.executeJob(name).catch(console.error);
+      this.executeJob(name).catch((err) => reportError(err as Error, { context: `[CronManager] Error executing job: ${name}` }));
     });
-    console.log(`[CronManager] Scheduled job: ${name}`);
+    pinoLogger.info(`[CronManager] Scheduled job: ${name}`);
   }
 
   /**
@@ -91,7 +111,7 @@ class CronManagerService {
       job.task.stop();
       job.task = null;
     }
-    console.log(`[CronManager] Stopped schedule for job: ${name}`);
+    pinoLogger.info(`[CronManager] Stopped schedule for job: ${name}`);
   }
 
   /**
@@ -101,7 +121,7 @@ class CronManagerService {
     const job = this.jobs.get(name);
     if (!job) throw new Error(`Job ${name} not found.`);
     // Do not await if we want to return API response immediately, but for consistency we might just let it run async
-    this.executeJob(name).catch(console.error);
+    this.executeJob(name).catch((err) => reportError(err as Error, { context: `[CronManager] Error executing job: ${name}` }));
   }
 
   /**
@@ -113,9 +133,9 @@ class CronManagerService {
 
     if (job.activeExecution) {
       job.activeExecution.abort(new Error('TERMINATED_BY_ADMIN'));
-      console.log(`[CronManager] Sent abort signal to job: ${name}`);
+      pinoLogger.info(`[CronManager] Sent abort signal to job: ${name}`);
     } else {
-      console.log(`[CronManager] Job ${name} is not currently running.`);
+      pinoLogger.info(`[CronManager] Job ${name} is not currently running.`);
     }
   }
 
@@ -127,7 +147,7 @@ class CronManagerService {
     if (!job) return;
 
     if (job.activeExecution) {
-      console.log(`[CronManager] Job ${name} is already running. Skipping.`);
+      pinoLogger.info(`[CronManager] Job ${name} is already running. Skipping.`);
       return;
     }
 
@@ -145,7 +165,7 @@ class CronManagerService {
     });
 
     try {
-      console.log(`[CronManager] Executing job: ${name}`);
+      pinoLogger.info(`[CronManager] Executing job: ${name}`);
       await job.handler(abortController.signal);
 
       // Success
@@ -160,7 +180,7 @@ class CronManagerService {
         where: { id: dbJob.id },
         data: { lastRunAt: new Date(), lastRunResult: 'SUCCESS' },
       });
-      console.log(`[CronManager] Job ${name} completed successfully.`);
+      pinoLogger.info(`[CronManager] Job ${name} completed successfully.`);
     } catch (error: any) {
       const isTerminated = error?.message === 'TERMINATED_BY_ADMIN' || abortController.signal.aborted;
       const result = isTerminated ? 'TERMINATED' : 'FAILED';
@@ -177,7 +197,7 @@ class CronManagerService {
         where: { id: dbJob.id },
         data: { lastRunAt: new Date(), lastRunResult: result },
       });
-      console.error(`[CronManager] Job ${name} ${result.toLowerCase()}:`, error);
+      reportError(error as Error, { context: `[CronManager] Job ${name} ${result.toLowerCase()}` });
     } finally {
       job.activeExecution = null;
       await this.updateNextRunAt(name);
@@ -208,7 +228,7 @@ class CronManagerService {
         });
       }
     } catch (err) {
-      console.error(`[CronManager] Error calculating nextRunAt for ${name}:`, err);
+      reportError(err as Error, { context: `[CronManager] Error calculating nextRunAt for ${name}` });
     }
   }
 }
