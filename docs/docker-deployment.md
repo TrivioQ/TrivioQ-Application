@@ -130,7 +130,7 @@ ssh wolfofweb3@192.168.0.101
 mkdir -p /home/wolfofweb3/projects/codebases/TrivioQ
 
 # Clone the repository (Option A — recommended if using Git)
-git clone https://github.com/Enatos-Tech/TrivioQ.git /home/wolfofweb3/projects/codebases/TrivioQ
+git clone git@github.com:TrivioQ/TrivioQ-Application.git /home/wolfofweb3/projects/codebases/TrivioQ
 
 # OR transfer from your Mac (Option B — rsync)
 # Run this on your Mac:
