@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
 import apiClient from '../api/client';
+import { notificationTypeIcons, openNotificationTarget } from '../lib/notification-routing';
 import { Ionicons } from '@expo/vector-icons';
 
 interface UserNotification {
@@ -12,6 +13,7 @@ interface UserNotification {
   type: string;
   title: string;
   body: string;
+  data?: Record<string, any> | null;
   isRead: boolean;
   pushDelivered: boolean;
   emailDelivered: boolean;
@@ -19,16 +21,7 @@ interface UserNotification {
   createdAt: string;
 }
 
-const typeIcons: Record<string, string> = {
-  TRIVIA_DROP: '📝',
-  SYSTEM_ANNOUNCEMENT: '📢',
-  SUBSCRIPTION_REMINDER: '⏰',
-  OFFER_PROMOTION: '🎁',
-  CREDIT_ALERT: '💎',
-  ADMIN_MESSAGE: '💬',
-};
-
-export default function NotificationsScreen() {
+export default function NotificationsScreen({ navigation }: any) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
@@ -43,7 +36,7 @@ export default function NotificationsScreen() {
   } = useQuery<UserNotification[]>({
     queryKey: ['notifications'],
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/notifications/inbox?limit=100');
+      const response = await apiClient.get('/v1/notifications/inbox?limit=100');
       return response.data.notifications || [];
     },
     refetchInterval: 30000, // Poll every 30 seconds
@@ -51,19 +44,21 @@ export default function NotificationsScreen() {
 
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.post(`/api/v1/notifications/${id}/read`);
+      await apiClient.post(`/v1/notifications/${id}/read`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications-unread'] });
     },
   });
 
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      await apiClient.post('/api/v1/notifications/read-all');
+      await apiClient.post('/v1/notifications/read-all');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications-unread'] });
     },
   });
 
@@ -86,9 +81,18 @@ export default function NotificationsScreen() {
   const unreadCount = (notifications || []).filter((n) => !n.isRead).length;
 
   const renderNotification = ({ item }: { item: UserNotification }) => (
-    <TouchableOpacity style={[styles.notificationCard, !item.isRead && styles.unreadCard]} onPress={() => handleMarkAsRead(item.id)} activeOpacity={0.7}>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={`${!item.isRead ? `${t('notifications.unread')}: ` : ''}${item.title}. ${item.body}`}
+      style={[styles.notificationCard, !item.isRead && styles.unreadCard]}
+      onPress={() => {
+        if (!item.isRead) handleMarkAsRead(item.id);
+        openNotificationTarget(navigation, item.data);
+      }}
+      activeOpacity={0.7}
+    >
       <View style={styles.notificationRow}>
-        <Text style={styles.typeIcon}>{typeIcons[item.type] || '🔔'}</Text>
+        <Text style={styles.typeIcon}>{notificationTypeIcons[item.type] || '🔔'}</Text>
         <View style={styles.notificationContent}>
           <View style={styles.titleRow}>
             <Text style={[styles.title, !item.isRead && styles.unreadTitle]} numberOfLines={1}>
@@ -123,19 +127,19 @@ export default function NotificationsScreen() {
       {/* Header with filter tabs and mark all read */}
       <View style={styles.header}>
         <View style={styles.filterTabs}>
-          <TouchableOpacity style={[styles.filterTab, filter === 'all' && styles.filterTabActive]} onPress={() => setFilter('all')}>
+          <TouchableOpacity accessibilityRole="tab" accessibilityState={{ selected: filter === 'all' }} style={[styles.filterTab, filter === 'all' && styles.filterTabActive]} onPress={() => setFilter('all')}>
             <Text style={[styles.filterTabText, filter === 'all' && styles.filterTabTextActive]}>
               {t('notifications.all')} ({(notifications || []).length})
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.filterTab, filter === 'unread' && styles.filterTabActive]} onPress={() => setFilter('unread')}>
+          <TouchableOpacity accessibilityRole="tab" accessibilityState={{ selected: filter === 'unread' }} style={[styles.filterTab, filter === 'unread' && styles.filterTabActive]} onPress={() => setFilter('unread')}>
             <Text style={[styles.filterTabText, filter === 'unread' && styles.filterTabTextActive]}>
               {t('notifications.unread')} ({unreadCount})
             </Text>
           </TouchableOpacity>
         </View>
         {unreadCount > 0 && (
-          <TouchableOpacity onPress={handleMarkAllAsRead} disabled={markAllAsReadMutation.isPending}>
+          <TouchableOpacity accessibilityRole="button" onPress={handleMarkAllAsRead} disabled={markAllAsReadMutation.isPending}>
             <Text style={styles.markAllRead}>{markAllAsReadMutation.isPending ? t('notifications.markingAll') : t('notifications.markAllRead')}</Text>
           </TouchableOpacity>
         )}

@@ -26,31 +26,31 @@ export interface FriendshipsData {
 }
 
 export const fetchFriendships = async (): Promise<FriendshipsData> => {
-  const response = await apiClient.get('/api/v1/friendships');
+  const response = await apiClient.get('/v1/friendships');
   return response.data;
 };
 
 export const sendFriendRequest = async (addresseeId: string) => {
-  const response = await apiClient.post('/api/v1/friendships/request', { addresseeId });
+  const response = await apiClient.post('/v1/friendships/request', { addresseeId });
   return response.data;
 };
 
 export const acceptFriendRequest = async (requestId: string) => {
-  const response = await apiClient.post('/api/v1/friendships/accept', { requestId });
+  const response = await apiClient.post('/v1/friendships/accept', { requestId });
   return response.data;
 };
 
 export const declineFriendRequest = async (requestId: string) => {
-  const response = await apiClient.post('/api/v1/friendships/decline', { requestId });
+  const response = await apiClient.post('/v1/friendships/decline', { requestId });
   return response.data;
 };
 
 export const removeFriend = async (friendshipId: string) => {
-  const response = await apiClient.delete(`/api/v1/friendships/remove/${friendshipId}`);
+  const response = await apiClient.delete(`/v1/friendships/remove/${friendshipId}`);
   return response.data;
 };
 
 export const blockUser = async (userIdToBlock: string) => {
-  const response = await apiClient.post('/api/v1/friendships/block', { userIdToBlock });
+  const response = await apiClient.post('/v1/friendships/block', { userIdToBlock });
   return response.data;
 };

@@ -4,22 +4,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useConfirm } from '../components/confirm-modal';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
-import apiClient from '../api/client';
+import { useMe } from '../api/queries';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
 import { NotificationBell } from '../components/notification-bell';
-
-interface UserProfile {
-  email: string;
-  username: string;
-  displayName: string | null;
-  dateOfBirth: string | null;
-  currentStreak: number;
-  cumulativeScore: number;
-  subscriptionTier: 'FREE' | 'PLUS' | 'PREMIUM';
-}
 
 function getInitials(displayName: string | null, email: string) {
   if (displayName) {
@@ -35,7 +24,7 @@ function getInitials(displayName: string | null, email: string) {
 
 export default function ProfileScreen({ navigation }: any) {
   const { t } = useTranslation();
-  const { userId, logout } = useAuth();
+  const { logout } = useAuth();
   const confirm = useConfirm();
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
@@ -55,14 +44,7 @@ export default function ProfileScreen({ navigation }: any) {
     }
   };
 
-  const { data, isLoading } = useQuery<UserProfile>({
-    queryKey: ['userProfile', userId],
-    queryFn: async () => {
-      const response = await apiClient.get('/api/v1/users/me');
-      return response.data;
-    },
-    enabled: !!userId,
-  });
+  const { data, isLoading } = useMe();
 
   // Set up header right with notification bell
   useLayoutEffect(() => {
@@ -100,7 +82,7 @@ export default function ProfileScreen({ navigation }: any) {
       {/* Avatar + name */}
       <View style={styles.avatarSection}>
         {/* Avatar with camera overlay */}
-        <TouchableOpacity style={styles.avatarWrapper} onPress={handlePickPhoto} activeOpacity={0.85}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('profile.changePhoto')} style={styles.avatarWrapper} onPress={handlePickPhoto} activeOpacity={0.85}>
           {photoUri ? (
             <Image source={{ uri: photoUri }} style={styles.avatarImage} />
           ) : (
@@ -145,17 +127,22 @@ export default function ProfileScreen({ navigation }: any) {
             </View>
           </View>
         )}
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Preferences')}>
+        <TouchableOpacity accessibilityRole="button" style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Preferences')}>
           <Text style={styles.menuIcon}>⚙️</Text>
           <Text style={styles.menuLabel}>{t('profile.preferences')}</Text>
           <Text style={styles.menuChevron}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Notifications')}>
+        <TouchableOpacity accessibilityRole="button" style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Account')}>
+          <Text style={styles.menuIcon}>🔐</Text>
+          <Text style={styles.menuLabel}>{t('profile.accountSecurity')}</Text>
+          <Text style={styles.menuChevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity accessibilityRole="button" style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Notifications')}>
           <Text style={styles.menuIcon}>🔔</Text>
           <Text style={styles.menuLabel}>{t('profile.notifications')}</Text>
           <Text style={styles.menuChevron}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('ScoreHistory')}>
+        <TouchableOpacity accessibilityRole="button" style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('ScoreHistory')}>
           <Text style={styles.menuIcon}>📊</Text>
           <Text style={styles.menuLabel}>{t('profile.scoreHistory')}</Text>
           <Text style={styles.menuChevron}>›</Text>
@@ -164,7 +151,7 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>{t('profile.subscription')}</Text>
-        <TouchableOpacity style={[styles.menuItem, styles.upgradeItem]} activeOpacity={0.7} onPress={() => navigation.navigate('Subscription')}>
+        <TouchableOpacity accessibilityRole="button" style={[styles.menuItem, styles.upgradeItem]} activeOpacity={0.7} onPress={() => navigation.navigate('Subscription')}>
           <Text style={styles.menuIcon}>👑</Text>
           <Text style={[styles.menuLabel, { color: colors.premium }]}>{isPaid ? t('profile.manageSubscription') : t('profile.upgradePremium')}</Text>
           <Text style={styles.menuChevron}>›</Text>
@@ -173,7 +160,7 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>{t('profile.help')}</Text>
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('FAQ')}>
+        <TouchableOpacity accessibilityRole="button" style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('FAQ')}>
           <Text style={styles.menuIcon}>❓</Text>
           <Text style={styles.menuLabel}>{t('profile.faq')}</Text>
           <Text style={styles.menuChevron}>›</Text>
@@ -182,12 +169,12 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>{t('profile.legal')}</Text>
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Terms')}>
+        <TouchableOpacity accessibilityRole="button" style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Terms')}>
           <Text style={styles.menuIcon}>📄</Text>
           <Text style={styles.menuLabel}>{t('profile.terms')}</Text>
           <Text style={styles.menuChevron}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Privacy')}>
+        <TouchableOpacity accessibilityRole="button" style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Privacy')}>
           <Text style={styles.menuIcon}>🔒</Text>
           <Text style={styles.menuLabel}>{t('profile.privacy')}</Text>
           <Text style={styles.menuChevron}>›</Text>
@@ -195,7 +182,7 @@ export default function ProfileScreen({ navigation }: any) {
       </View>
 
       {/* Logout */}
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
         <Text style={styles.logoutText}>{t('profile.signOut')}</Text>
       </TouchableOpacity>
     </ScrollView>

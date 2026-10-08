@@ -18,7 +18,8 @@
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "offline": "You're offline — showing saved data"
   },
   "home": {
     "welcome": "Welcome to TrivioQ!",
@@ -41,7 +42,35 @@
     "paywallTitle": "Upgrade to Premium",
     "paywallBody": "On-demand questions are a Premium feature. Upgrade to get up to 100 drops per day and request questions instantly, anytime.",
     "paywallCta": "View Premium Plans",
-    "paywallDismiss": "Maybe later"
+    "paywallDismiss": "Maybe later",
+    "accuracy": "Accuracy",
+    "accuracySub": "across {{count}} answers",
+    "answered": "answered",
+    "chartBase": "Trivia points",
+    "chartBonus": "Bonus",
+    "chartNoData": "No scores yet — answer a drop to start your trend.",
+    "inHoursMinutes": "in {{h}}h {{m}}m",
+    "inMinutes": "in {{m}}m",
+    "lastResult": "Last drop: {{category}} · {{points}} pts",
+    "weeklyScore": "This week",
+    "monthlyScore": "This month",
+    "nextDropAt": "Next drop {{when}}",
+    "noMoreDropsToday": "No more drops scheduled today",
+    "noRankYet": "Not ranked yet",
+    "pointsToNext_one": "{{count}} pt to climb",
+    "pointsToNext_other": "{{count}} pts to climb",
+    "rankThisMonth": "#{{rank}} this month",
+    "rankThisWeek": "#{{rank}} this week",
+    "rankThisWeekShort": "You're #{{rank}} this week",
+    "reviewMistakes": "Review mistakes",
+    "scoreTrend": "Score trend",
+    "streakAtRiskTitle": "Your {{count}}-day streak is at risk!",
+    "streakAtRiskBody": "Answer a drop before your window closes {{until}}.",
+    "streakAtRiskBodyLate": "Answer a drop today to keep it alive.",
+    "todayTitle": "Today",
+    "todayAnswered": "{{answered}} of {{received}} drops answered",
+    "weeklyTrend": "Weekly score trend",
+    "monthlyTrend": "Monthly score trend"
   },
   "drop": {
     "loading": "Locating your drop...",
@@ -80,7 +109,13 @@
     "paywallCta": "View Premium Plans",
     "paywallDismiss": "Maybe later",
     "errorFetchingHint": "Failed to get hint",
-    "errorRevealingAnswer": "Failed to reveal answer"
+    "errorRevealingAnswer": "Failed to reveal answer",
+    "correctOption": "correct answer",
+    "yourWrongOption": "your answer, incorrect",
+    "optionLabel": "Option {{n}}",
+    "shareFailed": "Couldn't share right now.",
+    "streakTotal": "🔥 {{streak}} streak · ⭐ {{total}} total",
+    "timeLeftA11y": "Time left: {{time}}"
   },
   "profile": {
     "streak": "Day Streak",
@@ -104,7 +139,9 @@
     "signOutConfirm": "Sign Out",
     "freeTier": "🆓 Free",
     "premiumTier": "⭐ Premium",
-    "plusTier": "✨ Plus"
+    "plusTier": "✨ Plus",
+    "accountSecurity": "Account & security",
+    "changePhoto": "Change profile photo"
   },
   "notifications": {
     "title": "Notifications",
@@ -134,7 +171,9 @@
     "subscriptionReminder": "Subscription reminder",
     "offerPromotion": "Special offer",
     "creditAlert": "Credit alert",
-    "adminMessage": "Message from admin"
+    "adminMessage": "Message from admin",
+    "bellUnread_one": "Notifications, {{count}} unread",
+    "bellUnread_other": "Notifications, {{count}} unread"
   },
   "leaderboard": {
     "title": "Leaderboard",
@@ -143,7 +182,21 @@
     "error": "Failed to load leaderboard.",
     "youSuffix": " (You)",
     "dayStreak": "🔥 {{count}} day streak",
-    "pts": "{{score}} pts"
+    "pts": "{{score}} pts",
+    "global": "Global",
+    "friends": "Friends",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "allTime": "All-time",
+    "friendsSubtitle": "You and your friends",
+    "friendsEmpty": "No friend scores yet. Add friends to compete!",
+    "addFriends": "Find friends",
+    "yourPosition": "Your position",
+    "notRanked": "Not ranked yet — answer a drop to get on the board",
+    "pointsToNext_one": "{{count}} pt to climb a spot",
+    "pointsToNext_other": "{{count}} pts to climb a spot",
+    "youLead": "You're in the lead!",
+    "rankA11y": "Rank {{rank}}"
   },
   "history": {
     "title": "Drop History",
@@ -156,10 +209,22 @@
     "yourAnswer": "Your Answer:",
     "correctAnswer": "Correct Answer:",
     "pointsAwarded_one": "+{{count}} pt",
-    "pointsAwarded_other": "+{{count}} pts"
+    "pointsAwarded_other": "+{{count}} pts",
+    "filter": {
+      "all": "All",
+      "correct": "Correct",
+      "incorrect": "Incorrect",
+      "revealed": "Revealed"
+    },
+    "allCategories": "All categories",
+    "emptyFiltered": "No drops match these filters.",
+    "whyAnswer": "Why is this the answer?",
+    "hideExplanation": "Hide explanation",
+    "reviewMistakes": "Review mistakes",
+    "reviewMistakesSub": "Re-try questions you missed. No points, just learning."
   },
   "preferences": {
-    "windowHeader": "Active Window (HH:MM)",
+    "windowHeader": "Active Window",
     "startTime": "Start Time",
     "endTime": "End Time",
     "startTimePlaceholder": "09:00",
@@ -173,7 +238,26 @@
     "successBody": "Preferences updated!",
     "saving": "Saving...",
     "save": "Save Preferences",
-    "updateFailed": "Failed to update preferences"
+    "updateFailed": "Failed to update preferences",
+    "windowLocalHint": "Times are in your local time zone ({{tz}}).",
+    "displayNameHeader": "Display Name",
+    "displayNameInvalid": "Display name must be 2–50 characters.",
+    "categoriesHeader": "Categories",
+    "notificationsHeader": "Notifications",
+    "notif": {
+      "triviaDrop": "New drops",
+      "triviaDropSub": "When a new question is waiting",
+      "streakReminder": "Streak reminders",
+      "streakReminderSub": "Before your streak is about to break",
+      "socialActivity": "Leaderboard & friends",
+      "socialActivitySub": "Rank changes and friends passing you",
+      "subscriptionReminder": "Subscription",
+      "subscriptionReminderSub": "Renewal and expiry reminders",
+      "offerPromotion": "Offers",
+      "offerPromotionSub": "Occasional promotions",
+      "email": "Email",
+      "emailSub": "Also send notifications by email"
+    }
   },
   "faq": {
     "title": "FAQ",
@@ -249,7 +333,11 @@
     "signupSuccess": "Successfully registered",
     "forgotPassword": "Forgot Password?",
     "forgotPasswordTitle": "Forgot Password",
-    "forgotPasswordBody": "Password reset is coming soon. Please contact support."
+    "forgotPasswordBody": "Enter your email and we'll send you a link to reset your password.",
+    "socialProof": "Join {{learners}} learners · {{answered}} questions answered",
+    "sendResetLink": "Send reset link",
+    "resetSent": "If an account exists for that email, a reset link is on its way.",
+    "invalidEmail": "Please enter a valid email address."
   },
   "subscription": {
     "vaultActivatedToast_one": "✅ {{count}} premium day activated!",
@@ -284,7 +372,8 @@
       "daysToActivate": "Days to activate",
       "activateButton_one": "Activate {{count}} Day",
       "activateButton_other": "Activate {{count}} Days"
-    }
+    },
+    "opensWeb": "Opens the TrivioQ website"
   },
   "friends": {
     "title": "Friends",
@@ -297,9 +386,145 @@
     "removeFriendConfirmation": "Are you sure you want to remove {{name}}?",
     "failedToLoad": "Failed to load friendships",
     "noFriendsYet": "You don't have any friends yet.",
-    "noRequests": "No requests."
+    "noRequests": "No requests.",
+    "find": "Find",
+    "add": "Add",
+    "block": "Block",
+    "blockTitle": "Block user",
+    "blockConfirmation": "Block {{name}}? They won't be able to find you or send requests.",
+    "searchPlaceholder": "Search by username or name",
+    "searchHint": "Type at least 2 characters to search.",
+    "noResults": "No players found.",
+    "requestSent": "Friend request sent!",
+    "actionFailed": "Something went wrong. Please try again.",
+    "inviteTitle": "Invite friends",
+    "inviteBody": "Anyone who signs up with your link becomes your friend automatically.",
+    "shareInvite": "Share invite",
+    "copyLink": "Copy link",
+    "linkCopied": "Invite link copied",
+    "inviteMessage": "Join me on TrivioQ for daily trivia drops! {{link}}",
+    "relationship": {
+      "OUTGOING": "Requested",
+      "INCOMING": "Wants to add you",
+      "ACCEPTED": "Friends"
+    }
   },
   "legal": {
     "unavailable": "This document is currently unavailable. Please try again later."
+  },
+  "share": {
+    "streakLine_one": "🔥 {{count}}-day streak",
+    "streakLine_other": "🔥 {{count}}-day streak",
+    "scoreLine": "⭐ {{score}} total points",
+    "pointsLine_one": "+{{count}} point this drop",
+    "pointsLine_other": "+{{count}} points this drop",
+    "cta": "Think you can beat me? Play daily trivia on TrivioQ."
+  },
+  "milestone": {
+    "title_one": "{{count}}-day streak!",
+    "title_other": "{{count}}-day streak!",
+    "body": "You've answered correctly day after day. Keep the fire going!",
+    "cta": "Keep going"
+  },
+  "review": {
+    "title": "Review Mistakes",
+    "progress": "Question {{current}} of {{total}}",
+    "noPoints": "no points",
+    "correct": "Correct! ✅",
+    "incorrect": "Not quite ❌",
+    "next": "Next question",
+    "finish": "Finish",
+    "doneTitle": "Review complete",
+    "doneBody": "You got {{score}} of {{total}} right this time.",
+    "again": "Review again",
+    "back": "Back to history",
+    "emptyTitle": "No mistakes to review",
+    "emptyBody": "Questions you answer incorrectly will show up here.",
+    "error": "Couldn't load your mistakes."
+  },
+  "categories": {
+    "selectedCount": "{{count}} selected (min {{min}})",
+    "pickForMe": "Pick for me",
+    "selectAll": "Select all",
+    "clearAll": "Clear",
+    "bundles": "Quick picks",
+    "search": "Search categories",
+    "noMatch": "No categories match.",
+    "minError": "Please choose at least {{min}} categories.",
+    "bundle": {
+      "science": "Science & Tech",
+      "popCulture": "Pop Culture",
+      "historyGeo": "History & World",
+      "sports": "Sports",
+      "lifestyle": "Lifestyle"
+    }
+  },
+  "account": {
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password (min 8 characters)",
+    "confirmPassword": "Confirm new password",
+    "updatePassword": "Update password",
+    "passwordUpdated": "Password updated",
+    "passwordFailed": "Couldn't update password",
+    "wrongPassword": "Current password is incorrect.",
+    "weakPassword": "New password must be at least 8 characters.",
+    "mismatch": "Passwords don't match.",
+    "tooManyRequests": "Too many attempts. Please try again later.",
+    "socialSignIn": "You sign in with Google, so there's no TrivioQ password to change.",
+    "dangerZone": "Delete account",
+    "deleteHelp": "Your account will be deleted after 30 days. Sign in again before then to cancel.",
+    "deleteAccount": "Delete my account",
+    "deleteTitle": "Delete account?",
+    "deleteBody": "Your account and scores will be permanently deleted in 30 days. Signing back in before then restores it.",
+    "deleteConfirm": "Delete",
+    "deleted": "Account scheduled for deletion",
+    "deleteFailed": "Couldn't delete your account"
+  },
+  "onboarding": {
+    "stepOf": "Step {{n}} of {{total}}",
+    "back": "Back",
+    "next": "Continue",
+    "skip": "Skip",
+    "start": "Start playing",
+    "submitFailed": "Couldn't finish setup. Please try again.",
+    "introTitle": "Welcome to TrivioQ 👋",
+    "introSubtitle": "Bite-sized trivia, dropped into your day.",
+    "how1Title": "Get a drop",
+    "how1Desc": "A mystery question arrives during your active hours. You have a limited time to open it.",
+    "how2Title": "Reveal & answer",
+    "how2Desc": "Reveal the question to start the timer. Use a hint if you're stuck — it costs a few points.",
+    "how3Title": "Climb the ranks",
+    "how3Desc": "Earn points, build streaks and compete on weekly, monthly and friends leaderboards.",
+    "sampleTitle": "Try a sample drop",
+    "sampleSubtitle": "This one's just for practice — no points.",
+    "sampleCorrect": "Correct! 🎉",
+    "sampleIncorrect": "Not quite!",
+    "sample": {
+      "category": "Science",
+      "question": "Which planet is known as the Red Planet?",
+      "o1": "Venus",
+      "o2": "Jupiter",
+      "o3": "Mars",
+      "o4": "Mercury",
+      "explanation": "Mars looks red because iron minerals in its soil oxidise, or rust, giving the surface its reddish colour."
+    },
+    "categoriesTitle": "Pick your topics",
+    "categoriesSubtitle": "Choose at least {{min}} categories. Use a quick pick or let us choose for you.",
+    "trialTitle": "Your free trial",
+    "trialSubtitle": "Start with 7 days of Premium, on us.",
+    "trialPerk1": "Up to 100 drops a day",
+    "trialPerk2": "Request a drop anytime",
+    "trialPerk3": "No payment details needed",
+    "trialAccept": "Start my 7-day Premium trial",
+    "trialRequired": "Please accept the trial to continue.",
+    "windowTitle": "When should we drop?",
+    "windowSubtitle": "We'll only send questions between these times.",
+    "windowInvalid": "Start and end times must be different.",
+    "finishTitle": "You're all set!",
+    "finishSubtitle": "Here's your setup:",
+    "summaryCategories": "{{count}} categories",
+    "summaryWindow": "Drops between {{start}} and {{end}}",
+    "summaryTrial": "7-day Premium trial"
   }
 }

@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useAuth } from '@/context/auth-provider';
+import { ForgotPasswordDialog } from '@/components/forgot-password-dialog';
 
 function LoginForm() {
   const router = useRouter();
@@ -18,6 +19,7 @@ function LoginForm() {
   const [keepMeLoggedIn, setKeepMeLoggedIn] = useState(false);
   const [pendingReactivationToken, setPendingReactivationToken] = useState<string | null>(null);
   const [isReactivating, setIsReactivating] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
 
   // Errors are shown as toast notifications via useAuthSync → useNotification
   const { isPending, loginWithEmailSync, signInWithGoogleSync } = useAuthSync();
@@ -158,18 +160,23 @@ function LoginForm() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <input
-              id="keep-me-logged-in"
-              type="checkbox"
-              checked={keepMeLoggedIn}
-              onChange={(e) => setKeepMeLoggedIn(e.target.checked)}
-              disabled={isPending}
-              className="h-4 w-4 rounded border-border bg-bg-secondary text-brand-600 dark:text-brand-500 accent-brand-600 dark:accent-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 focus:ring-offset-bg-secondary dark:focus:ring-offset-bg-primary"
-            />
-            <label htmlFor="keep-me-logged-in" className="text-sm text-text-muted select-none cursor-pointer">
-              {t('keepMeLoggedIn')}
-            </label>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <input
+                id="keep-me-logged-in"
+                type="checkbox"
+                checked={keepMeLoggedIn}
+                onChange={(e) => setKeepMeLoggedIn(e.target.checked)}
+                disabled={isPending}
+                className="h-4 w-4 rounded border-border bg-bg-secondary text-brand-600 dark:text-brand-500 accent-brand-600 dark:accent-brand-500 focus:ring-brand-600 dark:focus:ring-brand-500 focus:ring-offset-bg-secondary dark:focus:ring-offset-bg-primary"
+              />
+              <label htmlFor="keep-me-logged-in" className="text-sm text-text-muted select-none cursor-pointer">
+                {t('keepMeLoggedIn')}
+              </label>
+            </div>
+            <button type="button" onClick={() => setForgotOpen(true)} className="text-sm font-medium text-brand-500 hover:text-brand-400 transition-colors">
+              {t('forgotPassword')}
+            </button>
           </div>
 
           <div>
@@ -199,6 +206,7 @@ function LoginForm() {
           </div>
         </div>
       </div>
+      <ForgotPasswordDialog open={forgotOpen} initialEmail={email} onClose={() => setForgotOpen(false)} />
     </div>
   );
 }

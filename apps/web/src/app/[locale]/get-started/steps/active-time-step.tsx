@@ -27,13 +27,15 @@ export function ActiveTimeStep({ start, end, onChangeStart, onChangeEnd }: Activ
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('step3StartLabel')}</label>
-          <input type="time" value={start} onChange={(e) => onChangeStart(e.target.value)} className={inputClass} />
+          <input type="time" aria-label={t('step3StartLabel')} value={start} onChange={(e) => onChangeStart(e.target.value)} className={inputClass} />
         </div>
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('step3EndLabel')}</label>
-          <input type="time" value={end} onChange={(e) => onChangeEnd(e.target.value)} className={inputClass} />
+          <input type="time" aria-label={t('step3EndLabel')} value={end} onChange={(e) => onChangeEnd(e.target.value)} className={inputClass} />
         </div>
       </div>
+
+      <p className="text-xs text-text-muted">{t('timeZoneHint', { tz: Intl.DateTimeFormat().resolvedOptions().timeZone })}</p>
 
       {!valid && <p className="text-error text-sm">Please enter both times in HH:MM 24-hour format.</p>}
     </div>

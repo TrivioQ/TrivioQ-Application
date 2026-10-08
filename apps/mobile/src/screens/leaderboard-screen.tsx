@@ -1,21 +1,13 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '../context/auth-context';
-import apiClient from '../api/client';
+import type { LeaderboardEntry } from '@trivioq/shared-types';
+import { api, queryKeys, useMe } from '../api/queries';
+import { SegmentedControl, SkeletonList } from '../components/ui';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
 import { radius } from '../theme/radius';
-
-interface LeaderboardEntry {
-  rank: number;
-  userId: string;
-  username: string;
-  displayName: string | null;
-  cumulativeScore: number;
-  currentStreak: number;
-}
 
 // Podium configuration per rank
 const PODIUM = [
@@ -27,7 +19,7 @@ const PODIUM = [
 function PodiumCard({ entry, podium, isCurrentUser, colors }: { entry: LeaderboardEntry; podium: (typeof PODIUM)[0]; isCurrentUser: boolean; colors: ThemeColors }) {
   const name = entry.displayName ?? entry.username;
   return (
-    <View style={[podiumCardStyle(podium.height, podium.gradientTop, colors, isCurrentUser)]}>
+    <View accessible accessibilityLabel={`${podium.label}, ${name}, ${entry.cumulativeScore} pts`} style={[podiumCardStyle(podium.height, podium.gradientTop, colors, isCurrentUser)]}>
       <Text style={{ fontSize: 32, marginBottom: 4 }}>{podium.emoji}</Text>
       <Text style={[{ fontSize: 13, fontWeight: '800', color: podium.textColor, textAlign: 'center' }]} numberOfLines={1}>
         {name}
@@ -65,34 +57,52 @@ function podiumCardStyle(height: number, bg: string, colors: ThemeColors, isCurr
   };
 }
 
-export default function LeaderboardScreen() {
+type Period = 'weekly' | 'monthly' | 'alltime';
+type Scope = 'global' | 'friends';
+
+export default function LeaderboardScreen({ navigation }: any) {
   const { t } = useTranslation();
-  const { userId } = useAuth();
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
+  const [period, setPeriod] = useState<Period>('weekly');
+  const [scope, setScope] = useState<Scope>('global');
+  const [refreshing, setRefreshing] = useState(false);
+  const { data: me } = useMe();
 
-  const { data, isLoading, error } = useQuery<LeaderboardEntry[]>({
-    queryKey: ['leaderboard', userId],
-    queryFn: async () => {
-      const response = await apiClient.get('/api/v1/leaderboard');
-      return response.data;
-    },
-    enabled: !!userId,
+  const { data, isLoading, error, refetch } = useQuery<LeaderboardEntry[]>({
+    queryKey: queryKeys.leaderboard(scope, period),
+    queryFn: () => api.leaderboard(scope, period),
+    enabled: !!me,
   });
 
-  const top3 = (data ?? []).filter((e) => e.rank <= 3);
-  const rest = (data ?? []).filter((e) => e.rank > 3);
+  const { data: myPosition, refetch: refetchMine } = useQuery({
+    queryKey: queryKeys.leaderboardMe(scope, period),
+    queryFn: () => api.leaderboardMe(scope, period),
+    enabled: !!me,
+  });
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.allSettled([refetch(), refetchMine()]);
+    setRefreshing(false);
+  }, [refetch, refetchMine]);
+
+  const entries = data ?? [];
+  const top3 = entries.filter((e) => e.rank <= 3);
+  const rest = entries.filter((e) => e.rank > 3);
+  const meVisible = !!me && entries.some((e) => e.id === me.id);
 
   const renderItem = ({ item }: { item: LeaderboardEntry }) => {
-    const isCurrentUser = item.userId === userId;
+    const isCurrentUser = item.id === me?.id;
+    const name = item.displayName ?? item.username;
     return (
-      <View style={[styles.row, isCurrentUser && styles.rowHighlighted]}>
+      <View accessible accessibilityLabel={`${t('leaderboard.rankA11y', { rank: item.rank })}, ${name}${isCurrentUser ? t('leaderboard.youSuffix') : ''}, ${t('leaderboard.pts', { score: item.cumulativeScore.toLocaleString() })}`} style={[styles.row, isCurrentUser && styles.rowHighlighted]}>
         <View style={[styles.rankBadge, { backgroundColor: colors.borderColor }]}>
           <Text style={styles.rankText}>#{item.rank}</Text>
         </View>
         <View style={styles.userInfo}>
           <Text style={[styles.username, isCurrentUser && { color: colors.brand }]} numberOfLines={1}>
-            {item.displayName ?? item.username}
+            {name}
             {isCurrentUser ? t('leaderboard.youSuffix') : ''}
           </Text>
           <Text style={styles.streak}>{t('leaderboard.dayStreak', { count: item.currentStreak })}</Text>
@@ -102,51 +112,93 @@ export default function LeaderboardScreen() {
     );
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.brand} />
+  const header = (
+    <View>
+      <View style={styles.controls}>
+        <SegmentedControl
+          value={scope}
+          onChange={setScope}
+          options={[
+            { value: 'global', label: t('leaderboard.global') },
+            { value: 'friends', label: t('leaderboard.friends') },
+          ]}
+        />
+        <SegmentedControl
+          value={period}
+          onChange={setPeriod}
+          options={[
+            { value: 'weekly', label: t('leaderboard.weekly') },
+            { value: 'monthly', label: t('leaderboard.monthly') },
+            { value: 'alltime', label: t('leaderboard.allTime') },
+          ]}
+        />
       </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>{t('leaderboard.error')}</Text>
-      </View>
-    );
-  }
+      {top3.length > 0 && (
+        <View style={styles.podiumSection}>
+          {/* Arrange: 2nd, 1st, 3rd for visual podium layout */}
+          {[top3.find((e) => e.rank === 2), top3.find((e) => e.rank === 1), top3.find((e) => e.rank === 3)].map((entry, i) => {
+            if (!entry) return <View key={i} style={{ flex: 1, marginHorizontal: 4 }} />;
+            const podium = PODIUM.find((p) => p.rank === entry.rank)!;
+            return <PodiumCard key={entry.id} entry={entry} podium={podium} isCurrentUser={entry.id === me?.id} colors={colors} />;
+          })}
+        </View>
+      )}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>{t('leaderboard.title')}</Text>
-      <Text style={styles.subheading}>{t('leaderboard.subtitle')}</Text>
+      <Text accessibilityRole="header" style={styles.heading}>
+        {t('leaderboard.title')}
+      </Text>
+      <Text style={styles.subheading}>{scope === 'friends' ? t('leaderboard.friendsSubtitle') : t('leaderboard.subtitle')}</Text>
 
-      <FlatList
-        data={rest}
-        keyExtractor={(item) => item.userId}
-        renderItem={renderItem}
-        contentContainerStyle={styles.list}
-        ListHeaderComponent={
-          top3.length > 0 ? (
-            <View style={styles.podiumSection}>
-              {/* Arrange: 2nd, 1st, 3rd for visual podium layout */}
-              {[top3.find((e) => e.rank === 2), top3.find((e) => e.rank === 1), top3.find((e) => e.rank === 3)].map((entry, i) => {
-                if (!entry) return <View key={i} style={{ flex: 1, marginHorizontal: 4 }} />;
-                const podium = PODIUM.find((p) => p.rank === entry.rank)!;
-                return <PodiumCard key={entry.userId} entry={entry} podium={podium} isCurrentUser={entry.userId === userId} colors={colors} />;
-              })}
-            </View>
-          ) : null
-        }
-        ListEmptyComponent={
-          <View style={styles.centered}>
-            <Text style={{ fontSize: 40, marginBottom: 12 }}>🏆</Text>
-            <Text style={styles.emptyText}>{t('leaderboard.empty')}</Text>
+      {isLoading || !me ? (
+        <SkeletonList count={6} itemHeight={64} />
+      ) : error ? (
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>{t('leaderboard.error')}</Text>
+          <TouchableOpacity accessibilityRole="button" onPress={() => refetch()} style={styles.retryButton}>
+            <Text style={styles.retryText}>{t('common.retry')}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={rest}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.list}
+          ListHeaderComponent={header}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />}
+          ListEmptyComponent={
+            top3.length === 0 ? (
+              <View style={styles.centered}>
+                <Text style={{ fontSize: 40, marginBottom: 12 }}>{scope === 'friends' ? '👥' : '🏆'}</Text>
+                <Text style={styles.emptyText}>{scope === 'friends' ? t('leaderboard.friendsEmpty') : t('leaderboard.empty')}</Text>
+                {scope === 'friends' && (
+                  <TouchableOpacity accessibilityRole="button" onPress={() => navigation.navigate('Friends')} style={styles.retryButton}>
+                    <Text style={styles.retryText}>{t('leaderboard.addFriends')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : null
+          }
+        />
+      )}
+
+      {/* Pinned "your position" row when you're outside the visible list */}
+      {!isLoading && me && !meVisible && myPosition && (
+        <View accessible accessibilityLabel={myPosition.rank ? `${t('leaderboard.yourPosition')}: ${t('leaderboard.rankA11y', { rank: myPosition.rank })}` : t('leaderboard.notRanked')} style={styles.pinnedRow}>
+          <View style={[styles.rankBadge, { backgroundColor: colors.brandFaint }]}>
+            <Text style={[styles.rankText, { color: colors.brand }]}>{myPosition.rank ? `#${myPosition.rank}` : '—'}</Text>
           </View>
-        }
-      />
+          <View style={styles.userInfo}>
+            <Text style={[styles.username, { color: colors.brand }]}>{t('leaderboard.yourPosition')}</Text>
+            <Text style={styles.streak}>{myPosition.rank ? (myPosition.pointsToNextRank ? t('leaderboard.pointsToNext', { count: myPosition.pointsToNextRank }) : t('leaderboard.youLead')) : t('leaderboard.notRanked')}</Text>
+          </View>
+          <Text style={styles.score}>{t('leaderboard.pts', { score: myPosition.score.toLocaleString() })}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -170,6 +222,32 @@ const createStyles = (colors: ThemeColors) =>
       color: colors.textSecondary,
       paddingHorizontal: 20,
       marginBottom: 16,
+    },
+    controls: {
+      gap: 10,
+      marginBottom: 16,
+      paddingHorizontal: 4,
+    },
+    pinnedRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.bgSecondary,
+      borderTopWidth: 2,
+      borderTopColor: colors.brand,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 12,
+    },
+    retryButton: {
+      marginTop: 14,
+      backgroundColor: colors.brand,
+      borderRadius: radius.md,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+    },
+    retryText: {
+      color: colors.onAccent,
+      fontWeight: '700',
     },
     podiumSection: {
       flexDirection: 'row',

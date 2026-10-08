@@ -1,6 +1,6 @@
 # TrivioQ Monorepo
 
-Welcome to the TrivioQ codebase! This repository contains the complete frontend, mobile, backend, and infrastructure code for TrivioQ, a daily trivia application focused on micro-learning and engaging push-notification-driven content.
+This repository contains the complete frontend, mobile, backend, and infrastructure code for TrivioQ, a daily trivia application focused on micro-learning and engaging push-notification-driven content.
 
 This project is structured as a **Turborepo** (Monorepo), allowing seamless code sharing, rapid execution of scripts, and scalable application development.
 

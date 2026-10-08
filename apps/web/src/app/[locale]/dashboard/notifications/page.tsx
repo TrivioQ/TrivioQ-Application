@@ -4,12 +4,15 @@ import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { Bell, Check, Mail, Wifi } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { notificationHref, notificationTypeIcons } from '@/lib/notification-routing';
 
 interface UserNotification {
   id: string;
   type: string;
   title: string;
   body: string;
+  data?: Record<string, any> | null;
   isRead: boolean;
   pushDelivered: boolean;
   emailDelivered: boolean;
@@ -17,19 +20,11 @@ interface UserNotification {
   createdAt: string;
 }
 
-const typeIcons: Record<string, string> = {
-  TRIVIA_DROP: '📝',
-  SYSTEM_ANNOUNCEMENT: '📢',
-  SUBSCRIPTION_REMINDER: '⏰',
-  OFFER_PROMOTION: '🎁',
-  CREDIT_ALERT: '💎',
-  ADMIN_MESSAGE: '💬',
-};
-
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const router = useRouter();
   const t = useTranslations('notifications');
 
   useEffect(() => {
@@ -38,7 +33,7 @@ export default function NotificationsPage() {
 
   async function fetchNotifications() {
     try {
-      const response = await fetch('/api/notifications?limit=100');
+      const response = await fetch('/api/v1/notifications/inbox?limit=100');
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setNotifications(data.notifications || []);
@@ -51,7 +46,7 @@ export default function NotificationsPage() {
 
   async function handleMarkAsRead(id: string) {
     try {
-      const response = await fetch(`/api/notifications/${id}/read`, {
+      const response = await fetch(`/api/v1/notifications/${id}/read`, {
         method: 'POST',
       });
       if (!response.ok) throw new Error('Failed to mark as read');
@@ -63,7 +58,7 @@ export default function NotificationsPage() {
 
   async function handleMarkAllAsRead() {
     try {
-      const response = await fetch('/api/notifications/read-all', {
+      const response = await fetch('/api/v1/notifications/read-all', {
         method: 'POST',
       });
       if (!response.ok) throw new Error('Failed to mark all as read');
@@ -107,10 +102,10 @@ export default function NotificationsPage() {
 
         {/* Filter Tabs */}
         <div className="flex gap-2 mb-6">
-          <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all' ? 'bg-brand-100 text-brand-700' : 'text-text-muted hover:bg-bg'}`}>
+          <button aria-pressed={filter === 'all'} onClick={() => setFilter('all')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all' ? 'bg-brand-100 text-brand-700' : 'text-text-muted hover:bg-bg'}`}>
             {t('all')} ({notifications.length})
           </button>
-          <button onClick={() => setFilter('unread')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'unread' ? 'bg-brand-100 text-brand-700' : 'text-text-muted hover:bg-bg'}`}>
+          <button aria-pressed={filter === 'unread'} onClick={() => setFilter('unread')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'unread' ? 'bg-brand-100 text-brand-700' : 'text-text-muted hover:bg-bg'}`}>
             {t('unread')} ({unreadCount})
           </button>
         </div>
@@ -125,9 +120,27 @@ export default function NotificationsPage() {
             </div>
           ) : (
             filteredNotifications.map((notification) => (
-              <div key={notification.id} onClick={() => handleMarkAsRead(notification.id)} className={`bg-bg-secondary rounded-lg border p-4 cursor-pointer transition-all hover:shadow-md ${!notification.isRead ? 'border-brand-200 bg-brand-50/30 dark:bg-brand-500/10' : 'border-border'}`}>
+              <div
+                key={notification.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  if (!notification.isRead) handleMarkAsRead(notification.id);
+                  const href = notificationHref(notification.data);
+                  if (href) router.push(href);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    (e.currentTarget as HTMLDivElement).click();
+                  }
+                }}
+                className={`bg-bg-secondary rounded-lg border p-4 cursor-pointer transition-all hover:shadow-md ${!notification.isRead ? 'border-brand-200 bg-brand-50/30 dark:bg-brand-500/10' : 'border-border'}`}
+              >
                 <div className="flex items-start gap-4">
-                  <span className="text-2xl">{typeIcons[notification.type] || '🔔'}</span>
+                  <span className="text-2xl" aria-hidden="true">
+                    {notificationTypeIcons[notification.type] || '🔔'}
+                  </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-text">{notification.title}</h3>

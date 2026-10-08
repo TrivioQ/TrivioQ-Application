@@ -78,7 +78,7 @@ export function PushNotificationSettings() {
         <Text style={[styles.title, { color: colors.textPrimary }]}>{isSubscribed ? t('notifications.pushEnabled') : t('notifications.enablePush')}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{isSubscribed ? t('notifications.pushEnabledDesc') : t('notifications.pushEnableDesc')}</Text>
       </View>
-      <TouchableOpacity style={[styles.button, isSubscribed ? styles.buttonSecondary : styles.buttonPrimary]} onPress={isSubscribed ? handleUnsubscribe : handleSubscribe} disabled={loading || permissionStatus === 'denied'}>
+      <TouchableOpacity accessibilityRole="button" style={[styles.button, isSubscribed ? styles.buttonSecondary : styles.buttonPrimary]} onPress={isSubscribed ? handleUnsubscribe : handleSubscribe} disabled={loading || permissionStatus === 'denied'}>
         {loading ? <ActivityIndicator size="small" color={isSubscribed ? colors.brand : colors.onAccent} /> : <Text style={[styles.buttonText, isSubscribed ? { color: colors.brand } : { color: colors.onAccent }]}>{isSubscribed ? t('common.disable') : t('common.enable')}</Text>}
       </TouchableOpacity>
 

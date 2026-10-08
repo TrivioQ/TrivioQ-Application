@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { NotificationCenterDropdown } from './notification-center-dropdown';
 
 interface UserNotification {
@@ -9,11 +10,13 @@ interface UserNotification {
   type: string;
   title: string;
   body: string;
+  data?: Record<string, any> | null;
   isRead: boolean;
   createdAt: string;
 }
 
 export function NotificationBell() {
+  const t = useTranslations('notifications.center');
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -32,7 +35,7 @@ export function NotificationBell() {
 
   async function fetchNotifications() {
     try {
-      const response = await fetch('/api/notifications?limit=10');
+      const response = await fetch('/api/v1/notifications/inbox?limit=10');
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setNotifications(data.notifications || []);
@@ -45,7 +48,7 @@ export function NotificationBell() {
 
   async function handleMarkAsRead(notificationId: string) {
     try {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
+      const response = await fetch(`/api/v1/notifications/${notificationId}/read`, {
         method: 'POST',
       });
       if (!response.ok) throw new Error('Failed to mark as read');
@@ -57,7 +60,7 @@ export function NotificationBell() {
 
   async function handleMarkAllAsRead() {
     try {
-      const response = await fetch('/api/notifications/read-all', {
+      const response = await fetch('/api/v1/notifications/read-all', {
         method: 'POST',
       });
       if (!response.ok) throw new Error('Failed to mark all as read');
@@ -70,9 +73,13 @@ export function NotificationBell() {
 
   return (
     <div className="relative">
-      <button onClick={() => setIsOpen(!isOpen)} className="relative p-2 text-text-muted hover:text-text hover:bg-bg rounded-lg transition-colors">
-        <Bell className="h-5 w-5" />
-        {unreadCount > 0 && <span className="absolute -top-1 -right-1 h-5 w-5 bg-error text-text text-xs font-bold rounded-full flex items-center justify-center">{unreadCount > 9 ? '9+' : unreadCount}</span>}
+      <button onClick={() => setIsOpen(!isOpen)} aria-label={unreadCount > 0 ? t('bellUnread', { count: unreadCount }) : t('bell')} aria-expanded={isOpen} className="relative p-2 text-text-muted hover:text-text hover:bg-bg rounded-lg transition-colors">
+        <Bell className="h-5 w-5" aria-hidden="true" />
+        {unreadCount > 0 && (
+          <span aria-hidden="true" className="absolute -top-1 -right-1 h-5 w-5 bg-error text-text text-xs font-bold rounded-full flex items-center justify-center">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
       </button>
 
       {isOpen && <NotificationCenterDropdown notifications={notifications} loading={loading} onMarkAsRead={handleMarkAsRead} onMarkAllAsRead={handleMarkAllAsRead} onClose={() => setIsOpen(false)} />}

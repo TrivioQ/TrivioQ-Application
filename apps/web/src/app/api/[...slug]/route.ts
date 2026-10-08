@@ -14,7 +14,7 @@ import { env } from 'env';
 // ---------------------------------------------------------------------------
 
 const COOKIE_NAME = 'tq_auth';
-const METHODS_WITH_BODY = new Set(['POST', 'PUT', 'PATCH']);
+const METHODS_WITH_BODY = new Set(['POST', 'PUT', 'PATCH', 'DELETE']); // DELETE: e.g. webpush unsubscribe sends { endpoint }
 
 // Headers that must not be forwarded to the upstream or back to the client.
 const HOP_BY_HOP = new Set(['content-encoding', 'content-length', 'transfer-encoding', 'connection', 'keep-alive', 'upgrade', 'proxy-authorization', 'te', 'trailer']);

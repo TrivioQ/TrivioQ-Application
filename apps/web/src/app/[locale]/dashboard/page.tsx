@@ -5,6 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { makeServerAPICallV1 } from '@/lib/api-server';
 import ActiveDropCard from '@/components/dashboard/active-drop-card';
 import { DashboardStats } from '@/components/dashboard/dashboard-stats';
+import { TodayCard } from '@/components/dashboard/today-card';
 
 export async function generateMetadata() {
   const t = await getTranslations('metadata');
@@ -65,6 +66,9 @@ export default async function WebDashboard() {
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-brand-500 to-brand-500 dark:from-brand-400 dark:via-brand-400 dark:to-brand-400">{profile ? t('greeting', { name: profile.displayName ?? profile.username }) : t('title')}</h1>
           <p className="text-text-muted mt-2">{t('performanceSubtitle')}</p>
         </div>
+
+        {/* ── Today's progress / streak at risk ── */}
+        <TodayCard />
 
         {/* ── Active Drop ── */}
         <ActiveDropCard />

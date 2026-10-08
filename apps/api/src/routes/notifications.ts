@@ -1,10 +1,192 @@
 import express, { Request, Response } from 'express';
+import { z } from 'zod';
 import { requireSession } from '../middleware/firebase-auth';
 import { requireAdmin } from '../middleware/require-admin';
 import { notificationService } from '../services/notification-service';
 import { NotificationType, NotificationAudience, NotificationChannel } from '@prisma/client';
 
 const router = express.Router();
+
+// Only the per-user toggles are writable; never id/userId/updatedAt.
+const NotificationPreferencesSchema = z
+  .object({
+    triviaDrop: z.boolean(),
+    systemAnnouncement: z.boolean(),
+    subscriptionReminder: z.boolean(),
+    offerPromotion: z.boolean(),
+    creditAlert: z.boolean(),
+    adminMessage: z.boolean(),
+    socialActivity: z.boolean(),
+    streakReminder: z.boolean(),
+    enablePushNotification: z.boolean(),
+    enableWebPushNotification: z.boolean(),
+    enableEmailNotification: z.boolean(),
+  })
+  .partial()
+  .strict();
+
+// User routes are registered BEFORE the admin `/:id` routes: Express matches in
+// registration order, so `/inbox` and `/preferences` would otherwise be captured
+// by `GET/PUT /:id` (requireAdmin) and rejected for every regular user.
+
+// ============================================================================
+// USER ROUTES - /api/v1/notifications
+// ============================================================================
+
+/**
+ * GET /api/v1/notifications/inbox
+ * Get user's notification inbox
+ */
+router.get('/inbox', requireSession, async (req: Request, res: Response) => {
+  try {
+    const { limit = '50', offset = '0' } = req.query;
+    const result = await notificationService.getInbox((req as any).userId, parseInt(limit as string), parseInt(offset as string));
+    res.json(result);
+  } catch (error: any) {
+    console.error('Error getting inbox:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /api/v1/notifications/:id/read
+ * Mark a notification as read
+ */
+router.post('/:id/read', requireSession, async (req: Request, res: Response) => {
+  try {
+    // Verify the notification belongs to the user
+    const userNotification = await (global as any).prisma.userNotification.findFirst({
+      where: {
+        id: req.params.id,
+        userId: (req as any).userId,
+      },
+    });
+
+    if (!userNotification) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+
+    await notificationService.markAsRead(req.params.id);
+    res.json({ message: 'Notification marked as read' });
+  } catch (error: any) {
+    console.error('Error marking as read:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /api/v1/notifications/read-all
+ * Mark all notifications as read
+ */
+router.post('/read-all', requireSession, async (req: Request, res: Response) => {
+  try {
+    await notificationService.markAllAsRead((req as any).userId);
+    res.json({ message: 'All notifications marked as read' });
+  } catch (error: any) {
+    console.error('Error marking all as read:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/v1/notifications/preferences
+ * Get user's notification preferences
+ */
+router.get('/preferences', requireSession, async (req: Request, res: Response) => {
+  try {
+    const preferences = await notificationService.getPreferences((req as any).userId);
+    res.json({ preferences });
+  } catch (error: any) {
+    console.error('Error getting preferences:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * PUT /api/v1/notifications/preferences
+ * Update user's notification preferences
+ */
+router.put('/preferences', requireSession, async (req: Request, res: Response) => {
+  try {
+    const parsed = NotificationPreferencesSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Validation failed', details: parsed.error.format() });
+    }
+    const preferences = await notificationService.updatePreferences((req as any).userId, parsed.data);
+    res.json({ preferences });
+  } catch (error: any) {
+    console.error('Error updating preferences:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /api/v1/notifications/webpush/subscribe
+ * Subscribe to web push notifications
+ */
+router.post('/webpush/subscribe', requireSession, async (req: Request, res: Response) => {
+  try {
+    const { endpoint, p256dh, auth, browser } = req.body;
+
+    if (!endpoint || !p256dh || !auth) {
+      return res.status(400).json({
+        error: 'Missing required fields: endpoint, p256dh, auth',
+      });
+    }
+
+    const subscription = await notificationService.subscribeWebPush((req as any).userId, {
+      endpoint,
+      p256dh,
+      auth,
+      browser,
+    });
+
+    res.json({ subscription });
+  } catch (error: any) {
+    console.error('Error subscribing to web push:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * DELETE /api/v1/notifications/webpush/subscribe
+ * Unsubscribe from web push notifications
+ */
+router.delete('/webpush/subscribe', requireSession, async (req: Request, res: Response) => {
+  try {
+    const { endpoint } = req.body;
+
+    if (!endpoint) {
+      return res.status(400).json({ error: 'Missing required field: endpoint' });
+    }
+
+    await notificationService.unsubscribeWebPush((req as any).userId, endpoint);
+    res.json({ message: 'Unsubscribed from web push' });
+  } catch (error: any) {
+    console.error('Error unsubscribing from web push:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/v1/notifications/webpush/public-key
+ * Get VAPID public key for web push subscription
+ */
+router.get('/webpush/public-key', async (req: Request, res: Response) => {
+  try {
+    const { webPushService } = await import('../services/webpush-service');
+    const publicKey = webPushService.getVapidPublicKey();
+
+    if (!publicKey) {
+      return res.status(500).json({ error: 'VAPID public key not configured' });
+    }
+
+    res.json({ publicKey });
+  } catch (error: any) {
+    console.error('Error getting VAPID public key:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // ============================================================================
 // ADMIN ROUTES - /api/v1/admin/notifications
@@ -301,161 +483,6 @@ router.put('/templates/:id', requireAdmin, async (req: Request, res: Response) =
     res.json({ template });
   } catch (error: any) {
     console.error('Error updating template:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ============================================================================
-// USER ROUTES - /api/v1/notifications
-// ============================================================================
-
-/**
- * GET /api/v1/notifications/inbox
- * Get user's notification inbox
- */
-router.get('/inbox', requireSession, async (req: Request, res: Response) => {
-  try {
-    const { limit = '50', offset = '0' } = req.query;
-    const result = await notificationService.getInbox((req as any).userId, parseInt(limit as string), parseInt(offset as string));
-    res.json(result);
-  } catch (error: any) {
-    console.error('Error getting inbox:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * POST /api/v1/notifications/:id/read
- * Mark a notification as read
- */
-router.post('/:id/read', requireSession, async (req: Request, res: Response) => {
-  try {
-    // Verify the notification belongs to the user
-    const userNotification = await (global as any).prisma.userNotification.findFirst({
-      where: {
-        id: req.params.id,
-        userId: (req as any).userId,
-      },
-    });
-
-    if (!userNotification) {
-      return res.status(404).json({ error: 'Notification not found' });
-    }
-
-    await notificationService.markAsRead(req.params.id);
-    res.json({ message: 'Notification marked as read' });
-  } catch (error: any) {
-    console.error('Error marking as read:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * POST /api/v1/notifications/read-all
- * Mark all notifications as read
- */
-router.post('/read-all', requireSession, async (req: Request, res: Response) => {
-  try {
-    await notificationService.markAllAsRead((req as any).userId);
-    res.json({ message: 'All notifications marked as read' });
-  } catch (error: any) {
-    console.error('Error marking all as read:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * GET /api/v1/notifications/preferences
- * Get user's notification preferences
- */
-router.get('/preferences', requireSession, async (req: Request, res: Response) => {
-  try {
-    const preferences = await notificationService.getPreferences((req as any).userId);
-    res.json({ preferences });
-  } catch (error: any) {
-    console.error('Error getting preferences:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * PUT /api/v1/notifications/preferences
- * Update user's notification preferences
- */
-router.put('/preferences', requireSession, async (req: Request, res: Response) => {
-  try {
-    const preferences = await notificationService.updatePreferences((req as any).userId, req.body);
-    res.json({ preferences });
-  } catch (error: any) {
-    console.error('Error updating preferences:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * POST /api/v1/notifications/webpush/subscribe
- * Subscribe to web push notifications
- */
-router.post('/webpush/subscribe', requireSession, async (req: Request, res: Response) => {
-  try {
-    const { endpoint, p256dh, auth, browser } = req.body;
-
-    if (!endpoint || !p256dh || !auth) {
-      return res.status(400).json({
-        error: 'Missing required fields: endpoint, p256dh, auth',
-      });
-    }
-
-    const subscription = await notificationService.subscribeWebPush((req as any).userId, {
-      endpoint,
-      p256dh,
-      auth,
-      browser,
-    });
-
-    res.json({ subscription });
-  } catch (error: any) {
-    console.error('Error subscribing to web push:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * DELETE /api/v1/notifications/webpush/subscribe
- * Unsubscribe from web push notifications
- */
-router.delete('/webpush/subscribe', requireSession, async (req: Request, res: Response) => {
-  try {
-    const { endpoint } = req.body;
-
-    if (!endpoint) {
-      return res.status(400).json({ error: 'Missing required field: endpoint' });
-    }
-
-    await notificationService.unsubscribeWebPush((req as any).userId, endpoint);
-    res.json({ message: 'Unsubscribed from web push' });
-  } catch (error: any) {
-    console.error('Error unsubscribing from web push:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * GET /api/v1/notifications/webpush/public-key
- * Get VAPID public key for web push subscription
- */
-router.get('/webpush/public-key', async (req: Request, res: Response) => {
-  try {
-    const { webPushService } = await import('../services/webpush-service');
-    const publicKey = webPushService.getVapidPublicKey();
-
-    if (!publicKey) {
-      return res.status(500).json({ error: 'VAPID public key not configured' });
-    }
-
-    res.json({ publicKey });
-  } catch (error: any) {
-    console.error('Error getting VAPID public key:', error);
     res.status(500).json({ error: error.message });
   }
 });

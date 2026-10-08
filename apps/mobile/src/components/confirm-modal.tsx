@@ -49,11 +49,11 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             <Text style={styles.message}>{options.message}</Text>
             <View style={styles.actions}>
               {options.cancelLabel !== '' && (
-                <TouchableOpacity style={styles.cancelButton} onPress={() => handleClose(false)} activeOpacity={0.75}>
+                <TouchableOpacity accessibilityRole="button" style={styles.cancelButton} onPress={() => handleClose(false)} activeOpacity={0.75}>
                   <Text style={styles.cancelText}>{options.cancelLabel ?? t('common.cancel')}</Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity style={[styles.confirmButton, options.isDestructive ? styles.confirmDestructive : styles.confirmDefault]} onPress={() => handleClose(true)} activeOpacity={0.8}>
+              <TouchableOpacity accessibilityRole="button" style={[styles.confirmButton, options.isDestructive ? styles.confirmDestructive : styles.confirmDefault]} onPress={() => handleClose(true)} activeOpacity={0.8}>
                 <Text style={styles.confirmText}>{options.confirmLabel ?? t('common.confirm')}</Text>
               </TouchableOpacity>
             </View>

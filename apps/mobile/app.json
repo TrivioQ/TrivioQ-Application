@@ -17,6 +17,7 @@
           "authToken": "SENTRY_AUTH_TOKEN"
         }
       ]
-    ]
+    ],
+    "scheme": "trivioq"
   }
 }

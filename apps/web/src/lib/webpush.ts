@@ -13,7 +13,7 @@ export async function initWebPush(): Promise<string | null> {
   if (vapidPublicKey) return vapidPublicKey;
 
   try {
-    const response = await fetch('/api/notifications/webpush/public-key');
+    const response = await fetch('/api/v1/notifications/webpush/public-key');
     if (!response.ok) throw new Error('Failed to fetch VAPID key');
     const data = await response.json();
     vapidPublicKey = data.publicKey;
@@ -66,7 +66,7 @@ export async function subscribeToPushNotifications(): Promise<boolean> {
 
     // Send subscription to backend
     const jsonData = subscription.toJSON();
-    const response = await fetch('/api/notifications/webpush/subscribe', {
+    const response = await fetch('/api/v1/notifications/webpush/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -103,7 +103,7 @@ export async function unsubscribeFromPushNotifications(): Promise<boolean> {
       await subscription.unsubscribe();
 
       // Remove from backend
-      await fetch('/api/notifications/webpush/subscribe', {
+      await fetch('/api/v1/notifications/webpush/subscribe', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ endpoint: subscription.endpoint }),

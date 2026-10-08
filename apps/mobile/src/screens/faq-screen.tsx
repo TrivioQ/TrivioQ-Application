@@ -57,7 +57,7 @@ export default function FaqScreen() {
   } = useQuery<FAQItem[]>({
     queryKey: ['faqs'],
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/faqs');
+      const response = await apiClient.get('/v1/faqs');
       return response.data;
     },
   });

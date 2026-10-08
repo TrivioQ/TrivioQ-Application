@@ -360,6 +360,59 @@ export function initWeeklySummaryCron() {
   });
 }
 
+// ── Streak At Risk ──────────────────────────────────────────────────────────────
+
+/**
+ * Hourly: warn users with a live streak who haven't answered anything today and
+ * whose active window closes within the next two hours. At most once per UTC day.
+ */
+export function initStreakAtRiskCron() {
+  CronManager.register('Streak At Risk Reminder', '0 * * * *', async (signal) => {
+    const now = new Date();
+    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const nowMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+    const LOOKAHEAD_MINUTES = 120;
+
+    const candidates = await prisma.user.findMany({
+      where: {
+        role: 'USER',
+        accountStatus: 'ACTIVE',
+        currentStreak: { gt: 0 },
+        NOT: { drops: { some: { isAnswered: true, answeredAt: { gte: todayStart } } } },
+      },
+      select: { id: true, currentStreak: true, activeWindowEnd: true },
+    });
+
+    let sent = 0;
+    for (const user of candidates) {
+      if (signal?.aborted) throw new Error('TERMINATED_BY_ADMIN');
+
+      // Window end is stored as a UTC time-of-day.
+      const endMinutes = user.activeWindowEnd.getUTCHours() * 60 + user.activeWindowEnd.getUTCMinutes();
+      const minutesLeft = endMinutes - nowMinutes;
+      if (minutesLeft <= 0 || minutesLeft > LOOKAHEAD_MINUTES) continue;
+
+      const alreadySent = await prisma.userNotification.findFirst({
+        where: { userId: user.id, createdAt: { gte: todayStart }, notification: { type: 'STREAK_REMINDER' } },
+        select: { id: true },
+      });
+      if (alreadySent) continue;
+
+      await notificationService.createAndQueueNotification({
+        userId: user.id,
+        type: 'STREAK_REMINDER',
+        title: `Your ${user.currentStreak}-day streak is at risk 🔥`,
+        body: `You haven't answered a drop today. Your active window closes in about ${Math.round(minutesLeft / 60) || 1} hour${minutesLeft > 90 ? 's' : ''}.`,
+        data: { kind: 'streak_at_risk', screen: 'home' },
+        channels: { push: true, email: false },
+      });
+      sent++;
+    }
+
+    console.log(`[streak-at-risk-cron] Sent ${sent} reminder(s).`);
+  });
+}
+
 // ── Export initialization function ──────────────────────────────────────────────
 
 export function initNotificationCrons() {
@@ -367,5 +420,6 @@ export function initNotificationCrons() {
   initReengagementCron();
   initDailyTriviaReminderCron();
   initWeeklySummaryCron();
+  initStreakAtRiskCron();
   console.log('Notification cron jobs initialized.');
 }

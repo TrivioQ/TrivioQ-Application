@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Modal, ScrollView, RefreshControl } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../context/auth-context';
 import { QuestionDropPayload } from '@trivioq/shared-types';
+import { useAuth } from '../context/auth-context';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
 import { radius } from '../theme/radius';
 import { NotificationBell } from '../components/notification-bell';
+import { ProgressRing } from '../components/progress-ring';
+import { ScoreTrendChart } from '../components/score-trend-chart';
+import { SegmentedControl, Skeleton, StatCard } from '../components/ui';
+import { api, queryKeys, useMe, useToday } from '../api/queries';
 import apiClient from '../api/client';
 
 function formatTime(seconds: number) {
@@ -16,6 +20,14 @@ function formatTime(seconds: number) {
     .padStart(2, '0');
   const s = (seconds % 60).toString().padStart(2, '0');
   return `${m}:${s}`;
+}
+
+/** "in 2h 15m" / "in 5m" style relative label for an upcoming time. */
+function formatUntil(iso: string, t: (key: string, options?: any) => string) {
+  const mins = Math.max(1, Math.round((new Date(iso).getTime() - Date.now()) / 60_000));
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return h > 0 ? t('home.inHoursMinutes', { h, m }) : t('home.inMinutes', { m });
 }
 
 function getGreeting(name: string | undefined | null, t: (key: string, options?: any) => string) {
@@ -50,23 +62,20 @@ function ActiveDropBanner({ drop, navigation, colors, styles }: { drop: Question
   const diffColor = difficultyColors[drop.difficulty] ?? colors.textSecondary;
 
   return (
-    <TouchableOpacity style={[styles.heroBanner, isExpired && styles.heroBannerExpired]} onPress={() => navigation.navigate('DropActive')} activeOpacity={0.88}>
-      {/* Status row */}
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel={`${isExpired ? t('home.expiredDrop') : t('home.activeDrop')}. ${drop.difficulty}, ${drop.category}, ${drop.pointsValue} pts. ${formatTime(timeLeft)}`} accessibilityHint={t('home.tapToAnswer')} style={[styles.heroBanner, isExpired && styles.heroBannerExpired]} onPress={() => navigation.navigate('DropActive')} activeOpacity={0.88}>
       <View style={styles.heroStatusRow}>
         {!isExpired && <View style={styles.pulseDot} />}
         <Text style={styles.heroStatusText}>{isExpired ? t('home.expiredDrop') : t('home.activeDrop')}</Text>
       </View>
 
-      {/* Badges row */}
       <View style={styles.heroBadgesRow}>
         <Text style={[styles.diffBadge, { color: diffColor, borderColor: diffColor + '40', backgroundColor: diffColor + '18' }]}>{drop.difficulty.toUpperCase()}</Text>
         <Text style={styles.catBadge}>{drop.category}</Text>
         <Text style={styles.ptsBadge}>{drop.pointsValue} pts</Text>
       </View>
 
-      {/* Timer */}
       <Text style={[styles.heroTimer, isExpired ? styles.timerExpired : timeLeft <= 60 ? styles.timerUrgent : styles.timerNormal]}>{formatTime(timeLeft)}</Text>
-      {!isExpired && <Text style={styles.tapToAnswer}>{t('home.tapToAnswer')} →</Text>}
+      {!isExpired && <Text style={styles.tapToAnswer}>{t('home.tapToAnswer')}</Text>}
     </TouchableOpacity>
   );
 }
@@ -78,6 +87,8 @@ export default function HomeDashboard({ navigation }: any) {
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
   const [isPaywallVisible, setIsPaywallVisible] = useState(false);
+  const [trendMode, setTrendMode] = useState<'weekly' | 'monthly'>('weekly');
+  const [refreshing, setRefreshing] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -87,11 +98,12 @@ export default function HomeDashboard({ navigation }: any) {
 
   const onDemandMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post('/api/v1/drops/on-demand');
+      const response = await apiClient.post('/v1/drops/on-demand');
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['activeDrop'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.activeDrop });
+      queryClient.invalidateQueries({ queryKey: queryKeys.today });
       navigation.navigate('DropActive');
     },
     onError: (err: any) => {
@@ -103,25 +115,19 @@ export default function HomeDashboard({ navigation }: any) {
     },
   });
 
-  const {
-    data: profileData,
-    isLoading: profileLoading,
-    error: profileError,
-    refetch: refetchProfile,
-  } = useQuery({
-    queryKey: ['userMe', userId],
-    queryFn: async () => {
-      const response = await apiClient.get('/api/v1/users/me');
-      return response.data;
-    },
-  });
+  const { data: profileData, isLoading: profileLoading, error: profileError, refetch: refetchProfile } = useMe();
+  const { data: today, refetch: refetchToday } = useToday();
 
-  const { data: activeDrop, isLoading: dropLoading } = useQuery<QuestionDropPayload | null>({
-    queryKey: ['activeDrop', userId],
+  const {
+    data: activeDrop,
+    isLoading: dropLoading,
+    refetch: refetchDrop,
+  } = useQuery<QuestionDropPayload | null>({
+    queryKey: [...queryKeys.activeDrop, userId],
     queryFn: async () => {
       try {
-        const response = await apiClient.get('/api/v1/drops/active');
-        return response.data as QuestionDropPayload;
+        const response = await apiClient.get('/v1/drops/active');
+        return response.status === 204 || !response.data ? null : (response.data as QuestionDropPayload);
       } catch (error: any) {
         if (error.response?.status === 404) return null;
         throw error;
@@ -130,61 +136,129 @@ export default function HomeDashboard({ navigation }: any) {
     refetchInterval: 30000,
   });
 
+  const { data: weekly = [], refetch: refetchWeekly } = useQuery({ queryKey: queryKeys.scoreHistory('weekly'), queryFn: () => api.scoreHistory('weekly'), enabled: !!userId });
+  const { data: monthly = [], refetch: refetchMonthly } = useQuery({ queryKey: queryKeys.scoreHistory('monthly'), queryFn: () => api.scoreHistory('monthly'), enabled: !!userId });
+  const { data: weekRank, refetch: refetchWeekRank } = useQuery({ queryKey: queryKeys.leaderboardMe('global', 'weekly'), queryFn: () => api.leaderboardMe('global', 'weekly'), enabled: !!userId });
+  const { data: monthRank, refetch: refetchMonthRank } = useQuery({ queryKey: queryKeys.leaderboardMe('global', 'monthly'), queryFn: () => api.leaderboardMe('global', 'monthly'), enabled: !!userId });
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.allSettled([refetchProfile(), refetchToday(), refetchDrop(), refetchWeekly(), refetchMonthly(), refetchWeekRank(), refetchMonthRank()]);
+    setRefreshing(false);
+  }, [refetchProfile, refetchToday, refetchDrop, refetchWeekly, refetchMonthly, refetchWeekRank, refetchMonthRank]);
+
   const displayName = profileData?.displayName || profileData?.username;
+  const currentWeek = weekly[0];
+  const currentMonth = monthly[0];
+  const accuracyPct = profileData && profileData.questionsAnswered > 0 ? Math.round((profileData.correctAnswers / profileData.questionsAnswered) * 100) : null;
 
   return (
     <View style={styles.outerContainer}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* ── Greeting ── */}
-        <Text style={styles.greeting}>{getGreeting(displayName, t)}</Text>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />}>
+        <Text accessibilityRole="header" style={styles.greeting}>
+          {getGreeting(displayName, t)}
+        </Text>
         <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
 
-        {/* ── Active Drop Banner (hero) ── */}
-        {dropLoading ? (
-          <View style={styles.bannerSkeleton}>
-            <ActivityIndicator size="small" color={colors.brand} />
-            <Text style={styles.skeletonLabel}>{t('home.checkingDrop')}</Text>
+        {/* ── Streak at risk ── */}
+        {today?.streakAtRisk && (
+          <View accessibilityRole="alert" style={styles.riskBanner}>
+            <Text style={styles.riskEmoji}>🔥</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.riskTitle}>{t('home.streakAtRiskTitle', { count: today.currentStreak })}</Text>
+              <Text style={styles.riskBody}>{new Date(today.windowEnd).getTime() > Date.now() ? t('home.streakAtRiskBody', { until: formatUntil(today.windowEnd, t) }) : t('home.streakAtRiskBodyLate')}</Text>
+            </View>
           </View>
+        )}
+
+        {/* ── Active Drop Banner (hero) or useful empty state ── */}
+        {dropLoading ? (
+          <Skeleton height={150} rounded={radius.xl} style={{ marginBottom: 20 }} />
         ) : activeDrop ? (
           <ActiveDropBanner drop={activeDrop} navigation={navigation} colors={colors} styles={styles} />
         ) : (
           <View style={styles.noDropBanner}>
             <Text style={styles.noDropIcon}>⏳</Text>
             <Text style={styles.noDropText}>{t('home.noDropTitle')}</Text>
-            <Text style={styles.noDropSub}>{t('home.noDropSub')}</Text>
+            <Text style={styles.noDropSub}>{today?.nextDropAt ? t('home.nextDropAt', { when: formatUntil(today.nextDropAt, t) }) : t('home.noDropSub')}</Text>
+            {today?.lastResult && (
+              <View style={styles.lastResultRow}>
+                <Text style={styles.lastResultText}>
+                  {today.lastResult.revealedAnswer ? '👁' : today.lastResult.wasCorrect ? '✅' : '❌'} {t('home.lastResult', { category: today.lastResult.category ?? '—', points: today.lastResult.pointsAwarded })}
+                </Text>
+              </View>
+            )}
+            {weekRank?.rank != null && (
+              <Text style={styles.lastResultText}>
+                {t('home.rankThisWeekShort', { rank: weekRank.rank })}
+                {weekRank.pointsToNextRank ? ` · ${t('home.pointsToNext', { count: weekRank.pointsToNextRank })}` : ''}
+              </Text>
+            )}
           </View>
         )}
 
-        {/* ── Stats strip ── */}
+        {/* ── Today's progress ── */}
+        {today && (
+          <View style={styles.todayCard}>
+            <ProgressRing value={today.answeredToday} max={Math.max(today.receivedToday, 1)} label={`${today.answeredToday}/${Math.max(today.receivedToday, today.answeredToday)}`} sublabel={t('home.answered')} />
+            <View style={{ flex: 1, marginLeft: 16 }}>
+              <Text style={styles.todayTitle}>{t('home.todayTitle')}</Text>
+              <Text style={styles.todayLine}>{t('home.todayAnswered', { answered: today.answeredToday, received: today.receivedToday })}</Text>
+              <Text style={styles.todayLine}>{today.nextDropAt ? t('home.nextDropAt', { when: formatUntil(today.nextDropAt, t) }) : t('home.noMoreDropsToday')}</Text>
+            </View>
+          </View>
+        )}
+
+        {/* ── Stats ── */}
         {profileLoading ? (
-          <ActivityIndicator size="large" color={colors.brand} style={styles.loader} />
+          <View style={styles.statsGrid}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} width="47%" height={84} rounded={radius.lg} />
+            ))}
+          </View>
         ) : profileError ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{t('home.failedMetrics')}</Text>
-            <TouchableOpacity style={styles.retryButton} onPress={() => refetchProfile()}>
+            <TouchableOpacity accessibilityRole="button" style={styles.retryButton} onPress={() => refetchProfile()}>
               <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.statsStrip}>
-            <View style={styles.statItem}>
-              <Text style={styles.statEmoji}>🔥</Text>
-              <Text style={styles.statValue}>{profileData?.currentStreak ?? 0}</Text>
-              <Text style={styles.statLabel}>{t('home.streak')}</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statEmoji}>⭐</Text>
-              <Text style={styles.statValue}>{(profileData?.cumulativeScore ?? 0).toLocaleString()}</Text>
-              <Text style={styles.statLabel}>{t('home.totalScore')}</Text>
-            </View>
+          <View style={styles.statsGrid}>
+            <StatCard label={t('home.weeklyScore')} value={(currentWeek?.totalScore ?? 0).toLocaleString()} sub={weekRank?.rank ? t('home.rankThisWeek', { rank: weekRank.rank }) : t('home.noRankYet')} />
+            <StatCard label={t('home.monthlyScore')} value={(currentMonth?.totalScore ?? 0).toLocaleString()} sub={monthRank?.rank ? t('home.rankThisMonth', { rank: monthRank.rank }) : t('home.noRankYet')} />
+            <StatCard label={t('home.streak')} value={`🔥 ${profileData?.currentStreak ?? 0}`} accent={today?.streakAtRisk ? colors.warning : undefined} />
+            <StatCard label={t('home.totalScore')} value={`⭐ ${(profileData?.cumulativeScore ?? 0).toLocaleString()}`} />
+            <StatCard label={t('home.accuracy')} value={accuracyPct !== null ? `${accuracyPct}%` : '—'} sub={t('home.accuracySub', { count: profileData?.questionsAnswered ?? 0 })} />
           </View>
         )}
 
-        {/* ── Preferences quick link ── */}
-        <TouchableOpacity style={styles.preferencesButton} onPress={() => navigation.navigate('Preferences')} activeOpacity={0.8}>
-          <Text style={styles.preferencesButtonText}>⚙️ {t('home.editPreferences')}</Text>
-        </TouchableOpacity>
+        {/* ── Score trend ── */}
+        <View style={styles.chartCard}>
+          <View style={styles.chartHeader}>
+            <Text style={styles.chartTitle}>{t('home.scoreTrend')}</Text>
+            <SegmentedControl
+              style={{ width: 170 }}
+              value={trendMode}
+              onChange={setTrendMode}
+              options={[
+                { value: 'weekly', label: t('scoreHistory.weekly') },
+                { value: 'monthly', label: t('scoreHistory.monthly') },
+              ]}
+            />
+          </View>
+          <ScoreTrendChart data={trendMode === 'weekly' ? weekly : monthly} mode={trendMode} />
+        </View>
+
+        {/* ── Quick links ── */}
+        <View style={styles.quickLinks}>
+          <TouchableOpacity accessibilityRole="button" style={styles.preferencesButton} onPress={() => navigation.navigate('History', { screen: 'ReviewMistakes' })} activeOpacity={0.8}>
+            <Text style={styles.preferencesButtonText}>🧠 {t('home.reviewMistakes')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" style={styles.preferencesButton} onPress={() => navigation.navigate('Profile', { screen: 'Preferences' })} activeOpacity={0.8}>
+            <Text style={styles.preferencesButtonText}>⚙️ {t('home.editPreferences')}</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Spacer so content doesn't sit under the FAB */}
         <View style={{ height: 100 }} />
@@ -192,27 +266,30 @@ export default function HomeDashboard({ navigation }: any) {
 
       {/* ── Floating Action Button — Request Next Drop ── */}
       <View style={styles.fabContainer}>
-        <TouchableOpacity style={[styles.fab, onDemandMutation.isPending && styles.fabDisabled]} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending} activeOpacity={0.85}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('home.requestNext')} accessibilityState={{ busy: onDemandMutation.isPending }} style={[styles.fab, onDemandMutation.isPending && styles.fabDisabled]} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending} activeOpacity={0.85}>
           {onDemandMutation.isPending ? <ActivityIndicator color={colors.onAccent} size="small" /> : <Text style={styles.fabText}>⚡ {t('home.requestNext')}</Text>}
         </TouchableOpacity>
       </View>
 
       {/* Paywall Modal */}
-      <Modal visible={isPaywallVisible} animationType="slide" transparent={true}>
+      <Modal visible={isPaywallVisible} animationType="slide" transparent={true} onRequestClose={() => setIsPaywallVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('home.paywallTitle')}</Text>
+            <Text accessibilityRole="header" style={styles.modalTitle}>
+              {t('home.paywallTitle')}
+            </Text>
             <Text style={styles.modalBody}>{t('home.paywallBody')}</Text>
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.premiumButton}
               onPress={() => {
                 setIsPaywallVisible(false);
-                navigation.navigate('Profile');
+                navigation.navigate('Profile', { screen: 'Subscription' });
               }}
             >
               <Text style={styles.premiumButtonText}>{t('home.paywallCta')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setIsPaywallVisible(false)} style={{ marginTop: 12 }}>
+            <TouchableOpacity accessibilityRole="button" onPress={() => setIsPaywallVisible(false)} style={{ marginTop: 12 }}>
               <Text style={{ color: colors.textSecondary, fontSize: 14 }}>{t('home.paywallDismiss')}</Text>
             </TouchableOpacity>
           </View>
@@ -394,6 +471,57 @@ const createStyles = (colors: ThemeColors) =>
       width: 1,
       backgroundColor: colors.borderColor,
     },
+
+    // Streak at risk
+    riskBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      backgroundColor: colors.warning + '18',
+      borderWidth: 1,
+      borderColor: colors.warning,
+      borderRadius: radius.lg,
+      padding: 14,
+      marginBottom: 16,
+    },
+    riskEmoji: { fontSize: 28 },
+    riskTitle: { fontSize: 15, fontWeight: '800', color: colors.textPrimary },
+    riskBody: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
+
+    // Empty state extras
+    lastResultRow: { marginTop: 12 },
+    lastResultText: { fontSize: 13, color: colors.textPrimary, fontWeight: '600', marginTop: 6, textAlign: 'center' },
+
+    // Today card
+    todayCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.bgSecondary,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+      padding: 16,
+      marginBottom: 16,
+    },
+    todayTitle: { fontSize: 16, fontWeight: '800', color: colors.textPrimary, marginBottom: 4 },
+    todayLine: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
+
+    // Stats grid
+    statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+
+    // Chart
+    chartCard: {
+      backgroundColor: colors.bgSecondary,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+      padding: 16,
+      marginBottom: 16,
+    },
+    chartHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 8 },
+    chartTitle: { fontSize: 16, fontWeight: '800', color: colors.textPrimary },
+
+    quickLinks: { gap: 8 },
 
     // Preferences outline button
     preferencesButton: {

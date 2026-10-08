@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, ScrollView, Modal, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Modal, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useConfirm } from '../components/confirm-modal';
 import { toast } from 'sonner-native';
@@ -7,7 +7,10 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
 import apiClient from '../api/client';
-import { QuestionDropPayload } from '@trivioq/shared-types';
+import { QuestionDropPayload, SubmitAnswerResult, reachedStreakMilestone } from '@trivioq/shared-types';
+import { MilestoneModal } from '../components/milestone-modal';
+import { ShareCardButton } from '../components/share-card';
+import { queryKeys } from '../api/queries';
 import { MarkdownText } from '../components/markdown-text';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
@@ -15,7 +18,10 @@ import { radius } from '../theme/radius';
 
 // ── Animated Option Button ───────────────────────────────────────────────────
 
-function AnimatedOption({ option, entranceDelay, buttonStyle, disabled, onPress }: { option: { id: string; text: string }; index: number; entranceDelay: number; buttonStyle: any; disabled: boolean; onPress: () => void }) {
+type OptionState = 'idle' | 'correct' | 'wrong' | 'dimmed';
+
+function AnimatedOption({ option, index, entranceDelay, buttonStyle, disabled, onPress, state }: { option: { id: string; text: string }; index: number; entranceDelay: number; buttonStyle: any; disabled: boolean; onPress: () => void; state: OptionState }) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const entranceAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -53,10 +59,26 @@ function AnimatedOption({ option, entranceDelay, buttonStyle, disabled, onPress 
         ],
       }}
     >
-      <TouchableOpacity style={buttonStyle} disabled={disabled} onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} activeOpacity={1}>
-        <MarkdownText color={colors.onAccent} scale={0.9}>
-          {option.text}
-        </MarkdownText>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={`${t('drop.optionLabel', { n: index + 1 })}: ${option.text}${state === 'correct' ? `, ${t('drop.correctOption')}` : state === 'wrong' ? `, ${t('drop.yourWrongOption')}` : ''}`}
+        accessibilityState={{ disabled }}
+        style={buttonStyle}
+        disabled={disabled}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={1}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {/* Icon marker so correct/incorrect isn't conveyed by colour alone. */}
+          {(state === 'correct' || state === 'wrong') && <Text style={{ fontSize: 18, fontWeight: '900', color: colors.onAccent, marginRight: 8 }}>{state === 'correct' ? '✓' : '✗'}</Text>}
+          <View style={{ flex: 1 }}>
+            <MarkdownText color={colors.onAccent} scale={0.9}>
+              {option.text}
+            </MarkdownText>
+          </View>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -123,7 +145,7 @@ function PulsingQuestionMark({ colors }: { colors: ThemeColors }) {
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
-export default function DropActive() {
+export default function DropActive({ navigation }: any) {
   const { t } = useTranslation();
   const { userId } = useAuth();
   const queryClient = useQueryClient();
@@ -136,7 +158,8 @@ export default function DropActive() {
   const [isExpired, setIsExpired] = useState(false);
 
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [answerResult, setAnswerResult] = useState<any>(null);
+  const [answerResult, setAnswerResult] = useState<SubmitAnswerResult | null>(null);
+  const [milestone, setMilestone] = useState<number | null>(null);
   const [isPaywallVisible, setIsPaywallVisible] = useState(false);
 
   const [hintText, setHintText] = useState<string | null>(null);
@@ -145,7 +168,7 @@ export default function DropActive() {
 
   const onDemandMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post('/api/v1/drops/on-demand');
+      const response = await apiClient.post('/v1/drops/on-demand');
       return response.data;
     },
     onSuccess: () => {
@@ -157,7 +180,8 @@ export default function DropActive() {
       setHintText(null);
       setHintCostDeducted(null);
       setRevealedCorrectIndex(null);
-      queryClient.invalidateQueries({ queryKey: ['activeDrop'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.activeDrop });
+      queryClient.invalidateQueries({ queryKey: queryKeys.today });
     },
     onError: (err: any) => {
       if (err.response?.data?.code === 'UPGRADE_REQUIRED') {
@@ -169,10 +193,10 @@ export default function DropActive() {
   });
 
   const { data, isLoading, isError } = useQuery<QuestionDropPayload | null>({
-    queryKey: ['activeDrop', userId],
+    queryKey: [...queryKeys.activeDrop, userId],
     queryFn: async () => {
       try {
-        const response = await apiClient.get('/api/v1/drops/active');
+        const response = await apiClient.get('/v1/drops/active');
         if (response.status === 204 || !response.data || Object.keys(response.data).length === 0) {
           return null;
         }
@@ -198,7 +222,7 @@ export default function DropActive() {
 
   const hintMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post(`/api/v1/drops/${data!.dropId}/hint`);
+      const response = await apiClient.post(`/v1/drops/${data!.dropId}/hint`);
       return response.data;
     },
     onSuccess: (result) => {
@@ -214,7 +238,7 @@ export default function DropActive() {
 
   const revealQuestionMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post(`/api/v1/drops/${data!.dropId}/reveal-question`);
+      const response = await apiClient.post(`/v1/drops/${data!.dropId}/reveal-question`);
       return response.data;
     },
     onSuccess: (result) => {
@@ -222,7 +246,7 @@ export default function DropActive() {
         setTimeLeft(Math.max(0, Math.floor((result.answerDeadline - Date.now()) / 1000)));
       }
       setIsRevealed(true);
-      queryClient.invalidateQueries({ queryKey: ['activeDrop'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.activeDrop });
     },
     onError: (err: any) => {
       const message = err.response?.data?.error || t('drop.revealAlertTitle');
@@ -232,7 +256,7 @@ export default function DropActive() {
 
   const revealMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post(`/api/v1/drops/${data!.dropId}/reveal-answer`);
+      const response = await apiClient.post(`/v1/drops/${data!.dropId}/reveal-answer`);
       return response.data;
     },
     onSuccess: (result) => {
@@ -246,14 +270,17 @@ export default function DropActive() {
 
   const submitMutation = useMutation({
     mutationFn: async (optionIndex: number) => {
-      const response = await apiClient.post(`/api/v1/drops/${data!.dropId}/submit`, {
+      const response = await apiClient.post(`/v1/drops/${data!.dropId}/submit`, {
         selectedOptionIndex: optionIndex,
       });
       return response.data;
     },
-    onSuccess: (result) => {
+    onSuccess: (result: SubmitAnswerResult) => {
       setAnswerResult(result);
-      queryClient.invalidateQueries({ queryKey: ['userMe'] });
+      setMilestone(result.isCorrect ? reachedStreakMilestone(result.newStreak) : null);
+      for (const key of [queryKeys.me, queryKeys.today, queryKeys.activeDrop, ['dropHistory'], ['scoreHistory'], ['leaderboard'], ['leaderboardMe'], queryKeys.mistakes]) {
+        queryClient.invalidateQueries({ queryKey: key });
+      }
       // Haptic feedback on answer result
       if (result.isCorrect) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -338,23 +365,12 @@ export default function DropActive() {
     if (ok) revealMutation.mutate();
   };
 
-  const handleShare = async () => {
-    if (!answerResult) return;
-    try {
-      await Share.share({
-        message: t('drop.shareMessage', { streak: answerResult.newStreak }),
-      });
-    } catch (error: any) {
-      console.error(error.message);
-    }
-  };
-
   const isAnswerKnown = revealedCorrectIndex !== null;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Timer */}
-      <View style={styles.timerContainer}>
+      <View style={styles.timerContainer} accessible accessibilityLabel={t('drop.timeLeftA11y', { time: answerResult ? '--:--' : timeLeft !== null ? formatTime(timeLeft) : '--:--' })}>
         <Text style={[styles.timerText, isExpired && styles.timerExpired]}>{answerResult ? '--:--' : timeLeft !== null ? formatTime(timeLeft) : '--:--'}</Text>
         {isExpired && !answerResult && <Text style={styles.expiredLabel}>{t('drop.expired')}</Text>}
       </View>
@@ -370,6 +386,7 @@ export default function DropActive() {
           <Text style={styles.badgeDetail}>{t('drop.worth', { value: data.pointsValue })}</Text>
 
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.revealButton, (isExpired || revealQuestionMutation.isPending) && styles.disabledButton]}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -402,12 +419,12 @@ export default function DropActive() {
                   </MarkdownText>
                 </View>
               ) : (
-                <TouchableOpacity style={[styles.assistButton, (hintMutation.isPending || isExpired || data.usedHint) && styles.disabledButton]} onPress={handleHint} disabled={hintMutation.isPending || isExpired || data.usedHint}>
+                <TouchableOpacity accessibilityRole="button" style={[styles.assistButton, (hintMutation.isPending || isExpired || data.usedHint) && styles.disabledButton]} onPress={handleHint} disabled={hintMutation.isPending || isExpired || data.usedHint}>
                   <Text style={styles.assistButtonText}>{data.usedHint ? t('drop.hintUsed') : t('drop.hintButton', { cost: data.hintCost })}</Text>
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity style={[styles.assistButton, styles.revealAnswerButton, (revealMutation.isPending || isExpired || data.revealedAnswer) && styles.disabledButton]} onPress={handleRevealAnswer} disabled={revealMutation.isPending || isExpired || data.revealedAnswer || isAnswerKnown}>
+              <TouchableOpacity accessibilityRole="button" style={[styles.assistButton, styles.revealAnswerButton, (revealMutation.isPending || isExpired || data.revealedAnswer) && styles.disabledButton]} onPress={handleRevealAnswer} disabled={revealMutation.isPending || isExpired || data.revealedAnswer || isAnswerKnown}>
                 <Text style={styles.assistButtonText}>{data.revealedAnswer || isAnswerKnown ? t('drop.answerRevealed') : t('drop.showAnswer')}</Text>
               </TouchableOpacity>
             </View>
@@ -438,7 +455,9 @@ export default function DropActive() {
               buttonStyle = [styles.optionButton, styles.disabledButton];
             }
 
-            return <AnimatedOption key={option.id} option={option} index={index} entranceDelay={index * 80} buttonStyle={buttonStyle} disabled={isExpired || submitMutation.isPending || answerResult !== null} onPress={() => handleSelectOption(index)} />;
+            const state: OptionState = answerResult ? (index === answerResult.correctOptionIndex ? 'correct' : index === selectedOption ? 'wrong' : 'dimmed') : isAnswerKnown && index === revealedCorrectIndex ? 'correct' : 'idle';
+
+            return <AnimatedOption key={option.id} option={option} index={index} state={state} entranceDelay={index * 80} buttonStyle={buttonStyle} disabled={isExpired || submitMutation.isPending || answerResult !== null} onPress={() => handleSelectOption(index)} />;
           })}
 
           {submitMutation.isPending && <ActivityIndicator size="small" color={colors.brand} style={{ marginTop: 20 }} />}
@@ -457,11 +476,11 @@ export default function DropActive() {
                 </View>
               )}
 
-              <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-                <Text style={styles.shareButtonText}>{t('drop.shareButton')}</Text>
-              </TouchableOpacity>
+              <Text style={styles.streakTotalText}>{t('drop.streakTotal', { streak: answerResult.newStreak, total: answerResult.newTotalScore.toLocaleString() })}</Text>
 
-              <TouchableOpacity style={styles.nextQuestionButton} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending}>
+              <ShareCardButton style={styles.shareButton} textStyle={styles.shareButtonText} data={{ streak: answerResult.newStreak, totalScore: answerResult.newTotalScore, pointsAwarded: answerResult.pointsAwarded, category: answerResult.category ?? data.category, isCorrect: answerResult.isCorrect }} />
+
+              <TouchableOpacity accessibilityRole="button" style={styles.nextQuestionButton} onPress={() => onDemandMutation.mutate()} disabled={onDemandMutation.isPending}>
                 <Text style={styles.nextQuestionButtonText}>{onDemandMutation.isPending ? t('drop.requesting') : t('drop.requestNext')}</Text>
               </TouchableOpacity>
             </View>
@@ -469,16 +488,25 @@ export default function DropActive() {
         </View>
       )}
 
+      <MilestoneModal streak={milestone} visible={milestone !== null} onClose={() => setMilestone(null)} />
+
       {/* Paywall Modal */}
-      <Modal visible={isPaywallVisible} animationType="slide" transparent={true}>
+      <Modal visible={isPaywallVisible} animationType="slide" transparent={true} onRequestClose={() => setIsPaywallVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{t('drop.paywallTitle')}</Text>
             <Text style={styles.modalBody}>{t('drop.paywallBody')}</Text>
-            <TouchableOpacity style={styles.premiumButton} onPress={() => setIsPaywallVisible(false)}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              style={styles.premiumButton}
+              onPress={() => {
+                setIsPaywallVisible(false);
+                navigation.getParent()?.navigate('Profile', { screen: 'Subscription' });
+              }}
+            >
               <Text style={styles.premiumButtonText}>{t('drop.paywallCta')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setIsPaywallVisible(false)} style={{ marginTop: 12 }}>
+            <TouchableOpacity accessibilityRole="button" onPress={() => setIsPaywallVisible(false)} style={{ marginTop: 12 }}>
               <Text style={{ color: colors.textSecondary, fontSize: 14 }}>{t('drop.paywallDismiss')}</Text>
             </TouchableOpacity>
           </View>
@@ -492,6 +520,12 @@ export default function DropActive() {
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
+    streakTotalText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginTop: 8,
+      textAlign: 'center',
+    },
     container: {
       flexGrow: 1,
       padding: 20,

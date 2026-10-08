@@ -4,6 +4,7 @@ import { QuestionDropPayload } from '@trivioq/shared-types';
 import { requireSession } from '../middleware/firebase-auth';
 import { DIFFICULTY_POINTS, deductUserScores, upsertUserScores } from '../utils/scoring';
 import { getSettingNumber } from '../utils/settings';
+import { notifyRankChanges } from '../services/leaderboard-service';
 
 const router = express.Router();
 
@@ -218,6 +219,7 @@ router.post('/:dropId/submit', requireSession, async (req: Request, res: Respons
           select: {
             difficultyLevel: true,
             explanationText: true,
+            categories: { select: { name: true }, take: 1 },
             choices: { select: { id: true, isCorrect: true }, orderBy: { order: 'asc' } },
           },
         },
@@ -261,6 +263,9 @@ router.post('/:dropId/submit', requireSession, async (req: Request, res: Respons
         data: {
           currentStreak: isCorrect ? { increment: 1 } : 0,
           cumulativeScore: { increment: pointsAwarded },
+          // Feed the public /v1/stats counters and per-user accuracy.
+          questionsAnswered: { increment: 1 },
+          ...(isCorrect ? { correctAnswers: { increment: 1 } } : {}),
         },
       }),
     ]);
@@ -273,10 +278,15 @@ router.post('/:dropId/submit', requireSession, async (req: Request, res: Respons
       explanation: question.explanationText || undefined,
       newStreak: updatedUser.currentStreak,
       newTotalScore: updatedUser.cumulativeScore,
+      // Used by clients for the share card.
+      category: question.categories[0]?.name ?? 'General',
+      difficulty: question.difficultyLevel.toLowerCase(),
     };
 
     if (isCorrect) {
-      upsertUserScores(userId, pointsAwarded).catch((err) => console.error('[drop/submit] Failed to upsert UserScore:', err));
+      upsertUserScores(userId, pointsAwarded)
+        .then(() => notifyRankChanges(userId, pointsAwarded))
+        .catch((err) => console.error('[drop/submit] Failed to upsert UserScore / notify rank changes:', err));
     }
 
     res.json(response);

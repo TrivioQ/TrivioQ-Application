@@ -7,6 +7,7 @@ import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '../context/auth-provider';
 import { useUserProfile } from '../hooks/use-user-profile';
+import { useFriendships } from '../hooks/use-friendships';
 import { Flame, Star, Settings, LogOut } from 'lucide-react';
 
 // ─── Framer variants ──────────────────────────────────────────────────────────
@@ -71,10 +72,20 @@ function CrownIcon({ className }: { className?: string }) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function NavLink({ href, label, active }: { href: string; label: string; active: boolean }) {
+function CountBadge({ count, label }: { count?: number; label: string }) {
+  if (!count) return null;
   return (
-    <Link href={href} className={`relative text-sm font-medium transition-colors duration-200 group ${active ? 'text-brand-600 dark:text-text' : 'text-text-muted hover:text-brand-600 dark:hover:text-text'}`}>
+    <span aria-label={label} className="ml-1.5 inline-flex min-w-[1.1rem] h-[1.1rem] items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-white">
+      {count > 9 ? '9+' : count}
+    </span>
+  );
+}
+
+function NavLink({ href, label, active, badge, badgeLabel }: { href: string; label: string; active: boolean; badge?: number; badgeLabel?: string }) {
+  return (
+    <Link href={href} aria-current={active ? 'page' : undefined} className={`relative inline-flex items-center text-sm font-medium transition-colors duration-200 group ${active ? 'text-brand-600 dark:text-text' : 'text-text-muted hover:text-brand-600 dark:hover:text-text'}`}>
       {label}
+      <CountBadge count={badge} label={badgeLabel ?? ''} />
       <span className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-brand-400 transition-all duration-300 ${active ? 'w-full' : 'w-0 group-hover:w-full'}`} />
     </Link>
   );
@@ -103,7 +114,9 @@ export function Navbar() {
   const router = useRouter();
   const { user, isLoading: authLoading, logout } = useAuth();
   const { data: profile } = useUserProfile();
+  const { data: friendships } = useFriendships();
   const t = useTranslations('nav');
+  const incomingRequests = friendships?.incomingRequests.length ?? 0;
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -116,9 +129,10 @@ export function Navbar() {
     { label: t('leaderboard'), href: '/leaderboard' },
   ];
 
-  const LOGGED_IN_NAV_LINKS = [
-    { label: t('home'), href: '/' },
+  const LOGGED_IN_NAV_LINKS: { label: string; href: string; badge?: number }[] = [
     { label: t('dashboard'), href: '/dashboard' },
+    { label: t('history'), href: '/history' },
+    { label: t('friends'), href: '/friends', badge: incomingRequests },
     { label: t('leaderboard'), href: '/leaderboard' },
   ];
 
@@ -167,8 +181,8 @@ export function Navbar() {
 
           {/* ── Center links (desktop) ── */}
           <div className="hidden md:flex items-center gap-8">
-            {(isLoggedIn ? LOGGED_IN_NAV_LINKS : NAV_LINKS).map((link) => (
-              <NavLink key={link.href} href={link.href} label={link.label} active={pathname === link.href} />
+            {(isLoggedIn ? LOGGED_IN_NAV_LINKS : NAV_LINKS).map((link: { label: string; href: string; badge?: number }) => (
+              <NavLink key={link.href} href={link.href} label={link.label} active={pathname === link.href} badge={link.badge} badgeLabel={t('pendingRequests', { count: link.badge ?? 0 })} />
             ))}
           </div>
 
@@ -290,9 +304,16 @@ export function Navbar() {
 
               {/* Nav links */}
               <div className="flex-1 overflow-y-auto py-6 px-6 space-y-1">
-                {(isLoggedIn ? LOGGED_IN_NAV_LINKS : NAV_LINKS).map((link) => (
-                  <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${pathname === link.href ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30' : 'text-text-muted hover:text-text hover:bg-bg dark:hover:bg-white/5'}`}>
+                {(isLoggedIn ? LOGGED_IN_NAV_LINKS : NAV_LINKS).map((link: { label: string; href: string; badge?: number }) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    aria-current={pathname === link.href ? 'page' : undefined}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${pathname === link.href ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30' : 'text-text-muted hover:text-text hover:bg-bg dark:hover:bg-white/5'}`}
+                  >
                     {link.label}
+                    <CountBadge count={link.badge} label={t('pendingRequests', { count: link.badge ?? 0 })} />
                   </Link>
                 ))}
 
