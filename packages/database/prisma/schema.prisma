@@ -337,6 +337,8 @@ enum NotificationType {
   OFFER_PROMOTION
   CREDIT_ALERT
   ADMIN_MESSAGE
+  SOCIAL_ACTIVITY
+  STREAK_REMINDER
 }
 
 // Delivery channels
@@ -438,6 +440,8 @@ model UserNotificationPreference {
   offerPromotion            Boolean  @default(false)
   creditAlert               Boolean  @default(true)
   adminMessage              Boolean  @default(true)
+  socialActivity            Boolean  @default(true)
+  streakReminder            Boolean  @default(true)
   enablePushNotification    Boolean  @default(true)
   enableWebPushNotification Boolean  @default(false)
   enableEmailNotification   Boolean  @default(true)

@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/auth-context';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
 import apiClient from '../api/client';
+import { ScoreTrendChart } from '../components/score-trend-chart';
+import { SkeletonList } from '../components/ui';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -96,10 +98,11 @@ export default function ScoreHistoryScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [activeTab, setActiveTab] = useState<TabKey>('weekly');
 
-  const { data, isLoading, error } = useQuery<{ weekly: ScorePeriod[]; monthly: ScorePeriod[] }>({
+  const [refreshing, setRefreshing] = useState(false);
+  const { data, isLoading, error, refetch } = useQuery<{ weekly: ScorePeriod[]; monthly: ScorePeriod[] }>({
     queryKey: ['scoreHistory', userId],
     queryFn: async () => {
-      const [weeklyRes, monthlyRes] = await Promise.all([apiClient.get('/api/v1/users/me/score-history?period=weekly'), apiClient.get('/api/v1/users/me/score-history?period=monthly')]);
+      const [weeklyRes, monthlyRes] = await Promise.all([apiClient.get('/v1/users/me/score-history?period=weekly'), apiClient.get('/v1/users/me/score-history?period=monthly')]);
       return {
         weekly: weeklyRes.data.history ?? [],
         monthly: monthlyRes.data.history ?? [],
@@ -108,13 +111,7 @@ export default function ScoreHistoryScreen() {
     enabled: !!userId,
   });
 
-  if (isLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.brand} />
-      </View>
-    );
-  }
+  if (isLoading) return <SkeletonList count={5} itemHeight={56} />;
 
   if (error) {
     return (
@@ -138,6 +135,17 @@ export default function ScoreHistoryScreen() {
       contentContainerStyle={styles.contentContainer}
       data={rows}
       keyExtractor={(item) => item.id}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={async () => {
+            setRefreshing(true);
+            await refetch();
+            setRefreshing(false);
+          }}
+          tintColor={colors.brand}
+        />
+      }
       ListHeaderComponent={
         <>
           {/* ── Scoring Guide ── */}
@@ -172,6 +180,11 @@ export default function ScoreHistoryScreen() {
                 <Text style={[styles.tabLabel, activeTab === tab && styles.tabLabelActive]}>{tab === 'weekly' ? t('scoreHistory.weekly') : t('scoreHistory.monthly')}</Text>
               </TouchableOpacity>
             ))}
+          </View>
+
+          {/* ── Trend chart ── */}
+          <View style={styles.chartCard}>
+            <ScoreTrendChart data={rows} mode={activeTab} />
           </View>
 
           {/* ── Table Header ── */}
@@ -212,6 +225,14 @@ export default function ScoreHistoryScreen() {
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
+    chartCard: {
+      backgroundColor: colors.bgSecondary,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+      padding: 14,
+      marginBottom: 16,
+    },
     container: {
       flex: 1,
       backgroundColor: colors.bgPrimary,

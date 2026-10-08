@@ -1,171 +1,144 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Platform } from 'react-native';
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
-import { onAuthStateChanged, User, signInWithCredential, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { onAuthStateChanged, User, signInWithCredential, GoogleAuthProvider, EmailAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, reauthenticateWithCredential, updatePassword, deleteUser, signOut } from 'firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { useQueryClient } from '@tanstack/react-query';
 import { auth } from '../config/firebase';
 import apiClient from '../api/client';
 import { env } from '../config/env';
+import { subscribeToPushNotifications } from '../lib/push-notification-service';
 
-// Configure Google Sign-In
 GoogleSignin.configure({
-  webClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com', // Replace with real Web Client ID from Firebase Console
+  webClientId: env.GOOGLE_WEB_CLIENT_ID,
 });
 
 interface AuthContextType {
   user: User | null;
   userId: string | null;
-  pushToken: string | null;
   isLoading: boolean;
+  /** True when the account can sign in with a password (so it can change one). */
+  isEmailUser: boolean;
   signInWithGoogle: () => Promise<void>;
   registerWithEmail: (email: string, pass: string, username: string, displayName: string, dateOfBirth: string, referralCode?: string) => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+type SyncExtra = { username?: string; displayName?: string; dateOfBirth?: string; referralCode?: string };
+
+async function syncUserWithBackend(firebaseUser: User, extraData?: SyncExtra) {
+  const token = await firebaseUser.getIdToken();
+  const response = await fetch(`${env.API_URL}/v1/auth/sync`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(extraData ?? {}),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.message || body.error || 'Failed to sync account');
+  }
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [pushToken, setPushToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  // On Android emulator, localhost refers to the emulator itself, not the host machine.
-  // We swap the host to 10.0.2.2 (the Android emulator's alias for the host machine).
-  const API_URL = Platform.OS === 'android' ? env.API_URL.replace('127.0.0.1', '10.0.2.2').replace('localhost', '10.0.2.2') : env.API_URL;
+  const queryClient = useQueryClient();
+  // While an email sign-up is in flight, the auth listener must wait for it:
+  // syncing without the chosen username/DOB would make the API create the
+  // account with an auto-generated username and a default date of birth.
+  const signupSync = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      setUserId(currentUser ? currentUser.uid : null);
-
       if (currentUser) {
-        await syncUserWithBackend(currentUser);
-
-        const token = await registerForPushNotificationsAsync();
-        if (token) {
-          setPushToken(token);
-          await syncTokenWithBackend(token);
+        try {
+          if (signupSync.current) await signupSync.current;
+          else await syncUserWithBackend(currentUser);
+        } catch (error) {
+          console.error('Failed to sync user with backend:', error);
         }
+        subscribeToPushNotifications().catch((error) => console.error('Push registration failed:', error));
       }
+      setUser(auth.currentUser);
       setIsLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const syncUserWithBackend = async (firebaseUser: User, extraData?: { username?: string; displayName?: string; dateOfBirth?: string }) => {
-    try {
-      const token = await firebaseUser.getIdToken();
-      await fetch(`${API_URL}/api/v1/auth/sync`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(extraData ?? {}),
-      });
-      console.log('Successfully synced user with Postgres backend!');
-    } catch (error) {
-      console.error('Failed to sync user with backend:', error);
-    }
-  };
-
-  const syncTokenWithBackend = async (token: string) => {
-    try {
-      // By using apiClient, the interceptor automatically attaches the Firebase ID token
-      await apiClient.put('/api/v1/users/device-token', {
-        devicePushToken: token,
-      });
-    } catch (error) {
-      console.error('Failed to sync push token with backend:', error);
-    }
-  };
-
-  async function registerForPushNotificationsAsync() {
-    let token;
-
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
-    }
-
-    if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus !== 'granted') {
-        return null;
-      }
-
-      try {
-        token = (await Notifications.getDevicePushTokenAsync()).data;
-      } catch (e) {
-        console.log('Error getting native push token:', e);
-      }
-    }
-
-    return token;
-  }
-
-  // --- Authentication Methods ---
-
   const signInWithGoogle = async () => {
-    try {
-      await GoogleSignin.hasPlayServices();
-      const { data } = await GoogleSignin.signIn();
-      const idToken = data?.idToken;
-      if (!idToken) throw new Error('Google Sign-In: No ID token returned');
-      const credential = GoogleAuthProvider.credential(idToken);
-      await signInWithCredential(auth, credential);
-    } catch (error) {
-      console.error('Google Sign-In failed', error);
-      throw error;
-    }
+    await GoogleSignin.hasPlayServices();
+    const { data } = await GoogleSignin.signIn();
+    const idToken = data?.idToken;
+    if (!idToken) throw new Error('Google Sign-In: No ID token returned');
+    await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
   };
 
   const registerWithEmail = async (email: string, pass: string, username: string, displayName: string, dateOfBirth: string, referralCode?: string) => {
-    const { user: newUser } = await createUserWithEmailAndPassword(auth, email, pass);
-    await syncUserWithBackend(newUser, { username, displayName, dateOfBirth, ...(referralCode ? { referralCode } : {}) });
+    let resolveSync!: () => void;
+    signupSync.current = new Promise<void>((resolve) => (resolveSync = resolve));
+    try {
+      const { user: newUser } = await createUserWithEmailAndPassword(auth, email, pass);
+      try {
+        await syncUserWithBackend(newUser, { username, displayName, dateOfBirth, ...(referralCode ? { referralCode } : {}) });
+      } catch (error) {
+        // Roll back so the user can retry with a different username.
+        await deleteUser(newUser).catch(() => signOut(auth));
+        throw error;
+      }
+    } finally {
+      resolveSync();
+      signupSync.current = null;
+    }
   };
 
   const loginWithEmail = async (email: string, pass: string) => {
     await signInWithEmailAndPassword(auth, email, pass);
   };
 
-  const logout = async () => {
-    await signOut(auth);
+  const sendPasswordReset = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
   };
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    const current = auth.currentUser;
+    if (!current?.email) throw new Error('Not signed in');
+    await reauthenticateWithCredential(current, EmailAuthProvider.credential(current.email, currentPassword));
+    await updatePassword(current, newPassword);
+  };
+
+  // Schedules deletion (30-day grace period, reversible by signing in again), then signs out.
+  const deleteAccount = async () => {
+    await apiClient.delete('/v1/auth');
+    await logout();
+  };
+
+  const logout = async () => {
+    await GoogleSignin.signOut().catch(() => undefined);
+    await signOut(auth);
+    // The query cache is persisted to disk; never let it leak into the next account.
+    queryClient.clear();
+  };
+
+  const isEmailUser = !!user?.providerData.some((p) => p.providerId === 'password');
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        userId,
-        pushToken,
+        userId: user ? user.uid : null,
         isLoading,
+        isEmailUser,
         signInWithGoogle,
         registerWithEmail,
         loginWithEmail,
+        sendPasswordReset,
+        changePassword,
+        deleteAccount,
         logout,
       }}
     >

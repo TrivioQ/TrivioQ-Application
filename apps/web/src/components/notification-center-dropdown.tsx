@@ -4,12 +4,15 @@ import { format } from 'date-fns';
 import { Bell, X } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { notificationHref, notificationTypeIcons } from '@/lib/notification-routing';
 
 interface UserNotification {
   id: string;
   type: string;
   title: string;
   body: string;
+  data?: Record<string, any> | null;
   isRead: boolean;
   createdAt: string;
 }
@@ -22,17 +25,18 @@ interface NotificationCenterDropdownProps {
   onClose: () => void;
 }
 
-const typeIcons: Record<string, string> = {
-  TRIVIA_DROP: '📝',
-  SYSTEM_ANNOUNCEMENT: '📢',
-  SUBSCRIPTION_REMINDER: '⏰',
-  OFFER_PROMOTION: '🎁',
-  CREDIT_ALERT: '💎',
-  ADMIN_MESSAGE: '💬',
-};
-
 export function NotificationCenterDropdown({ notifications, loading, onMarkAsRead, onMarkAllAsRead, onClose }: NotificationCenterDropdownProps) {
   const t = useTranslations('notifications.center');
+  const router = useRouter();
+
+  const open = (n: UserNotification) => {
+    if (!n.isRead) onMarkAsRead(n.id);
+    const href = notificationHref(n.data);
+    if (href) {
+      onClose();
+      router.push(href);
+    }
+  };
 
   if (loading) {
     return (
@@ -67,9 +71,11 @@ export function NotificationCenterDropdown({ notifications, loading, onMarkAsRea
         ) : (
           <ul>
             {notifications.map((notification) => (
-              <li key={notification.id} className={`p-4 border-b border-border hover:bg-bg cursor-pointer transition-colors ${!notification.isRead ? 'bg-brand-50/50' : ''}`} onClick={() => onMarkAsRead(notification.id)}>
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">{typeIcons[notification.type] || '🔔'}</span>
+              <li key={notification.id} className={`border-b border-border transition-colors ${!notification.isRead ? 'bg-brand-50/50' : ''}`}>
+                <button type="button" onClick={() => open(notification)} className="w-full text-left p-4 hover:bg-bg flex items-start gap-3">
+                  <span className="text-xl" aria-hidden="true">
+                    {notificationTypeIcons[notification.type] || '🔔'}
+                  </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-text truncate">{notification.title}</p>
@@ -78,7 +84,7 @@ export function NotificationCenterDropdown({ notifications, loading, onMarkAsRea
                     <p className="text-sm text-text-muted mt-1 line-clamp-2">{notification.body}</p>
                     <p className="text-xs text-text-muted/80 mt-2">{format(new Date(notification.createdAt), 'MMM d, HH:mm')}</p>
                   </div>
-                </div>
+                </button>
               </li>
             ))}
           </ul>

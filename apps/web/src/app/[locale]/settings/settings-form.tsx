@@ -9,13 +9,8 @@ import { makeAPICallV1 } from '@/lib/api';
 import { useAuth } from '@/context/auth-provider';
 import { useConfirm } from '@/components/confirm-modal';
 import { MultiCategoryCombobox, type CategoryOption } from '@/components/multi-category-combobox';
-
-// Convert a UTC DateTime ISO string from the DB column to a "HH:MM" string for <input type="time">
-function isoToHHMM(iso: string | undefined | null): string {
-  if (!iso) return '09:00';
-  const d = new Date(iso);
-  return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
-}
+import { NotificationSettings } from '@/components/notification-settings';
+import { localHHMMToUtc, windowIsoToLocalHHMM } from '@trivioq/shared-types';
 
 interface CategoriesResponse {
   categories: CategoryOption[];
@@ -34,8 +29,10 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
   const DEFAULT_DIFFICULTY = { EASY: 20, MEDIUM: 70, HARD: 10 };
 
   const [displayName, setDisplayName] = useState(initialUser.displayName || '');
-  const [activeStart, setActiveStart] = useState(isoToHHMM(initialUser.activeWindowStart));
-  const [activeEnd, setActiveEnd] = useState(isoToHHMM(initialUser.activeWindowEnd));
+  // The API stores the window in UTC; edit it in the browser's time zone.
+  const [activeStart, setActiveStart] = useState(() => windowIsoToLocalHHMM(initialUser.activeWindowStart, '09:00'));
+  const [activeEnd, setActiveEnd] = useState(() => windowIsoToLocalHHMM(initialUser.activeWindowEnd, '17:00'));
+  const timeZone = typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC';
   const [difficulty] = useState(DEFAULT_DIFFICULTY);
 
   // Saved categories are keyed by name in preferences.categoryPercentages.
@@ -78,15 +75,13 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
     try {
       await makeAPICallV1('users/preferences', {
         method: 'PUT',
+        // Only the fields this form edits — the API merges them, so the user's
+        // theme and category selection are left untouched.
         body: {
-          displayName,
-          activeWindowStart: activeStart,
-          activeWindowEnd: activeEnd,
+          ...(displayName.trim() ? { displayName: displayName.trim() } : {}),
+          activeWindowStart: localHHMMToUtc(activeStart),
+          activeWindowEnd: localHHMMToUtc(activeEnd),
           difficultyPercentages: difficulty,
-          theme: 'dark',
-          notificationsEnabled: true,
-          language: 'en',
-          categoryPercentages: selectedCategories.length > 0 ? buildEqualWeightCategoryPercentages(selectedCategories) : { General: 1.0 },
         },
       });
       toast.success(t('preferencesSaved'));
@@ -108,13 +103,6 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
       await makeAPICallV1('users/preferences', {
         method: 'PUT',
         body: {
-          displayName,
-          activeWindowStart: activeStart,
-          activeWindowEnd: activeEnd,
-          difficultyPercentages: difficulty,
-          theme: 'dark',
-          notificationsEnabled: true,
-          language: 'en',
           categoryPercentages: buildEqualWeightCategoryPercentages(selectedCategories),
         },
       });
@@ -218,18 +206,23 @@ export function SettingsForm({ initialUser }: { initialUser: any }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('startTimeLabel')}</label>
-            <input type="time" value={activeStart} onChange={(e) => setActiveStart(e.target.value)} className="w-full bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-4 py-3 text-text focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <input type="time" aria-label={t('startTimeLabel')} value={activeStart} onChange={(e) => setActiveStart(e.target.value)} className="w-full bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-4 py-3 text-text focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('endTimeLabel')}</label>
-            <input type="time" value={activeEnd} onChange={(e) => setActiveEnd(e.target.value)} className="w-full bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-4 py-3 text-text focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <input type="time" aria-label={t('endTimeLabel')} value={activeEnd} onChange={(e) => setActiveEnd(e.target.value)} className="w-full bg-bg-secondary dark:bg-bg-secondary-dark border border-border dark:border-white/10 rounded-xl px-4 py-3 text-text focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
         </div>
+
+        <p className="text-xs text-text-muted">{t('timeZoneHint', { tz: timeZone })}</p>
 
         <button onClick={handleUpdatePreferences} disabled={isPending} className="bg-brand-600 hover:bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">
           {isPending ? t('saving') : t('saveTimeSettings')}
         </button>
       </section>
+
+      {/* ── Notifications ── */}
+      <NotificationSettings />
 
       {/* ── Difficulty Preferences ── TEMPORARILY HIDDEN: fixed defaults used for all users (Easy:20%, Medium:70%, Hard:10%) */}
 

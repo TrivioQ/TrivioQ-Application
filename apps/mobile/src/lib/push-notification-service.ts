@@ -1,12 +1,11 @@
 /**
  * Push Notification Service for React Native (Expo)
- * Handles push notification permissions, subscriptions, and token management
+ * Handles permissions and native token registration with the API.
  */
 
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
-import Constants from 'expo-constants';
 import apiClient from '../api/client';
 
 // Configure how notifications are handled when app is foregrounded
@@ -20,12 +19,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-/**
- * Register for push notifications and get Expo push token
- */
-export async function registerForPushNotificationsAsync(): Promise<string | null> {
-  let token: string | null = null;
-
+async function ensureAndroidChannel() {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
@@ -35,90 +29,52 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
       sound: 'default',
     });
   }
-
-  if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-      console.log('Permission not granted for push notifications');
-      return null;
-    }
-
-    try {
-      const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
-
-      if (!projectId) {
-        console.error('Could not find project ID for push notifications');
-        return null;
-      }
-
-      const pushToken = await Notifications.getExpoPushTokenAsync({
-        projectId,
-      });
-      token = pushToken.data;
-    } catch (error) {
-      console.error('Error getting push token:', error);
-      return null;
-    }
-  } else {
-    console.log('Must use physical device for push notifications');
-  }
-
-  return token;
 }
 
 /**
- * Subscribe to push notifications
- * Registers for notifications and sends token to backend
+ * Ask for permission (if needed) and return the native device token (FCM on
+ * Android, APNs on iOS) — the API sends pushes through Firebase Admin, not the
+ * Expo push service, so an Expo push token would not work here.
  */
-export async function subscribeToPushNotifications(): Promise<boolean> {
+export async function getDevicePushToken(): Promise<string | null> {
+  await ensureAndroidChannel();
+  if (!Device.isDevice) return null;
+
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+  if (existingStatus !== 'granted') {
+    finalStatus = (await Notifications.requestPermissionsAsync()).status;
+  }
+  if (finalStatus !== 'granted') return null;
+
   try {
-    const token = await registerForPushNotificationsAsync();
+    return (await Notifications.getDevicePushTokenAsync()).data as string;
+  } catch (error) {
+    console.error('Error getting native push token:', error);
+    return null;
+  }
+}
 
-    if (!token) {
-      console.warn('Could not get push notification token');
-      return false;
-    }
-
-    // Send token to backend
-    const response = await apiClient.post('/api/v1/notifications/push/subscribe', {
-      pushToken: token,
-      deviceType: Platform.OS,
-    });
-
-    if (response.status < 200 || response.status >= 300) {
-      throw new Error('Failed to save push subscription');
-    }
-
-    console.log('Successfully subscribed to push notifications');
+/** Registers this device for push with the API. Returns false if not permitted. */
+export async function subscribeToPushNotifications(): Promise<boolean> {
+  const token = await getDevicePushToken();
+  if (!token) return false;
+  try {
+    await apiClient.put('/v1/users/device-token', { devicePushToken: token });
     return true;
   } catch (error) {
-    console.error('Error subscribing to push notifications:', error);
+    console.error('Failed to register push token:', error);
     return false;
   }
 }
 
-/**
- * Unsubscribe from push notifications
- */
+/** Stops pushes to this device. */
 export async function unsubscribeFromPushNotifications(): Promise<boolean> {
   try {
-    const token = await Notifications.getExpoPushTokenAsync();
-
-    await apiClient.delete('/api/v1/notifications/push/subscribe', {
-      data: { pushToken: token.data },
-    });
-
-    console.log('Successfully unsubscribed from push notifications');
+    await apiClient.put('/v1/users/device-token', { devicePushToken: null });
     return true;
   } catch (error) {
-    console.error('Error unsubscribing from push notifications:', error);
+    console.error('Failed to clear push token:', error);
     return false;
   }
 }
@@ -146,60 +102,6 @@ export async function getNotificationPermissionStatus(): Promise<{
   };
 }
 
-/**
- * Schedule a local notification (for testing)
- */
-export async function scheduleLocalNotification(title: string, body: string, data?: any) {
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title,
-      body,
-      data,
-      sound: 'default',
-    },
-    trigger: null, // Show immediately
-  });
-}
-
-/**
- * Schedule a notification for a specific time
- */
-export async function scheduleNotificationForTime(title: string, body: string, triggerDate: Date, data?: any) {
-  const trigger = {
-    type: Notifications.SchedulableTriggerInputTypes.DATE,
-    channelId: 'default',
-    date: triggerDate.getTime(),
-    repeats: false,
-  };
-
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title,
-      body,
-      data,
-      sound: 'default',
-    },
-    trigger,
-  });
-}
-
-/**
- * Cancel all scheduled notifications
- */
-export async function cancelAllScheduledNotifications() {
-  await Notifications.cancelAllScheduledNotificationsAsync();
-}
-
-/**
- * Get badge count (for unread notifications)
- */
-export async function getBadgeCountAsync(): Promise<number> {
-  return await Notifications.getBadgeCountAsync();
-}
-
-/**
- * Set badge count
- */
 export async function setBadgeCountAsync(count: number) {
   await Notifications.setBadgeCountAsync(count);
 }

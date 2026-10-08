@@ -7,6 +7,10 @@ import { makeAPICallV1, APIError } from '../../lib/api';
 import { useConfirm } from '../confirm-modal';
 import { Hourglass, Gift, Lightbulb } from 'lucide-react';
 import { MarkdownContent } from '../markdown-content';
+import { MilestoneModal } from '../milestone-modal';
+import { ShareCardButton } from '../share-card-button';
+import { reachedStreakMilestone } from '@trivioq/shared-types';
+import { formatUntil, useLeaderboardPosition, useToday } from '@/lib/queries';
 
 interface ActiveDrop {
   dropId: string;
@@ -31,6 +35,7 @@ interface SubmitResult {
   explanation?: string;
   newStreak: number;
   newTotalScore: number;
+  category?: string;
 }
 
 const DIFF_COLOR: Record<string, string> = {
@@ -73,6 +78,10 @@ export default function ActiveDropCard() {
   const [onDemandError, setOnDemandError] = useState<string | null>(null);
 
   const confirm = useConfirm();
+  const tDash = useTranslations('dashboard');
+  const [milestone, setMilestone] = useState<number | null>(null);
+  const { data: today } = useToday();
+  const { data: weekRank } = useLeaderboardPosition('global', 'weekly', !drop);
 
   const handleOnDemand = async () => {
     setOnDemandLoading(true);
@@ -145,9 +154,10 @@ export default function ActiveDropCard() {
       if (result.correctOptionIndex !== null) {
         setRevealedCorrectIndex(result.correctOptionIndex);
       }
-      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['scoreHistory'] });
-      queryClient.invalidateQueries({ queryKey: ['recentDrops'] });
+      if (result.isCorrect) setMilestone(reachedStreakMilestone(result.newStreak));
+      for (const key of ['userProfile', 'scoreHistory', 'recentDrops', 'today', 'leaderboardMe', 'dropHistory', 'mistakes']) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
     } catch {
       setError(t('failedSubmit'));
     } finally {
@@ -266,7 +276,19 @@ export default function ActiveDropCard() {
         <div className="px-4 sm:px-6 py-8 flex flex-col items-center gap-3 text-center">
           <Hourglass className="w-10 h-10 text-text-muted" />
           <p className="text-sm font-semibold text-text">{t('noActiveQuestion')}</p>
-          <p className="text-xs text-text-muted max-w-xs leading-relaxed">{t('noActiveDesc')}</p>
+          <p className="text-xs text-text-muted max-w-xs leading-relaxed">{today?.nextDropAt ? tDash('nextDropAt', { when: formatUntil(today.nextDropAt, tDash) }) : t('noActiveDesc')}</p>
+          {today?.lastResult && (
+            <p className="text-xs font-semibold text-text">
+              <span aria-hidden="true">{today.lastResult.revealedAnswer ? '👁 ' : today.lastResult.wasCorrect ? '✅ ' : '❌ '}</span>
+              {tDash('lastResult', { category: today.lastResult.category ?? '—', points: today.lastResult.pointsAwarded })}
+            </p>
+          )}
+          {weekRank?.rank != null && (
+            <p className="text-xs text-text-muted">
+              {tDash('rankThisWeekShort', { rank: weekRank.rank })}
+              {weekRank.pointsToNextRank ? ` · ${tDash('pointsToNext', { count: weekRank.pointsToNextRank })}` : ''}
+            </p>
+          )}
           <button onClick={handleOnDemand} disabled={onDemandLoading} className="mt-2 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-600/20 dark:hover:bg-brand-600/30 border border-brand-600 dark:border-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 text-sm text-white dark:text-brand-300 font-medium transition-colors">
             {onDemandLoading ? t('requesting') : t('requestNextQuestion')}
           </button>
@@ -281,6 +303,7 @@ export default function ActiveDropCard() {
 
   return (
     <div className="rounded-2xl bg-bg/70 dark:bg-white/5 backdrop-blur-2xl shadow-2xl shadow-brand-500/15 dark:shadow-none border border-brand-100 dark:border-white/10 overflow-hidden">
+      <MilestoneModal streak={milestone} onClose={() => setMilestone(null)} />
       {/* Header */}
       <div className="px-4 sm:px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between gap-3">
         <div>
@@ -296,7 +319,13 @@ export default function ActiveDropCard() {
 
         {/* Timer */}
         <div className="text-right">
-          {submitResult ? <p className="text-lg font-mono font-bold text-text-muted">--:--</p> : <p className={`text-lg font-mono font-bold tabular-nums ${isExpired ? 'text-error' : timerUrgent ? 'text-warning' : 'text-brand-300'}`}>{timeLeft !== null ? formatTime(timeLeft) : '--:--'}</p>}
+          {submitResult ? (
+            <p className="text-lg font-mono font-bold text-text-muted">--:--</p>
+          ) : (
+            <p role="timer" aria-label={t('timeLeftA11y', { time: timeLeft !== null ? formatTime(timeLeft) : '--:--' })} className={`text-lg font-mono font-bold tabular-nums ${isExpired ? 'text-error' : timerUrgent ? 'text-warning' : 'text-brand-300'}`}>
+              {timeLeft !== null ? formatTime(timeLeft) : '--:--'}
+            </p>
+          )}
           {isExpired && !submitResult && (
             <div className="flex flex-col items-end gap-1">
               <p className="text-[10px] font-bold text-error uppercase tracking-widest">{t('expired')}</p>
@@ -379,8 +408,21 @@ export default function ActiveDropCard() {
                   cls += 'border-border dark:border-white/10 bg-bg-secondary/70 dark:bg-white/5 backdrop-blur-md shadow-sm dark:shadow-none hover:bg-brand-500/20 hover:border-brand-500/40 text-text cursor-pointer';
                 }
 
+                const isCorrectOpt = (submitResult || isAnswerKnown) && index === revealedCorrectIndex;
+                const isWrongOpt = submitResult && index === selectedOption && !submitResult.isCorrect;
                 return (
-                  <button key={opt.id} className={cls} disabled={isExpired || submitting || submitResult !== null || isAnswerKnown} onClick={() => setSelectedOption(index)}>
+                  <button key={opt.id} className={cls} aria-pressed={!submitResult && !isAnswerKnown ? index === selectedOption : undefined} aria-label={isCorrectOpt ? `${option} — ${t('correctOptionA11y')}` : isWrongOpt ? `${option} — ${t('wrongOptionA11y')}` : undefined} disabled={isExpired || submitting || submitResult !== null || isAnswerKnown} onClick={() => setSelectedOption(index)}>
+                    {/* Icon marker so correct/incorrect isn't conveyed by colour alone. */}
+                    {isCorrectOpt && (
+                      <span aria-hidden="true" className="mr-2 font-black">
+                        ✓
+                      </span>
+                    )}
+                    {isWrongOpt && (
+                      <span aria-hidden="true" className="mr-2 font-black">
+                        ✗
+                      </span>
+                    )}
                     <MarkdownContent inline>{option}</MarkdownContent>
                   </button>
                 );
@@ -408,6 +450,7 @@ export default function ActiveDropCard() {
                 )}
                 <p className="text-xs text-text-muted mt-2">{t('streakTotal', { streak: submitResult.newStreak, total: submitResult.newTotalScore.toLocaleString() })}</p>
                 <div className="flex gap-2 mt-3 flex-wrap justify-center">
+                  <ShareCardButton data={{ streak: submitResult.newStreak, totalScore: submitResult.newTotalScore, pointsAwarded: submitResult.pointsAwarded, category: submitResult.category ?? drop.category, isCorrect: submitResult.isCorrect }} />
                   <button
                     onClick={() => {
                       resetState();

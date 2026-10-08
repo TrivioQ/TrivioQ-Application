@@ -1,107 +1,102 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { toast } from 'sonner-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../context/auth-context';
-import { useTheme, Theme } from '../context/ThemeContext';
-import { ThemeColors } from '../theme/colors';
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
+import { MIN_CATEGORIES, localHHMMToUtc, windowIsoToLocalHHMM, type NotificationPreferences } from '@trivioq/shared-types';
+import { useTheme, Theme } from '../context/ThemeContext';
+import { ThemeColors } from '../theme/colors';
+import { radius } from '../theme/radius';
+import { api, queryKeys, useMe } from '../api/queries';
+import { TimePickerField } from '../components/time-picker-field';
+import { CategoryPicker } from '../components/category-picker';
+import { Skeleton } from '../components/ui';
+import { PushNotificationSettings } from '../components/push-notification-settings';
 
-import apiClient from '../api/client';
+const NOTIFICATION_TYPES: (keyof NotificationPreferences)[] = ['triviaDrop', 'streakReminder', 'socialActivity', 'subscriptionReminder', 'offerPromotion'];
 
 export default function Preferences({ navigation }: any) {
   const { t } = useTranslation();
-  const { userId } = useAuth();
   const queryClient = useQueryClient();
   const { theme, setTheme, colorScheme, colors } = useTheme();
-  const styles = React.useMemo(() => createStyles(colors), [colors]);
-
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const isDark = colorScheme === 'dark';
 
+  const { data: me, isLoading } = useMe();
+  const { data: categories } = useQuery({ queryKey: queryKeys.categories, queryFn: api.categories, staleTime: 60 * 60_000 });
+  const { data: notifPrefs } = useQuery({ queryKey: queryKeys.notificationPrefs, queryFn: api.notificationPrefs });
+
+  const [displayName, setDisplayName] = useState('');
   const [activeWindowStart, setActiveWindowStart] = useState('09:00');
   const [activeWindowEnd, setActiveWindowEnd] = useState('17:00');
-  // TEMPORARILY HIDDEN: difficulty selection is locked to fixed defaults for all users (Easy:20%, Medium:70%, Hard:10%)
-  const [easyWeight] = useState('0.2');
-  const [mediumWeight] = useState('0.7');
-  const [hardWeight] = useState('0.1');
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['userMe', userId],
-    queryFn: async () => {
-      const response = await apiClient.get('/api/v1/users/me');
-      return response.data;
-    },
-  });
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [categoriesTouched, setCategoriesTouched] = useState(false);
 
   useEffect(() => {
-    if (data) {
-      if (data.activeWindowStart) {
-        const d = new Date(data.activeWindowStart);
-        setActiveWindowStart(`${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`);
-      }
-      if (data.activeWindowEnd) {
-        const d = new Date(data.activeWindowEnd);
-        setActiveWindowEnd(`${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`);
-      }
-      // TEMPORARILY HIDDEN: difficulty weights are ignored from server, fixed defaults are used
-      if (data.preferences?.theme && data.preferences.theme !== theme) {
-        setTheme(data.preferences.theme as Theme);
-      }
-    }
-  }, [data]);
+    if (!me) return;
+    setDisplayName(me.displayName ?? '');
+    // The API stores the window in UTC; show it in the device's time zone.
+    setActiveWindowStart(windowIsoToLocalHHMM(me.activeWindowStart, '09:00'));
+    setActiveWindowEnd(windowIsoToLocalHHMM(me.activeWindowEnd, '17:00'));
+    setSelectedCategories(Object.keys(me.preferences?.categoryPercentages ?? {}));
+    if (me.preferences?.theme && me.preferences.theme !== theme) setTheme(me.preferences.theme as Theme);
+  }, [me]);
+
+  const minCategories = Math.min(MIN_CATEGORIES, categories?.length ?? MIN_CATEGORIES);
 
   const mutation = useMutation({
-    mutationFn: async (newPreferences: any) => {
-      try {
-        const response = await apiClient.put('/api/v1/users/preferences', newPreferences);
-        return response.data;
-      } catch (err: any) {
-        throw new Error(err.response?.data?.error || t('preferences.updateFailed'));
-      }
-    },
+    mutationFn: api.updatePreferences,
     onSuccess: () => {
       toast.success(t('preferences.successBody'));
-      queryClient.invalidateQueries({ queryKey: ['userMe'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.me });
+      queryClient.invalidateQueries({ queryKey: queryKeys.today });
       navigation.goBack();
     },
-    onError: (error: any) => {
-      toast.error(error.message);
+    onError: (err: any) => toast.error(err.response?.data?.error || t('preferences.updateFailed')),
+  });
+
+  const notifMutation = useMutation({
+    mutationFn: api.updateNotificationPrefs,
+    onMutate: async (patch) => {
+      const previous = queryClient.getQueryData<NotificationPreferences>(queryKeys.notificationPrefs);
+      queryClient.setQueryData(queryKeys.notificationPrefs, { ...previous, ...patch });
+      return { previous };
+    },
+    onError: (_err, _patch, ctx) => {
+      queryClient.setQueryData(queryKeys.notificationPrefs, ctx?.previous);
+      toast.error(t('preferences.updateFailed'));
     },
   });
 
   const handleSave = () => {
-    const e = parseFloat(easyWeight);
-    const m = parseFloat(mediumWeight);
-    const h = parseFloat(hardWeight);
-
-    if (isNaN(e) || isNaN(m) || isNaN(h)) {
-      toast.error(t('preferences.validationError'));
+    const trimmedName = displayName.trim();
+    if (trimmedName && (trimmedName.length < 2 || trimmedName.length > 50)) {
+      toast.error(t('preferences.displayNameInvalid'));
+      return;
+    }
+    if (categoriesTouched && selectedCategories.length < minCategories) {
+      toast.error(t('categories.minError', { min: minCategories }));
       return;
     }
 
-    const payload = {
-      theme: theme,
-      notificationsEnabled: true,
-      language: 'en',
-      activeWindowStart,
-      activeWindowEnd,
-      targetDropsPerWeek: 5,
-      categoryPercentages: {
-        easy: e,
-        medium: m,
-        hard: h,
-      },
-    };
-
-    mutation.mutate(payload);
+    // Only the fields this screen owns — the API merges them into the stored preferences.
+    mutation.mutate({
+      theme,
+      activeWindowStart: localHHMMToUtc(activeWindowStart),
+      activeWindowEnd: localHHMMToUtc(activeWindowEnd),
+      ...(trimmedName ? { displayName: trimmedName } : {}),
+      ...(categoriesTouched ? { categoryPercentages: Object.fromEntries(selectedCategories.map((n) => [n, 1 / selectedCategories.length])) } : {}),
+    });
   };
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color={colors.brand} />
+      <View style={[styles.container, { gap: 12 }]}>
+        <Skeleton height={60} />
+        <Skeleton height={60} />
+        <Skeleton height={200} />
       </View>
     );
   }
@@ -113,15 +108,17 @@ export default function Preferences({ navigation }: any) {
   ];
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <BlurView intensity={isDark ? 30 : 60} tint={isDark ? 'dark' : 'light'} style={styles.glassCard}>
-        <Text style={styles.header}>{t('common.theme')}</Text>
-        <View style={styles.themeRow}>
+        <Text accessibilityRole="header" style={styles.header}>
+          {t('common.theme')}
+        </Text>
+        <View accessibilityRole="radiogroup" style={styles.themeRow}>
           {themes.map((tItem) => {
             const isActive = theme === tItem.value;
             const FeatherIcon: any = Feather;
             return (
-              <TouchableOpacity key={tItem.value} style={[styles.themeButton, isActive && styles.themeButtonActive]} onPress={() => setTheme(tItem.value)}>
+              <TouchableOpacity key={tItem.value} accessibilityRole="radio" accessibilityState={{ checked: isActive }} accessibilityLabel={tItem.label} style={[styles.themeButton, isActive && styles.themeButtonActive]} onPress={() => setTheme(tItem.value)}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <FeatherIcon name={tItem.iconName} size={16} color={isActive ? colors.brand : colors.textSecondary} />
                   <Text style={[styles.themeButtonText, isActive && styles.themeButtonTextActive]}>{tItem.label}</Text>
@@ -131,27 +128,69 @@ export default function Preferences({ navigation }: any) {
           })}
         </View>
 
-        <Text style={styles.header}>{t('preferences.windowHeader')}</Text>
+        <Text accessibilityRole="header" style={styles.header}>
+          {t('preferences.displayNameHeader')}
+        </Text>
+        <TextInput accessibilityLabel={t('preferences.displayNameHeader')} style={styles.input} value={displayName} onChangeText={setDisplayName} placeholder={me?.username} placeholderTextColor={colors.textSecondary} maxLength={50} />
 
+        <Text accessibilityRole="header" style={styles.header}>
+          {t('preferences.windowHeader')}
+        </Text>
         <View style={styles.row}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('preferences.startTime')}</Text>
-            <TextInput style={styles.input} value={activeWindowStart} onChangeText={setActiveWindowStart} placeholder={t('preferences.startTimePlaceholder')} placeholderTextColor={colors.textSecondary} />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('preferences.endTime')}</Text>
-            <TextInput style={styles.input} value={activeWindowEnd} onChangeText={setActiveWindowEnd} placeholder={t('preferences.endTimePlaceholder')} placeholderTextColor={colors.textSecondary} />
-          </View>
+          <TimePickerField label={t('preferences.startTime')} value={activeWindowStart} onChange={setActiveWindowStart} />
+          <View style={{ width: 12 }} />
+          <TimePickerField label={t('preferences.endTime')} value={activeWindowEnd} onChange={setActiveWindowEnd} />
         </View>
+        <Text style={styles.hint}>{t('preferences.windowLocalHint', { tz: Intl.DateTimeFormat().resolvedOptions().timeZone })}</Text>
 
-        {/* Difficulty weights — TEMPORARILY HIDDEN for all users; fixed defaults (Easy:20%, Medium:70%, Hard:10%) are sent silently */}
+        <Text accessibilityRole="header" style={styles.header}>
+          {t('preferences.categoriesHeader')}
+        </Text>
+        {categories ? (
+          <CategoryPicker
+            options={categories}
+            selected={selectedCategories}
+            onChange={(names) => {
+              setSelectedCategories(names);
+              setCategoriesTouched(true);
+            }}
+          />
+        ) : (
+          <Skeleton height={200} />
+        )}
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={mutation.isPending}>
+          <TouchableOpacity accessibilityRole="button" accessibilityState={{ busy: mutation.isPending }} style={styles.saveButton} onPress={handleSave} disabled={mutation.isPending}>
             <Text style={styles.saveButtonText}>{mutation.isPending ? t('preferences.saving') : t('preferences.save')}</Text>
           </TouchableOpacity>
         </View>
       </BlurView>
+
+      <View style={[styles.glassCard, { marginTop: 16, backgroundColor: colors.bgSecondary }]}>
+        <Text accessibilityRole="header" style={[styles.header, { marginTop: 0 }]}>
+          {t('preferences.notificationsHeader')}
+        </Text>
+        <PushNotificationSettings />
+        {notifPrefs &&
+          NOTIFICATION_TYPES.map((key) => (
+            <View key={key} style={styles.switchRow}>
+              <View style={{ flex: 1, paddingRight: 12 }}>
+                <Text style={styles.switchLabel}>{t(`preferences.notif.${key}`)}</Text>
+                <Text style={styles.switchSub}>{t(`preferences.notif.${key}Sub`)}</Text>
+              </View>
+              <Switch accessibilityLabel={t(`preferences.notif.${key}`)} value={!!notifPrefs[key]} onValueChange={(v) => notifMutation.mutate({ [key]: v })} trackColor={{ true: colors.brand, false: colors.borderColor }} />
+            </View>
+          ))}
+        {notifPrefs && (
+          <View style={styles.switchRow}>
+            <View style={{ flex: 1, paddingRight: 12 }}>
+              <Text style={styles.switchLabel}>{t('preferences.notif.email')}</Text>
+              <Text style={styles.switchSub}>{t('preferences.notif.emailSub')}</Text>
+            </View>
+            <Switch accessibilityLabel={t('preferences.notif.email')} value={notifPrefs.enableEmailNotification} onValueChange={(v) => notifMutation.mutate({ enableEmailNotification: v })} trackColor={{ true: colors.brand, false: colors.borderColor }} />
+          </View>
+        )}
+      </View>
     </ScrollView>
   );
 }
@@ -205,32 +244,41 @@ const createStyles = (colors: ThemeColors) =>
     },
     row: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
     },
-    inputGroup: {
-      width: '48%',
-    },
-    inputGroupFull: {
-      width: '100%',
-      marginBottom: 15,
-    },
-    label: {
-      fontSize: 14,
+    hint: {
+      fontSize: 12,
       color: colors.textSecondary,
-      marginBottom: 5,
+      marginTop: 6,
     },
     input: {
       borderWidth: 1,
       borderColor: colors.borderColor,
-      borderRadius: 12,
+      borderRadius: radius.md,
       padding: 12,
       fontSize: 16,
       backgroundColor: colors.bgSecondary,
       color: colors.textPrimary,
     },
+    switchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderColor,
+    },
+    switchLabel: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    switchSub: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
     buttonContainer: {
       marginTop: 30,
-      marginBottom: 40,
+      marginBottom: 10,
     },
     saveButton: {
       backgroundColor: colors.brand,

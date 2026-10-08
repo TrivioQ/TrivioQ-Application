@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../api/client';
+import { env } from '../config/env';
 import { toast } from 'sonner-native';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
@@ -37,11 +38,11 @@ function Stepper({ value, min, max, onChange }: { value: number; min: number; ma
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.stepper}>
-      <TouchableOpacity style={[styles.stepBtn, value <= min && styles.stepBtnDisabled]} onPress={() => onChange(Math.max(min, value - 1))} disabled={value <= min} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={[styles.stepBtn, value <= min && styles.stepBtnDisabled]} onPress={() => onChange(Math.max(min, value - 1))} disabled={value <= min} activeOpacity={0.7}>
         <Text style={styles.stepBtnText}>−</Text>
       </TouchableOpacity>
       <Text style={styles.stepValue}>{value}</Text>
-      <TouchableOpacity style={[styles.stepBtn, value >= max && styles.stepBtnDisabled]} onPress={() => onChange(Math.min(max, value + 1))} disabled={value >= max} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={[styles.stepBtn, value >= max && styles.stepBtnDisabled]} onPress={() => onChange(Math.min(max, value + 1))} disabled={value >= max} activeOpacity={0.7}>
         <Text style={styles.stepBtnText}>+</Text>
       </TouchableOpacity>
     </View>
@@ -61,7 +62,7 @@ export default function SubscriptionScreen() {
   const { data, isLoading, isError } = useQuery<SubscriptionData>({
     queryKey: ['subscriptionStatus'],
     queryFn: async () => {
-      const res = await apiClient.get('/api/v1/subscriptions/status');
+      const res = await apiClient.get('/v1/subscriptions/status');
       return res.data;
     },
   });
@@ -70,7 +71,7 @@ export default function SubscriptionScreen() {
     if (!data || daysToActivate < 1) return;
     setActivating(true);
     try {
-      await apiClient.post('/api/v1/subscriptions/activate-vault', { daysToActivate });
+      await apiClient.post('/v1/subscriptions/activate-vault', { daysToActivate });
       toast.success(t('subscription.vaultActivatedToast', { count: daysToActivate }));
       setDaysToActivate(1);
       queryClient.invalidateQueries({ queryKey: ['subscriptionStatus'] });
@@ -162,13 +163,13 @@ export default function SubscriptionScreen() {
             </View>
 
             <TouchableOpacity
+              accessibilityRole="link"
+              accessibilityHint={t('subscription.opensWeb')}
               style={styles.upgradeButton}
               activeOpacity={0.8}
               onPress={() =>
-                Linking.openURL(
-                  // TODO: replace with your production web URL
-                  'https://trivioq.com/en/settings#subscription',
-                )
+                // In-app purchases aren't implemented yet; upgrades happen on the web.
+                Linking.openURL(`${env.WEB_URL.replace(/\/+$/, '')}/subscription`)
               }
             >
               <Text style={styles.upgradeButtonText}>{t('subscription.upgradeButton')}</Text>
@@ -194,14 +195,8 @@ export default function SubscriptionScreen() {
               </>
             )}
 
-            <TouchableOpacity style={[styles.activateButton, (onDemandTokensAvailable === 0 || activating) && styles.activateButtonDisabled]} onPress={handleActivate} disabled={onDemandTokensAvailable === 0 || activating} activeOpacity={0.8}>
-              {activating ? (
-                <ActivityIndicator size="small" color={colors.onAccent} />
-              ) : (
-                <Text style={styles.activateButtonText}>
-                  {t('subscription.vault.activateButton', { count: daysToActivate })}
-                </Text>
-              )}
+            <TouchableOpacity accessibilityRole="button" style={[styles.activateButton, (onDemandTokensAvailable === 0 || activating) && styles.activateButtonDisabled]} onPress={handleActivate} disabled={onDemandTokensAvailable === 0 || activating} activeOpacity={0.8}>
+              {activating ? <ActivityIndicator size="small" color={colors.onAccent} /> : <Text style={styles.activateButtonText}>{t('subscription.vault.activateButton', { count: daysToActivate })}</Text>}
             </TouchableOpacity>
           </>
         )}

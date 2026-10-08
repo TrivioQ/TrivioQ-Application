@@ -178,3 +178,113 @@ export interface WebPushSubscription {
   auth: string;
   browser?: string;
 }
+
+// ── Client API shapes (web + mobile) ─────────────────────────────────────────
+
+export interface LeaderboardEntry {
+  rank: number;
+  id: string;
+  username: string;
+  displayName: string | null;
+  currentStreak: number;
+  cumulativeScore: number;
+  baseScore: number;
+  bonusScore: number;
+}
+
+export interface LeaderboardPosition {
+  rank: number | null;
+  score: number;
+  pointsToNextRank: number | null;
+}
+
+export interface TodayProgress {
+  answeredToday: number;
+  receivedToday: number;
+  dailyLimit: number;
+  nextDropAt: string | null;
+  windowStart: string;
+  windowEnd: string;
+  currentStreak: number;
+  streakAtRisk: boolean;
+  lastResult: {
+    wasCorrect: boolean;
+    revealedAnswer: boolean;
+    pointsAwarded: number;
+    answeredAt: string | null;
+    category: string | null;
+  } | null;
+}
+
+export interface DropHistoryItem {
+  id: string;
+  wasCorrect: boolean | null;
+  pointsAwarded: number;
+  usedHint: boolean;
+  hintCostDeducted: number;
+  revealedAnswer: boolean;
+  selectedChoiceId: string | null;
+  answeredAt: string | null;
+  question: {
+    id: string;
+    questionText: string;
+    difficultyLevel: 'EASY' | 'MEDIUM' | 'HARD';
+    explanationText: string | null;
+    categories: { name: string }[];
+    choices: { id: string; text: string; order: number; isCorrect: boolean }[];
+  };
+}
+
+export type DropHistoryFilter = 'all' | 'correct' | 'incorrect' | 'revealed';
+
+export interface MistakeQuestion {
+  questionId: string;
+  questionText: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  category: string;
+  options: { id: string; text: string }[];
+}
+
+export interface PracticeResult {
+  isCorrect: boolean;
+  correctOptionIndex: number;
+  explanation?: string;
+}
+
+export type FriendRelationship = 'NONE' | 'OUTGOING' | 'INCOMING' | 'ACCEPTED';
+
+export interface UserSearchResult {
+  id: string;
+  username: string;
+  displayName: string | null;
+  profilePicture: string | null;
+  relationship: FriendRelationship;
+}
+
+export interface NotificationPreferences {
+  triviaDrop: boolean;
+  systemAnnouncement: boolean;
+  subscriptionReminder: boolean;
+  offerPromotion: boolean;
+  creditAlert: boolean;
+  adminMessage: boolean;
+  socialActivity: boolean;
+  streakReminder: boolean;
+  enablePushNotification: boolean;
+  enableWebPushNotification: boolean;
+  enableEmailNotification: boolean;
+}
+
+export interface SubmitAnswerResult {
+  isCorrect: boolean;
+  correctOptionIndex: number;
+  pointsAwarded: number;
+  revealedAnswer: boolean;
+  explanation?: string;
+  newStreak: number;
+  newTotalScore: number;
+  category: string;
+  difficulty: string;
+}
+
+export * from './client-utils';

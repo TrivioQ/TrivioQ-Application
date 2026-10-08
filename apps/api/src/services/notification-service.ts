@@ -1,10 +1,5 @@
 import { prisma } from '@trivioq/database';
-import {
-  NotificationType,
-  NotificationAudience,
-  NotificationChannel,
-  NotificationStatus,
-} from '@prisma/client';
+import { NotificationType, NotificationAudience, NotificationChannel, NotificationStatus } from '@prisma/client';
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
 import * as admin from 'firebase-admin';
@@ -283,14 +278,7 @@ export class NotificationService {
   /**
    * Helper to create and immediately send a notification to a specific user (used by cron jobs)
    */
-  async createAndQueueNotification(input: {
-    userId: string;
-    type: any;
-    title: string;
-    body: string;
-    data?: Record<string, any>;
-    channels: { push: boolean; email: boolean };
-  }) {
+  async createAndQueueNotification(input: { userId: string; type: any; title: string; body: string; data?: Record<string, any>; channels: { push: boolean; email: boolean } }) {
     const channelList: NotificationChannel[] = [];
     if (input.channels.push) {
       channelList.push(NotificationChannel.PUSH_MOBILE);
@@ -316,6 +304,16 @@ export class NotificationService {
    * Trigger delivery of a notification
    */
   async send(notificationId: string) {
+    // Scheduled notifications skip record creation in create(); materialise the
+    // per-user inbox rows here so they are both delivered and visible in inboxes.
+    const pending = await prisma.notification.findUnique({ where: { id: notificationId }, select: { targetUserIds: true, _count: { select: { userNotifications: true } } } });
+    if (pending && pending._count.userNotifications === 0 && pending.targetUserIds.length > 0) {
+      await prisma.userNotification.createMany({
+        data: pending.targetUserIds.map((userId) => ({ notificationId, userId })),
+        skipDuplicates: true,
+      });
+    }
+
     const notification = await prisma.notification.findUnique({
       where: { id: notificationId },
       include: {
@@ -471,10 +469,7 @@ export class NotificationService {
   /**
    * Update user's notification preferences
    */
-  async updatePreferences(
-    userId: string,
-    prefs: Partial<import('@prisma/client').UserNotificationPreference>
-  ) {
+  async updatePreferences(userId: string, prefs: Partial<import('@prisma/client').UserNotificationPreference>) {
     return prisma.userNotificationPreference.upsert({
       where: { userId },
       update: prefs,
@@ -488,10 +483,7 @@ export class NotificationService {
   /**
    * Subscribe to web push notifications
    */
-  async subscribeWebPush(
-    userId: string,
-    subscription: { endpoint: string; p256dh: string; auth: string; browser?: string }
-  ) {
+  async subscribeWebPush(userId: string, subscription: { endpoint: string; p256dh: string; auth: string; browser?: string }) {
     return prisma.webPushSubscription.upsert({
       where: {
         endpoint: subscription.endpoint,
@@ -536,9 +528,7 @@ export class NotificationService {
     }
 
     const totalRecipients = notification.userNotifications.length;
-    const deliveredCount = notification.userNotifications.filter(
-      (un) => un.pushDelivered || un.emailDelivered
-    ).length;
+    const deliveredCount = notification.userNotifications.filter((un) => un.pushDelivered || un.emailDelivered).length;
     const readCount = notification.userNotifications.filter((un) => un.isRead).length;
     const clickedCount = notification.userNotifications.filter((un) => un.clickedAt).length;
 
@@ -604,10 +594,7 @@ export class NotificationService {
   /**
    * Create UserNotification records for target users
    */
-  private async createUserNotificationRecords(
-    notificationId: string,
-    userIds: string[]
-  ): Promise<void> {
+  private async createUserNotificationRecords(notificationId: string, userIds: string[]): Promise<void> {
     if (userIds.length === 0) return;
 
     // Batch create in chunks of 100
@@ -626,10 +613,7 @@ export class NotificationService {
   /**
    * Queue a user notification for delivery
    */
-  private async queueUserNotification(
-    userNotificationId: string,
-    channels: NotificationChannel[]
-  ): Promise<void> {
+  private async queueUserNotification(userNotificationId: string, channels: NotificationChannel[]): Promise<void> {
     const userNotification = await prisma.userNotification.findUnique({
       where: { id: userNotificationId },
       include: {
@@ -645,8 +629,9 @@ export class NotificationService {
 
     if (!userNotification) return;
 
-    const prefs = userNotification.user.notificationPreferences;
-    if (!prefs) return;
+    // Users who never opened notification settings have no row yet; fall back to
+    // the schema defaults (same values getPreferences() would create).
+    const prefs = userNotification.user.notificationPreferences ?? (await this.getPreferences(userNotification.user.id));
 
     // Check if user has enabled this notification type
     const typeEnabled = this.isTypeEnabled(userNotification.notification.type, prefs);
@@ -679,7 +664,7 @@ export class NotificationService {
                 type: 'exponential',
                 delay: 5000,
               },
-            }
+            },
           );
         }
       }
@@ -692,10 +677,7 @@ export class NotificationService {
               userNotificationId,
               to: userNotification.user.email,
               subject: userNotification.notification.title,
-              html: this.renderEmailBody(
-                userNotification.notification.body,
-                userNotification.user.displayName || userNotification.user.username
-              ),
+              html: this.renderEmailBody(userNotification.notification.body, userNotification.user.displayName || userNotification.user.username),
             },
             {
               attempts: 3,
@@ -703,7 +685,7 @@ export class NotificationService {
                 type: 'exponential',
                 delay: 5000,
               },
-            }
+            },
           );
         }
       }
@@ -713,10 +695,7 @@ export class NotificationService {
   /**
    * Check if notification type is enabled in preferences
    */
-  private isTypeEnabled(
-    type: NotificationType,
-    prefs: import('@prisma/client').UserNotificationPreference
-  ): boolean {
+  private isTypeEnabled(type: NotificationType, prefs: import('@prisma/client').UserNotificationPreference): boolean {
     switch (type) {
       case NotificationType.TRIVIA_DROP:
         return prefs.triviaDrop;
@@ -730,6 +709,10 @@ export class NotificationService {
         return prefs.creditAlert;
       case NotificationType.ADMIN_MESSAGE:
         return prefs.adminMessage;
+      case NotificationType.SOCIAL_ACTIVITY:
+        return prefs.socialActivity;
+      case NotificationType.STREAK_REMINDER:
+        return prefs.streakReminder;
       default:
         return true;
     }

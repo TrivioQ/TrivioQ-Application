@@ -6,12 +6,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../api/client';
+import { notificationTypeIcons, openNotificationTarget } from '../lib/notification-routing';
 
 interface UserNotification {
   id: string;
   type: string;
   title: string;
   body: string;
+  data?: Record<string, any> | null;
   isRead: boolean;
   createdAt: string;
 }
@@ -19,15 +21,6 @@ interface UserNotification {
 interface NotificationBellProps {
   navigation?: any;
 }
-
-const typeIcons: Record<string, string> = {
-  TRIVIA_DROP: '📝',
-  SYSTEM_ANNOUNCEMENT: '📢',
-  SUBSCRIPTION_REMINDER: '⏰',
-  OFFER_PROMOTION: '🎁',
-  CREDIT_ALERT: '💎',
-  ADMIN_MESSAGE: '💬',
-};
 
 export function NotificationBell({ navigation }: NotificationBellProps) {
   const { colors } = useTheme();
@@ -39,7 +32,7 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
   const { data: notifications } = useQuery<UserNotification[]>({
     queryKey: ['notifications-preview'],
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/notifications/inbox?limit=5');
+      const response = await apiClient.get('/v1/notifications/inbox?limit=5');
       return response.data.notifications || [];
     },
     refetchInterval: 30000,
@@ -47,31 +40,33 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
 
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.post(`/api/v1/notifications/${id}/read`);
+      await apiClient.post(`/v1/notifications/${id}/read`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications-preview'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications-unread'] });
     },
   });
 
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      await apiClient.post('/api/v1/notifications/read-all');
+      await apiClient.post('/v1/notifications/read-all');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications-preview'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications-unread'] });
       setIsVisible(false);
     },
   });
 
   const unreadCount = (notifications || []).filter((n) => !n.isRead).length;
 
-  const handleNotificationPress = (id: string) => {
-    markAsReadMutation.mutate(id);
+  const handleNotificationPress = (item: UserNotification) => {
+    if (!item.isRead) markAsReadMutation.mutate(item.id);
     setIsVisible(false);
-    navigation?.navigate('Notifications');
+    if (!openNotificationTarget(navigation, item.data)) navigation?.navigate('Notifications');
   };
 
   const handleViewAll = () => {
@@ -81,7 +76,7 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
 
   return (
     <>
-      <TouchableOpacity style={styles.bellContainer} onPress={() => setIsVisible(true)}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel={unreadCount > 0 ? t('notifications.bellUnread', { count: unreadCount }) : t('notifications.title')} style={styles.bellContainer} onPress={() => setIsVisible(true)}>
         <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
         {unreadCount > 0 && (
           <View style={[styles.badge, { backgroundColor: colors.error }]}>
@@ -96,7 +91,7 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
             {/* Header */}
             <View style={styles.header}>
               <Text style={[styles.title, { color: colors.textPrimary }]}>{t('notifications.title')}</Text>
-              <TouchableOpacity onPress={() => markAllAsReadMutation.mutate()}>
+              <TouchableOpacity accessibilityRole="button" onPress={() => markAllAsReadMutation.mutate()}>
                 <Text style={[styles.markAllRead, { color: colors.brand }]}>{t('notifications.markAllRead')}</Text>
               </TouchableOpacity>
             </View>
@@ -112,8 +107,8 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
                 data={notifications}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                  <TouchableOpacity style={[styles.notificationItem, !item.isRead && { backgroundColor: colors.brandFaint }]} onPress={() => handleNotificationPress(item.id)}>
-                    <Text style={styles.typeIcon}>{typeIcons[item.type] || '🔔'}</Text>
+                  <TouchableOpacity style={[styles.notificationItem, !item.isRead && { backgroundColor: colors.brandFaint }]} accessibilityRole="button" accessibilityLabel={`${item.title}. ${item.body}`} onPress={() => handleNotificationPress(item)}>
+                    <Text style={styles.typeIcon}>{notificationTypeIcons[item.type] || '🔔'}</Text>
                     <View style={styles.content}>
                       <View style={styles.titleRow}>
                         <Text style={[styles.notificationTitle, { color: colors.textPrimary }, !item.isRead && styles.unreadTitle]} numberOfLines={1}>
@@ -140,7 +135,7 @@ export function NotificationBell({ navigation }: NotificationBellProps) {
             )}
 
             {/* Footer */}
-            <TouchableOpacity style={[styles.footer, { backgroundColor: colors.bgSecondary }]} onPress={handleViewAll}>
+            <TouchableOpacity accessibilityRole="button" style={[styles.footer, { backgroundColor: colors.bgSecondary }]} onPress={handleViewAll}>
               <Text style={[styles.footerText, { color: colors.brand }]}>{t('notifications.viewAll')}</Text>
             </TouchableOpacity>
           </TouchableOpacity>

@@ -5,10 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner-native';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeColors } from '../theme/colors';
+import { GoogleG, SocialProof } from '../components/auth-extras';
 
 export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin: () => void }) {
   const { t } = useTranslation();
-  const { registerWithEmail } = useAuth();
+  const { registerWithEmail, signInWithGoogle } = useAuth();
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
 
@@ -65,6 +66,19 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
     }
   };
 
+  const handleGoogle = async () => {
+    setIsPending(true);
+    try {
+      await signInWithGoogle();
+      toast.success(t('auth.signupSuccess'));
+    } catch (error: any) {
+      console.error('Google sign-up failed:', error);
+      toast.error(error.message || t('auth.googleFailed'));
+    } finally {
+      setIsPending(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
@@ -73,29 +87,36 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
             Trivio<Text style={styles.logoAccent}>Q</Text>
           </Text>
           <Text style={styles.subtitle}>{t('auth.signupSubtitle')}</Text>
+          <SocialProof />
         </View>
+
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('auth.googleButton')} style={styles.googleButton} onPress={handleGoogle} disabled={isPending} activeOpacity={0.8}>
+          <GoogleG />
+          <Text style={styles.googleButtonText}>{t('auth.googleButton')}</Text>
+        </TouchableOpacity>
+        <Text style={styles.orText}>{t('auth.orDivider')}</Text>
 
         <View style={styles.form}>
           <Text style={styles.label}>{t('auth.displayNameLabel')}</Text>
-          <TextInput style={styles.input} placeholder={t('auth.displayNamePlaceholder')} placeholderTextColor={colors.textSecondary} value={displayName} onChangeText={setDisplayName} />
+          <TextInput accessibilityLabel={t('auth.displayNameLabel')} style={styles.input} placeholder={t('auth.displayNamePlaceholder')} placeholderTextColor={colors.textSecondary} value={displayName} onChangeText={setDisplayName} />
 
           <Text style={styles.label}>{t('auth.usernameLabel')}</Text>
-          <TextInput style={styles.input} placeholder={t('auth.usernamePlaceholder')} placeholderTextColor={colors.textSecondary} value={username} onChangeText={(v) => setUsername(v.toLowerCase())} autoCapitalize="none" />
+          <TextInput accessibilityLabel={t('auth.usernameLabel')} style={styles.input} placeholder={t('auth.usernamePlaceholder')} placeholderTextColor={colors.textSecondary} value={username} onChangeText={(v) => setUsername(v.toLowerCase())} autoCapitalize="none" />
 
           <Text style={styles.label}>{t('auth.emailLabel')}</Text>
-          <TextInput style={styles.input} placeholder={t('auth.emailPlaceholder')} placeholderTextColor={colors.textSecondary} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
+          <TextInput accessibilityLabel={t('auth.emailLabel')} style={styles.input} placeholder={t('auth.emailPlaceholder')} placeholderTextColor={colors.textSecondary} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
 
           <Text style={styles.label}>{t('auth.passwordLabel')}</Text>
-          <TextInput style={styles.input} placeholder={t('auth.passwordPlaceholder')} placeholderTextColor={colors.textSecondary} value={password} onChangeText={setPassword} secureTextEntry />
+          <TextInput accessibilityLabel={t('auth.passwordLabel')} style={styles.input} placeholder={t('auth.passwordPlaceholder')} placeholderTextColor={colors.textSecondary} value={password} onChangeText={setPassword} secureTextEntry />
 
           <Text style={styles.label}>{t('auth.dateOfBirthLabel')}</Text>
-          <TextInput style={styles.input} placeholder={t('auth.dateOfBirthPlaceholder')} placeholderTextColor={colors.textSecondary} value={dateOfBirth} onChangeText={setDateOfBirth} keyboardType="numbers-and-punctuation" maxLength={10} />
+          <TextInput accessibilityLabel={t('auth.dateOfBirthLabel')} style={styles.input} placeholder={t('auth.dateOfBirthPlaceholder')} placeholderTextColor={colors.textSecondary} value={dateOfBirth} onChangeText={setDateOfBirth} keyboardType="numbers-and-punctuation" maxLength={10} />
           <Text style={styles.hint}>{t('auth.dateOfBirthHint')}</Text>
 
           <Text style={styles.label}>{t('auth.referralCodeLabel')}</Text>
-          <TextInput style={styles.input} placeholder={t('auth.referralCodePlaceholder')} placeholderTextColor={colors.textSecondary} value={referralCode} onChangeText={setReferralCode} autoCapitalize="none" />
+          <TextInput accessibilityLabel={t('auth.referralCodeLabel')} style={styles.input} placeholder={t('auth.referralCodePlaceholder')} placeholderTextColor={colors.textSecondary} value={referralCode} onChangeText={setReferralCode} autoCapitalize="none" />
 
-          <TouchableOpacity style={styles.signupButton} onPress={handleSignup} disabled={isPending} activeOpacity={0.8}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('auth.createButton')} style={styles.signupButton} onPress={handleSignup} disabled={isPending} activeOpacity={0.8}>
             {isPending ? <ActivityIndicator color={colors.bgPrimary} /> : <Text style={styles.signupButtonText}>{t('auth.createButton')}</Text>}
           </TouchableOpacity>
         </View>
@@ -103,7 +124,7 @@ export default function SignupScreen({ onNavigateToLogin }: { onNavigateToLogin:
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             {t('auth.hasAccount')}{' '}
-            <Text style={styles.footerLink} onPress={onNavigateToLogin}>
+            <Text accessibilityRole="link" style={styles.footerLink} onPress={onNavigateToLogin}>
               {t('auth.signInLink')}
             </Text>
           </Text>
@@ -126,7 +147,30 @@ const createStyles = (colors: ThemeColors) =>
     },
     header: {
       alignItems: 'center',
-      marginBottom: 40,
+      marginBottom: 24,
+    },
+    googleButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+      borderWidth: 1,
+      borderColor: colors.borderColor,
+      backgroundColor: colors.bgSecondary,
+      borderRadius: 12,
+      paddingVertical: 14,
+    },
+    googleButtonText: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    orText: {
+      textAlign: 'center',
+      color: colors.textSecondary,
+      fontSize: 12,
+      fontWeight: '700',
+      marginVertical: 16,
     },
     logoText: {
       fontSize: 42,

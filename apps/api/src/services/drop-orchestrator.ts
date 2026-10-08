@@ -18,6 +18,29 @@ export const dropsQueue = new Queue<DropsQueuePayload, any, string>('drops-queue
 
 const notificationService = new NotificationService();
 
+// Per-user sorted set of planned drop times (score = epoch ms). BullMQ can't be
+// queried by user cheaply, so we mirror the schedule here for "next drop in…".
+const scheduleKey = (userId: string) => `drops:schedule:${userId}`;
+const SCHEDULE_TTL_SECONDS = 36 * 60 * 60;
+
+async function recordScheduledDrops(userId: string, times: Date[]): Promise<void> {
+  if (times.length === 0) return;
+  const key = scheduleKey(userId);
+  const args = times.flatMap((d) => [d.getTime(), String(d.getTime())]);
+  await connection
+    .multi()
+    .zadd(key, ...args)
+    .zremrangebyscore(key, '-inf', Date.now())
+    .expire(key, SCHEDULE_TTL_SECONDS)
+    .exec();
+}
+
+/** Earliest planned drop strictly in the future, or null if none is queued. */
+export async function getNextScheduledDropAt(userId: string): Promise<Date | null> {
+  const [next] = await connection.zrangebyscore(scheduleKey(userId), Date.now(), '+inf', 'LIMIT', 0, 1);
+  return next ? new Date(Number(next)) : null;
+}
+
 // ── Geometry helpers (kept consistent with the cron) ──────────────────────────
 
 function msUntilWindowStart(windowStart: Date, from: Date): number {
@@ -116,15 +139,18 @@ export async function scheduleRemainingDropsForUser(userId: string, opts: { now:
   const windowOffsetMs = msUntilWindowStart(user.activeWindowStart, now);
 
   const jobs: Promise<unknown>[] = [];
+  const times: Date[] = [];
   for (let i = 0; i < dailyLimit; i++) {
     const jitterMs = (Math.random() * 10 - 5) * 60_000;
     const delayMs = Math.max(0, windowOffsetMs + i * baseIntervalMs + jitterMs);
     const scheduledFor = new Date(now.getTime() + delayMs);
 
     jobs.push(dropsQueue.add('schedule-drop', { userId, isMasteryDay, dailyLimit }, { delay: delayMs, jobId: `drop-${userId}-${scheduledFor.getTime()}` }));
+    times.push(scheduledFor);
   }
 
   await Promise.all(jobs);
+  await recordScheduledDrops(userId, times).catch((err) => console.error(`[DropOrchestrator] Failed to record schedule for ${userId}:`, err));
   return { scheduled: jobs.length };
 }
 

@@ -10,9 +10,12 @@ import { makeAPICallV1 } from '@/lib/api';
 import { CategoriesStep } from './steps/categories-step';
 import { TrialStep } from './steps/trial-step';
 import { ActiveTimeStep } from './steps/active-time-step';
+import { IntroStep, SampleDropStep } from './steps/intro-steps';
+import { localHHMMToUtc } from '@trivioq/shared-types';
 
-const STEP_LABELS = ['Categories', 'Trial', 'Active time', 'Finish'] as const;
-const TOTAL_STEPS = STEP_LABELS.length;
+const STEPS = ['intro', 'sample', 'categories', 'trial', 'activeTime', 'finish'] as const;
+type StepId = (typeof STEPS)[number];
+const TOTAL_STEPS = STEPS.length;
 const ROTATION_INTERVAL_MS = 2800;
 
 export function GetStartedWizard() {
@@ -26,6 +29,8 @@ export function GetStartedWizard() {
   const [activeStart, setActiveStart] = useState<string>('09:00');
   const [activeEnd, setActiveEnd] = useState<string>('17:00');
   const [trialAccepted, setTrialAccepted] = useState(false);
+  const [sampleChoice, setSampleChoice] = useState<number | null>(null);
+  const stepId: StepId = STEPS[step - 1];
 
   const loadingMessages = useMemo(() => [t('step4LoadingMsg1'), t('step4LoadingMsg2'), t('step4LoadingMsg3'), t('step4LoadingMsg4'), t('step4LoadingMsg5')], [t]);
 
@@ -43,13 +48,13 @@ export function GetStartedWizard() {
   }, [submitting, loadingMessages.length]);
 
   function canAdvance(): { ok: boolean; reason?: string } {
-    if (step === 1) {
+    if (stepId === 'categories') {
       if (selectedCategories.length < 30) return { ok: false, reason: t('step1MinError') };
     }
-    if (step === 2) {
+    if (stepId === 'trial') {
       if (!trialAccepted) return { ok: false, reason: t('trialRequiredError') };
     }
-    if (step === 3) {
+    if (stepId === 'activeTime') {
       if (!isValidTime(activeStart) || !isValidTime(activeEnd)) {
         return { ok: false, reason: t('timesInvalidError') };
       }
@@ -64,8 +69,9 @@ export function GetStartedWizard() {
         method: 'POST',
         body: {
           categoryNames: selectedCategories,
-          activeWindowStart: activeStart,
-          activeWindowEnd: activeEnd,
+          // Entered in the browser's local time; the API stores UTC.
+          activeWindowStart: localHHMMToUtc(activeStart),
+          activeWindowEnd: localHHMMToUtc(activeEnd),
           acceptTrial: true,
         },
       });
@@ -94,11 +100,13 @@ export function GetStartedWizard() {
   }
 
   const advanceLabel = useMemo(() => {
-    if (step === 1) return t('step1Continue');
-    if (step === 2) return t('step2Cta');
-    if (step === 3) return t('step3Continue');
+    if (stepId === 'intro') return t('introContinue');
+    if (stepId === 'sample') return sampleChoice === null ? t('sampleSkip') : t('introContinue');
+    if (stepId === 'categories') return t('step1Continue');
+    if (stepId === 'trial') return t('step2Cta');
+    if (stepId === 'activeTime') return t('step3Continue');
     return t('step4Submit');
-  }, [step, t]);
+  }, [stepId, sampleChoice, t]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
@@ -107,15 +115,15 @@ export function GetStartedWizard() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-brand-500 to-brand-500">{t('title')}</h1>
           <p className="text-sm text-text-muted mt-1">{t('subtitle')}</p>
-          <div className="mt-6 flex items-center gap-2">
-            {STEP_LABELS.map((label, idx) => {
+          <div className="mt-6 flex items-center gap-2" role="progressbar" aria-valuemin={1} aria-valuemax={TOTAL_STEPS} aria-valuenow={step} aria-label={t('stepOf', { n: step, total: TOTAL_STEPS })}>
+            {STEPS.map((label, idx) => {
               const n = idx + 1;
               const active = n === step;
               const done = n < step;
               return (
                 <div key={label} className="flex-1 flex items-center gap-2">
                   <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${done ? 'bg-success text-text' : active ? 'bg-brand-600 text-white' : 'bg-overlay text-text-muted'}`}>{n}</div>
-                  {idx < STEP_LABELS.length - 1 && <div className={`flex-1 h-0.5 ${n < step ? 'bg-success' : 'bg-overlay'}`} />}
+                  {idx < STEPS.length - 1 && <div className={`flex-1 h-0.5 ${n < step ? 'bg-success' : 'bg-overlay'}`} />}
                 </div>
               );
             })}
@@ -125,8 +133,10 @@ export function GetStartedWizard() {
         {/* Step body */}
         <AnimatePresence mode="wait">
           <motion.div key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
-            {step === 1 && <CategoriesStep selected={selectedCategories} onChange={setSelectedCategories} initialNames={[]} />}
-            {step === 2 && (
+            {stepId === 'intro' && <IntroStep />}
+            {stepId === 'sample' && <SampleDropStep choice={sampleChoice} onChoose={setSampleChoice} />}
+            {stepId === 'categories' && <CategoriesStep selected={selectedCategories} onChange={setSelectedCategories} initialNames={[]} />}
+            {stepId === 'trial' && (
               <div className="space-y-6">
                 <TrialStep />
                 <label className="flex items-start gap-3 p-4 rounded-2xl border border-border bg-bg-secondary/40 cursor-pointer">
@@ -135,8 +145,8 @@ export function GetStartedWizard() {
                 </label>
               </div>
             )}
-            {step === 3 && <ActiveTimeStep start={activeStart} end={activeEnd} onChangeStart={setActiveStart} onChangeEnd={setActiveEnd} />}
-            {step === 4 && !submitting && (
+            {stepId === 'activeTime' && <ActiveTimeStep start={activeStart} end={activeEnd} onChangeStart={setActiveStart} onChangeEnd={setActiveEnd} />}
+            {stepId === 'finish' && !submitting && (
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold text-text">{t('step4Title')}</h2>
                 <p className="text-sm text-text-muted mt-1">{t('step4Desc')}</p>
@@ -147,7 +157,7 @@ export function GetStartedWizard() {
                 </ul>
               </div>
             )}
-            {step === 4 && submitting && (
+            {stepId === 'finish' && submitting && (
               <div className="py-8 flex flex-col items-center text-center space-y-6" role="status" aria-live="polite">
                 <div className="relative h-16 w-16">
                   <Loader2 className="absolute inset-0 h-16 w-16 text-brand-500 animate-spin" aria-hidden="true" />

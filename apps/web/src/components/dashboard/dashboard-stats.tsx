@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { makeAPICallV1 } from '../../lib/api';
 import { ScoreTrendChart, ScorePeriod } from './score-trend-chart';
 import { Flame, Eye, CheckCircle2, XCircle } from 'lucide-react';
+import { useLeaderboardPosition } from '@/lib/queries';
 
 interface UserProfile {
   id: string;
@@ -13,6 +14,8 @@ interface UserProfile {
   currentStreak: number;
   cumulativeScore: number;
   subscriptionTier: 'FREE' | 'PREMIUM';
+  questionsAnswered?: number;
+  correctAnswers?: number;
 }
 
 interface DropChoice {
@@ -94,6 +97,10 @@ export function DashboardStats() {
     staleTime: 30_000,
   });
 
+  // Live ranks — UserScore.rank is only written when a period closes.
+  const { data: weekRank } = useLeaderboardPosition('global', 'weekly');
+  const { data: monthRank } = useLeaderboardPosition('global', 'monthly');
+
   const weekly = weeklyRes?.history ?? [];
   const monthly = monthlyRes?.history ?? [];
   const recentDrops = dropsRes?.drops ?? [];
@@ -103,14 +110,16 @@ export function DashboardStats() {
 
   const answered = recentDrops.filter((d) => d.wasCorrect !== null);
   const correct = answered.filter((d) => d.wasCorrect);
-  const accuracyPct = answered.length > 0 ? Math.round((correct.length / answered.length) * 100) : null;
+  // Lifetime accuracy when the counters are available; fall back to the last 10 drops.
+  const lifetimeAccuracy = profile?.questionsAnswered ? Math.round(((profile.correctAnswers ?? 0) / profile.questionsAnswered) * 100) : null;
+  const accuracyPct = lifetimeAccuracy ?? (answered.length > 0 ? Math.round((correct.length / answered.length) * 100) : null);
 
   return (
     <>
       {/* ── Score Cards ── */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard label={t('weeklyScore')} value={(currentWeek?.totalScore ?? 0).toLocaleString()} sub={currentWeek?.rank ? t('rankThisWeek', { rank: currentWeek.rank }) : t('noRankYet')} />
-        <StatCard label={t('monthlyScore')} value={(currentMonth?.totalScore ?? 0).toLocaleString()} sub={currentMonth?.rank ? t('rankThisMonth', { rank: currentMonth.rank }) : t('noRankYet')} />
+        <StatCard label={t('weeklyScore')} value={(currentWeek?.totalScore ?? 0).toLocaleString()} sub={weekRank?.rank ? t('rankThisWeek', { rank: weekRank.rank }) : t('noRankYet')} />
+        <StatCard label={t('monthlyScore')} value={(currentMonth?.totalScore ?? 0).toLocaleString()} sub={monthRank?.rank ? t('rankThisMonth', { rank: monthRank.rank }) : t('noRankYet')} />
         <StatCard label={t('allTimeScore')} value={(profile?.cumulativeScore ?? 0).toLocaleString()} sub={t('cumulativePoints')} />
         <StatCard
           label={t('currentStreak')}
@@ -123,7 +132,7 @@ export function DashboardStats() {
               tc('dashPlaceholder')
             )
           }
-          sub={accuracyPct !== null ? t('accuracyLast10', { pct: accuracyPct }) : t('noDataYet')}
+          sub={accuracyPct !== null ? (lifetimeAccuracy !== null ? t('accuracyLifetime', { pct: accuracyPct }) : t('accuracyLast10', { pct: accuracyPct })) : t('noDataYet')}
         />
       </div>
 
@@ -148,7 +157,7 @@ export function DashboardStats() {
             <p className="text-sm font-semibold text-text">{t('recentQuestionsTitle')}</p>
             <p className="text-xs text-text-muted mt-0.5">{t('recentQuestionsSubtitle')}</p>
           </div>
-          <a href="/score-history" className="text-xs text-brand-400 hover:text-brand-300 font-medium transition-colors">
+          <a href="/history" className="text-xs text-brand-400 hover:text-brand-300 font-medium transition-colors">
             {t('fullHistory')}
           </a>
         </div>

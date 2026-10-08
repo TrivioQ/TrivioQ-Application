@@ -171,6 +171,12 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response) =>
       });
     }
 
+    // Signing up through a friend's invite link makes the two of you friends,
+    // so the friends leaderboard isn't empty on day one.
+    if (referredById) {
+      await prisma.friendship.create({ data: { requesterId: referredById, addresseeId: user.id, status: 'ACCEPTED' } }).catch((err) => console.error('[/sync] Failed to create referral friendship:', err));
+    }
+
     try {
       const sessionCookie = await mintSessionCookie(req);
       res.json({ ...user, sessionCookie });

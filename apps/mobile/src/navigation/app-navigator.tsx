@@ -1,5 +1,7 @@
 import React from 'react';
-import { Platform, Text } from 'react-native';
+import { Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -24,11 +26,18 @@ import Preferences from '../screens/Preferences';
 import FaqScreen from '../screens/faq-screen';
 import ScoreHistoryScreen from '../screens/score-history-screen';
 import FriendsScreen from '../screens/friends-screen';
+import ReviewMistakesScreen from '../screens/review-mistakes-screen';
+import AccountScreen from '../screens/account-screen';
+import OnboardingScreen from '../screens/onboarding-screen';
+import { fetchFriendships } from '../api/friendships';
+import { queryKeys, useMe } from '../api/queries';
+import apiClient from '../api/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type RootStackParamList = {
   Auth: undefined;
+  Onboarding: undefined;
   Main: undefined;
 };
 
@@ -52,12 +61,18 @@ export type ProfileStackParamList = {
   Preferences: undefined;
   FAQ: undefined;
   ScoreHistory: undefined;
+  Account: undefined;
+};
+
+export type HistoryStackParamList = {
+  HistoryHome: undefined;
+  ReviewMistakes: undefined;
 };
 
 export type RootTabParamList = {
   Home: NavigatorScreenParams<HomeStackParamList>;
   Leaderboard: undefined;
-  History: undefined;
+  History: NavigatorScreenParams<HistoryStackParamList>;
   Friends: undefined;
   Profile: NavigatorScreenParams<ProfileStackParamList>;
 };
@@ -65,12 +80,10 @@ export type RootTabParamList = {
 // ─── Brand colour ─────────────────────────────────────────────────────────────
 // Colors are now sourced dynamically from ThemeContext
 
-// ─── Tab icons (inline SVG-style via Unicode / emoji fallback) ────────────────
-// Using simple text icons for zero-dependency rendering.
-// Swap for a real icon library (e.g. @expo/vector-icons) as desired.
+// ─── Tab icons ───────────────────────────────────────────────────────────────
 
-function TabIcon({ icon, focused }: { icon: string; focused: boolean }) {
-  return <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.5 }}>{icon}</Text>;
+function TabIcon({ name, color, size }: { name: keyof typeof Ionicons.glyphMap; color: string; size: number }) {
+  return <Ionicons name={name} size={size} color={color} />;
 }
 
 // ─── Home stack (Home + DropActive modal) ─────────────────────────────────────
@@ -126,7 +139,29 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="Preferences" component={Preferences} options={{ title: t('profile.preferences') }} />
       <ProfileStack.Screen name="FAQ" component={FaqScreen} options={{ title: t('profile.faq') }} />
       <ProfileStack.Screen name="ScoreHistory" component={ScoreHistoryScreen} options={{ title: t('profile.scoreHistory') }} />
+      <ProfileStack.Screen name="Account" component={AccountScreen} options={{ title: t('profile.accountSecurity') }} />
     </ProfileStack.Navigator>
+  );
+}
+
+// ─── History stack (History + Review mistakes) ───────────────────────────────
+
+const HistoryStack = createNativeStackNavigator<HistoryStackParamList>();
+
+function HistoryStackNavigator() {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  return (
+    <HistoryStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.bgSecondary },
+        headerTintColor: colors.textPrimary,
+        headerTitleStyle: { fontWeight: '800' },
+      }}
+    >
+      <HistoryStack.Screen name="HistoryHome" component={HistoryScreen} options={{ title: t('history.title') }} />
+      <HistoryStack.Screen name="ReviewMistakes" component={ReviewMistakesScreen} options={{ title: t('review.title') }} />
+    </HistoryStack.Navigator>
   );
 }
 
@@ -137,6 +172,16 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 function MainTabNavigator() {
   const { t } = useTranslation();
   const { colors } = useTheme();
+
+  // Badge counts: pending friend requests and unread notifications.
+  const { data: friendships } = useQuery({ queryKey: queryKeys.friendships, queryFn: fetchFriendships, refetchInterval: 60_000 });
+  const { data: unread } = useQuery({
+    queryKey: ['notifications-unread'],
+    queryFn: async () => (await apiClient.get('/v1/notifications/inbox?limit=1')).data.unreadCount as number,
+    refetchInterval: 60_000,
+  });
+  const incoming = friendships?.incomingRequests.length ?? 0;
+  const badgeStyle = { backgroundColor: colors.error, color: colors.onAccent, fontSize: 10 };
   return (
     <Tab.Navigator
       screenOptions={{
@@ -163,7 +208,9 @@ function MainTabNavigator() {
         component={HomeStackNavigator}
         options={{
           tabBarLabel: t('common.home'),
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon="🏠" focused={focused} />,
+          tabBarIcon: ({ focused, color, size }: { focused: boolean; color: string; size: number }) => <TabIcon name={focused ? 'home' : 'home-outline'} color={color} size={size} />,
+          tabBarBadge: unread ? unread : undefined,
+          tabBarBadgeStyle: badgeStyle,
         }}
       />
       <Tab.Screen
@@ -171,15 +218,15 @@ function MainTabNavigator() {
         component={LeaderboardScreen}
         options={{
           tabBarLabel: t('common.leaderboard'),
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon="🏆" focused={focused} />,
+          tabBarIcon: ({ focused, color, size }: { focused: boolean; color: string; size: number }) => <TabIcon name={focused ? 'trophy' : 'trophy-outline'} color={color} size={size} />,
         }}
       />
       <Tab.Screen
         name="History"
-        component={HistoryScreen}
+        component={HistoryStackNavigator}
         options={{
           tabBarLabel: t('common.history'),
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon="📋" focused={focused} />,
+          tabBarIcon: ({ focused, color, size }: { focused: boolean; color: string; size: number }) => <TabIcon name={focused ? 'time' : 'time-outline'} color={color} size={size} />,
         }}
       />
       <Tab.Screen
@@ -187,7 +234,9 @@ function MainTabNavigator() {
         component={FriendsScreen}
         options={{
           tabBarLabel: t('friends.title'),
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon="👥" focused={focused} />,
+          tabBarIcon: ({ focused, color, size }: { focused: boolean; color: string; size: number }) => <TabIcon name={focused ? 'people' : 'people-outline'} color={color} size={size} />,
+          tabBarBadge: incoming || undefined,
+          tabBarBadgeStyle: badgeStyle,
         }}
       />
       <Tab.Screen
@@ -195,7 +244,7 @@ function MainTabNavigator() {
         component={ProfileStackNavigator}
         options={{
           tabBarLabel: t('common.profile'),
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon icon="👤" focused={focused} />,
+          tabBarIcon: ({ focused, color, size }: { focused: boolean; color: string; size: number }) => <TabIcon name={focused ? 'person' : 'person-outline'} color={color} size={size} />,
         }}
       />
     </Tab.Navigator>
@@ -215,6 +264,13 @@ function AuthStackNavigator() {
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
+function SignedInNavigator() {
+  const { data: me, isLoading } = useMe();
+  if (isLoading && !me) return null; // splash stays up while the profile loads
+
+  return <RootStack.Navigator screenOptions={{ headerShown: false }}>{me && me.onboardingComplete === false ? <RootStack.Screen name="Onboarding" component={OnboardingScreen} /> : <RootStack.Screen name="Main" component={MainTabNavigator} />}</RootStack.Navigator>;
+}
+
 export function AppNavigator() {
   const { user, isLoading } = useAuth();
 
@@ -222,5 +278,11 @@ export function AppNavigator() {
     return null; // Or a splash/loading screen
   }
 
-  return <RootStack.Navigator screenOptions={{ headerShown: false }}>{user ? <RootStack.Screen name="Main" component={MainTabNavigator} /> : <RootStack.Screen name="Auth" component={AuthStackNavigator} />}</RootStack.Navigator>;
+  if (user) return <SignedInNavigator />;
+
+  return (
+    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      <RootStack.Screen name="Auth" component={AuthStackNavigator} />
+    </RootStack.Navigator>
+  );
 }
