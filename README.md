@@ -1,177 +1,207 @@
-# TrivioQ Monorepo
+# TrivioQ
 
-This repository contains the complete frontend, mobile, backend, and infrastructure code for TrivioQ, a daily trivia application focused on micro-learning and engaging push-notification-driven content.
+TrivioQ is a daily-trivia platform built around **drops**: bite-sized questions pushed to players at scheduled moments inside their own active window, with streaks, points, leaderboards, friends and a Premium tier. Content is curated through an AI-assisted ingestion pipeline and a human review workflow.
 
-This project is structured as a **Turborepo** (Monorepo), allowing seamless code sharing, rapid execution of scripts, and scalable application development.
+This repository is a **pnpm + Turborepo monorepo** containing the API, the web app, the admin portal, the mobile app, and shared packages — plus the Docker setup used to deploy them.
 
----
-
-## 🏗 Architecture & Workspace Structure
-
-### Apps (`/apps`)
-
-- **`api`** (Node.js/Express): The robust backend service that powers the entire platform. Handles Firebase JWT authentication, Prisma database interactions, cron scheduling for automated trivia drops, and BullMQ worker execution for push notifications.
-- **`admin`** (Next.js): The internal admin portal for managing users, content, and platform configuration. Restricted to users with the `ADMIN` role.
-- **`mobile`** (React Native/Expo): The cross-platform mobile application where users receive daily trivia drops, view streaks, and upgrade their subscription tiers. Fully integrates with Firebase Auth and TanStack Query.
-- **`web`** (Next.js 14): The web platform serving as a landing page, leaderboard, and browser-accessible dashboard.
-
-### Packages (`/packages`)
-
-- **`@trivioq/database`**: The unified PostgreSQL database layer powered by Prisma ORM. It exposes the auto-generated Prisma Client safely across all applications.
-- **`@trivioq/shared-types`**: The single source of truth for TypeScript interfaces, enums (`SubscriptionTier`), and API request/response payloads shared across the backend, mobile, and web apps.
+> 📚 **Full documentation lives in [`docs/`](docs/README.md).** This README is the quick start and map.
 
 ---
 
-## 🚀 Getting Started
+## Contents
 
-### 1. Prerequisites
+- [Repository layout](#repository-layout)
+- [Tech stack](#tech-stack)
+- [How it works](#how-it-works)
+- [Feature overview](#feature-overview)
+- [Quick start](#quick-start)
+- [Configuration](#configuration)
+- [Scripts](#scripts)
+- [Deployment](#deployment)
+- [Documentation index](#documentation-index)
+- [Contributing & code quality](#contributing--code-quality)
 
-- **Node.js** (v18+)
-- **pnpm** (v9.15.0 is configured as the package manager)
-- **PostgreSQL** (Running locally or via a cloud provider)
-- **Redis** (Required for the BullMQ task queue)
+---
 
-### 2. Environment Setup
+## Repository layout
 
-You will need to configure `.env` files in specific directories.
-
-**Backend (`apps/api/.env`)**:
-
-```env
-PORT=8080
-DATABASE_URL="postgresql://user:password@localhost:5432/trivioq?schema=public"
-REDIS_URL="redis://127.0.0.1:6379"
-FIREBASE_SERVICE_ACCOUNT="..."
+```text
+apps/
+  api/        Express REST API, BullMQ workers, cron jobs, AI ingestion worker   (:3013, ingestion :3014)
+  web/        Next.js 14 site + player dashboard                                  (:3011)
+  admin/      Next.js 16 admin portal (ADMIN role only)                           (:3012)
+  mobile/     Expo / React Native app for iOS & Android
+packages/
+  database/       @trivioq/database — Prisma schema, migrations, client, crypto, audit log, seed scripts
+  shared-types/   @trivioq/shared-types — shared TS types and pure client helpers
+docs/         Project documentation
+scripts/      deploy.sh — Docker deployment helper
+docker-compose.yml   Production stack (Postgres, PgBouncer, Redis, API, workers, web, admin, GlitchTip, Cloudflare Tunnel)
 ```
 
-**Admin Portal (`apps/admin/.env.local`)**:
+## Tech stack
 
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/trivioq"
+| Area | Technology |
+| :-- | :-- |
+| Language / tooling | TypeScript, pnpm 9.15, Turborepo, ESLint 9 (flat config), Prettier, Husky |
+| API | Express 4, Prisma, zod, BullMQ (Redis), node-cron, Pino |
+| Data | PostgreSQL 16 (+ `pg_trgm`), PgBouncer, Redis 7 |
+| Auth | Firebase Authentication (ID tokens for mobile, session cookies for web/admin) |
+| Web | Next.js 14, React 18, Tailwind 3, TanStack Query, next-intl, Framer Motion |
+| Admin | Next.js 16, React 19, Tailwind 4, shadcn/ui, Recharts |
+| Mobile | Expo SDK 50, React Native 0.73, React Navigation, TanStack Query (persisted), i18next |
+| Notifications | FCM (mobile push), Web Push / VAPID, SendGrid (email) |
+| AI | Pluggable providers (Gemini, OpenAI-compatible: OpenAI / NVIDIA NIM / DeepSeek, local endpoints), configured from the DB |
+| Observability | Sentry SDKs → self-hosted GlitchTip, Bull Board, admin audit log |
+| Infra | Docker Compose, Cloudflare Tunnel |
+
+## How it works
+
+```text
+Mobile (Firebase ID token) ─┐
+Web  (tq_auth cookie → proxy)├──▶ API :3013 ──▶ PostgreSQL
+Admin (Prisma + API proxy) ──┘       │  ▲
+                                     ▼  │
+                        Redis / BullMQ queues ──▶ drop · notification · email workers
+                                     ▲
+                      cron worker (Daily Drop Planner 00:00 UTC, bonuses, reminders, cleanup)
 ```
 
-> The admin portal uses Prisma directly to verify session cookies and look up user roles. No Firebase client credentials are required — authentication relies on `firebaseUid` values already stored in the database.
+1. **Sign in** with Firebase; the client calls `POST /v1/auth/sync`, which upserts the user in Postgres (and mints a session cookie for web/admin).
+2. **Onboard**: pick ≥ 30 categories and an active time window; a 7-day Premium trial starts and the first drop arrives immediately.
+3. **Plan**: every day at 00:00 UTC the planner spreads each user's daily drops across their active window (±5 min jitter) as delayed BullMQ jobs.
+4. **Deliver**: when a job fires, the drop worker picks an age- and category-appropriate question, creates a `UserDrop` and sends a push notification (default expiry 30 min).
+5. **Answer**: the player reveals the question (starts a 60/180/300 s timer by difficulty), optionally uses a hint (costs 30 % of the points) and submits. Points are 10 / 20 / 30 for Easy / Medium / Hard and feed weekly, monthly and all-time leaderboards.
+6. **Curate**: admins upload PDFs → AI extracts or generates questions → AI validates → humans approve into the live question bank.
 
-**Database (`packages/database/.env`)**:
+Read more: [Architecture](docs/architecture.md).
 
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/trivioq?schema=public"
-```
+## Feature overview
 
-### 3. Installation
+| Feature | Summary | Docs |
+| :-- | :-- | :-- |
+| Trivia drops | Scheduled + on-demand questions, timers, hints, reveal | [docs/features/trivia-drops.md](docs/features/trivia-drops.md) |
+| Scoring & leaderboards | Period ledger, weekly/monthly bonuses, bonus plans, rank notifications | [docs/features/scoring-and-leaderboards.md](docs/features/scoring-and-leaderboards.md) |
+| Streaks | Consecutive-correct streaks, milestones, streak-at-risk reminders | [docs/features/streaks.md](docs/features/streaks.md) |
+| Friends & referrals | Requests, blocking, invite links, friends leaderboard | [docs/features/friends-and-social.md](docs/features/friends-and-social.md) |
+| Subscriptions | FREE / PREMIUM / PLUS (vault) / TRIAL, on-demand tokens | [docs/features/subscriptions.md](docs/features/subscriptions.md) |
+| Onboarding & trial | Category + window selection, 7-day trial | [docs/features/onboarding-and-trial.md](docs/features/onboarding-and-trial.md) |
+| Notifications | FCM, Web Push, email, inbox, preferences, templates | [docs/features/notifications.md](docs/features/notifications.md) |
+| Review & history | Mistake practice, history, score history, share cards | [docs/features/review-and-practice.md](docs/features/review-and-practice.md) |
+| AI ingestion | PDF → extracted/generated questions with resumable jobs | [docs/features/ai-ingestion.md](docs/features/ai-ingestion.md) |
+| Question moderation | Pending queue, AI validation, duplicate replacement | [docs/features/question-moderation.md](docs/features/question-moderation.md) |
+| Admin portal | Users, content, engagement, AI config, system tools | [docs/features/admin-portal.md](docs/features/admin-portal.md) |
+| Account lifecycle | Sign-up rules, 30-day deletion grace period | [docs/features/account-lifecycle.md](docs/features/account-lifecycle.md) |
+| Observability | GlitchTip, logging, audit trail | [docs/features/observability.md](docs/features/observability.md) |
 
-Install all dependencies using pnpm from the root directory:
+---
+
+## Quick start
+
+### Prerequisites
+
+- Node.js 18+ (20+ recommended), **pnpm 9.15**
+- PostgreSQL 16 with the `pg_trgm` extension, and Redis 7 — `docker compose up -d postgres redis` is the easiest way
+- A Firebase project (Email/Password + Google) and its service-account JSON
+
+### 1. Install
 
 ```bash
 pnpm install
 ```
 
-### 4. Database Setup
+### 2. Configure
 
-To initialize the database schema and generate the shared Prisma Client:
-
-```bash
-# From the root directory:
-pnpm --filter @trivioq/database db-migrate
-```
-
-### 5. Running the Application
-
-Turborepo makes it incredibly easy to start everything simultaneously. From the root directory, run:
+All apps read one **root `.env`**:
 
 ```bash
-pnpm dev
+cp .env.example .env
+# fill in DATABASE_URL, Firebase keys, API_URL, EXPO_PUBLIC_*, ...
+# put your service account at ./firebase-service-account.json (gitignored)
 ```
 
-This single command spins up the Next.js web app, the React Native Expo bundler, and the Node.js Express backend in parallel!
+Also add `ENCRYPTION_MASTER_KEY` (`openssl rand -hex 32`, needed for AI provider keys), and optionally `SENDGRID_API_KEY` and `VAPID_*` keys for email and web push. Every variable is documented in [Getting Started](docs/getting-started.md#variable-reference).
+
+### 3. Prepare the database
+
+```bash
+pnpm --filter @trivioq/database generate
+pnpm --filter @trivioq/database seed-server      # db-push + legal, settings, AI providers, notifications, categories
+pnpm --filter @trivioq/database seed-mock-data   # optional: 500 questions, 100 users, history
+```
+
+### 4. Run
+
+```bash
+pnpm dev                    # turbo run dev: api :3013, web :3011, admin :3012
+pnpm --filter mobile start  # Expo bundler (mobile has no `dev` script, so turbo skips it)
+```
+
+`pnpm dev` starts the HTTP API (with the web and admin apps) only. To exercise scheduled drops, notifications and emails locally also run the queue consumers and the cron process from `apps/api` (`npx ts-node-dev src/worker.ts`, `npx ts-node-dev src/cron.ts`). For AI ingestion run `pnpm --filter api dev:ingestion-worker`. Details: [Getting Started](docs/getting-started.md#4-run).
+
+### 5. Become an admin
+
+Sign up in the web or mobile app, then:
+
+```bash
+pnpm --filter @trivioq/database make-admin you@example.com
+```
+
+and open <http://localhost:3012>.
 
 ---
 
-## 🛠 Seeding & Administration
+## Configuration
 
-For development purposes, you can use the following utility scripts in the `packages/database` workspace.
+| Where | What |
+| :-- | :-- |
+| Root `.env` | Infrastructure and secrets for all apps ([`.env.example`](.env.example); Docker: [`.env.docker.example`](.env.docker.example)) |
+| Admin → **App Settings** | Runtime tunables: `max_drops_free`, `max_drops_premium`, `hint_cost_percent`, `drop_expiry_minutes`, `answer_timer_*_seconds`, `support_email` |
+| Admin → **AI Providers / Models / Ingestion Settings** | Provider credentials (encrypted), model catalogue, per-stage model and tuning — only base API keys live in `.env` |
+| Admin → **Cron Jobs** | Enable/disable, trigger or terminate scheduled jobs |
+| Admin → **Bonus Plans** | Weekly/monthly leaderboard rewards |
 
-### Mock Data Seeding
+## Scripts
 
-To quickly populate your local database with 500+ questions, 100 users, and historical data:
+| Command | Description |
+| :-- | :-- |
+| `pnpm dev` / `build` / `lint` / `lint:fix` / `format` / `clean` | Turbo-driven workspace tasks |
+| `pnpm ingest` | Run the `ingest` task for the api workspace |
+| `pnpm --filter @trivioq/database <script>` | `generate`, `db-migrate`, `db-push`, `debug` (Prisma Studio), `make-admin <email>`, `seed-*` — see [Database](docs/database.md#scripts) |
+| `./scripts/deploy.sh <cmd>` | `deploy`, `redeploy`, `logs`, `status`, `migrate`, `backup`, `shell`, … |
 
-```bash
-pnpm --filter @trivioq/database seed-mock-data
-```
+## Deployment
 
-### Granting Admin Privileges
-
-To access the Admin Portal (`apps/admin`), your user must have the `ADMIN` role. Use this script to elevate an existing user:
-
-```bash
-pnpm --filter @trivioq/database make-admin <email>
-```
-
-### AI Question Ingestion (Background Processing)
-
-> **Note:** AI ingestion parameters (providers, models, temperatures, delays) are managed globally in the database via the **Admin Portal** UI. Only the base API keys (e.g. `GEMINI_API_KEY`) reside in `.env`.
-
-When running the question ingestion script on a remote server, it is recommended to run it inside a persistent terminal multiplexer (`tmux`) so the process continues running even if your host machine closes the terminal or shuts down.
-
-**Create a new tmux session:**
+Production runs as a Docker Compose stack behind a Cloudflare Tunnel: one API image reused for the API, migration job and each worker (`worker-cron`, `-dispatcher`, `-drop`, `-notification`, `-email`, `-ingestion`), plus web, admin, Postgres + PgBouncer, Redis and GlitchTip.
 
 ```bash
-tmux new -s ingest-session
+cp .env.docker.example .env   # fill in secrets
+./scripts/deploy.sh deploy
 ```
 
-**Start the ingestion process:**
+See [Docker Deployment](docs/docker-deployment.md) for the full guide.
+
+## Documentation index
+
+| | |
+| :-- | :-- |
+| **Foundations** | [Architecture](docs/architecture.md) · [Getting Started](docs/getting-started.md) · [Database](docs/database.md) · [Docker Deployment](docs/docker-deployment.md) · [Conventions](docs/conventions.md) |
+| **Apps** | [API](docs/apps/api.md) · [Web](docs/apps/web.md) · [Admin](docs/apps/admin.md) · [Mobile](docs/apps/mobile.md) · [Shared packages](docs/apps/packages.md) |
+| **API reference** | [Authentication](docs/api/authentication.md) · [Endpoints](docs/api/endpoints.md) · [Workers & queues](docs/api/workers-and-queues.md) · [Cron jobs](docs/api/cron-jobs.md) |
+| **Features** | See the [feature table](#feature-overview) or the [docs index](docs/README.md) |
+
+## Contributing & code quality
+
+Project rules (see [`.agents/AGENTS.md`](.agents/AGENTS.md) and [Conventions](docs/conventions.md)):
+
+- **Localize every user-facing string** (`next-intl` / `react-i18next`); no hard-coded English in components.
+- **No `window.confirm` / `alert()`** — use `useConfirm` and toasts.
+- **Lowercase-hyphenated filenames**, responsive layouts (desktop/tablet/mobile) and **light + dark** theme support.
+- Keep code DRY.
 
 ```bash
-# From the root directory:
-pnpm ingest
+pnpm format   # Prettier
+pnpm lint     # ESLint across workspaces
 ```
 
-**Detach from the session:**
-Press `Ctrl + B`, then release and press `D`. You can now safely close your local terminal.
-
-**Re-attach to the session later:**
-
-```bash
-tmux attach -t ingest-session
-```
-
----
-
-## 🛠 Features & Systems
-
-### Firebase Authentication Sync
-
-TrivioQ uses Firebase as the primary identity provider for secure token management.
-However, to maintain powerful relational data (streaks, drops, friendships), we utilize a **Sync mechanism**. When a user logs in via Mobile or Web, the frontend intercepts the Firebase ID token and hits `POST /api/v1/auth/sync`. The backend securely verifies the token and dynamically upserts the user in the PostgreSQL database.
-
-### The Trivia Drop Scheduler
-
-The backend operates a `node-cron` worker that runs every minute.
-It analyzes the active user base, checks their daily drop limits and subscription tiers (`FREE` vs `PREMIUM`), dynamically resolves timezone boundaries, and utilizes a randomized algorithm to queue targeted trivia questions.
-
-### Instant Drops & Premium Subscriptions
-
-Users can trigger instantaneous drops from their mobile or web dashboards.
-
-- **FREE users** are hard-capped at automated drops and will hit a Premium Paywall if they attempt an instant request.
-- **PREMIUM users** can trigger up to **100 on-demand drops per day**.
-
----
-
-## 🧹 Code Quality
-
-The repository strictly adheres to modern styling guidelines, utilizing ESLint (v9+ Flat Config) and Prettier.
-
-To format all code instantly:
-
-```bash
-pnpm format
-```
-
-To run lint checks across all packages:
-
-```bash
-pnpm lint
-```
-
-VS Code is already configured to automatically run `eslint --fix` and Prettier whenever you save a file. Happy coding!
+A Husky pre-commit hook runs `prisma migrate status`, lint and `tsc --noEmit`, so schema changes must ship with a migration (`pnpm --filter @trivioq/database db-migrate`). VS Code is configured to format and `eslint --fix` on save.
